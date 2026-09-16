@@ -23,12 +23,24 @@ const aftenscreen = Fraunces({
   style: ["normal"],
 });
 
+const SITE_NAME = "C2C – Brand-Creator Marketplace";
+const SITE_DESCRIPTION = "Brands find matching content creators for collaborations.";
+
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
-  title: "C2C – Brand-Creator Marketplace",
-  description: "Brands find matching content creators for collaborations.",
+  title: { default: SITE_NAME, template: `%s · C2C` },
+  description: SITE_DESCRIPTION,
+  openGraph: {
+    title: SITE_NAME,
+    description: SITE_DESCRIPTION,
+    siteName: "C2C",
+    locale: "en_US",
+    type: "website",
+  },
   twitter: {
     card: "summary_large_image",
+    title: SITE_NAME,
+    description: SITE_DESCRIPTION,
   },
 };
 

@@ -1,7 +1,10 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { LoginForm } from "@/components/login-form";
 import { DeletedAccountToast } from "@/components/deleted-account-toast";
 import { Logo } from "@/components/logo";
+
+export const metadata: Metadata = { title: "Log in" };
 
 export default function LoginPage() {
   return (

@@ -1,6 +1,12 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { PLATFORM_FEE_RATE, PRO_PLATFORM_FEE_RATE, PRO_SUBSCRIPTION_PRICE_CENTS } from "@/lib/constants";
 import { formatCents } from "@/lib/format";
+
+export const metadata: Metadata = {
+  title: "FAQ",
+  description: "How matching, payments, and reviews work on C2C.",
+};
 
 const FAQS: { question: string; answer: string }[] = [
   {

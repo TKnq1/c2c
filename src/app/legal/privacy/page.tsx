@@ -1,3 +1,7 @@
+import type { Metadata } from "next";
+
+export const metadata: Metadata = { title: "Privacy Policy" };
+
 const SECTIONS: { title: string; body: string }[] = [
   {
     title: "1. Overview",

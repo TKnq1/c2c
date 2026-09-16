@@ -1,6 +1,12 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { SignupForm } from "@/components/signup-form";
 import { Logo } from "@/components/logo";
+
+export const metadata: Metadata = {
+  title: "Sign up",
+  description: "Create a brand or creator account on C2C.",
+};
 
 export default function SignupPage() {
   return (

@@ -1,5 +1,8 @@
+import type { Metadata } from "next";
 import { PLATFORM_FEE_RATE, PRO_PLATFORM_FEE_RATE, PRO_SUBSCRIPTION_PRICE_CENTS } from "@/lib/constants";
 import { formatCents } from "@/lib/format";
+
+export const metadata: Metadata = { title: "Terms of Service" };
 
 const SECTIONS: { title: string; body: string }[] = [
   {

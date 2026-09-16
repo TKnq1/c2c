@@ -1,3 +1,7 @@
+import type { Metadata } from "next";
+
+export const metadata: Metadata = { title: "Imprint" };
+
 export default function ImprintPage() {
   return (
     <main className="flex-1 px-6 py-16">
