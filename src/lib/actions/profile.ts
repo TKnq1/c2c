@@ -7,7 +7,10 @@ import { updateBrandProfileSchema, updateCreatorProfileSchema } from "@/lib/vali
 
 export type ActionState = { error?: string; success?: boolean } | undefined;
 
-const MAX_AVATAR_BYTES = 2 * 1024 * 1024;
+// The client resizes/compresses before submitting (see AvatarUpload), so a
+// legitimate upload lands well under this — it's a ceiling against someone
+// bypassing that client-side step, not the expected normal size.
+const MAX_AVATAR_BYTES = 500 * 1024;
 
 async function fileToDataUrl(file: File): Promise<string> {
   const buffer = Buffer.from(await file.arrayBuffer());
