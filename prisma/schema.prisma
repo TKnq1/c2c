@@ -229,6 +229,8 @@ model CreatorProfile {
   interests   Interest[]
   reviews     Review[]
   favoritedBy Favorite[]
+
+  @@index([stripeAccountId])
 }
 
 model Favorite {

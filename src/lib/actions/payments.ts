@@ -301,6 +301,16 @@ export async function createCheckoutSessionAction(interestId: string): Promise<{
   if (!interest || interest.request.startupId !== startup.id) return { error: "This interest could not be found." };
   if (interest.paymentStatus !== "ACCEPTED") return { error: "This offer isn't ready for payment." };
 
+  // Reuse a still-open session rather than always minting a new one —
+  // stripeCheckoutSessionId is unique per interest, so overwriting it while
+  // an earlier session is still open (e.g. two tabs) would orphan that
+  // session's id: if the brand finishes paying on it anyway, the webhook's
+  // lookup by session id would find nothing and silently drop a real charge.
+  if (interest.stripeCheckoutSessionId) {
+    const existing = await stripe.checkout.sessions.retrieve(interest.stripeCheckoutSessionId);
+    if (existing.status === "open") return { url: existing.url! };
+  }
+
   const checkoutSession = await stripe.checkout.sessions.create({
     mode: "payment",
     line_items: [
@@ -389,25 +399,50 @@ export async function releasePaymentAction(
     return { error: "Connect Stripe in Settings → Payouts before releasing a payment." };
   }
 
+  // Atomic claim before touching Stripe: a double-click or a retried
+  // request could otherwise both pass the HELD check above and each fire a
+  // real transfer, paying the creator twice out of the platform's own
+  // margin. Only the request whose updateMany actually matches a row (still
+  // HELD at that instant) proceeds — a second concurrent call sees 0 rows
+  // updated and bails out below instead of calling Stripe at all.
+  const claimed = await prisma.interest.updateMany({
+    where: { id: interestId, creatorId: creator.id, paymentStatus: "HELD" },
+    data: { paymentStatus: "RELEASED", releasedAt: new Date(), proofUrl: parsed.data.proofUrl || null },
+  });
+  if (claimed.count === 0) {
+    return { error: "This payment is not currently held." };
+  }
+
   // Transfer-math fee retention, not application_fee_amount (that's only
   // for destination/direct charges) — transferring payoutCents rather than
   // amountCents out of the original charge is how the platform fee stays
-  // with the platform under separate charges and transfers.
-  const transfer = await stripe.transfers.create({
-    amount: interest.payoutCents!,
-    currency: "eur",
-    destination: creator.stripeAccountId,
-    source_transaction: interest.stripeChargeId!,
-  });
+  // with the platform under separate charges and transfers. idempotencyKey
+  // means a retry of this exact call (e.g. after a network error) can't
+  // create a second transfer even if the DB claim above already succeeded.
+  let transfer;
+  try {
+    transfer = await stripe.transfers.create(
+      {
+        amount: interest.payoutCents!,
+        currency: "eur",
+        destination: creator.stripeAccountId,
+        source_transaction: interest.stripeChargeId!,
+      },
+      { idempotencyKey: `release-${interestId}` },
+    );
+  } catch {
+    // Give the creator a working retry instead of a stuck "Released" with
+    // no money actually transferred.
+    await prisma.interest.update({
+      where: { id: interestId },
+      data: { paymentStatus: "HELD", releasedAt: null, proofUrl: null },
+    });
+    return { error: "Releasing the payment failed. Please try again." };
+  }
 
   await prisma.interest.update({
     where: { id: interestId },
-    data: {
-      paymentStatus: "RELEASED",
-      releasedAt: new Date(),
-      proofUrl: parsed.data.proofUrl || null,
-      stripeTransferId: transfer.id,
-    },
+    data: { stripeTransferId: transfer.id },
   });
 
   await notify(
@@ -445,14 +480,33 @@ export async function refundPaymentAction(interestId: string) {
     throw new Error("This payment is not currently held.");
   }
 
+  // Same atomic-claim-before-Stripe-call pattern as releasePaymentAction —
+  // see the comment there for why. Here it guards against a double refund.
+  const claimed = await prisma.interest.updateMany({
+    where: { id: interestId, requestId: interest.requestId, paymentStatus: "HELD" },
+    data: { paymentStatus: "REFUNDED", refundedAt: new Date() },
+  });
+  if (claimed.count === 0) {
+    throw new Error("This payment is not currently held.");
+  }
+
   // Nothing was ever transferred out at HELD (separate charges and
   // transfers — the transfer only happens on release), so a plain refund
   // of the original charge is the whole reversal; no transfer to claw back.
-  const refund = await stripe.refunds.create({ charge: interest.stripeChargeId! });
+  let refund;
+  try {
+    refund = await stripe.refunds.create(
+      { charge: interest.stripeChargeId! },
+      { idempotencyKey: `refund-${interestId}` },
+    );
+  } catch {
+    await prisma.interest.update({ where: { id: interestId }, data: { paymentStatus: "HELD", refundedAt: null } });
+    throw new Error("Refunding the payment failed. Please try again.");
+  }
 
   await prisma.interest.update({
     where: { id: interestId },
-    data: { paymentStatus: "REFUNDED", refundedAt: new Date(), stripeRefundId: refund.id },
+    data: { stripeRefundId: refund.id },
   });
 
   await notify(
