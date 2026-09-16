@@ -1,26 +1,172 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* 14islands — monochrome editorial palette. No chromatic color anywhere. */
+  --ink: #070707;
+  --paper: #ffffff;
+  --fog: #f2f2f2;
+  --stone: #a2a2a9;
+  --graphite: #797979;
+
+  --background: var(--paper);
+  --foreground: var(--ink);
+  --scrollbar-thumb: var(--stone);
+  color-scheme: light;
+}
+
+.dark {
+  /* Same neutral system, inverted — dark mode stays monochrome too. */
+  --ink: #ffffff;
+  --paper: #070707;
+  --fog: #1a1a1a;
+  --stone: #797979;
+  --graphite: #a2a2a9;
+
+  --background: var(--paper);
+  --foreground: var(--ink);
+  --scrollbar-thumb: var(--graphite);
+  color-scheme: dark;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
+  --color-ink: var(--ink);
+  --color-paper: var(--paper);
+  --color-fog: var(--fog);
+  --color-stone: var(--stone);
+  --color-graphite: var(--graphite);
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --font-sans: var(--font-bentonsans);
+  --font-display: var(--font-aftenscreen);
+
+  /* Editorial gallery discipline: every corner is 4px, no exceptions —
+     rounded-full (avatars, and anything left as a true circle) is the one
+     shape this doesn't touch. */
+  --radius-xs: 4px;
+  --radius-sm: 4px;
+  --radius-md: 4px;
+  --radius-lg: 4px;
+  --radius-xl: 4px;
+  --radius-2xl: 4px;
+  --radius-3xl: 4px;
+  --radius-4xl: 4px;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-bentonsans), ui-sans-serif, system-ui, sans-serif;
+}
+
+/* Scrollbar follows the theme instead of always rendering light. */
+html {
+  scrollbar-color: var(--scrollbar-thumb) transparent;
+}
+
+*::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+*::-webkit-scrollbar-thumb {
+  background-color: var(--scrollbar-thumb);
+  border-radius: 9999px;
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+
+.scrollbar-hide {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+@media print {
+  .no-print {
+    display: none !important;
+  }
+}
+
+@keyframes page-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.page-transition-fade {
+  animation: page-fade-in 180ms ease-out;
+}
+
+@keyframes results-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.discover-results-fade {
+  animation: results-fade-in 180ms ease-out;
+}
+
+@keyframes toast-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes toast-out {
+  from {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(8px) scale(0.98);
+  }
+}
+
+.toast-in {
+  animation: toast-in 220ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.toast-out {
+  animation: toast-out 180ms ease-in forwards;
+}
+
+@keyframes logo-pop {
+  0% {
+    opacity: 0;
+    transform: translateY(6px) scale(0.9);
+  }
+  50% {
+    opacity: 1;
+    transform: translateY(-14px) scale(1.05);
+  }
+  75% {
+    transform: translateY(4px) scale(0.98);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }

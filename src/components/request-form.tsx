@@ -1,0 +1,114 @@
+"use client";
+
+import { useActionState } from "react";
+import { createRequestAction, updateRequestAction } from "@/lib/actions/requests";
+import { NICHES, PRODUCT_CATEGORIES, LANGUAGES } from "@/lib/constants";
+import { Select } from "@/components/select";
+
+type Props = {
+  requestId?: string;
+  initial?: {
+    title: string;
+    description: string;
+    niche: string;
+    language: string;
+    productCategory: string;
+    minFollowers: number;
+  };
+};
+
+export function RequestForm({ requestId, initial }: Props) {
+  const action = requestId ? updateRequestAction.bind(null, requestId) : createRequestAction;
+  const [state, formAction, pending] = useActionState(action, undefined);
+
+  return (
+    <form action={formAction} className="flex flex-col gap-4">
+      <div className="flex flex-col gap-1">
+        <label htmlFor="title" className="text-sm font-medium">
+          Title
+        </label>
+        <input
+          id="title"
+          name="title"
+          type="text"
+          defaultValue={initial?.title}
+          required
+          className="rounded-lg border border-neutral-300 px-3 py-2 dark:border-neutral-700"
+        />
+      </div>
+      <div className="flex flex-col gap-1">
+        <label htmlFor="description" className="text-sm font-medium">
+          Description
+        </label>
+        <textarea
+          id="description"
+          name="description"
+          defaultValue={initial?.description}
+          required
+          rows={5}
+          className="rounded-lg border border-neutral-300 px-3 py-2 dark:border-neutral-700"
+        />
+      </div>
+      <div className="grid grid-cols-2 gap-4">
+        <div className="flex flex-col gap-1">
+          <label htmlFor="niche" className="text-sm font-medium">
+            Niche
+          </label>
+          <Select id="niche" name="niche" defaultValue={initial?.niche} required>
+            {NICHES.map((n) => (
+              <option key={n} value={n}>
+                {n}
+              </option>
+            ))}
+          </Select>
+        </div>
+        <div className="flex flex-col gap-1">
+          <label htmlFor="productCategory" className="text-sm font-medium">
+            Product category
+          </label>
+          <Select id="productCategory" name="productCategory" defaultValue={initial?.productCategory} required>
+            {PRODUCT_CATEGORIES.map((c) => (
+              <option key={c} value={c}>
+                {c}
+              </option>
+            ))}
+          </Select>
+        </div>
+        <div className="flex flex-col gap-1">
+          <label htmlFor="language" className="text-sm font-medium">
+            Content language
+          </label>
+          <Select id="language" name="language" defaultValue={initial?.language ?? "English"} required>
+            {LANGUAGES.map((l) => (
+              <option key={l} value={l}>
+                {l}
+              </option>
+            ))}
+          </Select>
+        </div>
+      </div>
+      <div className="flex flex-col gap-1">
+        <label htmlFor="minFollowers" className="text-sm font-medium">
+          Minimum follower count
+        </label>
+        <input
+          id="minFollowers"
+          name="minFollowers"
+          type="number"
+          min={0}
+          defaultValue={initial?.minFollowers ?? 0}
+          required
+          className="rounded-lg border border-neutral-300 px-3 py-2 dark:border-neutral-700"
+        />
+      </div>
+      {state?.error && <p className="text-sm text-ink">{state.error}</p>}
+      <button
+        type="submit"
+        disabled={pending}
+        className="rounded bg-ink text-paper px-4 py-2 font-medium hover:bg-graphite transition disabled:opacity-50 self-start"
+      >
+        {pending ? "Saving…" : requestId ? "Save changes" : "Publish request"}
+      </button>
+    </form>
+  );
+}
