@@ -14,6 +14,8 @@ import {
   RESET_RATE_LIMIT_MESSAGE,
 } from "@/lib/login-security";
 import { notify } from "@/lib/notifications";
+import { sendEmail } from "@/lib/email";
+import { SITE_URL } from "@/lib/site";
 import {
   loginSchema,
   signupSchema,
@@ -173,11 +175,11 @@ export async function changePasswordAction(
   return { success: true };
 }
 
-export type ForgotPasswordState = { error?: string; resetUrl?: string } | undefined;
+export type ForgotPasswordState = { error?: string; success?: boolean } | undefined;
 
-// No real email provider is available in this local prototype, so instead
-// of emailing the reset link, we hand it back directly — same underlying
-// token mechanic (random, single-use, expiring) a real flow would use.
+// The response is identical whether or not the email is registered — only
+// the branch below differs, never what the caller sees — so submitting a
+// stranger's email can't be used to probe which addresses have accounts.
 export async function requestPasswordResetAction(
   _prevState: ForgotPasswordState,
   formData: FormData,
@@ -186,16 +188,22 @@ export async function requestPasswordResetAction(
   if (!parsed.success) return { error: "Please enter a valid email address." };
 
   const user = await prisma.user.findUnique({ where: { email: parsed.data.email } });
-  if (!user) return { error: "No account found with that email." };
+  if (user) {
+    if (await isPasswordResetRateLimited(user.id)) return { error: RESET_RATE_LIMIT_MESSAGE };
 
-  if (await isPasswordResetRateLimited(user.id)) return { error: RESET_RATE_LIMIT_MESSAGE };
+    const token = randomBytes(32).toString("hex");
+    await prisma.passwordResetToken.create({
+      data: { userId: user.id, token, expiresAt: new Date(Date.now() + 60 * 60 * 1000) },
+    });
 
-  const token = randomBytes(32).toString("hex");
-  await prisma.passwordResetToken.create({
-    data: { userId: user.id, token, expiresAt: new Date(Date.now() + 60 * 60 * 1000) },
-  });
+    await sendEmail({
+      to: user.email,
+      subject: "Reset your C2C password",
+      html: `<p>Someone requested a password reset for this account.</p><p><a href="${SITE_URL}/reset-password/${token}">Reset your password</a> — this link expires in 1 hour.</p><p>If this wasn't you, you can ignore this email.</p>`,
+    });
+  }
 
-  return { resetUrl: `/reset-password/${token}` };
+  return { success: true };
 }
 
 export type ResetPasswordState = { error?: string } | undefined;
@@ -222,10 +230,8 @@ export async function resetPasswordAction(
   redirect("/login");
 }
 
-export type GenerateVerificationState = { error?: string; verifyUrl?: string } | undefined;
+export type GenerateVerificationState = { error?: string; sent?: boolean } | undefined;
 
-// Same "show the link instead of emailing it" simulation as password reset —
-// there's no mail provider here, but the token mechanic itself is real.
 export async function generateEmailVerificationAction(): Promise<GenerateVerificationState> {
   const session = await auth();
   if (!session) return { error: "Not authorized." };
@@ -235,7 +241,13 @@ export async function generateEmailVerificationAction(): Promise<GenerateVerific
     data: { userId: session.user.id, token, expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000) },
   });
 
-  return { verifyUrl: `/verify-email/${token}` };
+  await sendEmail({
+    to: session.user.email!,
+    subject: "Verify your C2C email",
+    html: `<p><a href="${SITE_URL}/verify-email/${token}">Verify your email</a> — this link expires in 24 hours.</p>`,
+  });
+
+  return { sent: true };
 }
 
 export type ConfirmVerificationState = { error?: string; success?: boolean } | undefined;

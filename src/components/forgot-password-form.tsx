@@ -1,16 +1,18 @@
 "use client";
 
-import { useActionState, useEffect } from "react";
-import Link from "next/link";
+import { useActionState } from "react";
 import { requestPasswordResetAction } from "@/lib/actions/auth";
-import { toast } from "@/lib/toast";
 
 export function ForgotPasswordForm() {
   const [state, formAction, pending] = useActionState(requestPasswordResetAction, undefined);
 
-  useEffect(() => {
-    if (state?.resetUrl) toast.info("Reset link generated below.");
-  }, [state]);
+  if (state?.success) {
+    return (
+      <p className="text-sm text-neutral-700 dark:text-neutral-300">
+        If that email has an account, we&apos;ve sent a reset link — check your inbox.
+      </p>
+    );
+  }
 
   return (
     <form action={formAction} className="flex flex-col gap-4">
@@ -27,17 +29,6 @@ export function ForgotPasswordForm() {
         />
       </div>
       {state?.error && <p className="text-sm text-ink">{state.error}</p>}
-      {state?.resetUrl && (
-        <div className="rounded-lg border border-ink/10 p-3 text-sm flex flex-col gap-1">
-          <p className="text-neutral-600 dark:text-neutral-400">
-            This is a local prototype with no real email sending — here&apos;s your reset link
-            directly:
-          </p>
-          <Link href={state.resetUrl} className="font-medium underline break-all">
-            {state.resetUrl}
-          </Link>
-        </div>
-      )}
       <button
         type="submit"
         disabled={pending}

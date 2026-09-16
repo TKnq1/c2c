@@ -80,6 +80,7 @@ file wouldn't have survived between requests there.
    the DNS record your registrar shows you at Vercel. Not required to go live on the
    assigned `*.vercel.app` URL first.
 
-Email is simulated throughout (password reset and email verification links are shown
-directly in the UI instead of sent, since no mail provider is wired up) — expected
-behavior, not a bug, when trying this deployed.
+Password reset and email verification send real emails via Resend. Set `RESEND_API_KEY`
+and, once a domain is verified in the Resend dashboard, `EMAIL_FROM` (e.g.
+`"C2C <noreply@yourdomain.com>"`) — without a verified domain, Resend's shared sender
+can only deliver to the Resend account's own address, not real users.
