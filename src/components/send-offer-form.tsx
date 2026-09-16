@@ -12,19 +12,19 @@ export function SendOfferForm({ interestId, feeRatePercent }: { interestId: stri
   return (
     <form action={formAction} className="mt-3 flex flex-col gap-2 rounded-xl border border-ink/10 p-3">
       <p className="text-xs text-neutral-500 dark:text-neutral-400">
-        Simulated escrow — no real payment is processed. The creator can accept or decline; only
-        once they accept do funds move (held here until they mark the work as posted, then
-        released minus our {feeRatePercent}% platform fee).
+        Real escrow via Stripe. The creator can accept or decline; only once they accept do you
+        pay (held until they mark the work as posted, then released minus our {feeRatePercent}%
+        platform fee).
       </p>
       <div className="flex items-center gap-2 flex-wrap">
-        <span className="text-sm text-neutral-600 dark:text-neutral-400">$</span>
+        <span className="text-sm text-neutral-600 dark:text-neutral-400">€</span>
         <input
           name="amount"
           type="number"
           step="0.01"
           min="1"
           placeholder="250.00"
-          aria-label="Offer amount in dollars"
+          aria-label="Offer amount in euros"
           required
           className="rounded-lg border border-neutral-300 px-3 py-2 w-32 dark:border-neutral-700"
         />

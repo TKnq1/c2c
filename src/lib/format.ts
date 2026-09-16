@@ -1,5 +1,8 @@
+// EUR to match the actual Stripe Checkout/Connect currency (see
+// src/lib/actions/payments.ts) — a mismatch here would mean an amount
+// displayed as e.g. "$250" is really charged as €250.
 export function formatCents(cents: number): string {
-  return (cents / 100).toLocaleString("en-US", { style: "currency", currency: "USD" });
+  return (cents / 100).toLocaleString("de-DE", { style: "currency", currency: "EUR" });
 }
 
 // Follower counts drift constantly, so public displays show a rounded-down

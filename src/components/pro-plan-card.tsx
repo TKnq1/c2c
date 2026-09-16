@@ -75,9 +75,10 @@ export function ProPlanCard({ isPro, proSince }: { isPro: boolean; proSince: Dat
           </div>
         </div>
         <p className="text-xs text-neutral-500 dark:text-neutral-400">
-          Simulated checkout — no real payment processor is connected and the card above isn&apos;t
-          real. Confirming below flips your platform fee to {PRO_PLATFORM_FEE_RATE * 100}% immediately,
-          same as it would the moment a real charge succeeded.
+          Simulated checkout — the card above isn&apos;t real and this specific subscription charge
+          doesn&apos;t happen (unlike collab payments, which do run through Stripe). Confirming below
+          flips your platform fee to {PRO_PLATFORM_FEE_RATE * 100}% immediately, same as it would the
+          moment a real charge succeeded.
         </p>
         <div className="flex items-center gap-3 flex-wrap">
           <ActionButton

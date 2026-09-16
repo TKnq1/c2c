@@ -114,14 +114,14 @@ export const updateBrandProfileSchema = z.object({
   socialLinks: socialLinksField,
 });
 
-// A human types dollars; everything past this boundary is integer cents, so
-// no action ever handles a raw dollar string or a float.
+// A human types euros; everything past this boundary is integer cents, so
+// no action ever handles a raw euro string or a float.
 const dollarsToCents = z
   .string()
   .trim()
-  .regex(/^\d+(\.\d{1,2})?$/, "Enter a valid dollar amount (e.g. 250 or 250.00)")
+  .regex(/^\d+(\.\d{1,2})?$/, "Enter a valid amount (e.g. 250 or 250.00)")
   .transform((val) => Math.round(parseFloat(val) * 100))
-  .pipe(z.number().int().min(100, "Minimum payment is $1.00").max(10_000_000, "Maximum payment is $100,000.00"));
+  .pipe(z.number().int().min(100, "Minimum payment is €1.00").max(10_000_000, "Maximum payment is €100,000.00"));
 
 export const sendOfferSchema = z.object({
   amount: dollarsToCents,

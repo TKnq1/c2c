@@ -104,7 +104,7 @@ export default async function AdminOverviewPage() {
         <p className="font-display text-3xl font-normal mt-1">{formatCents(totalVolumeCents)}</p>
         <p className="text-xs text-neutral-500 mt-1 dark:text-neutral-400">
           Across {payments.filter((p) => p.paymentStatus !== "REFUNDED").length} non-refunded
-          payments — mock escrow, no real money moves.
+          payments — real escrow via Stripe.
         </p>
       </div>
 

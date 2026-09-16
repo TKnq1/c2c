@@ -17,7 +17,7 @@ const SECTIONS: { title: string; body: string }[] = [
   },
   {
     title: "4. Messages, payments, and activity",
-    body: "Messages you send through the platform are stored and visible to the person you're messaging. Payment records (amount, fee, status) are stored for the simulated escrow feature described in our Terms — no real financial or card data is collected, since no real payment processor is connected. Reviews, reports, and blocks you create or receive are stored to power those features.",
+    body: "Messages you send through the platform are stored and visible to the person you're messaging. Payment records (amount, fee, status) are stored for the escrow feature described in our Terms — payments run through Stripe, and we never see or store your card details ourselves. Reviews, reports, and blocks you create or receive are stored to power those features.",
   },
   {
     title: "5. Login activity",
@@ -28,15 +28,19 @@ const SECTIONS: { title: string; body: string }[] = [
     body: "A single session cookie keeps you logged in — no third-party analytics or advertising cookies are used. If you enable browser push notifications, your browser's push subscription (endpoint and keys, assigned by your browser vendor) is stored so we can deliver them; nothing is sent if you don't opt in.",
   },
   {
-    title: "7. Sharing",
-    body: "Data isn't sold or shared with third parties. Profile information, messages, and reviews are visible to other users only in the ways the product itself shows them (matching, conversations, public profiles).",
+    title: "7. Third-party processors",
+    body: "We use Stripe to process payments and payouts (they receive whatever's needed to run a card payment or a payout — see Stripe's own privacy policy) and Resend to deliver password reset and email verification messages (they receive the recipient address and message content for that one email). Neither uses your data for their own purposes beyond providing that service to us.",
   },
   {
-    title: "8. Access, export, and deletion",
+    title: "8. Sharing",
+    body: "Beyond the processors in the section above, data isn't sold or shared with third parties. Profile information, messages, and reviews are visible to other users only in the ways the product itself shows them (matching, conversations, public profiles).",
+  },
+  {
+    title: "9. Access, export, and deletion",
     body: "You can export your data as JSON from Settings at any time, and delete your account entirely from the Danger zone section of Settings — deletion removes your account and cascades to your profile, messages, and related records.",
   },
   {
-    title: "9. Changes",
+    title: "10. Changes",
     body: "We may update this notice as the product changes. Continued use after a change means you accept the updated version.",
   },
 ];

@@ -16,14 +16,14 @@ export function OfferResponseActions({ interestId }: { interestId: string }) {
     return (
       <form action={formAction} className="flex flex-col gap-2 mt-2">
         <div className="flex items-center gap-2 flex-wrap">
-          <span className="text-sm text-neutral-600 dark:text-neutral-400">$</span>
+          <span className="text-sm text-neutral-600 dark:text-neutral-400">€</span>
           <input
             name="amount"
             type="number"
             step="0.01"
             min="1"
             placeholder="Your counter"
-            aria-label="Counter-offer amount in dollars"
+            aria-label="Counter-offer amount in euros"
             required
             autoFocus
             className="rounded-lg border border-neutral-300 px-3 py-2 w-32 dark:border-neutral-700"
