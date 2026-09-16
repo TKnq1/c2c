@@ -10,17 +10,24 @@ subscription.
 
 ## Setup
 
+Needs a Postgres database — copy `.env.example` to `.env` and fill in `DATABASE_URL`
+(a Neon connection string, or any other Postgres host) and `AUTH_SECRET`
+(`openssl rand -base64 33`). `NEXT_PUBLIC_VAPID_PUBLIC_KEY` / `VAPID_PRIVATE_KEY`
+(push notifications) and `NEXT_PUBLIC_SITE_URL` are optional — everything works
+without them.
+
 ```bash
-npm install                                  # runs `prisma generate` via postinstall
-npx prisma migrate dev --name init           # creates dev.db and the schema
+npm install         # runs `prisma generate` via postinstall
+npm run db:migrate  # applies prisma/migrations to whatever DATABASE_URL points at
 npm run db:seed
 npm run dev
 ```
 
-Copy `.env.example` to `.env` and fill in `AUTH_SECRET` (`openssl rand -base64 33`)
-first — `DATABASE_URL` already points at the local SQLite file. `NEXT_PUBLIC_VAPID_PUBLIC_KEY` /
-`VAPID_PRIVATE_KEY` (push notifications) and `NEXT_PUBLIC_SITE_URL` are optional —
-everything works without them.
+This project currently points local dev and production at the **same** Neon
+database (one-person prototype, simplest setup). Once real users exist, stop
+running `db:reset`/`db:seed` against it — reseeding wipes everything. Neon
+supports branching a separate dev database off the production one if that split
+becomes worth it later.
 
 ## Demo accounts (password for all: `password123`)
 
@@ -40,7 +47,7 @@ everything works without them.
 
 ## Stack
 
-Next.js 16 (App Router) · TypeScript · Prisma 7 + SQLite (better-sqlite3 driver adapter) ·
+Next.js 16 (App Router) · TypeScript · Prisma 7 + Postgres (`pg` driver adapter, hosted on Neon) ·
 NextAuth v5 (Credentials, JWT) · Tailwind CSS v4 · Zod
 
 ## Scripts
@@ -54,41 +61,24 @@ NextAuth v5 (Credentials, JWT) · Tailwind CSS v4 · Zod
 
 ## Deployment
 
-Local dev runs on SQLite, but Vercel's serverless functions have no persistent
-filesystem — a SQLite file won't survive between requests there, so this needs to
-switch to Postgres first. That switch was prototyped once already and reverted (see
-git history / ask if picking this back up) — it touches `prisma/schema.prisma`
-(`provider = "postgresql"`), `src/lib/prisma.ts` and `prisma/seed.ts` (swap
-`@prisma/adapter-better-sqlite3` for `@prisma/adapter-pg`), and needs a fresh
-migration (the current one is SQLite-flavored SQL, not portable to Postgres).
+Built for Vercel. The database is already Postgres (Neon) for exactly this reason —
+Vercel's serverless functions have no persistent filesystem, so the original SQLite
+file wouldn't have survived between requests there.
 
-0. **Redo the SQLite → Postgres switch** described above, once a real Postgres
-   connection string exists (step 1) to generate the fresh migration against.
-1. **Database** — provision a Postgres instance. The friction-free option is adding
-   **Vercel Postgres** (Storage tab → Create Database, Postgres/Neon) directly to the
-   Vercel project once it exists — it injects `DATABASE_URL` automatically, no copy-
-   pasting a connection string. Supabase, Neon, or any other Postgres host works too;
-   just set `DATABASE_URL` manually in that case.
-2. **Push the repo to GitHub** (this project has no remote configured yet):
-   ```bash
-   git add -A
-   git commit -m "Initial commit"
-   git remote add origin <your-github-repo-url>
-   git push -u origin main
-   ```
-3. **Import the repo into Vercel** (vercel.com → Add New → Project → pick the repo).
-   Framework preset auto-detects as Next.js — no changes needed there.
-4. **Set environment variables** in the Vercel project settings: `DATABASE_URL` (if
-   not auto-injected by step 1), `AUTH_SECRET`. `NEXT_PUBLIC_VAPID_PUBLIC_KEY` /
+1. **Push the repo to GitHub**, then **import it into Vercel** (vercel.com → Add New
+   → Project → pick the repo). The Next.js framework preset is auto-detected.
+2. **Add the same Neon database to the Vercel project** (Storage tab → the existing
+   Neon integration) so `DATABASE_URL` is injected automatically — or set it manually
+   in Settings → Environment Variables if using a separate database for production.
+3. **Set `AUTH_SECRET`** in Settings → Environment Variables. `NEXT_PUBLIC_VAPID_PUBLIC_KEY` /
    `VAPID_PRIVATE_KEY` and `NEXT_PUBLIC_SITE_URL` are optional.
-5. **Apply migrations to the production database once**, from a local machine, before
-   (or right after) the first deploy:
-   ```bash
-   DATABASE_URL="<the production connection string>" npm run db:deploy
-   DATABASE_URL="<the production connection string>" npm run db:seed   # optional demo data
-   ```
-6. Deploy. Re-run step 5's `db:deploy` (not `db:seed`, which would duplicate demo data)
-   after any future schema change, before or after pushing the code that needs it.
+4. **Deploy.** The schema is already applied to this database (step above pointed at
+   it), so no separate migration step is needed for the first deploy. After any
+   future schema change, run `DATABASE_URL="<production URL>" npm run db:deploy`
+   before or after pushing the code that needs it.
+5. **Custom domain** — optional, add anytime later in Settings → Domains, then point
+   the DNS record your registrar shows you at Vercel. Not required to go live on the
+   assigned `*.vercel.app` URL first.
 
 Email is simulated throughout (password reset and email verification links are shown
 directly in the UI instead of sent, since no mail provider is wired up) — expected
