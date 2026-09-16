@@ -36,12 +36,21 @@ export async function POST(req: Request) {
       // either way there's nothing left to do.
       if (!interest || interest.paymentStatus !== "ACCEPTED") break;
 
+      // releasePaymentAction's transfer needs a Charge id (source_transaction
+      // only accepts ch_..., see .agents/skills/connect-recommend/references/
+      // charge-patterns.md) — the session only carries the PaymentIntent id,
+      // so the charge has to be resolved via its latest_charge.
+      const paymentIntentId =
+        typeof checkoutSession.payment_intent === "string" ? checkoutSession.payment_intent : null;
+      const paymentIntent = paymentIntentId ? await stripe.paymentIntents.retrieve(paymentIntentId) : null;
+      const chargeId = typeof paymentIntent?.latest_charge === "string" ? paymentIntent.latest_charge : null;
+
       await prisma.interest.update({
         where: { id: interest.id },
         data: {
           paymentStatus: "HELD",
           paidAt: new Date(),
-          stripeChargeId: typeof checkoutSession.payment_intent === "string" ? checkoutSession.payment_intent : null,
+          stripeChargeId: chargeId,
         },
       });
 

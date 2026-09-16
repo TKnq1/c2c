@@ -48,7 +48,19 @@ export default async function CreatorSettingsPage() {
           niche={creator.niche}
           contentLanguage={creator.contentLanguage}
           bio={creator.bio}
-          platforms={creator.platforms}
+          // The picker re-serializes this prop verbatim into the form's
+          // hidden "platforms" field on every save, including untouched
+          // entries — passing the raw Prisma rows through leaks id/creatorId
+          // and, worse, a null url (Prisma's empty state) where the update
+          // schema's url field only accepts a real string or undefined, so
+          // saving with any URL-less platform (the common case, url is
+          // optional) failed validation and silently dropped the whole
+          // save, niche included.
+          platforms={creator.platforms.map((p) => ({
+            platform: p.platform,
+            followerCount: p.followerCount,
+            url: p.url ?? undefined,
+          }))}
         />
       </div>
 

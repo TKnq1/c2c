@@ -50,7 +50,11 @@ export default async function StartupSettingsPage() {
           niche={startup.niche ?? NICHES[0]}
           description={startup.description ?? ""}
           lookingFor={startup.lookingFor ?? ""}
-          socialLinks={startup.socialLinks}
+          // See the equivalent map in the creator settings page — same
+          // "don't leak raw Prisma rows into a re-serialized form field"
+          // fix, kept here too even though StartupSocialLink.url is
+          // non-nullable today so it can't hit the same validation failure.
+          socialLinks={startup.socialLinks.map((s) => ({ platform: s.platform, url: s.url }))}
         />
       </div>
 

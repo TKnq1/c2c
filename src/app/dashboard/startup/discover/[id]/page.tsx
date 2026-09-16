@@ -68,7 +68,7 @@ export default async function CreatorProfileDetailPage({ params }: { params: Pro
 
   return (
     <div className="flex flex-col gap-8">
-      <div className="flex items-start justify-between gap-4">
+      <div className="flex flex-wrap items-start justify-between gap-4">
         <div className="flex items-center gap-4">
           <Avatar src={creator.avatarUrl} name={creator.displayName} size={64} />
           <div>
