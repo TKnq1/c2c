@@ -12,7 +12,11 @@ export default async function AdminOverviewPage() {
     totalRequests,
     openRequests,
     totalInterests,
-    payments,
+    volumeAgg,
+    volumeCount,
+    releasedFeeAgg,
+    heldFeeAgg,
+    recentPayments,
     proSubscribers,
     recentUsers,
     recentRequests,
@@ -24,10 +28,30 @@ export default async function AdminOverviewPage() {
     prisma.request.count(),
     prisma.request.count({ where: { status: "OPEN" } }),
     prisma.interest.count(),
+    // "Spent" excludes OFFERED/ACCEPTED (no money has moved yet for either)
+    // and REFUNDED (that money went back) — only HELD/RELEASED are real,
+    // currently-outstanding volume. Summed in the database rather than
+    // loading every payment row just to add them up in JS.
+    prisma.interest.aggregate({
+      where: { paymentStatus: { in: ["HELD", "RELEASED"] } },
+      _sum: { amountCents: true },
+    }),
+    prisma.interest.count({ where: { paymentStatus: { in: ["HELD", "RELEASED"] } } }),
+    // Platform revenue is only what's actually been kept — fees on HELD
+    // payments are still contingent on release, not revenue yet.
+    prisma.interest.aggregate({
+      where: { paymentStatus: "RELEASED" },
+      _sum: { platformFeeCents: true },
+    }),
+    prisma.interest.aggregate({
+      where: { paymentStatus: "HELD" },
+      _sum: { platformFeeCents: true },
+    }),
     prisma.interest.findMany({
-      where: { paymentStatus: { not: null } },
+      where: { paymentStatus: { in: ["HELD", "RELEASED", "REFUNDED"] } },
       include: { creator: true, request: { include: { startup: true } } },
       orderBy: { paidAt: "desc" },
+      take: 8,
     }),
     prisma.startupProfile.count({ where: { isPro: true } }),
     prisma.user.findMany({ orderBy: { createdAt: "desc" }, take: 8 }),
@@ -44,20 +68,9 @@ export default async function AdminOverviewPage() {
   ]);
 
   const simulatedMrrCents = proSubscribers * PRO_SUBSCRIPTION_PRICE_CENTS;
-
-  // "Spent" excludes refunds (that money went back), platform revenue is
-  // only what's actually been kept — fees on HELD payments are still
-  // contingent, and REFUNDED payments return the fee too.
-  const totalVolumeCents = payments
-    .filter((p) => p.paymentStatus !== "REFUNDED")
-    .reduce((sum, p) => sum + p.amountCents!, 0);
-  const platformRevenueCents = payments
-    .filter((p) => p.paymentStatus === "RELEASED")
-    .reduce((sum, p) => sum + p.platformFeeCents!, 0);
-  const pendingFeeCents = payments
-    .filter((p) => p.paymentStatus === "HELD")
-    .reduce((sum, p) => sum + p.platformFeeCents!, 0);
-  const recentPayments = payments.slice(0, 8);
+  const totalVolumeCents = volumeAgg._sum.amountCents ?? 0;
+  const platformRevenueCents = releasedFeeAgg._sum.platformFeeCents ?? 0;
+  const pendingFeeCents = heldFeeAgg._sum.platformFeeCents ?? 0;
 
   return (
     <div className="flex flex-col gap-8">
@@ -103,8 +116,7 @@ export default async function AdminOverviewPage() {
         <p className="text-sm text-neutral-500 dark:text-neutral-400">Total payment volume</p>
         <p className="font-display text-3xl font-normal mt-1">{formatCents(totalVolumeCents)}</p>
         <p className="text-xs text-neutral-500 mt-1 dark:text-neutral-400">
-          Across {payments.filter((p) => p.paymentStatus !== "REFUNDED").length} non-refunded
-          payments — real escrow via Stripe.
+          Across {volumeCount} non-refunded payments — real escrow via Stripe.
         </p>
       </div>
 
