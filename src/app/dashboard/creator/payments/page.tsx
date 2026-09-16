@@ -30,6 +30,11 @@ export default async function CreatorPaymentsPage() {
     include: { request: { include: { startup: true } } },
     orderBy: { offeredAt: "desc" },
   });
+  const awaitingPayment = await prisma.interest.findMany({
+    where: { creatorId: creator.id, paymentStatus: "ACCEPTED" },
+    include: { request: { include: { startup: true } } },
+    orderBy: { acceptedAt: "desc" },
+  });
 
   const deposits = await prisma.interest.findMany({
     where: { creatorId: creator.id, depositStatus: { not: null } },
@@ -49,8 +54,8 @@ export default async function CreatorPaymentsPage() {
       <div>
         <h1 className="font-display text-3xl font-normal">Payments</h1>
         <p className="text-sm text-neutral-600 mt-1 dark:text-neutral-400">
-          Mock escrow — no real payment is processed. Amounts below are already net of our
-          platform fee.
+          Payments run through Stripe. Amounts below are already net of our platform fee. Connect
+          Stripe in Settings before a payment can be released to you.
         </p>
       </div>
 
@@ -92,6 +97,31 @@ export default async function CreatorPaymentsPage() {
                       </ActionButton>
                     </>
                   )}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {awaitingPayment.length > 0 && (
+        <div className="no-print">
+          <h2 className="font-semibold mb-3">Awaiting payment ({awaitingPayment.length})</h2>
+          <div className="flex flex-col gap-3">
+            {awaitingPayment.map((i) => (
+              <div key={i.id} className="rounded-2xl border border-ink/10 p-4 flex gap-3 items-start">
+                <Avatar src={i.request.startup.avatarUrl} name={i.request.startup.companyName} size={40} />
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center justify-between gap-2">
+                    <p className="font-medium">
+                      {i.request.startup.companyName} · {i.request.title}
+                    </p>
+                    <PaymentStatusBadge status="ACCEPTED" />
+                  </div>
+                  <p className="text-sm text-neutral-700 mt-1 dark:text-neutral-300">
+                    Accepted at {formatCents(i.amountCents!)} — waiting on {i.request.startup.companyName} to
+                    complete payment via Stripe.
+                  </p>
                 </div>
               </div>
             ))}

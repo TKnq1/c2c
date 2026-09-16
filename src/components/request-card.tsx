@@ -11,7 +11,7 @@ type Props = {
   title: string;
   description: string;
   niche: string;
-  language: string;
+  languages: string[];
   minFollowers: number;
   productCategory: string;
   companyName: string;
@@ -24,7 +24,7 @@ export function RequestCard({
   title,
   description,
   niche,
-  language,
+  languages,
   minFollowers,
   productCategory,
   companyName,
@@ -57,7 +57,11 @@ export function RequestCard({
           Min. {minFollowers.toLocaleString("en-US")} followers
         </span>
         <span className="rounded border border-ink/10 px-2 py-1">{productCategory}</span>
-        <span className="rounded border border-ink/10 px-2 py-1">{language}</span>
+        {languages.map((l) => (
+          <span key={l} className="rounded border border-ink/10 px-2 py-1">
+            {l}
+          </span>
+        ))}
       </div>
       {interestId ? (
         <div className="flex items-center gap-2">

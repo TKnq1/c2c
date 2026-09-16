@@ -13,10 +13,14 @@ const BASE_SECTIONS = [
 // Plan/billing only applies to brands — creators don't pay a platform fee,
 // so there's nothing for them to subscribe out of.
 const PLAN_SECTION = { id: "plan", label: "Plan" };
+// Payouts only applies to creators — brands pay out, they don't receive.
+const PAYOUTS_SECTION = { id: "payouts", label: "Payouts" };
 
 export function SettingsNav({ role }: { role: Role }) {
   const sections =
-    role === "STARTUP" ? [BASE_SECTIONS[0], PLAN_SECTION, ...BASE_SECTIONS.slice(1)] : BASE_SECTIONS;
+    role === "STARTUP"
+      ? [BASE_SECTIONS[0], PLAN_SECTION, ...BASE_SECTIONS.slice(1)]
+      : [BASE_SECTIONS[0], PAYOUTS_SECTION, ...BASE_SECTIONS.slice(1)];
 
   return (
     <nav

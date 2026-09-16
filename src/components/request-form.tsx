@@ -1,9 +1,10 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useState } from "react";
 import { createRequestAction, updateRequestAction } from "@/lib/actions/requests";
 import { NICHES, PRODUCT_CATEGORIES, LANGUAGES } from "@/lib/constants";
 import { Select } from "@/components/select";
+import { MultiSelect } from "@/components/multi-select";
 
 type Props = {
   requestId?: string;
@@ -11,7 +12,7 @@ type Props = {
     title: string;
     description: string;
     niche: string;
-    language: string;
+    languages: string[];
     productCategory: string;
     minFollowers: number;
   };
@@ -20,6 +21,7 @@ type Props = {
 export function RequestForm({ requestId, initial }: Props) {
   const action = requestId ? updateRequestAction.bind(null, requestId) : createRequestAction;
   const [state, formAction, pending] = useActionState(action, undefined);
+  const [languages, setLanguages] = useState<string[]>(initial?.languages ?? ["English"]);
 
   return (
     <form action={formAction} className="flex flex-col gap-4">
@@ -75,16 +77,9 @@ export function RequestForm({ requestId, initial }: Props) {
           </Select>
         </div>
         <div className="flex flex-col gap-1">
-          <label htmlFor="language" className="text-sm font-medium">
-            Content language
-          </label>
-          <Select id="language" name="language" defaultValue={initial?.language ?? "English"} required>
-            {LANGUAGES.map((l) => (
-              <option key={l} value={l}>
-                {l}
-              </option>
-            ))}
-          </Select>
+          <label className="text-sm font-medium">Content language</label>
+          <input type="hidden" name="languages" value={languages.join(",")} />
+          <MultiSelect label="Select languages" options={LANGUAGES} selected={languages} onChange={setLanguages} />
         </div>
       </div>
       <div className="flex flex-col gap-1">

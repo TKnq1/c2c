@@ -191,8 +191,9 @@ async function main() {
     });
   }
 
-  // StyleHub: 3 requests, targeting the German-speaking market — demonstrates
-  // the language filter alongside the default-English requests everywhere else.
+  // StyleHub: 3 requests, targeting German- and French-speaking audiences —
+  // demonstrates both the language filter and a multi-language request
+  // alongside the default-English requests everywhere else.
   for (let i = 0; i < 3; i++) {
     await prisma.request.create({
       data: {
@@ -200,7 +201,7 @@ async function main() {
         title: `Fashion Drop #${i + 1}`,
         description: "Style our new collection in a lookbook post.",
         niche: "Fashion",
-        language: "German",
+        languages: i === 0 ? ["German", "French"] : ["German"],
         minFollowers: 3000 + i * 3000,
         productCategory: "Fashion",
         createdAt: at(i),

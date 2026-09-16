@@ -79,11 +79,20 @@ export const signupSchema = z.discriminatedUnion("role", [
   }),
 ]);
 
+// The form posts languages as one comma-joined hidden input (same encoding
+// the language filter already uses in the URL) rather than repeated form
+// keys, so the existing Object.fromEntries(formData) call sites don't need
+// to change to formData.getAll for this one field.
+const languagesField = z
+  .string()
+  .transform((val) => val.split(",").filter(Boolean))
+  .pipe(z.array(languageEnum).min(1, "Select at least one language"));
+
 export const createRequestSchema = z.object({
   title: z.string().min(1).max(120),
   description: z.string().min(1).max(2000),
   niche: nicheEnum,
-  language: languageEnum,
+  languages: languagesField,
   minFollowers: z.coerce.number().int().min(0),
   productCategory: productCategoryEnum,
 });

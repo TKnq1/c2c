@@ -21,7 +21,7 @@ export default async function EditRequestPage({ params }: { params: Promise<{ id
           title: request.title,
           description: request.description,
           niche: request.niche,
-          language: request.language,
+          languages: request.languages,
           productCategory: request.productCategory,
           minFollowers: request.minFollowers,
         }}

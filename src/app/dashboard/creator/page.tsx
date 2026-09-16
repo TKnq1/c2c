@@ -72,7 +72,7 @@ export default async function CreatorFeedPage() {
               title: r.title,
               description: r.description,
               niche: r.niche,
-              language: r.language,
+              languages: r.languages,
               minFollowers: r.minFollowers,
               productCategory: r.productCategory,
               companyName: r.startup.companyName,

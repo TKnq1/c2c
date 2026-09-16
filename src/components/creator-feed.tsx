@@ -15,7 +15,7 @@ type RequestEntry = {
   title: string;
   description: string;
   niche: string;
-  language: string;
+  languages: string[];
   minFollowers: number;
   productCategory: string;
   companyName: string;
@@ -33,19 +33,19 @@ export function CreatorFeed({
   savedFilters: SavedFilterEntry[];
 }) {
   const [{ q: search, language }, setParam, setParams] = useUrlState(["q", "language"]);
-  const languages = useMemo(() => (language ? language.split(",") : []), [language]);
+  const selectedLanguages = useMemo(() => (language ? language.split(",") : []), [language]);
 
   const filtered = useMemo(() => {
     const query = search.trim().toLowerCase();
     return requests.filter((r) => {
-      if (languages.length > 0 && !languages.includes(r.language)) return false;
+      if (selectedLanguages.length > 0 && !r.languages.some((l) => selectedLanguages.includes(l))) return false;
       if (query) {
         const haystack = `${r.title} ${r.description} ${r.productCategory} ${r.companyName}`.toLowerCase();
         if (!haystack.includes(query)) return false;
       }
       return true;
     });
-  }, [requests, search, languages]);
+  }, [requests, search, selectedLanguages]);
 
   return (
     <div className="flex flex-col gap-4">
@@ -60,7 +60,7 @@ export function CreatorFeed({
         <MultiSelect
           label="All languages"
           options={LANGUAGES}
-          selected={languages}
+          selected={selectedLanguages}
           onChange={(vals) => setParam("language", vals.join(","))}
           wrapperClassName="w-44"
         />

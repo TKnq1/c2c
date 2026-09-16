@@ -4,6 +4,8 @@ import { revalidatePath } from "next/cache";
 import type { Role } from "@prisma/client";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { stripe } from "@/lib/stripe";
+import { SITE_URL } from "@/lib/site";
 import { sendOfferSchema, releasePaymentSchema } from "@/lib/validation";
 import { PLATFORM_FEE_RATE, PRO_PLATFORM_FEE_RATE } from "@/lib/constants";
 import { formatCents } from "@/lib/format";
@@ -250,19 +252,78 @@ export async function acceptOfferAction(interestId: string) {
   // offerRole is deliberately left as-is (not cleared) — once accepted it's
   // no longer read for authorization, but it's a harmless historical record
   // of who proposed the accepted price, useful for the collab timeline.
+  //
+  // Not HELD yet — the brand still has to actually pay via Stripe Checkout
+  // (createCheckoutSessionAction). Real money only starts existing once the
+  // webhook confirms it, regardless of which side clicked accept here.
   await prisma.interest.update({
     where: { id: interestId },
-    data: { paymentStatus: "HELD", paidAt: new Date() },
+    data: { paymentStatus: "ACCEPTED", acceptedAt: new Date() },
   });
 
-  await notify(
-    otherPartyUserId(interest, role),
-    `${actorName(interest, role)} accepted your offer of ${formatCents(interest.amountCents!)} for "${interest.request.title}" — funds are now held in escrow`,
-    paymentsHref(role),
-    "payments",
-  );
+  const startupUserId = interest.request.startup.userId;
+  const message =
+    role === "STARTUP"
+      ? `${actorName(interest, role)} accepted your offer of ${formatCents(interest.amountCents!)} for "${interest.request.title}" — waiting on the brand to complete payment`
+      : `${actorName(interest, role)} accepted your offer of ${formatCents(interest.amountCents!)} for "${interest.request.title}" — head to Payments to pay and hold it in escrow`;
+  await notify(otherPartyUserId(interest, role), message, paymentsHref(role), "payments");
+  // The brand always needs a nudge to actually pay, even when they were the
+  // one who clicked accept just now (they already know in that case, but
+  // this keeps the notification consistent with "you have something to pay").
+  if (role === "CREATOR") {
+    await notify(
+      startupUserId,
+      `Accepted — pay ${formatCents(interest.amountCents!)} for "${interest.request.title}" to hold it in escrow`,
+      "/dashboard/startup/payments",
+      "payments",
+    );
+  }
 
   await revalidateOfferPaths(interest.requestId);
+}
+
+// Brand starts (or resumes) a Stripe Checkout for an accepted offer.
+// Separate charges and transfers pattern (see .agents/skills/stripe-best-practices):
+// the charge lands on the platform account — no transfer_data — so the
+// platform can hold it until release, then transfer the creator's payout
+// out of that same charge. This is also why application_fee_amount is never
+// used here: the fee is just the gap between amountCents and payoutCents.
+export async function createCheckoutSessionAction(interestId: string): Promise<{ url: string } | { error: string }> {
+  const session = await auth();
+  if (!session || session.user.role !== "STARTUP") return { error: "Not authorized." };
+
+  const startup = await prisma.startupProfile.findUniqueOrThrow({ where: { userId: session.user.id } });
+  const interest = await prisma.interest.findUnique({
+    where: { id: interestId },
+    include: { request: true, creator: true },
+  });
+
+  if (!interest || interest.request.startupId !== startup.id) return { error: "This interest could not be found." };
+  if (interest.paymentStatus !== "ACCEPTED") return { error: "This offer isn't ready for payment." };
+
+  const checkoutSession = await stripe.checkout.sessions.create({
+    mode: "payment",
+    line_items: [
+      {
+        price_data: {
+          currency: "eur",
+          unit_amount: interest.amountCents!,
+          product_data: { name: `Collab with ${interest.creator.displayName}: "${interest.request.title}"` },
+        },
+        quantity: 1,
+      },
+    ],
+    success_url: `${SITE_URL}/dashboard/startup/payments?checkout=success`,
+    cancel_url: `${SITE_URL}/dashboard/startup/payments?checkout=cancelled`,
+    metadata: { interestId: interest.id },
+  });
+
+  await prisma.interest.update({
+    where: { id: interestId },
+    data: { stripeCheckoutSessionId: checkoutSession.id },
+  });
+
+  return { url: checkoutSession.url! };
 }
 
 // Declines a proposal awaiting the caller's response — clears it back to
@@ -324,10 +385,29 @@ export async function releasePaymentAction(
   if (interest.paymentStatus !== "HELD") {
     return { error: "This payment is not currently held." };
   }
+  if (!creator.stripeOnboarded || !creator.stripeAccountId) {
+    return { error: "Connect Stripe in Settings → Payouts before releasing a payment." };
+  }
+
+  // Transfer-math fee retention, not application_fee_amount (that's only
+  // for destination/direct charges) — transferring payoutCents rather than
+  // amountCents out of the original charge is how the platform fee stays
+  // with the platform under separate charges and transfers.
+  const transfer = await stripe.transfers.create({
+    amount: interest.payoutCents!,
+    currency: "eur",
+    destination: creator.stripeAccountId,
+    source_transaction: interest.stripeChargeId!,
+  });
 
   await prisma.interest.update({
     where: { id: interestId },
-    data: { paymentStatus: "RELEASED", releasedAt: new Date(), proofUrl: parsed.data.proofUrl || null },
+    data: {
+      paymentStatus: "RELEASED",
+      releasedAt: new Date(),
+      proofUrl: parsed.data.proofUrl || null,
+      stripeTransferId: transfer.id,
+    },
   });
 
   await notify(
@@ -365,9 +445,14 @@ export async function refundPaymentAction(interestId: string) {
     throw new Error("This payment is not currently held.");
   }
 
+  // Nothing was ever transferred out at HELD (separate charges and
+  // transfers — the transfer only happens on release), so a plain refund
+  // of the original charge is the whole reversal; no transfer to claw back.
+  const refund = await stripe.refunds.create({ charge: interest.stripeChargeId! });
+
   await prisma.interest.update({
     where: { id: interestId },
-    data: { paymentStatus: "REFUNDED", refundedAt: new Date() },
+    data: { paymentStatus: "REFUNDED", refundedAt: new Date(), stripeRefundId: refund.id },
   });
 
   await notify(

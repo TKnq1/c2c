@@ -218,6 +218,13 @@ model CreatorProfile {
   contentLanguage String?
   createdAt       DateTime @default(now())
 
+  // Stripe Connect (Accounts v2, express dashboard) — set once the creator
+  // starts onboarding; stripeOnboarded flips true once Stripe confirms the
+  // account can actually receive transfers (via the account.updated webhook),
+  // not just once an account object exists.
+  stripeAccountId String?
+  stripeOnboarded Boolean @default(false)
+
   platforms   CreatorPlatform[]
   interests   Interest[]
   reviews     Review[]
@@ -263,7 +270,9 @@ model Request {
   title           String
   description     String
   niche           String
-  language        String         @default("English")
+  // A creator matches if any one of these overlaps their content language —
+  // e.g. a bilingual audience request lists both instead of picking one.
+  languages       String[]       @default(["English"])
   minFollowers    Int            @default(0)
   productCategory String
   status          RequestStatus  @default(OPEN)
@@ -277,6 +286,10 @@ model Request {
 
 enum PaymentStatus {
   OFFERED
+  // Both sides agreed on a price; the brand still needs to complete Stripe
+  // Checkout before anything is actually held. Real money only starts
+  // existing once the webhook confirms payment and flips this to HELD.
+  ACCEPTED
   HELD
   RELEASED
   REFUNDED
@@ -306,10 +319,20 @@ model Interest {
   // whenever an offer resolves (accepted, declined, or withdrawn).
   offerRole        Role?
   offeredAt        DateTime?
+  acceptedAt       DateTime?
   paidAt           DateTime?
   releasedAt       DateTime?
   refundedAt       DateTime?
   proofUrl         String?
+
+  // Stripe identifiers for the real money movement behind this interest —
+  // separate charges & transfers pattern (see src/lib/actions/payments.ts):
+  // the checkout session charges the platform account, a later transfer
+  // pays the creator's connected account out of that same charge.
+  stripeCheckoutSessionId String? @unique
+  stripeChargeId          String?
+  stripeTransferId        String?
+  stripeRefundId          String?
 
   // Refundable security deposit — for collabs where the brand ships a
   // physical product, so a creator can't just keep it without posting.

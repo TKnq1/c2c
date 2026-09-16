@@ -10,6 +10,7 @@ import { PushNotificationsSettings } from "@/components/push-notifications-setti
 import { NotificationPreferences } from "@/components/notification-preferences";
 import { DeleteAccountForm } from "@/components/delete-account-form";
 import { SettingsNav } from "@/components/settings-nav";
+import { ConnectStripeButton } from "@/components/connect-stripe-button";
 
 export default async function CreatorSettingsPage() {
   const session = await auth();
@@ -49,6 +50,16 @@ export default async function CreatorSettingsPage() {
           bio={creator.bio}
           platforms={creator.platforms}
         />
+      </div>
+
+      <div id="payouts" className="border-t border-ink/10 pt-6 scroll-mt-16">
+        <h2 className="text-lg font-semibold mb-2">Payouts</h2>
+        <p className="text-sm text-neutral-600 mb-3 dark:text-neutral-400">
+          {creator.stripeOnboarded
+            ? "Connected — released payments go to your linked account."
+            : "Connect a Stripe account before a brand's payment can be released to you."}
+        </p>
+        <ConnectStripeButton isOnboarded={creator.stripeOnboarded} />
       </div>
 
       <div id="password" className="border-t border-ink/10 pt-6 scroll-mt-16">

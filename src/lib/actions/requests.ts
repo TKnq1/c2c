@@ -81,7 +81,7 @@ export async function duplicateRequestAction(requestId: string) {
       title: `${source.title} (Copy)`,
       description: source.description,
       niche: source.niche,
-      language: source.language,
+      languages: source.languages,
       minFollowers: source.minFollowers,
       productCategory: source.productCategory,
     },

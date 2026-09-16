@@ -12,6 +12,7 @@ import { PrintButton } from "@/components/print-button";
 import { ActionButton } from "@/components/action-button";
 import { EmptyState } from "@/components/empty-state";
 import { refundPaymentAction, withdrawOfferAction } from "@/lib/actions/payments";
+import { CompletePaymentButton } from "@/components/complete-payment-button";
 import { DepositStatusBadge } from "@/components/deposit-status-badge";
 import { RequestDepositForm } from "@/components/request-deposit-form";
 import { releaseDepositAction, forfeitDepositAction } from "@/lib/actions/deposits";
@@ -37,6 +38,11 @@ export default async function StartupPaymentsPage() {
     where: { request: { startupId: startup.id }, paymentStatus: "OFFERED" },
     include: { request: true, creator: true },
     orderBy: { offeredAt: "desc" },
+  });
+  const awaitingPayment = await prisma.interest.findMany({
+    where: { request: { startupId: startup.id }, paymentStatus: "ACCEPTED" },
+    include: { request: true, creator: true },
+    orderBy: { acceptedAt: "desc" },
   });
   const awaitingDeposit = await prisma.interest.findMany({
     where: { request: { startupId: startup.id }, depositStatus: null },
@@ -105,9 +111,9 @@ export default async function StartupPaymentsPage() {
       <div>
         <h1 className="font-display text-3xl font-normal">Payments</h1>
         <p className="text-sm text-neutral-600 mt-1 dark:text-neutral-400">
-          Mock escrow — no real payment is processed. Send an interested creator an offer; funds
-          only move once they accept, and we hold {feeRatePercent}% of every accepted offer as our
-          platform fee.
+          Payments run through Stripe. Send an interested creator an offer; once they accept,
+          complete payment via Stripe Checkout — funds are held until the creator posts the
+          content, and we hold {feeRatePercent}% of every payment as our platform fee.
         </p>
         <div className="rounded border border-ink/10 px-4 py-3 mt-3 flex items-center justify-between gap-3 no-print">
           {startup.isPro ? (
@@ -205,6 +211,34 @@ export default async function StartupPaymentsPage() {
                       <OfferResponseActions interestId={i.id} />
                     </>
                   )}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {awaitingPayment.length > 0 && (
+        <div className="no-print">
+          <h2 className="font-semibold mb-3">Awaiting payment ({awaitingPayment.length})</h2>
+          <div className="flex flex-col gap-3">
+            {awaitingPayment.map((i) => (
+              <div key={i.id} className="rounded-2xl border border-ink/10 p-4 flex gap-3 items-start">
+                <Avatar src={i.creator.avatarUrl} name={i.creator.displayName} size={40} />
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center justify-between gap-2">
+                    <Link
+                      href={`/dashboard/startup/requests/${i.requestId}`}
+                      className="font-medium hover:underline"
+                    >
+                      {i.creator.displayName} · {i.request.title}
+                    </Link>
+                    <PaymentStatusBadge status="ACCEPTED" />
+                  </div>
+                  <p className="text-sm text-neutral-700 mt-1 dark:text-neutral-300">
+                    Accepted at {formatCents(i.amountCents!)} — complete payment to hold it in escrow.
+                  </p>
+                  <CompletePaymentButton interestId={i.id} label={`Pay ${formatCents(i.amountCents!)}`} />
                 </div>
               </div>
             ))}
