@@ -10,13 +10,21 @@ import type { NextConfig } from "next";
 // HMR and React's dev-only debugging both use eval(), and React itself
 // guarantees it never uses eval() in production, so this doesn't weaken
 // the header that actually ships.
+// https://*.stripe.com across script/frame/connect is Stripe's own documented
+// minimum for any page using Stripe.js or embedded Connect components (see
+// .agents/skills/stripe-best-practices/references/security.md) — the
+// embedded Stripe Connect onboarding form (ConnectStripeButton) loads
+// connect-js.stripe.com's script and renders Stripe's UI in nested iframes,
+// both of which a narrower policy silently blocks with no visible error
+// beyond the browser console.
 const CSP = [
   "default-src 'self'",
-  `script-src 'self' 'unsafe-inline'${process.env.NODE_ENV === "development" ? " 'unsafe-eval'" : ""}`,
+  `script-src 'self' 'unsafe-inline' https://*.stripe.com${process.env.NODE_ENV === "development" ? " 'unsafe-eval'" : ""}`,
   "style-src 'self' 'unsafe-inline'",
-  "img-src 'self' data: blob:",
+  "img-src 'self' data: blob: https://*.stripe.com",
   "font-src 'self' data:",
-  `connect-src 'self'${process.env.NODE_ENV === "development" ? " ws:" : ""}`,
+  `connect-src 'self' https://*.stripe.com${process.env.NODE_ENV === "development" ? " ws:" : ""}`,
+  "frame-src https://*.stripe.com",
   "frame-ancestors 'none'",
   "base-uri 'self'",
   "form-action 'self'",
