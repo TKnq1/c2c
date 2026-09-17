@@ -10,7 +10,7 @@ import { auth } from "@/lib/auth";
 // visiting "/?gate=<secret>" once sets a long-lived cookie that clears the
 // gate for that browser from then on — it does not log anyone in, it just
 // gets them past this check to the real login page.
-const GATE_ENABLED = true;
+const GATE_ENABLED = false;
 const GATE_BYPASS_COOKIE = "gate_bypass";
 const GATE_BYPASS_SECRET = process.env.GATE_BYPASS_SECRET;
 
