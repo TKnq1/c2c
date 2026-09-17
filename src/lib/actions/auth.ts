@@ -4,6 +4,7 @@ import { randomBytes } from "crypto";
 import { redirect } from "next/navigation";
 import { AuthError } from "next-auth";
 import bcrypt from "bcryptjs";
+import type { Role } from "@prisma/client";
 import { signIn, signOut, auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import {
@@ -23,6 +24,15 @@ import {
   forgotPasswordSchema,
   resetPasswordSchema,
 } from "@/lib/validation";
+
+// Redirecting straight to the role's own dashboard (instead of the generic
+// "/dashboard", which itself just looks up the role and redirects again)
+// saves a full extra server round-trip — and a second flash of loading UI —
+// on every single login and signup.
+function dashboardPathForRole(role: Role) {
+  if (role === "ADMIN") return "/admin";
+  return role === "STARTUP" ? "/dashboard/startup" : "/dashboard/creator";
+}
 
 export type ActionState = { error?: string } | undefined;
 
@@ -64,8 +74,11 @@ export async function completeLoginAction(_prevState: ActionState, formData: For
   const password = formData.get("password");
   const code = formData.get("code");
 
+  const user = typeof email === "string" ? await prisma.user.findUnique({ where: { email }, select: { role: true } }) : null;
+  const redirectTo = `${dashboardPathForRole(user?.role ?? "CREATOR")}?welcome=1`;
+
   try {
-    await signIn("credentials", { email, password, code, redirectTo: "/dashboard?welcome=1" });
+    await signIn("credentials", { email, password, code, redirectTo });
   } catch (error) {
     if (error instanceof AuthError) {
       return { error: "Incorrect code. Please try again." };
@@ -137,7 +150,11 @@ export async function signupAction(_prevState: ActionState, formData: FormData):
   }
 
   try {
-    await signIn("credentials", { email: data.email, password: data.password, redirectTo: "/dashboard?welcome=1" });
+    await signIn("credentials", {
+      email: data.email,
+      password: data.password,
+      redirectTo: `${dashboardPathForRole(data.role)}?welcome=1`,
+    });
   } catch (error) {
     if (error instanceof AuthError) {
       return { error: "Account created, but automatic login failed. Please log in manually." };
