@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { Logo } from "@/components/logo";
 
 export default function Home() {
@@ -20,9 +19,6 @@ export default function Home() {
             We&apos;re still wiring up the last few things behind the scenes — check back soon.
           </p>
         </div>
-        <Link href="/login" className="text-sm font-medium text-neutral-500 underline hover:text-neutral-900 transition dark:text-neutral-400 dark:hover:text-neutral-100">
-          Already have an account? Log in
-        </Link>
       </div>
     </main>
   );

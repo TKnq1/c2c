@@ -2,24 +2,22 @@ import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 
 // Pre-launch gate — flip to false once setup is finished and the site is
-// ready for real signups. While on, anyone without a session is confined
-// to the gate page itself and the account-recovery flows (so the owner's
-// own existing logins/resets keep working); everything else, signup
-// included, redirects to "/" instead.
+// ready for real signups. While on, EVERYTHING is off-limits — login and
+// signup included — except the gate page itself and infrastructure that
+// has to keep working regardless (Stripe's webhook calls, the keep-alive
+// ping, NextAuth's own callback routes, static/meta assets). The only way
+// in is GATE_BYPASS_SECRET, set as an env var and known only to the owner:
+// visiting "/?gate=<secret>" once sets a long-lived cookie that clears the
+// gate for that browser from then on — it does not log anyone in, it just
+// gets them past this check to the real login page.
 const GATE_ENABLED = true;
-const GATE_ALLOWED_PREFIXES = [
-  "/login",
-  "/forgot-password",
-  "/reset-password",
-  "/verify-email",
-  // Stripe's own servers, the keep-alive ping, and NextAuth's own
-  // sign-in/session/csrf endpoints all need to keep working regardless.
+const GATE_BYPASS_COOKIE = "gate_bypass";
+const GATE_BYPASS_SECRET = process.env.GATE_BYPASS_SECRET;
+
+const GATE_INFRA_PREFIXES = [
   "/api/webhooks",
   "/api/health",
   "/api/auth",
-  // Static/meta assets the gate page itself (and crawlers) need — anything
-  // under /public bypasses _next/static's exclusion below, so these need
-  // listing explicitly too.
   "/favicon.ico",
   "/icon",
   "/apple-icon",
@@ -36,9 +34,29 @@ const GATE_ALLOWED_PREFIXES = [
 // independently before touching data.
 export default auth((req) => {
   const { pathname } = req.nextUrl;
+  const isInfra = GATE_INFRA_PREFIXES.some((p) => pathname.startsWith(p));
 
-  if (GATE_ENABLED && !req.auth && pathname !== "/" && !GATE_ALLOWED_PREFIXES.some((p) => pathname.startsWith(p))) {
-    return NextResponse.redirect(new URL("/", req.url));
+  if (GATE_ENABLED && !isInfra) {
+    const bypassParam = req.nextUrl.searchParams.get("gate");
+    const cookieMatches = !!GATE_BYPASS_SECRET && req.cookies.get(GATE_BYPASS_COOKIE)?.value === GATE_BYPASS_SECRET;
+    const paramMatches = !!GATE_BYPASS_SECRET && bypassParam === GATE_BYPASS_SECRET;
+    const bypassed = !!req.auth || cookieMatches || paramMatches;
+
+    if (!bypassed && pathname !== "/") {
+      return NextResponse.redirect(new URL("/", req.url));
+    }
+    // First hit with the secret in the URL — persist it as a cookie so the
+    // owner doesn't need "?gate=..." on every link from here on.
+    if (paramMatches && !cookieMatches) {
+      const res = NextResponse.next();
+      res.cookies.set(GATE_BYPASS_COOKIE, GATE_BYPASS_SECRET!, {
+        httpOnly: true,
+        secure: true,
+        sameSite: "lax",
+        maxAge: 60 * 60 * 24 * 30,
+      });
+      return res;
+    }
   }
 
   const isAdminPath = pathname.startsWith("/admin");
@@ -70,10 +88,10 @@ export default auth((req) => {
 });
 
 export const config = {
-  // Broad while the gate is on, so it can catch everything public (signup,
-  // discover pages, etc.) — not just /dashboard and /admin like before.
-  // _next's own internals are the one thing that must stay excluded here;
-  // everything else is filtered in the handler above instead of a bigger,
-  // harder-to-read matcher regex.
+  // Broad while the gate is on, so it can catch everything public (login,
+  // signup, discover pages, etc.) — not just /dashboard and /admin like
+  // before. _next's own internals are the one thing that must stay
+  // excluded here; everything else is filtered in the handler above
+  // instead of a bigger, harder-to-read matcher regex.
   matcher: ["/((?!_next/static|_next/image).*)"],
 };
