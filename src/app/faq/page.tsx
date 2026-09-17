@@ -55,9 +55,26 @@ const FAQS: { question: string; answer: string }[] = [
   },
 ];
 
+// Lets Google render these as an expandable rich result directly in search,
+// rather than just a plain blue link — the exact question/answer pairs
+// below, structured as https://schema.org/FAQPage expects.
+function FaqJsonLd() {
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: FAQS.map((f) => ({
+      "@type": "Question",
+      name: f.question,
+      acceptedAnswer: { "@type": "Answer", text: f.answer },
+    })),
+  };
+  return <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />;
+}
+
 export default function FaqPage() {
   return (
     <main className="flex-1 px-6 py-16">
+      <FaqJsonLd />
       <div className="max-w-2xl mx-auto flex flex-col gap-8">
         <div>
           <h1 className="font-display text-3xl font-normal">Frequently asked questions</h1>
