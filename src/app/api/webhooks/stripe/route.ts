@@ -126,27 +126,6 @@ export async function POST(req: Request) {
       break;
     }
 
-    case "account.updated": {
-      // Recipient-account go-live check — see .agents/skills/stripe-best-practices
-      // (do NOT use deprecated payouts_enabled/charges_enabled). The webhook
-      // payload's shape isn't guaranteed to match the v2 account shape, so
-      // re-fetch through the v2 API rather than trusting event.data.object.
-      const accountId = (event.data.object as { id: string }).id;
-      // `configuration` (and everything nested under it) is omitted from the
-      // v2 response unless explicitly requested — without `include`, this is
-      // always null and transfersActive is always false.
-      const account = await stripe.v2.core.accounts.retrieve(accountId, {
-        include: ["configuration.recipient"],
-      });
-      const transfersActive =
-        account.configuration?.recipient?.capabilities?.stripe_balance?.stripe_transfers?.status === "active";
-      await prisma.creatorProfile.updateMany({
-        where: { stripeAccountId: account.id },
-        data: { stripeOnboarded: transfersActive },
-      });
-      break;
-    }
-
     default:
       break;
   }
