@@ -27,7 +27,7 @@ const FAQS: { question: string; answer: string }[] = [
   {
     question: "What's the Pro plan?",
     answer:
-      `An optional monthly subscription for brands (${formatCents(PRO_SUBSCRIPTION_PRICE_CENTS)}/month) that lowers the platform fee from ${PLATFORM_FEE_RATE * 100}% to ${PRO_PLATFORM_FEE_RATE * 100}% on every offer. It pays for itself once you're sending roughly ${formatCents(Math.round(PRO_SUBSCRIPTION_PRICE_CENTS / (PLATFORM_FEE_RATE - PRO_PLATFORM_FEE_RATE)))}/month or more in offers. Manage it from Settings — unlike collab payments, the subscription itself is still simulated, no real recurring charge.`,
+      `An optional monthly subscription for brands (${formatCents(PRO_SUBSCRIPTION_PRICE_CENTS)}/month) that lowers the platform fee from ${PLATFORM_FEE_RATE * 100}% to ${PRO_PLATFORM_FEE_RATE * 100}% on every offer. It pays for itself once you're sending roughly ${formatCents(Math.round(PRO_SUBSCRIPTION_PRICE_CENTS / (PLATFORM_FEE_RATE - PRO_PLATFORM_FEE_RATE)))}/month or more in offers. Billed monthly through Stripe — manage or cancel it from Settings.`,
   },
   {
     question: "What if the creator never posts?",
@@ -37,7 +37,7 @@ const FAQS: { question: string; answer: string }[] = [
   {
     question: "Is this real money?",
     answer:
-      "Yes, for collab payments — they run through Stripe, and real money moves between real bank accounts. The Pro subscription is still simulated: subscribing flips your fee rate immediately, but no real recurring charge happens.",
+      "Yes — collab payments and the Pro subscription both run through Stripe, and real money moves between real bank accounts.",
   },
   {
     question: "How are follower counts verified?",

@@ -67,7 +67,7 @@ export default async function AdminOverviewPage() {
     }),
   ]);
 
-  const simulatedMrrCents = proSubscribers * PRO_SUBSCRIPTION_PRICE_CENTS;
+  const mrrCents = proSubscribers * PRO_SUBSCRIPTION_PRICE_CENTS;
   const totalVolumeCents = volumeAgg._sum.amountCents ?? 0;
   const platformRevenueCents = releasedFeeAgg._sum.platformFeeCents ?? 0;
   const pendingFeeCents = heldFeeAgg._sum.platformFeeCents ?? 0;
@@ -107,7 +107,7 @@ export default async function AdminOverviewPage() {
           <p className="text-sm text-neutral-500 dark:text-neutral-400">Pro subscribers</p>
           <p className="font-display text-3xl font-normal mt-1">{proSubscribers}</p>
           <p className="text-xs text-neutral-500 mt-1 dark:text-neutral-400">
-            {formatCents(simulatedMrrCents)}/mo simulated — no real recurring charge
+            {formatCents(mrrCents)}/mo recurring
           </p>
         </div>
       </div>

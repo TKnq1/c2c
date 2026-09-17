@@ -37,4 +37,4 @@ export const PLATFORM_FEE_RATE = 0.1;
 // Pro subscription: a flat monthly fee for a reduced cut on every payment
 // instead of the standard rate above.
 export const PRO_PLATFORM_FEE_RATE = 0.03;
-export const PRO_SUBSCRIPTION_PRICE_CENTS = 4900; // $49/month
+export const PRO_SUBSCRIPTION_PRICE_CENTS = 4900; // €49/month — must match STRIPE_PRO_PRICE_ID's actual price

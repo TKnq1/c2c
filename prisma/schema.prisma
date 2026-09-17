@@ -184,17 +184,24 @@ model StartupProfile {
   lookingFor  String?
   createdAt   DateTime @default(now())
 
-  // Simulated Pro subscription — a flat monthly fee for a reduced platform
-  // cut on every payment (see PRO_PLATFORM_FEE_RATE). No real recurring
-  // billing runs here (that needs Stripe); it's a plain on/off toggle
-  // rather than a fake auto-renewal we can't actually enforce.
-  isPro    Boolean   @default(false)
-  proSince DateTime?
+  // Pro subscription — a flat monthly fee for a reduced platform cut on
+  // every payment (see PRO_PLATFORM_FEE_RATE). isPro/proSince are the
+  // cheap, denormalized read of subscription state (kept in sync by the
+  // webhook's customer.subscription.* handlers) so every fee calculation
+  // doesn't need a live Stripe API call — stripeSubscriptionId is the
+  // source of truth for actually managing the subscription itself.
+  isPro                Boolean   @default(false)
+  proSince             DateTime?
+  stripeCustomerId     String?
+  stripeSubscriptionId String?
 
   requests    Request[]
   socialLinks StartupSocialLink[]
   reviews     Review[]
   favorites   Favorite[]
+
+  @@index([stripeCustomerId])
+  @@index([stripeSubscriptionId])
 }
 
 model StartupSocialLink {

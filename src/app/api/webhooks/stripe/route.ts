@@ -27,6 +27,23 @@ export async function POST(req: Request) {
       const checkoutSession = event.data.object as Stripe.Checkout.Session;
       if (checkoutSession.payment_status === "unpaid") break;
 
+      // Pro subscription checkout (mode: "subscription") vs. a collab
+      // payment (mode: "payment") — different session shape, different
+      // row to update, so these branch entirely rather than sharing logic.
+      if (checkoutSession.mode === "subscription") {
+        const customerId =
+          typeof checkoutSession.customer === "string" ? checkoutSession.customer : null;
+        const subscriptionId =
+          typeof checkoutSession.subscription === "string" ? checkoutSession.subscription : null;
+        if (!customerId || !subscriptionId) break;
+
+        await prisma.startupProfile.updateMany({
+          where: { stripeCustomerId: customerId },
+          data: { isPro: true, proSince: new Date(), stripeSubscriptionId: subscriptionId },
+        });
+        break;
+      }
+
       const interest = await prisma.interest.findUnique({
         where: { stripeCheckoutSessionId: checkoutSession.id },
         include: { request: { include: { startup: true } }, creator: true },
@@ -79,6 +96,33 @@ export async function POST(req: Request) {
         "/dashboard/startup/payments",
         "payments",
       );
+      break;
+    }
+
+    case "customer.subscription.updated": {
+      // Covers renewals, reactivations, and payment failures moving the
+      // subscription out of "active" (e.g. "past_due") — isPro tracks
+      // "currently entitled to the reduced fee," not "has ever subscribed."
+      const subscription = event.data.object as Stripe.Subscription;
+      const customerId = typeof subscription.customer === "string" ? subscription.customer : null;
+      if (!customerId) break;
+
+      await prisma.startupProfile.updateMany({
+        where: { stripeCustomerId: customerId },
+        data: { isPro: subscription.status === "active" || subscription.status === "trialing" },
+      });
+      break;
+    }
+
+    case "customer.subscription.deleted": {
+      const subscription = event.data.object as Stripe.Subscription;
+      const customerId = typeof subscription.customer === "string" ? subscription.customer : null;
+      if (!customerId) break;
+
+      await prisma.startupProfile.updateMany({
+        where: { stripeCustomerId: customerId },
+        data: { isPro: false, stripeSubscriptionId: null },
+      });
       break;
     }
 

@@ -1,16 +1,26 @@
 "use client";
 
 import { useState } from "react";
-import { subscribeToProAction, cancelProAction } from "@/lib/actions/subscription";
+import { createProCheckoutSessionAction, cancelProAction } from "@/lib/actions/subscription";
 import { ActionButton } from "@/components/action-button";
 import { formatCents } from "@/lib/format";
 import { PLATFORM_FEE_RATE, PRO_PLATFORM_FEE_RATE, PRO_SUBSCRIPTION_PRICE_CENTS } from "@/lib/constants";
 
-// Keyed by isPro at the call site (see settings page) so this remounts
-// fresh on every plan change — otherwise showCheckout could survive a
-// subscribe and show a stale checkout screen after a later cancel.
 export function ProPlanCard({ isPro, proSince }: { isPro: boolean; proSince: Date | null }) {
-  const [showCheckout, setShowCheckout] = useState(false);
+  const [pending, setPending] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function handleSubscribe() {
+    setPending(true);
+    setError(null);
+    const result = await createProCheckoutSessionAction();
+    if ("error" in result) {
+      setError(result.error);
+      setPending(false);
+      return;
+    }
+    window.location.href = result.url;
+  }
 
   if (isPro) {
     return (
@@ -24,78 +34,14 @@ export function ProPlanCard({ isPro, proSince }: { isPro: boolean; proSince: Dat
           {formatCents(PRO_SUBSCRIPTION_PRICE_CENTS)}/month.
           {proSince && ` Pro since ${proSince.toLocaleDateString("en-US")}.`}
         </p>
-        <p className="text-xs text-neutral-500 dark:text-neutral-400">
-          Simulated subscription — no real recurring charge happens (that needs real payment
-          processing). The discounted fee itself is fully real and applies to every offer you
-          send while active.
-        </p>
         <ActionButton
           action={cancelProAction}
           successMessage="Pro cancelled — back to the standard rate."
+          confirmMessage="Cancel your Pro subscription? This takes effect immediately — the rest of this billing period isn't refunded."
           className="text-sm text-neutral-500 hover:text-ink transition disabled:opacity-50 self-start"
         >
           Cancel Pro
         </ActionButton>
-      </div>
-    );
-  }
-
-  // The actual "pay to unlock the lower rate" moment — a distinct checkout
-  // step rather than the subscribe button firing immediately, same shape
-  // as the offer/deposit forms elsewhere (reveal, then confirm).
-  if (showCheckout) {
-    return (
-      <div className="rounded-2xl border border-ink p-4 flex flex-col gap-3">
-        <p className="font-medium">Confirm your subscription</p>
-        <div className="rounded border border-ink/10 bg-fog p-3 flex items-center justify-between gap-3">
-          <div>
-            <p className="text-sm">Pro plan</p>
-            <p className="text-xs text-neutral-500 dark:text-neutral-400">Billed monthly · cancel anytime</p>
-          </div>
-          <p className="font-display text-2xl font-normal shrink-0">
-            {formatCents(PRO_SUBSCRIPTION_PRICE_CENTS)}
-            <span className="text-sm text-neutral-500 dark:text-neutral-400">/mo</span>
-          </p>
-        </div>
-        <div>
-          <p className="text-xs font-medium text-neutral-500 dark:text-neutral-400 mb-1.5">Payment method</p>
-          <div className="rounded border border-ink/10 p-3 flex items-center gap-3">
-            <div
-              aria-hidden
-              className="h-7 w-11 rounded bg-ink text-paper flex items-center justify-center text-[9px] font-semibold tracking-wide shrink-0"
-            >
-              DEMO
-            </div>
-            <div className="min-w-0">
-              <p className="text-sm">Demo card •••• 4242</p>
-              <p className="text-xs text-neutral-500 dark:text-neutral-400">
-                Fake placeholder — no real card is on file or gets charged.
-              </p>
-            </div>
-          </div>
-        </div>
-        <p className="text-xs text-neutral-500 dark:text-neutral-400">
-          Simulated checkout — the card above isn&apos;t real and this specific subscription charge
-          doesn&apos;t happen (unlike collab payments, which do run through Stripe). Confirming below
-          flips your platform fee to {PRO_PLATFORM_FEE_RATE * 100}% immediately, same as it would the
-          moment a real charge succeeded.
-        </p>
-        <div className="flex items-center gap-3 flex-wrap">
-          <ActionButton
-            action={subscribeToProAction}
-            successMessage="You're on Pro now — 3% fee from here on."
-            className="rounded bg-ink text-paper px-4 py-2 text-sm font-medium hover:bg-graphite transition disabled:opacity-50 shrink-0 whitespace-nowrap"
-          >
-            Confirm — {formatCents(PRO_SUBSCRIPTION_PRICE_CENTS)}/month
-          </ActionButton>
-          <button
-            type="button"
-            onClick={() => setShowCheckout(false)}
-            className="text-sm text-neutral-500 hover:text-neutral-900 transition dark:text-neutral-400 dark:hover:text-neutral-100 shrink-0"
-          >
-            Cancel
-          </button>
-        </div>
       </div>
     );
   }
@@ -115,11 +61,13 @@ export function ProPlanCard({ isPro, proSince }: { isPro: boolean; proSince: Dat
       </p>
       <button
         type="button"
-        onClick={() => setShowCheckout(true)}
-        className="rounded bg-ink text-paper px-4 py-2 text-sm font-medium hover:bg-graphite transition self-start"
+        onClick={handleSubscribe}
+        disabled={pending}
+        className="rounded bg-ink text-paper px-4 py-2 text-sm font-medium hover:bg-graphite transition disabled:opacity-50 self-start"
       >
-        Subscribe to Pro — {formatCents(PRO_SUBSCRIPTION_PRICE_CENTS)}/month
+        {pending ? "Redirecting…" : `Subscribe to Pro — ${formatCents(PRO_SUBSCRIPTION_PRICE_CENTS)}/month`}
       </button>
+      {error && <p className="text-sm text-ink">{error}</p>}
     </div>
   );
 }
