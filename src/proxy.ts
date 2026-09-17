@@ -90,8 +90,14 @@ export default auth((req) => {
 export const config = {
   // Broad while the gate is on, so it can catch everything public (login,
   // signup, discover pages, etc.) — not just /dashboard and /admin like
-  // before. _next's own internals are the one thing that must stay
-  // excluded here; everything else is filtered in the handler above
-  // instead of a bigger, harder-to-read matcher regex.
-  matcher: ["/((?!_next/static|_next/image).*)"],
+  // before. Most exclusions (favicon, health, etc.) are filtered in the
+  // handler above instead of a bigger matcher regex — but /api/webhooks
+  // has to be excluded at the matcher level, not just in-code: Stripe's
+  // signature check needs the exact raw request body, and routing a POST
+  // through this auth()-wrapped middleware first broke that (every
+  // delivery came back "Invalid signature" once the matcher widened to
+  // include it, even with a confirmed-correct secret). /api/auth is
+  // excluded too, matching Auth.js's own recommended middleware setup —
+  // its routes handle their own request processing.
+  matcher: ["/((?!_next/static|_next/image|api/webhooks|api/auth).*)"],
 };
