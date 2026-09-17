@@ -8,11 +8,17 @@ import { NextResponse } from "next/server";
 export async function GET() {
   const raw = process.env.STRIPE_SECRET_KEY;
   const trimmed = raw?.trim();
+  // Index only — never the character itself, its code point, or
+  // surrounding context, so this can't be used to reconstruct the key.
+  const badPositions = trimmed
+    ? [...trimmed].map((ch, i) => (ch.codePointAt(0)! < 0x20 || ch.codePointAt(0)! > 0x7e ? i : null)).filter((i) => i !== null)
+    : [];
   return NextResponse.json({
     isSet: !!raw,
     rawLength: raw?.length ?? null,
     trimmedLength: trimmed?.length ?? null,
-    isAllPrintableAscii: trimmed ? /^[\x20-\x7E]+$/.test(trimmed) : null,
+    isAllPrintableAscii: badPositions.length === 0,
+    badPositions,
     startsWithSkTest: trimmed?.startsWith("sk_test_") ?? null,
   });
 }
