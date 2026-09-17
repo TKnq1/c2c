@@ -9,7 +9,12 @@ let client: Stripe | undefined;
 
 function getClient(): Stripe {
   if (!client) {
-    client = new Stripe(process.env.STRIPE_SECRET_KEY!, { apiVersion: "2026-08-26.dahlia" });
+    // .trim() defensively — the SDK puts this straight into the
+    // Authorization header with no trimming of its own, so a trailing
+    // newline (easy to pick up when a key is set via a hosting dashboard
+    // or piped into a CLI) throws a confusing low-level
+    // "Invalid character in header content" instead of an auth error.
+    client = new Stripe(process.env.STRIPE_SECRET_KEY!.trim(), { apiVersion: "2026-08-26.dahlia" });
   }
   return client;
 }

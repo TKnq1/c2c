@@ -10,6 +10,9 @@ export async function sendEmail({ to, subject, html }: { to: string; subject: st
   // Constructed here, not at module scope — the Resend constructor throws
   // immediately on a missing key, and Next.js evaluates this module while
   // statically analyzing routes at build time, not just at request time.
-  const resend = new Resend(process.env.RESEND_API_KEY);
+  // .trim() for the same reason as the Stripe client — a trailing newline
+  // from a hosting dashboard paste breaks the Authorization header, not
+  // the key itself.
+  const resend = new Resend(process.env.RESEND_API_KEY?.trim());
   await resend.emails.send({ from: FROM_EMAIL, to, subject, html });
 }

@@ -16,7 +16,7 @@ export async function POST(req: Request) {
 
   let event: Stripe.Event;
   try {
-    event = stripe.webhooks.constructEvent(body, signature, process.env.STRIPE_WEBHOOK_SECRET!);
+    event = stripe.webhooks.constructEvent(body, signature, process.env.STRIPE_WEBHOOK_SECRET!.trim());
   } catch {
     return NextResponse.json({ error: "Invalid signature" }, { status: 400 });
   }
