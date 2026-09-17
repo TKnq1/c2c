@@ -24,36 +24,24 @@ export default async function StartupPaymentsPage() {
   if (!session || session.user.role !== "STARTUP") redirect("/login");
 
   const startup = await prisma.startupProfile.findUniqueOrThrow({ where: { userId: session.user.id } });
-  const payments = await prisma.interest.findMany({
-    where: { request: { startupId: startup.id }, paymentStatus: { in: ["HELD", "RELEASED", "REFUNDED"] } },
+  // One query instead of six sequential ones — the six lists below are all
+  // just different filtered/sorted views over the same startup's interests,
+  // so it's cheaper to fetch them all once and split/sort in JS than to
+  // round-trip to Neon six times for the same underlying rows.
+  const allInterests = await prisma.interest.findMany({
+    where: { request: { startupId: startup.id } },
     include: { request: true, creator: true, reviews: { where: { authorRole: "STARTUP" } } },
-    orderBy: { paidAt: "desc" },
   });
-  const awaitingOffer = await prisma.interest.findMany({
-    where: { request: { startupId: startup.id }, paymentStatus: null },
-    include: { request: true, creator: true },
-    orderBy: { createdAt: "desc" },
-  });
-  const pendingOffers = await prisma.interest.findMany({
-    where: { request: { startupId: startup.id }, paymentStatus: "OFFERED" },
-    include: { request: true, creator: true },
-    orderBy: { offeredAt: "desc" },
-  });
-  const awaitingPayment = await prisma.interest.findMany({
-    where: { request: { startupId: startup.id }, paymentStatus: "ACCEPTED" },
-    include: { request: true, creator: true },
-    orderBy: { acceptedAt: "desc" },
-  });
-  const awaitingDeposit = await prisma.interest.findMany({
-    where: { request: { startupId: startup.id }, depositStatus: null },
-    include: { request: true, creator: true },
-    orderBy: { createdAt: "desc" },
-  });
-  const deposits = await prisma.interest.findMany({
-    where: { request: { startupId: startup.id }, depositStatus: { not: null } },
-    include: { request: true, creator: true },
-    orderBy: { depositRequestedAt: "desc" },
-  });
+  const byDesc = <T,>(key: (i: T) => Date | null) => (a: T, b: T) => (key(b)?.getTime() ?? 0) - (key(a)?.getTime() ?? 0);
+
+  const payments = allInterests
+    .filter((i) => i.paymentStatus === "HELD" || i.paymentStatus === "RELEASED" || i.paymentStatus === "REFUNDED")
+    .sort(byDesc((i) => i.paidAt));
+  const awaitingOffer = allInterests.filter((i) => i.paymentStatus === null).sort(byDesc((i) => i.createdAt));
+  const pendingOffers = allInterests.filter((i) => i.paymentStatus === "OFFERED").sort(byDesc((i) => i.offeredAt));
+  const awaitingPayment = allInterests.filter((i) => i.paymentStatus === "ACCEPTED").sort(byDesc((i) => i.acceptedAt));
+  const awaitingDeposit = allInterests.filter((i) => i.depositStatus === null).sort(byDesc((i) => i.createdAt));
+  const deposits = allInterests.filter((i) => i.depositStatus !== null).sort(byDesc((i) => i.depositRequestedAt));
 
   // Refunded money came back, so it no longer counts as "spent".
   const totalSpentCents = payments

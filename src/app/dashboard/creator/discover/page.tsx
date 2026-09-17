@@ -23,42 +23,45 @@ export default async function DiscoverBrandsPage() {
       orderBy: { createdAt: "asc" },
     }),
   ]);
-  const favorites = await prisma.favorite.findMany({
-    where: { creatorId: creator.id, favoritedByRole: "CREATOR" },
-    select: { startupId: true },
-  });
+  // None of these four depend on each other's results (or on anything but
+  // `brands`/`creator.id`, both already resolved above), so they run as one
+  // round-trip instead of four sequential ones.
+  const [favorites, ratingGroups, interestsForResponseTime, releasedInterests] = await Promise.all([
+    prisma.favorite.findMany({
+      where: { creatorId: creator.id, favoritedByRole: "CREATOR" },
+      select: { startupId: true },
+    }),
+    prisma.review.groupBy({
+      by: ["startupId"],
+      where: { authorRole: "CREATOR" },
+      _avg: { rating: true },
+      _count: { _all: true },
+    }),
+    prisma.interest.findMany({
+      where: { request: { startupId: { in: brands.map((b) => b.id) } } },
+      select: {
+        request: { select: { startupId: true } },
+        messages: { orderBy: { createdAt: "asc" }, select: { senderRole: true, createdAt: true } },
+      },
+    }),
+    // Interest.paymentStatus can't be grouped by request.startupId directly
+    // (groupBy only supports scalar fields on the model itself), so tally it
+    // by hand the same way the response-time data above already is.
+    prisma.interest.findMany({
+      where: { paymentStatus: "RELEASED", request: { startupId: { in: brands.map((b) => b.id) } } },
+      select: { request: { select: { startupId: true } } },
+    }),
+  ]);
   const favoritedStartupIds = new Set(favorites.map((f) => f.startupId));
-  const ratingGroups = await prisma.review.groupBy({
-    by: ["startupId"],
-    where: { authorRole: "CREATOR" },
-    _avg: { rating: true },
-    _count: { _all: true },
-  });
   const ratingByStartupId = new Map(
     ratingGroups.map((g) => [g.startupId, { average: g._avg.rating ?? 0, count: g._count._all }]),
   );
-
-  const interestsForResponseTime = await prisma.interest.findMany({
-    where: { request: { startupId: { in: brands.map((b) => b.id) } } },
-    select: {
-      request: { select: { startupId: true } },
-      messages: { orderBy: { createdAt: "asc" }, select: { senderRole: true, createdAt: true } },
-    },
-  });
   const conversationsByStartupId = new Map<string, { senderRole: Role; createdAt: Date }[][]>();
   for (const interest of interestsForResponseTime) {
     const list = conversationsByStartupId.get(interest.request.startupId) ?? [];
     list.push(interest.messages);
     conversationsByStartupId.set(interest.request.startupId, list);
   }
-
-  // Interest.paymentStatus can't be grouped by request.startupId directly
-  // (groupBy only supports scalar fields on the model itself), so tally it
-  // by hand the same way the response-time data above already is.
-  const releasedInterests = await prisma.interest.findMany({
-    where: { paymentStatus: "RELEASED", request: { startupId: { in: brands.map((b) => b.id) } } },
-    select: { request: { select: { startupId: true } } },
-  });
   const completedByStartupId = new Map<string, number>();
   for (const i of releasedInterests) {
     completedByStartupId.set(i.request.startupId, (completedByStartupId.get(i.request.startupId) ?? 0) + 1);

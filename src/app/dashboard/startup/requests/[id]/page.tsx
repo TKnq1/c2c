@@ -14,20 +14,23 @@ export default async function RequestDetailPage({ params }: { params: Promise<{ 
   const session = await auth();
   if (!session || session.user.role !== "STARTUP") redirect("/login");
 
-  const startup = await prisma.startupProfile.findUniqueOrThrow({ where: { userId: session.user.id } });
-
-  const request = await prisma.request.findUnique({
-    where: { id },
-    include: {
-      interests: {
-        include: {
-          creator: { include: { user: true, platforms: true } },
-          reviews: { where: { authorRole: "STARTUP" } },
+  // The request query doesn't actually need `startup` first — only the
+  // ownership check below does — so both run as one round-trip.
+  const [startup, request] = await Promise.all([
+    prisma.startupProfile.findUniqueOrThrow({ where: { userId: session.user.id } }),
+    prisma.request.findUnique({
+      where: { id },
+      include: {
+        interests: {
+          include: {
+            creator: { include: { user: true, platforms: true } },
+            reviews: { where: { authorRole: "STARTUP" } },
+          },
+          orderBy: { createdAt: "desc" },
         },
-        orderBy: { createdAt: "desc" },
       },
-    },
-  });
+    }),
+  ]);
 
   if (!request || request.startupId !== startup.id) notFound();
 

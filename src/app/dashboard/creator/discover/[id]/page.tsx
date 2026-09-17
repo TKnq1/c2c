@@ -18,37 +18,45 @@ export default async function BrandProfileDetailPage({ params }: { params: Promi
   const session = await auth();
   if (!session || session.user.role !== "CREATOR") redirect("/login");
 
-  const startup = await prisma.startupProfile.findUnique({
-    where: { id },
-    include: { socialLinks: true },
-  });
+  // None of these five depend on each other — they only need `id` (the
+  // route param) or `session.user.id` (both already available), not each
+  // other's query results, so they run as one round-trip instead of five
+  // sequential ones. (`startupId: id` below is the same value `startup.id`
+  // would be once fetched — no need to wait for that fetch just to restate
+  // the id we already have.)
+  const [startup, creator, reviews, conversations, completedCollabs] = await Promise.all([
+    prisma.startupProfile.findUnique({
+      where: { id },
+      include: { socialLinks: true },
+    }),
+    prisma.creatorProfile.findUniqueOrThrow({
+      where: { userId: session.user.id },
+      include: { platforms: true },
+    }),
+    prisma.review.findMany({
+      where: { startupId: id, authorRole: "CREATOR" },
+      orderBy: { createdAt: "desc" },
+    }),
+    prisma.interest.findMany({
+      where: { request: { startupId: id } },
+      select: { messages: { orderBy: { createdAt: "asc" }, select: { senderRole: true, createdAt: true } } },
+    }),
+    prisma.interest.count({
+      where: { paymentStatus: "RELEASED", request: { startupId: id } },
+    }),
+  ]);
   if (!startup) notFound();
 
-  const reviews = await prisma.review.findMany({
-    where: { startupId: id, authorRole: "CREATOR" },
-    orderBy: { createdAt: "desc" },
-  });
   const average = reviews.length
     ? reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length
     : 0;
-  const conversations = await prisma.interest.findMany({
-    where: { request: { startupId: startup.id } },
-    select: { messages: { orderBy: { createdAt: "asc" }, select: { senderRole: true, createdAt: true } } },
-  });
   const responseTimeLabel = formatResponseTime(
     computeResponseTimeMs(
       conversations.map((c) => c.messages),
       "STARTUP",
     ),
   );
-  const completedCollabs = await prisma.interest.count({
-    where: { paymentStatus: "RELEASED", request: { startupId: startup.id } },
-  });
 
-  const creator = await prisma.creatorProfile.findUniqueOrThrow({
-    where: { userId: session.user.id },
-    include: { platforms: true },
-  });
   const [existingInterest, feed, favorite] = await Promise.all([
     prisma.interest.findFirst({
       where: { creatorId: creator.id, request: { startupId: startup.id } },

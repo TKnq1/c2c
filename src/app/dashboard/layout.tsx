@@ -13,10 +13,15 @@ export default async function DashboardLayout({ children }: { children: React.Re
   const session = await auth();
   if (!session) redirect("/login");
 
+  // The pending-payments badge only ever renders on the creator nav item
+  // (see Nav) — for a startup session, getPendingPaymentActionCount's own
+  // creatorProfile lookup would always come back empty, so it's skipped
+  // entirely rather than spending a Neon round-trip on every dashboard
+  // page load just to compute a number nothing displays.
   const [unreadCount, unreadMessages, pendingPayments, user] = await Promise.all([
     getUnreadCount(session.user.id),
     getUnreadMessageCount(session.user.id, session.user.role),
-    getPendingPaymentActionCount(session.user.id),
+    session.user.role === "CREATOR" ? getPendingPaymentActionCount(session.user.id) : Promise.resolve(0),
     prisma.user.findUnique({ where: { id: session.user.id }, select: { emailVerified: true } }),
   ]);
 

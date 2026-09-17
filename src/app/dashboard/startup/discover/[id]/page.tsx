@@ -19,33 +19,37 @@ export default async function CreatorProfileDetailPage({ params }: { params: Pro
   const session = await auth();
   if (!session || session.user.role !== "STARTUP") redirect("/login");
 
-  const creator = await prisma.creatorProfile.findUnique({
-    where: { id },
-    include: { platforms: true },
-  });
-  if (!creator) notFound();
-
-  const [reviews, startup, blocked] = await Promise.all([
+  // `creator`, `startup`, and `reviews` don't depend on each other — only
+  // on `id` (the route param) or `session.user.id`, both already available.
+  const [creator, startup, reviews] = await Promise.all([
+    prisma.creatorProfile.findUnique({
+      where: { id },
+      include: { platforms: true },
+    }),
+    prisma.startupProfile.findUniqueOrThrow({ where: { userId: session.user.id } }),
     prisma.review.findMany({
       where: { creatorId: id, authorRole: "STARTUP" },
       orderBy: { createdAt: "desc" },
     }),
-    prisma.startupProfile.findUniqueOrThrow({ where: { userId: session.user.id } }),
-    isBlocked(session.user.id, creator.userId),
   ]);
+  if (!creator) notFound();
   const average = reviews.length
     ? reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length
     : 0;
-  const favorite = await prisma.favorite.findUnique({
-    where: {
-      startupId_creatorId_favoritedByRole: { startupId: startup.id, creatorId: creator.id, favoritedByRole: "STARTUP" },
-    },
-  });
-  const conversations = await prisma.interest.findMany({
-    where: { creatorId: creator.id },
-    select: { messages: { orderBy: { createdAt: "asc" }, select: { senderRole: true, createdAt: true } } },
-  });
-  const [existingInterest, openRequests] = await Promise.all([
+
+  // These six all depend only on creator/startup ids resolved above, not on
+  // each other, so they too run as one round-trip.
+  const [blocked, favorite, conversations, existingInterest, openRequests, completedCollabs] = await Promise.all([
+    isBlocked(session.user.id, creator.userId),
+    prisma.favorite.findUnique({
+      where: {
+        startupId_creatorId_favoritedByRole: { startupId: startup.id, creatorId: creator.id, favoritedByRole: "STARTUP" },
+      },
+    }),
+    prisma.interest.findMany({
+      where: { creatorId: creator.id },
+      select: { messages: { orderBy: { createdAt: "asc" }, select: { senderRole: true, createdAt: true } } },
+    }),
     prisma.interest.findFirst({
       where: { creatorId: creator.id, request: { startupId: startup.id } },
       select: { id: true },
@@ -55,6 +59,9 @@ export default async function CreatorProfileDetailPage({ params }: { params: Pro
       select: { id: true, title: true },
       orderBy: { createdAt: "desc" },
     }),
+    prisma.interest.count({
+      where: { creatorId: creator.id, paymentStatus: "RELEASED" },
+    }),
   ]);
   const responseTimeLabel = formatResponseTime(
     computeResponseTimeMs(
@@ -62,9 +69,6 @@ export default async function CreatorProfileDetailPage({ params }: { params: Pro
       "CREATOR",
     ),
   );
-  const completedCollabs = await prisma.interest.count({
-    where: { creatorId: creator.id, paymentStatus: "RELEASED" },
-  });
 
   return (
     <div className="flex flex-col gap-8">

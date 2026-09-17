@@ -8,8 +8,10 @@ export default async function EditRequestPage({ params }: { params: Promise<{ id
   const session = await auth();
   if (!session || session.user.role !== "STARTUP") redirect("/login");
 
-  const startup = await prisma.startupProfile.findUniqueOrThrow({ where: { userId: session.user.id } });
-  const request = await prisma.request.findUnique({ where: { id } });
+  const [startup, request] = await Promise.all([
+    prisma.startupProfile.findUniqueOrThrow({ where: { userId: session.user.id } }),
+    prisma.request.findUnique({ where: { id } }),
+  ]);
   if (!request || request.startupId !== startup.id) notFound();
 
   return (

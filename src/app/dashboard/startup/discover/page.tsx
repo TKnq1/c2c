@@ -29,29 +29,33 @@ export default async function DiscoverCreatorsPage() {
   ]);
   const favoritedCreatorIds = new Set(startup.favorites.map((f) => f.creatorId));
 
-  const creators = await prisma.creatorProfile.findMany({
-    where: { userId: { notIn: blockedUserIds } },
-    include: { platforms: true },
-    orderBy: { createdAt: "desc" },
-  });
-  const ratingGroups = await prisma.review.groupBy({
-    by: ["creatorId"],
-    where: { authorRole: "STARTUP" },
-    _avg: { rating: true },
-    _count: { _all: true },
-  });
+  // None of these three depend on each other's results, so they run as one
+  // round-trip instead of three sequential ones — each extra round-trip to
+  // Neon is real added latency, not free.
+  const [creators, ratingGroups, completedGroups] = await Promise.all([
+    prisma.creatorProfile.findMany({
+      where: { userId: { notIn: blockedUserIds } },
+      include: { platforms: true },
+      orderBy: { createdAt: "desc" },
+    }),
+    prisma.review.groupBy({
+      by: ["creatorId"],
+      where: { authorRole: "STARTUP" },
+      _avg: { rating: true },
+      _count: { _all: true },
+    }),
+    // Completed collabs — a released payment is the clearest signal a collab
+    // actually finished successfully, so it's a faster trust check than
+    // opening every profile to read reviews one by one.
+    prisma.interest.groupBy({
+      by: ["creatorId"],
+      where: { paymentStatus: "RELEASED" },
+      _count: { _all: true },
+    }),
+  ]);
   const ratingByCreatorId = new Map(
     ratingGroups.map((g) => [g.creatorId, { average: g._avg.rating ?? 0, count: g._count._all }]),
   );
-
-  // Completed collabs — a released payment is the clearest signal a collab
-  // actually finished successfully, so it's a faster trust check than
-  // opening every profile to read reviews one by one.
-  const completedGroups = await prisma.interest.groupBy({
-    by: ["creatorId"],
-    where: { paymentStatus: "RELEASED" },
-    _count: { _all: true },
-  });
   const completedByCreatorId = new Map(completedGroups.map((g) => [g.creatorId, g._count._all]));
 
   const interestsForResponseTime = await prisma.interest.findMany({

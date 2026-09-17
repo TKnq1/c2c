@@ -20,27 +20,20 @@ export default async function CreatorPaymentsPage() {
   if (!session || session.user.role !== "CREATOR") redirect("/login");
 
   const creator = await prisma.creatorProfile.findUniqueOrThrow({ where: { userId: session.user.id } });
-  const payments = await prisma.interest.findMany({
-    where: { creatorId: creator.id, paymentStatus: { in: ["HELD", "RELEASED", "REFUNDED"] } },
+  // One query instead of four sequential ones — see the identical fix on
+  // the startup payments page for why.
+  const allInterests = await prisma.interest.findMany({
+    where: { creatorId: creator.id },
     include: { request: { include: { startup: true } }, reviews: { where: { authorRole: "CREATOR" } } },
-    orderBy: { paidAt: "desc" },
   });
-  const pendingOffers = await prisma.interest.findMany({
-    where: { creatorId: creator.id, paymentStatus: "OFFERED" },
-    include: { request: { include: { startup: true } } },
-    orderBy: { offeredAt: "desc" },
-  });
-  const awaitingPayment = await prisma.interest.findMany({
-    where: { creatorId: creator.id, paymentStatus: "ACCEPTED" },
-    include: { request: { include: { startup: true } } },
-    orderBy: { acceptedAt: "desc" },
-  });
+  const byDesc = <T,>(key: (i: T) => Date | null) => (a: T, b: T) => (key(b)?.getTime() ?? 0) - (key(a)?.getTime() ?? 0);
 
-  const deposits = await prisma.interest.findMany({
-    where: { creatorId: creator.id, depositStatus: { not: null } },
-    include: { request: { include: { startup: true } } },
-    orderBy: { depositRequestedAt: "desc" },
-  });
+  const payments = allInterests
+    .filter((i) => i.paymentStatus === "HELD" || i.paymentStatus === "RELEASED" || i.paymentStatus === "REFUNDED")
+    .sort(byDesc((i) => i.paidAt));
+  const pendingOffers = allInterests.filter((i) => i.paymentStatus === "OFFERED").sort(byDesc((i) => i.offeredAt));
+  const awaitingPayment = allInterests.filter((i) => i.paymentStatus === "ACCEPTED").sort(byDesc((i) => i.acceptedAt));
+  const deposits = allInterests.filter((i) => i.depositStatus !== null).sort(byDesc((i) => i.depositRequestedAt));
 
   const totalEarnedCents = payments
     .filter((p) => p.paymentStatus === "RELEASED")
