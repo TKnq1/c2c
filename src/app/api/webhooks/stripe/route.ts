@@ -17,8 +17,12 @@ export async function POST(req: Request) {
   let event: Stripe.Event;
   try {
     event = stripe.webhooks.constructEvent(body, signature, process.env.STRIPE_WEBHOOK_SECRET!);
-  } catch {
-    return NextResponse.json({ error: "Invalid signature" }, { status: 400 });
+  } catch (err) {
+    // TEMPORARY: surfacing the real message while diagnosing a
+    // production-only signature failure — revert to a generic message once
+    // resolved. Stripe's own constructEvent errors are descriptive, not
+    // secret-bearing (e.g. timestamp tolerance vs. actual mismatch).
+    return NextResponse.json({ error: err instanceof Error ? err.message : "Invalid signature" }, { status: 400 });
   }
 
   switch (event.type) {
