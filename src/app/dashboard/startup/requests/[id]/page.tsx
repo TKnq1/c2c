@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
+import type { PaymentStatus, DepositStatus } from "@prisma/client";
 import { FiUsers } from "react-icons/fi";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
@@ -33,6 +34,12 @@ export default async function RequestDetailPage({ params }: { params: Promise<{ 
   ]);
 
   if (!request || request.startupId !== startup.id) notFound();
+
+  // Both a creator applying and this startup reaching out directly create
+  // the same Interest row — split them back apart so "interested" only
+  // ever describes creators who actually did that.
+  const interestedCreators = request.interests.filter((i) => i.initiatedBy === "CREATOR");
+  const contactedCreators = request.interests.filter((i) => i.initiatedBy === "STARTUP");
 
   return (
     <div className="flex flex-col gap-8">
@@ -84,8 +91,8 @@ export default async function RequestDetailPage({ params }: { params: Promise<{ 
       </div>
 
       <div>
-        <h2 className="font-semibold mb-3">Interested creators ({request.interests.length})</h2>
-        {request.interests.length === 0 ? (
+        <h2 className="font-semibold mb-3">Interested creators ({interestedCreators.length})</h2>
+        {interestedCreators.length === 0 ? (
           <EmptyState
             icon={FiUsers}
             title="No creator interest yet."
@@ -94,24 +101,54 @@ export default async function RequestDetailPage({ params }: { params: Promise<{ 
         ) : (
           <BulkInterestedCreatorsList
             requestId={request.id}
-            interests={request.interests.map((i) => ({
-              id: i.id,
-              displayName: i.creator.displayName,
-              avatarUrl: i.creator.avatarUrl,
-              niche: i.creator.niche,
-              email: i.creator.user.email,
-              platforms: i.creator.platforms,
-              paymentStatus: i.paymentStatus,
-              amountCents: i.amountCents,
-              payoutCents: i.payoutCents,
-              depositStatus: i.depositStatus,
-              depositCents: i.depositCents,
-              hasReview: i.reviews.length > 0,
-            }))}
+            interests={interestedCreators.map(toInterestEntry)}
             feeRatePercent={(startup.isPro ? PRO_PLATFORM_FEE_RATE : PLATFORM_FEE_RATE) * 100}
           />
         )}
       </div>
+
+      {contactedCreators.length > 0 && (
+        <div>
+          <h2 className="font-semibold mb-3">Creators you contacted ({contactedCreators.length})</h2>
+          <BulkInterestedCreatorsList
+            requestId={request.id}
+            interests={contactedCreators.map(toInterestEntry)}
+            feeRatePercent={(startup.isPro ? PRO_PLATFORM_FEE_RATE : PLATFORM_FEE_RATE) * 100}
+          />
+        </div>
+      )}
     </div>
   );
+}
+
+function toInterestEntry(i: {
+  id: string;
+  creator: {
+    displayName: string;
+    avatarUrl: string | null;
+    niche: string;
+    user: { email: string };
+    platforms: { platform: string; followerCount: number }[];
+  };
+  paymentStatus: PaymentStatus | null;
+  amountCents: number | null;
+  payoutCents: number | null;
+  depositStatus: DepositStatus | null;
+  depositCents: number | null;
+  reviews: unknown[];
+}) {
+  return {
+    id: i.id,
+    displayName: i.creator.displayName,
+    avatarUrl: i.creator.avatarUrl,
+    niche: i.creator.niche,
+    email: i.creator.user.email,
+    platforms: i.creator.platforms,
+    paymentStatus: i.paymentStatus,
+    amountCents: i.amountCents,
+    payoutCents: i.payoutCents,
+    depositStatus: i.depositStatus,
+    depositCents: i.depositCents,
+    hasReview: i.reviews.length > 0,
+  };
 }

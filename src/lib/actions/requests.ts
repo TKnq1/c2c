@@ -186,7 +186,7 @@ async function createInterestAsCreator(
 
   const interest = await prisma.interest.upsert({
     where: { requestId_creatorId: { requestId, creatorId: creator.id } },
-    create: { requestId, creatorId: creator.id },
+    create: { requestId, creatorId: creator.id, initiatedBy: "CREATOR" },
     update: {},
   });
 
@@ -267,7 +267,7 @@ export async function startConversationAsStartupAction(creatorId: string, formDa
 
   const interest = await prisma.interest.upsert({
     where: { requestId_creatorId: { requestId, creatorId } },
-    create: { requestId, creatorId },
+    create: { requestId, creatorId, initiatedBy: "STARTUP" },
     update: {},
   });
 

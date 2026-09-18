@@ -29,7 +29,7 @@ export default async function CreatorFeedPage() {
   ]);
 
   const requests = await getCreatorFeed(creator, blockedUserIds);
-  const interestIdByRequestId = new Map(creator.interests.map((i) => [i.requestId, i.id]));
+  const interestByRequestId = new Map(creator.interests.map((i) => [i.requestId, i]));
 
   return (
     <div className="flex flex-col gap-6">
@@ -69,18 +69,22 @@ export default async function CreatorFeedPage() {
       ) : (
         <Suspense fallback={<SkeletonCardList />}>
           <CreatorFeed
-            requests={requests.map((r) => ({
-              id: r.id,
-              title: r.title,
-              description: r.description,
-              niche: r.niche,
-              languages: r.languages,
-              minFollowers: r.minFollowers,
-              productCategory: r.productCategory,
-              companyName: r.startup.companyName,
-              companyAvatarUrl: r.startup.avatarUrl,
-              interestId: interestIdByRequestId.get(r.id) ?? null,
-            }))}
+            requests={requests.map((r) => {
+              const interest = interestByRequestId.get(r.id);
+              return {
+                id: r.id,
+                title: r.title,
+                description: r.description,
+                niche: r.niche,
+                languages: r.languages,
+                minFollowers: r.minFollowers,
+                productCategory: r.productCategory,
+                companyName: r.startup.companyName,
+                companyAvatarUrl: r.startup.avatarUrl,
+                interestId: interest?.id ?? null,
+                contactedByStartup: interest?.initiatedBy === "STARTUP",
+              };
+            })}
             savedFilters={savedFilters}
           />
         </Suspense>

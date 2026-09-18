@@ -318,6 +318,12 @@ model Interest {
   creatorId String
   creator   CreatorProfile @relation(fields: [creatorId], references: [id], onDelete: Cascade)
   createdAt DateTime       @default(now())
+  // Who started this thread — a creator applying to an open request, or a
+  // startup reaching out to a creator directly. Both paths create the same
+  // Interest row, so without this, a startup messaging a creator makes that
+  // creator look (to both sides) like they'd expressed interest on their
+  // own — they hadn't. Drives how each side's UI describes/labels the row.
+  initiatedBy Role @default(CREATOR)
 
   amountCents      Int?
   platformFeeCents Int?

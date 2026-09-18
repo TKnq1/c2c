@@ -21,6 +21,7 @@ type RequestEntry = {
   companyName: string;
   companyAvatarUrl: string | null;
   interestId: string | null;
+  contactedByStartup: boolean;
 };
 
 type SavedFilterEntry = { id: string; name: string; query: string };

@@ -17,6 +17,10 @@ type Props = {
   companyName: string;
   companyAvatarUrl: string | null;
   interestId: string | null;
+  // True when this brand reached out directly rather than the creator
+  // applying — same underlying Interest row, but "Withdraw interest" would
+  // be a lie if the creator never expressed any.
+  contactedByStartup: boolean;
 };
 
 export function RequestCard({
@@ -30,6 +34,7 @@ export function RequestCard({
   companyName,
   companyAvatarUrl,
   interestId,
+  contactedByStartup,
 }: Props) {
   const { pending, trigger } = useUndoableAction(async () => {
     await withdrawInterestAction(interestId!);
@@ -64,20 +69,29 @@ export function RequestCard({
         ))}
       </div>
       {interestId ? (
-        <div className="flex items-center gap-2">
-          <Link
-            href={`/dashboard/messages/${interestId}`}
-            className="mt-1 rounded bg-ink text-paper px-4 py-2 text-sm font-medium hover:bg-graphite transition self-start"
-          >
-            Message
-          </Link>
-          <button
-            type="button"
-            onClick={() => trigger("Interest withdrawn.", "Interest restored.")}
-            className="mt-1 rounded border border-neutral-300 text-neutral-600 px-4 py-2 text-sm font-medium hover:border-ink hover:bg-fog transition self-start dark:border-neutral-700 dark:text-neutral-400"
-          >
-            Withdraw interest
-          </button>
+        <div className="flex flex-col gap-1.5 items-start">
+          {contactedByStartup && (
+            <p className="text-xs text-neutral-500 dark:text-neutral-400">{companyName} reached out to you.</p>
+          )}
+          <div className="flex items-center gap-2">
+            <Link
+              href={`/dashboard/messages/${interestId}`}
+              className="mt-1 rounded bg-ink text-paper px-4 py-2 text-sm font-medium hover:bg-graphite transition self-start"
+            >
+              Message
+            </Link>
+            <button
+              type="button"
+              onClick={() =>
+                contactedByStartup
+                  ? trigger("Declined.", "Restored.")
+                  : trigger("Interest withdrawn.", "Interest restored.")
+              }
+              className="mt-1 rounded border border-neutral-300 text-neutral-600 px-4 py-2 text-sm font-medium hover:border-ink hover:bg-fog transition self-start dark:border-neutral-700 dark:text-neutral-400"
+            >
+              {contactedByStartup ? "Decline" : "Withdraw interest"}
+            </button>
+          </div>
         </div>
       ) : (
         <ActionButton
