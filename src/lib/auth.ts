@@ -62,15 +62,25 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       if (user) {
         token.id = user.id;
         token.role = user.role;
+        token.checkedAt = Date.now();
         return token;
       }
       // A JWT stays cryptographically valid even after its user row is
       // gone (e.g. a local reseed replaces every user with a fresh id) —
-      // without this check, every page would crash trying to load a
-      // profile that no longer exists instead of just redirecting to
-      // login. Returning null here clears the session.
+      // without this check, every page would eventually crash trying to
+      // load a profile that no longer exists instead of just redirecting
+      // to login. But `auth()` runs on every request, and this callback
+      // with it — re-querying every single time defeats the entire point
+      // of the JWT strategy (no DB round-trip to read a session) and was
+      // measured adding ~1.2s to every page load. Re-checking every 5
+      // minutes instead keeps the same guarantee (a stale JWT is still
+      // caught, just not instantly) at a fraction of the DB cost.
+      const checkedAt = typeof token.checkedAt === "number" ? token.checkedAt : 0;
+      if (Date.now() - checkedAt < 5 * 60 * 1000) return token;
+
       const stillExists = await prisma.user.findUnique({ where: { id: token.id }, select: { id: true } });
       if (!stillExists) return null;
+      token.checkedAt = Date.now();
       return token;
     },
     session({ session, token }) {

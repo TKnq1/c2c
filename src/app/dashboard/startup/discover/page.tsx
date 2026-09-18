@@ -9,14 +9,10 @@ import { DiscoverCreators } from "@/components/discover-creators";
 import { FavoritesOnlyToggle } from "@/components/favorites-only-toggle";
 import { SkeletonCardList } from "@/components/skeleton";
 
-/* eslint-disable react-hooks/purity -- temporary perf instrumentation, reverted after measuring */
 export default async function DiscoverCreatorsPage() {
-  const _t0 = Date.now();
   const session = await auth();
-  console.log(`[PERF] auth: ${Date.now() - _t0}ms`);
   if (!session || session.user.role !== "STARTUP") redirect("/login");
 
-  const _t1 = Date.now();
   const [startup, blockedUserIds, savedFilters] = await Promise.all([
     prisma.startupProfile.findUniqueOrThrow({
       where: { userId: session.user.id },
@@ -31,9 +27,7 @@ export default async function DiscoverCreatorsPage() {
       orderBy: { createdAt: "asc" },
     }),
   ]);
-  console.log(`[PERF] wave1: ${Date.now() - _t1}ms`);
   const favoritedCreatorIds = new Set(startup.favorites.map((f) => f.creatorId));
-  const _t2 = Date.now();
 
   // None of these four depend on each other's results, so they run as one
   // round-trip instead of four sequential ones — each extra round-trip to
@@ -66,7 +60,6 @@ export default async function DiscoverCreatorsPage() {
       select: { creatorId: true, messages: { orderBy: { createdAt: "asc" }, select: { senderRole: true, createdAt: true } } },
     }),
   ]);
-  console.log(`[PERF] wave2: ${Date.now() - _t2}ms, total so far: ${Date.now() - _t0}ms`);
   const ratingByCreatorId = new Map(
     ratingGroups.map((g) => [g.creatorId, { average: g._avg.rating ?? 0, count: g._count._all }]),
   );
