@@ -10,11 +10,17 @@ export function FavoriteButton({
   initialFavorited,
   favoriteAction,
   unfavoriteAction,
+  onToggle,
 }: {
   id: string;
   initialFavorited: boolean;
   favoriteAction: (id: string) => Promise<void>;
   unfavoriteAction: (id: string) => Promise<void>;
+  // Fires synchronously with the optimistic flip below, not after the
+  // server round-trip — lets a parent list (e.g. a "favorites only" filter)
+  // stay in sync with what the star already shows, instead of only updating
+  // once revalidatePath's background refetch eventually lands.
+  onToggle?: (id: string, favorited: boolean) => void;
 }) {
   const [favorited, setFavorited] = useState(initialFavorited);
   const [pending, setPending] = useState(false);
@@ -30,6 +36,7 @@ export function FavoriteButton({
     // so optimistic-then-revert reads as instant instead of laggy.
     const next = !favorited;
     setFavorited(next);
+    onToggle?.(id, next);
     setPending(true);
     try {
       if (next) {
@@ -41,6 +48,7 @@ export function FavoriteButton({
       }
     } catch (err) {
       setFavorited(!next);
+      onToggle?.(id, !next);
       toast.error(err instanceof Error ? err.message : "Something went wrong.");
     } finally {
       setPending(false);

@@ -17,6 +17,7 @@ type Props = {
   rating: { average: number; count: number };
   isFavorited: boolean;
   responseTimeLabel?: string | null;
+  onFavoriteToggle?: (id: string, favorited: boolean) => void;
 };
 
 export function CreatorCard({
@@ -29,6 +30,7 @@ export function CreatorCard({
   rating,
   isFavorited,
   responseTimeLabel,
+  onFavoriteToggle,
 }: Props) {
   return (
     <Link
@@ -64,6 +66,7 @@ export function CreatorCard({
             initialFavorited={isFavorited}
             favoriteAction={favoriteCreatorAction}
             unfavoriteAction={unfavoriteCreatorAction}
+            onToggle={onFavoriteToggle}
           />
         </div>
       </div>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { FiSearch } from "react-icons/fi";
 import { NICHES } from "@/lib/constants";
 import { useUrlState } from "@/lib/use-url-state";
@@ -39,11 +39,25 @@ export function DiscoverBrands({
   const [{ q: search, niche, favorites }, setParam, setParams] = useUrlState(["q", "niche", "favorites"]);
   const niches = useMemo(() => (niche ? niche.split(",") : []), [niche]);
 
+  // Mirrors each FavoriteButton's own optimistic state — see the identical
+  // comment in discover-creators.tsx for why this can't just read b.isFavorited.
+  const [favoritedIds, setFavoritedIds] = useState(
+    () => new Set(brands.filter((b) => b.isFavorited).map((b) => b.id)),
+  );
+  const handleFavoriteToggle = (id: string, favorited: boolean) => {
+    setFavoritedIds((prev) => {
+      const next = new Set(prev);
+      if (favorited) next.add(id);
+      else next.delete(id);
+      return next;
+    });
+  };
+
   const filtered = useMemo(() => {
     const query = search.trim().toLowerCase();
 
     const results = brands.filter((b) => {
-      if (favorites === "1" && !b.isFavorited) return false;
+      if (favorites === "1" && !favoritedIds.has(b.id)) return false;
       if (niches.length > 0 && !niches.includes(b.niche ?? "")) return false;
       if (query) {
         const haystack = `${b.companyName} ${b.niche ?? ""} ${b.description ?? ""}`.toLowerCase();
@@ -55,7 +69,7 @@ export function DiscoverBrands({
     // No sort control here (unlike Discover Creators) — a real weighted
     // relevance score is just the default order instead of raw createdAt.
     return [...results].sort((a, b) => computeRelevanceScore(b) - computeRelevanceScore(a));
-  }, [brands, search, niches, favorites]);
+  }, [brands, search, niches, favorites, favoritedIds]);
 
   return (
     <div className="flex flex-col gap-6">
@@ -101,8 +115,9 @@ export function DiscoverBrands({
               website={b.website}
               socialLinks={b.socialLinks}
               rating={b.rating}
-              isFavorited={b.isFavorited}
+              isFavorited={favoritedIds.has(b.id)}
               responseTimeLabel={b.responseTimeLabel}
+              onFavoriteToggle={handleFavoriteToggle}
             />
           ))}
         </div>

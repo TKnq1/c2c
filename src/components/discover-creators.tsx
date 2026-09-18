@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { FiSearch } from "react-icons/fi";
 import { NICHES, PLATFORMS, LANGUAGES } from "@/lib/constants";
 import { useUrlState } from "@/lib/use-url-state";
@@ -59,12 +59,29 @@ export function DiscoverCreators({
   const platformFilters = useMemo(() => (platform ? platform.split(",") : []), [platform]);
   const languages = useMemo(() => (language ? language.split(",") : []), [language]);
 
+  // Mirrors each FavoriteButton's own optimistic state, updated the instant
+  // a star is clicked — not just once revalidatePath's background refetch
+  // eventually replaces the `creators` prop. Without this, the "favorites
+  // only" filter and each card's star only agreed again after that
+  // round-trip landed, which read as the card taking a while to disappear.
+  const [favoritedIds, setFavoritedIds] = useState(
+    () => new Set(creators.filter((c) => c.isFavorited).map((c) => c.id)),
+  );
+  const handleFavoriteToggle = (id: string, favorited: boolean) => {
+    setFavoritedIds((prev) => {
+      const next = new Set(prev);
+      if (favorited) next.add(id);
+      else next.delete(id);
+      return next;
+    });
+  };
+
   const filtered = useMemo(() => {
     const min = minFollowers === "" ? 0 : Number(minFollowers);
     const query = search.trim().toLowerCase();
 
     const results = creators.filter((c) => {
-      if (favorites === "1" && !c.isFavorited) return false;
+      if (favorites === "1" && !favoritedIds.has(c.id)) return false;
       if (niches.length > 0 && !niches.includes(c.niche)) return false;
       if (platformFilters.length > 0 && !c.platforms.some((p) => platformFilters.includes(p.platform))) return false;
       if (languages.length > 0 && !languages.includes(c.contentLanguage ?? "")) return false;
@@ -82,7 +99,7 @@ export function DiscoverCreators({
     // "best" — a real weighted score (rating, track record, responsiveness,
     // recency), not just createdAt in disguise.
     return [...results].sort((a, b) => computeRelevanceScore(b) - computeRelevanceScore(a));
-  }, [creators, search, niches, platformFilters, languages, minFollowers, sort, favorites]);
+  }, [creators, search, niches, platformFilters, languages, minFollowers, sort, favorites, favoritedIds]);
 
   return (
     <div className="flex flex-col gap-6">
@@ -170,8 +187,9 @@ export function DiscoverCreators({
                 contentLanguage={c.contentLanguage}
                 platforms={c.platforms}
                 rating={c.rating}
-                isFavorited={c.isFavorited}
+                isFavorited={favoritedIds.has(c.id)}
                 responseTimeLabel={c.responseTimeLabel}
+                onFavoriteToggle={handleFavoriteToggle}
               />
             ))}
           </div>
