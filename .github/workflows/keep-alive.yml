@@ -1,0 +1,16 @@
+name: Keep Neon warm
+
+on:
+  schedule:
+    # Neon's free-tier compute autosuspends after 5 minutes idle; every 4
+    # minutes keeps it just barely ahead of that so real visitors never pay
+    # the cold-start tax.
+    - cron: "*/4 * * * *"
+  workflow_dispatch: {}
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping health endpoint
+        run: curl -sf https://www.companytocreator.com/api/health
