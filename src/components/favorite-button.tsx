@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { FiStar } from "react-icons/fi";
 import { FaStar } from "react-icons/fa";
 import { toast } from "@/lib/toast";
@@ -23,21 +23,26 @@ export function FavoriteButton({
   onToggle?: (id: string, favorited: boolean) => void;
 }) {
   const [favorited, setFavorited] = useState(initialFavorited);
-  const [pending, setPending] = useState(false);
+  // Not component state on purpose — this only guards against a double-fire
+  // mid-request, it isn't something the button should ever visibly show
+  // (disabling/dimming it while pending made an already-instant-looking
+  // toggle read as stuck or slow, since the round-trip it's waiting on can
+  // still take a second or more).
+  const pendingRef = useRef(false);
 
   // Also used inside a <Link> (CreatorCard/BrandCard) — stop the click from
   // bubbling into the card's own navigation.
   const toggle = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    if (pending) return;
+    if (pendingRef.current) return;
     // Flip the star immediately rather than waiting on the round-trip — a
     // toggle has no meaningful failure mode a user needs to see mid-click,
     // so optimistic-then-revert reads as instant instead of laggy.
     const next = !favorited;
     setFavorited(next);
     onToggle?.(id, next);
-    setPending(true);
+    pendingRef.current = true;
     try {
       if (next) {
         await favoriteAction(id);
@@ -51,7 +56,7 @@ export function FavoriteButton({
       onToggle?.(id, !next);
       toast.error(err instanceof Error ? err.message : "Something went wrong.");
     } finally {
-      setPending(false);
+      pendingRef.current = false;
     }
   };
 
@@ -59,11 +64,10 @@ export function FavoriteButton({
     <button
       type="button"
       onClick={toggle}
-      disabled={pending}
       aria-pressed={favorited}
       aria-label={favorited ? "Remove from favorites" : "Save to favorites"}
       title={favorited ? "Remove from favorites" : "Save to favorites"}
-      className={`rounded border p-2 transition disabled:opacity-50 shrink-0 ${
+      className={`rounded border p-2 transition shrink-0 ${
         favorited ? "border-ink bg-ink text-paper" : "border-neutral-300 text-neutral-400 hover:text-ink hover:border-ink dark:border-neutral-700 dark:text-neutral-500"
       }`}
     >
