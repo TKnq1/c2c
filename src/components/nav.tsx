@@ -4,7 +4,8 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { Role } from "@prisma/client";
-import { FiBell, FiMenu, FiX } from "react-icons/fi";
+import { FiBell, FiMenu, FiX, FiList, FiCompass, FiMessageCircle, FiDollarSign, FiSettings } from "react-icons/fi";
+import type { IconType } from "react-icons";
 import { Logo } from "@/components/logo";
 import { LinkPendingIndicator } from "@/components/link-pending-indicator";
 import { ThemeToggle } from "@/components/theme-toggle";
@@ -31,6 +32,15 @@ export function Nav({
     if (isBlocked && !window.confirm("You have unsaved changes. Leave without saving?")) {
       e.preventDefault();
     }
+  };
+
+  const NAV_ICONS: Record<string, IconType> = {
+    Requests: FiList,
+    Feed: FiList,
+    Discover: FiCompass,
+    Messages: FiMessageCircle,
+    Payments: FiDollarSign,
+    Settings: FiSettings,
   };
 
   const links =
@@ -80,29 +90,38 @@ export function Nav({
           <Logo />
         </Link>
 
-        <nav aria-label="Main" className="hidden md:flex items-center gap-8 text-sm text-graphite">
-          {links.map((l) => (
-            <Link
-              key={l.href}
-              href={l.href}
-              onNavigate={onNavigate}
-              // Every one of these sits in the viewport on every dashboard
-              // page, so default (viewport-triggered) prefetch was firing
-              // all of them at once on every render — each one a full
-              // server render with its own DB queries, not a free/static
-              // fetch. These are deliberate destinations someone clicks,
-              // not hover targets worth prefetching speculatively.
-              prefetch={false}
-              aria-current={l.href === activeHref ? "page" : undefined}
-              className={`flex items-center gap-1.5 transition hover:text-ink ${
-                l.href === activeHref ? "text-ink" : ""
-              }`}
-            >
-              {l.label}
-              {l.badge > 0 && <NavBadge count={l.badge} />}
-              <LinkPendingIndicator />
-            </Link>
-          ))}
+        <nav aria-label="Main" className="hidden md:flex items-center gap-5 text-sm text-graphite">
+          {links.map((l) => {
+            const Icon = NAV_ICONS[l.label];
+            return (
+              <Link
+                key={l.href}
+                href={l.href}
+                onNavigate={onNavigate}
+                // Every one of these sits in the viewport on every dashboard
+                // page, so default (viewport-triggered) prefetch was firing
+                // all of them at once on every render — each one a full
+                // server render with its own DB queries, not a free/static
+                // fetch. These are deliberate destinations someone clicks,
+                // not hover targets worth prefetching speculatively.
+                prefetch={false}
+                aria-current={l.href === activeHref ? "page" : undefined}
+                aria-label={l.label}
+                title={l.label}
+                className={`relative flex items-center gap-1 transition hover:text-ink ${
+                  l.href === activeHref ? "text-ink" : ""
+                }`}
+              >
+                <Icon className="h-4 w-4" />
+                {l.badge > 0 && (
+                  <span className="absolute -top-1.5 -right-1.5 flex h-3.5 min-w-3.5 items-center justify-center rounded bg-ink px-0.5 text-[10px] font-medium text-paper">
+                    {l.badge > 9 ? "9+" : l.badge}
+                  </span>
+                )}
+                <LinkPendingIndicator />
+              </Link>
+            );
+          })}
           <NotificationsLink unreadCount={unreadCount} onNavigate={onNavigate} />
           <ThemeToggle />
         </nav>
@@ -154,24 +173,28 @@ export function Nav({
           </button>
         </div>
         <div className="flex flex-col px-6 py-2 text-base text-graphite">
-          {links.map((l) => (
-            <Link
-              key={l.href}
-              href={l.href}
-              onClick={() => setOpen(false)}
-              onNavigate={onNavigate}
-              prefetch={false}
-              tabIndex={open ? 0 : -1}
-              aria-current={l.href === activeHref ? "page" : undefined}
-              className={`flex items-center gap-1.5 py-3 border-b border-ink/10 last:border-0 transition hover:text-ink ${
-                l.href === activeHref ? "text-ink" : ""
-              }`}
-            >
-              {l.label}
-              {l.badge > 0 && <NavBadge count={l.badge} />}
-              <LinkPendingIndicator />
-            </Link>
-          ))}
+          {links.map((l) => {
+            const Icon = NAV_ICONS[l.label];
+            return (
+              <Link
+                key={l.href}
+                href={l.href}
+                onClick={() => setOpen(false)}
+                onNavigate={onNavigate}
+                prefetch={false}
+                tabIndex={open ? 0 : -1}
+                aria-current={l.href === activeHref ? "page" : undefined}
+                className={`flex items-center gap-2.5 py-3 border-b border-ink/10 last:border-0 transition hover:text-ink ${
+                  l.href === activeHref ? "text-ink" : ""
+                }`}
+              >
+                <Icon className="h-4 w-4" />
+                {l.label}
+                {l.badge > 0 && <NavBadge count={l.badge} />}
+                <LinkPendingIndicator />
+              </Link>
+            );
+          })}
         </div>
       </nav>
     </header>
