@@ -67,7 +67,7 @@ export function FavoriteButton({
       aria-pressed={favorited}
       aria-label={favorited ? "Remove from favorites" : "Save to favorites"}
       title={favorited ? "Remove from favorites" : "Save to favorites"}
-      className={`rounded border p-2 transition shrink-0 ${
+      className={`rounded border p-3 -m-1 transition shrink-0 ${
         favorited ? "border-ink bg-ink text-paper" : "border-neutral-300 text-neutral-400 hover:text-ink hover:border-ink dark:border-neutral-700 dark:text-neutral-500"
       }`}
     >
