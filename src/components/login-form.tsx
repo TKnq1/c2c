@@ -21,6 +21,7 @@ export function LoginForm() {
       formData.set("email", credentials.email);
       formData.set("password", credentials.password);
       formData.set("code", "");
+      formData.set("role", checkState.role ?? "");
       startTransition(() => completeFormAction(formData));
     }
   }, [checkState, credentials, completeFormAction]);
@@ -30,6 +31,7 @@ export function LoginForm() {
       <form action={completeFormAction} className="flex flex-col gap-4">
         <input type="hidden" name="email" value={credentials.email} />
         <input type="hidden" name="password" value={credentials.password} />
+        <input type="hidden" name="role" value={checkState.role ?? ""} />
         <div className="flex flex-col gap-1">
           <label htmlFor="code" className="text-sm font-medium">
             {useRecoveryCode ? "Recovery code" : "Authentication code"}

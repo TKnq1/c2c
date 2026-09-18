@@ -37,7 +37,7 @@ function dashboardPathForRole(role: Role) {
 export type ActionState = { error?: string } | undefined;
 
 export type CheckLoginState =
-  | { error?: string; requiresTwoFactor?: boolean; proceed?: boolean }
+  | { error?: string; requiresTwoFactor?: boolean; proceed?: boolean; role?: Role }
   | undefined;
 
 // Step 1 of login: a pre-flight check so the UI knows whether to ask for a
@@ -63,19 +63,23 @@ export async function checkLoginAction(_prevState: CheckLoginState, formData: Fo
     return { error: "Incorrect email or password." };
   }
 
-  if (user.totpEnabled) return { requiresTwoFactor: true };
-  return { proceed: true };
+  if (user.totpEnabled) return { requiresTwoFactor: true, role: user.role };
+  return { proceed: true, role: user.role };
 }
 
 // Step 2 (or the only step, when 2FA isn't enabled): the actual sign-in.
 // `code` is empty when 2FA isn't required; authorize() ignores it in that case.
+// `role` comes from checkLoginAction's own lookup (carried through as a
+// hidden field, same as email/password below) — re-querying it here would
+// just repeat a lookup step 1 already did, purely to compute a redirect
+// path, on every single login.
 export async function completeLoginAction(_prevState: ActionState, formData: FormData): Promise<ActionState> {
   const email = formData.get("email");
   const password = formData.get("password");
   const code = formData.get("code");
+  const role = formData.get("role");
 
-  const user = typeof email === "string" ? await prisma.user.findUnique({ where: { email }, select: { role: true } }) : null;
-  const redirectTo = `${dashboardPathForRole(user?.role ?? "CREATOR")}?welcome=1`;
+  const redirectTo = `${dashboardPathForRole(typeof role === "string" ? (role as Role) : "CREATOR")}?welcome=1`;
 
   try {
     await signIn("credentials", { email, password, code, redirectTo });
