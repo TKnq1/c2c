@@ -1,14 +1,17 @@
 "use client";
 
 import { useCallback, useRef, useState } from "react";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 
-// Every filter/search keystroke used to call router.replace immediately —
-// each one is a real server round-trip for a fresh RSC payload, so typing
-// felt like it lagged a full request behind every character. Local state
-// now updates (and drives client-side filtering) instantly; only the URL
-// sync — which exists so filters are shareable/survive back-navigation,
-// not for correctness — is debounced.
+// Every filter/search keystroke used to call router.replace — even debounced,
+// each call is a real navigation, and for a fully dynamic route (this one
+// has no caching directives) that means Next.js re-runs the whole Server
+// Component and refetches every query on the page just to redisplay data
+// that didn't change, since the actual filtering happens client-side below.
+// window.history.replaceState updates the URL (and, per Next's docs, stays
+// in sync with usePathname/useSearchParams) without that round-trip — it's
+// the documented approach for URL state that exists for shareability, not
+// for correctness.
 const DEBOUNCE_MS = 350;
 
 /**
@@ -19,7 +22,6 @@ const DEBOUNCE_MS = 350;
  * Empty values are omitted from the URL entirely, keeping it clean.
  */
 export function useUrlState(keys: string[]) {
-  const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const searchParamsString = searchParams.toString();
@@ -53,9 +55,9 @@ export function useUrlState(keys: string[]) {
         else params.delete(key);
       }
       const query = params.toString();
-      router.replace(query ? `${pathname}?${query}` : pathname, { scroll: false });
+      window.history.replaceState(null, "", query ? `${pathname}?${query}` : pathname);
     },
-    [router, pathname, searchParamsString],
+    [pathname, searchParamsString],
   );
 
   // Applies every update against the latest local snapshot, then debounces
