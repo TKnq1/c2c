@@ -4,7 +4,6 @@ import { Avatar } from "@/components/avatar";
 import { PlatformIcon } from "@/components/platform-icons";
 import { RatingSummary } from "@/components/stars";
 import { FavoriteButton } from "@/components/favorite-button";
-import { LinkPendingIndicator } from "@/components/link-pending-indicator";
 import { favoriteCreatorAction, unfavoriteCreatorAction } from "@/lib/actions/favorites";
 import { formatFollowers } from "@/lib/format";
 
@@ -42,10 +41,7 @@ export function CreatorCard({
         <div className="flex items-center gap-3">
           <Avatar src={avatarUrl} name={displayName} size={40} />
           <div>
-            <p className="font-semibold flex items-center">
-              {displayName}
-              <LinkPendingIndicator />
-            </p>
+            <p className="font-semibold">{displayName}</p>
             <RatingSummary average={rating.average} count={rating.count} />
             {responseTimeLabel && (
               <p className="text-xs text-neutral-500 flex items-center gap-1 mt-0.5 dark:text-neutral-400">

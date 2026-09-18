@@ -6,8 +6,6 @@ import { usePathname } from "next/navigation";
 import type { Role } from "@prisma/client";
 import { FiBell, FiMenu, FiX } from "react-icons/fi";
 import { Logo } from "@/components/logo";
-import { LinkPendingIndicator } from "@/components/link-pending-indicator";
-import { LinkPendingLabel } from "@/components/link-pending-label";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { useNavigationBlocker } from "@/lib/navigation-blocker";
 
@@ -99,7 +97,7 @@ export function Nav({
                 l.href === activeHref ? "text-ink" : ""
               }`}
             >
-              <LinkPendingLabel label={l.label} />
+              {l.label}
               {l.badge > 0 && <NavBadge count={l.badge} />}
             </Link>
           ))}
@@ -167,7 +165,7 @@ export function Nav({
                 l.href === activeHref ? "text-ink" : ""
               }`}
             >
-              <LinkPendingLabel label={l.label} />
+              {l.label}
               {l.badge > 0 && <NavBadge count={l.badge} />}
             </Link>
           ))}
@@ -206,7 +204,6 @@ function NotificationsLink({
           {unreadCount > 9 ? "9+" : unreadCount}
         </span>
       )}
-      <LinkPendingIndicator />
     </Link>
   );
 }
