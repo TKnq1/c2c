@@ -25,18 +25,22 @@ export function FavoriteButton({
     e.preventDefault();
     e.stopPropagation();
     if (pending) return;
+    // Flip the star immediately rather than waiting on the round-trip — a
+    // toggle has no meaningful failure mode a user needs to see mid-click,
+    // so optimistic-then-revert reads as instant instead of laggy.
+    const next = !favorited;
+    setFavorited(next);
     setPending(true);
     try {
-      if (favorited) {
-        await unfavoriteAction(id);
-        setFavorited(false);
-        toast.success("Removed from favorites.");
-      } else {
+      if (next) {
         await favoriteAction(id);
-        setFavorited(true);
         toast.success("Saved to favorites.");
+      } else {
+        await unfavoriteAction(id);
+        toast.success("Removed from favorites.");
       }
     } catch (err) {
+      setFavorited(!next);
       toast.error(err instanceof Error ? err.message : "Something went wrong.");
     } finally {
       setPending(false);

@@ -29,10 +29,13 @@ export default async function DiscoverCreatorsPage() {
   ]);
   const favoritedCreatorIds = new Set(startup.favorites.map((f) => f.creatorId));
 
-  // None of these three depend on each other's results, so they run as one
-  // round-trip instead of three sequential ones — each extra round-trip to
-  // Neon is real added latency, not free.
-  const [creators, ratingGroups, completedGroups] = await Promise.all([
+  // None of these four depend on each other's results, so they run as one
+  // round-trip instead of four sequential ones — each extra round-trip to
+  // Neon is real added latency, not free. interestsForResponseTime filters
+  // by the same notIn-blockedUserIds condition (via the creator relation)
+  // rather than by creators' ids, specifically so it doesn't have to wait
+  // on the creators query above to know what to ask for.
+  const [creators, ratingGroups, completedGroups, interestsForResponseTime] = await Promise.all([
     prisma.creatorProfile.findMany({
       where: { userId: { notIn: blockedUserIds } },
       include: { platforms: true },
@@ -52,16 +55,15 @@ export default async function DiscoverCreatorsPage() {
       where: { paymentStatus: "RELEASED" },
       _count: { _all: true },
     }),
+    prisma.interest.findMany({
+      where: { creator: { userId: { notIn: blockedUserIds } } },
+      select: { creatorId: true, messages: { orderBy: { createdAt: "asc" }, select: { senderRole: true, createdAt: true } } },
+    }),
   ]);
   const ratingByCreatorId = new Map(
     ratingGroups.map((g) => [g.creatorId, { average: g._avg.rating ?? 0, count: g._count._all }]),
   );
   const completedByCreatorId = new Map(completedGroups.map((g) => [g.creatorId, g._count._all]));
-
-  const interestsForResponseTime = await prisma.interest.findMany({
-    where: { creatorId: { in: creators.map((c) => c.id) } },
-    select: { creatorId: true, messages: { orderBy: { createdAt: "asc" }, select: { senderRole: true, createdAt: true } } },
-  });
   const conversationsByCreatorId = new Map<string, { senderRole: Role; createdAt: Date }[][]>();
   for (const interest of interestsForResponseTime) {
     const list = conversationsByCreatorId.get(interest.creatorId) ?? [];
