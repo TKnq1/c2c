@@ -4,6 +4,7 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { computeResponseTimeMs, formatResponseTime } from "@/lib/response-time";
 import { getCreatorFeed } from "@/lib/visibility";
+import { getMutualBlockedUserIds } from "@/lib/moderation";
 import { formatFollowers } from "@/lib/format";
 import { Avatar } from "@/components/avatar";
 import { PlatformIcon } from "@/components/platform-icons";
@@ -18,13 +19,14 @@ export default async function BrandProfileDetailPage({ params }: { params: Promi
   const session = await auth();
   if (!session || session.user.role !== "CREATOR") redirect("/login");
 
-  // None of these five depend on each other — they only need `id` (the
-  // route param) or `session.user.id` (both already available), not each
-  // other's query results, so they run as one round-trip instead of five
-  // sequential ones. (`startupId: id` below is the same value `startup.id`
-  // would be once fetched — no need to wait for that fetch just to restate
-  // the id we already have.)
-  const [startup, creator, reviews, conversations, completedCollabs] = await Promise.all([
+  // None of these six depend on each other — they only need `id` (the route
+  // param) or `session.user.id` (both already available), not each other's
+  // query results, so they run as one round-trip instead of six sequential
+  // ones. (`startupId: id` below is the same value `startup.id` would be
+  // once fetched — no need to wait for that fetch just to restate the id we
+  // already have. blockedUserIds is fetched here, not inside getCreatorFeed
+  // below, for the same reason — see visibility.ts.)
+  const [startup, creator, reviews, conversations, completedCollabs, blockedUserIds] = await Promise.all([
     prisma.startupProfile.findUnique({
       where: { id },
       include: { socialLinks: true },
@@ -44,6 +46,7 @@ export default async function BrandProfileDetailPage({ params }: { params: Promi
     prisma.interest.count({
       where: { paymentStatus: "RELEASED", request: { startupId: id } },
     }),
+    getMutualBlockedUserIds(session.user.id),
   ]);
   if (!startup) notFound();
 
@@ -62,7 +65,7 @@ export default async function BrandProfileDetailPage({ params }: { params: Promi
       where: { creatorId: creator.id, request: { startupId: startup.id } },
       select: { id: true },
     }),
-    getCreatorFeed(creator, session.user.id),
+    getCreatorFeed(creator, blockedUserIds),
     prisma.favorite.findUnique({
       where: {
         startupId_creatorId_favoritedByRole: { startupId: startup.id, creatorId: creator.id, favoritedByRole: "CREATOR" },

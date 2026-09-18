@@ -18,12 +18,17 @@ export default async function StartupDashboardPage(props: PageProps<"/dashboard/
   const status = Array.isArray(searchParams.status) ? searchParams.status[0] : searchParams.status;
   const sort = Array.isArray(searchParams.sort) ? searchParams.sort[0] : searchParams.sort;
 
-  const startup = await prisma.startupProfile.findUniqueOrThrow({ where: { userId: session.user.id } });
-  const allRequests = await prisma.request.findMany({
-    where: { startupId: startup.id },
-    include: { _count: { select: { interests: true } } },
-    orderBy: { createdAt: "desc" },
-  });
+  // Filtered through the startup relation rather than startup.id, so this
+  // doesn't have to wait on the query below to know what to ask for — one
+  // round-trip instead of two.
+  const [startup, allRequests] = await Promise.all([
+    prisma.startupProfile.findUniqueOrThrow({ where: { userId: session.user.id } }),
+    prisma.request.findMany({
+      where: { startup: { userId: session.user.id } },
+      include: { _count: { select: { interests: true } } },
+      orderBy: { createdAt: "desc" },
+    }),
+  ]);
 
   const hasAnyRequests = allRequests.length > 0;
   const requests = allRequests

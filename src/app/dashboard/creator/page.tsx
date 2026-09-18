@@ -4,6 +4,7 @@ import { FiSearch } from "react-icons/fi";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { getCreatorFeed } from "@/lib/visibility";
+import { getMutualBlockedUserIds } from "@/lib/moderation";
 import { CreatorFeed } from "@/components/creator-feed";
 import { PlatformIcon } from "@/components/platform-icons";
 import { OnboardingChecklist } from "@/components/onboarding-checklist";
@@ -15,7 +16,7 @@ export default async function CreatorFeedPage() {
   const session = await auth();
   if (!session || session.user.role !== "CREATOR") redirect("/login");
 
-  const [creator, savedFilters] = await Promise.all([
+  const [creator, savedFilters, blockedUserIds] = await Promise.all([
     prisma.creatorProfile.findUniqueOrThrow({
       where: { userId: session.user.id },
       include: { interests: true, platforms: true },
@@ -24,9 +25,10 @@ export default async function CreatorFeedPage() {
       where: { userId: session.user.id, scope: "creator-feed" },
       orderBy: { createdAt: "asc" },
     }),
+    getMutualBlockedUserIds(session.user.id),
   ]);
 
-  const requests = await getCreatorFeed(creator, session.user.id);
+  const requests = await getCreatorFeed(creator, blockedUserIds);
   const interestIdByRequestId = new Map(creator.interests.map((i) => [i.requestId, i.id]));
 
   return (

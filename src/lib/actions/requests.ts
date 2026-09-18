@@ -177,7 +177,8 @@ async function createInterestAsCreator(
 ) {
   // Never trust that the UI only offered a matching request — re-verify
   // server-side against the same live feed computation.
-  const matches = await getCreatorFeed(creator, userId);
+  const blockedUserIds = await getMutualBlockedUserIds(userId);
+  const matches = await getCreatorFeed(creator, blockedUserIds);
   const match = matches.find((r) => r.id === requestId);
   if (!match) {
     throw new Error("This request is currently unavailable.");

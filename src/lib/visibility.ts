@@ -1,5 +1,4 @@
 import { prisma } from "@/lib/prisma";
-import { getMutualBlockedUserIds } from "@/lib/moderation";
 
 /**
  * A creator's feed: every request matching niche + follower threshold. A
@@ -7,13 +6,17 @@ import { getMutualBlockedUserIds } from "@/lib/moderation";
  * minFollowers — requests aren't platform-specific, so the highest reach
  * across platforms is what's checked. Requests from a mutually-blocked
  * brand are excluded entirely.
+ *
+ * Takes blockedUserIds rather than fetching it internally — every caller
+ * already needs it (or can get it) alongside other queries it's running in
+ * the same Promise.all, and fetching it in here instead would force an
+ * extra sequential round-trip after that Promise.all rather than joining it.
  */
 export async function getCreatorFeed(
   creator: { niche: string; platforms: { followerCount: number }[] },
-  viewerUserId: string,
+  blockedUserIds: string[],
 ) {
   const maxFollowers = creator.platforms.reduce((max, p) => Math.max(max, p.followerCount), 0);
-  const blockedUserIds = await getMutualBlockedUserIds(viewerUserId);
   return prisma.request.findMany({
     where: {
       niche: creator.niche,

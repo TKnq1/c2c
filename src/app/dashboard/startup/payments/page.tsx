@@ -23,15 +23,20 @@ export default async function StartupPaymentsPage() {
   const session = await auth();
   if (!session || session.user.role !== "STARTUP") redirect("/login");
 
-  const startup = await prisma.startupProfile.findUniqueOrThrow({ where: { userId: session.user.id } });
-  // One query instead of six sequential ones — the six lists below are all
-  // just different filtered/sorted views over the same startup's interests,
-  // so it's cheaper to fetch them all once and split/sort in JS than to
-  // round-trip to Neon six times for the same underlying rows.
-  const allInterests = await prisma.interest.findMany({
-    where: { request: { startupId: startup.id } },
-    include: { request: true, creator: true, reviews: { where: { authorRole: "STARTUP" } } },
-  });
+  // One round-trip instead of two — filtered through the startup relation
+  // rather than startup.id, so this doesn't have to wait on the fetch below
+  // to know what to ask for. Also one query instead of six sequential ones
+  // for allInterests: the six lists below are all just different
+  // filtered/sorted views over the same startup's interests, so it's
+  // cheaper to fetch them all once and split/sort in JS than to round-trip
+  // to Neon six times for the same underlying rows.
+  const [startup, allInterests] = await Promise.all([
+    prisma.startupProfile.findUniqueOrThrow({ where: { userId: session.user.id } }),
+    prisma.interest.findMany({
+      where: { request: { startup: { userId: session.user.id } } },
+      include: { request: true, creator: true, reviews: { where: { authorRole: "STARTUP" } } },
+    }),
+  ]);
   const byDesc = <T,>(key: (i: T) => Date | null) => (a: T, b: T) => (key(b)?.getTime() ?? 0) - (key(a)?.getTime() ?? 0);
 
   const payments = allInterests

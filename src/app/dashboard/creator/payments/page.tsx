@@ -19,13 +19,17 @@ export default async function CreatorPaymentsPage() {
   const session = await auth();
   if (!session || session.user.role !== "CREATOR") redirect("/login");
 
-  const creator = await prisma.creatorProfile.findUniqueOrThrow({ where: { userId: session.user.id } });
-  // One query instead of four sequential ones — see the identical fix on
-  // the startup payments page for why.
-  const allInterests = await prisma.interest.findMany({
-    where: { creatorId: creator.id },
-    include: { request: { include: { startup: true } }, reviews: { where: { authorRole: "CREATOR" } } },
-  });
+  // One round-trip instead of two — filtered through the creator relation
+  // rather than creator.id, so this doesn't have to wait on the fetch below
+  // to know what to ask for. Also one query instead of four sequential ones
+  // for the same reason the startup payments page's version is.
+  const [, allInterests] = await Promise.all([
+    prisma.creatorProfile.findUniqueOrThrow({ where: { userId: session.user.id } }),
+    prisma.interest.findMany({
+      where: { creator: { userId: session.user.id } },
+      include: { request: { include: { startup: true } }, reviews: { where: { authorRole: "CREATOR" } } },
+    }),
+  ]);
   const byDesc = <T,>(key: (i: T) => Date | null) => (a: T, b: T) => (key(b)?.getTime() ?? 0) - (key(a)?.getTime() ?? 0);
 
   const payments = allInterests
