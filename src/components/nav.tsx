@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import type { Role } from "@prisma/client";
 import { FiBell, FiMenu, FiX } from "react-icons/fi";
 import { Logo } from "@/components/logo";
+import { LinkPendingIndicator } from "@/components/link-pending-indicator";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { useNavigationBlocker } from "@/lib/navigation-blocker";
 
@@ -99,6 +100,7 @@ export function Nav({
             >
               {l.label}
               {l.badge > 0 && <NavBadge count={l.badge} />}
+              <LinkPendingIndicator />
             </Link>
           ))}
           <NotificationsLink unreadCount={unreadCount} onNavigate={onNavigate} />
@@ -167,6 +169,7 @@ export function Nav({
             >
               {l.label}
               {l.badge > 0 && <NavBadge count={l.badge} />}
+              <LinkPendingIndicator />
             </Link>
           ))}
         </div>
@@ -195,7 +198,7 @@ function NotificationsLink({
       href="/dashboard/notifications"
       onNavigate={onNavigate}
       prefetch={false}
-      className="relative text-graphite hover:text-ink transition"
+      className="relative flex items-center text-graphite hover:text-ink transition"
       aria-label="Notifications"
     >
       <FiBell className="h-5 w-5 md:h-4 md:w-4" />
@@ -204,6 +207,7 @@ function NotificationsLink({
           {unreadCount > 9 ? "9+" : unreadCount}
         </span>
       )}
+      <LinkPendingIndicator />
     </Link>
   );
 }

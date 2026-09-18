@@ -4,6 +4,7 @@ import { Avatar } from "@/components/avatar";
 import { PlatformIcon } from "@/components/platform-icons";
 import { RatingSummary } from "@/components/stars";
 import { FavoriteButton } from "@/components/favorite-button";
+import { LinkPendingIndicator } from "@/components/link-pending-indicator";
 import { favoriteStartupAction, unfavoriteStartupAction } from "@/lib/actions/favorites";
 
 type Props = {
@@ -42,7 +43,10 @@ export function BrandCard({
         <div className="flex items-center gap-3">
           <Avatar src={avatarUrl} name={companyName} size={40} />
           <div>
-            <p className="font-semibold">{companyName}</p>
+            <p className="font-semibold flex items-center">
+              {companyName}
+              <LinkPendingIndicator />
+            </p>
             <RatingSummary average={rating.average} count={rating.count} />
             {responseTimeLabel && (
               <p className="text-xs text-neutral-500 flex items-center gap-1 mt-0.5 dark:text-neutral-400">

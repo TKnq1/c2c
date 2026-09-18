@@ -170,3 +170,39 @@ html {
     transform: translateY(0) scale(1);
   }
 }
+
+@keyframes link-pending-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Reserves its layout space at all times (fixed size, no shift when it
+   appears) and stays invisible until the fade-in below — see
+   LinkPendingIndicator: only actually visible once a real navigation is
+   both underway and slow enough to be worth mentioning. */
+.link-pending-indicator {
+  display: inline-block;
+  width: 0.75em;
+  height: 0.75em;
+  margin-left: 0.4em;
+  border-radius: 9999px;
+  border: 1.5px solid currentColor;
+  border-top-color: transparent;
+  opacity: 0;
+  visibility: hidden;
+}
+
+.link-pending-indicator.is-pending {
+  visibility: visible;
+  animation:
+    link-pending-fade-in 150ms ease forwards,
+    link-pending-spin 700ms linear infinite;
+  animation-delay: 150ms, 150ms;
+}
+
+@keyframes link-pending-fade-in {
+  to {
+    opacity: 0.6;
+  }
+}
