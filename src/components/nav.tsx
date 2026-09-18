@@ -85,6 +85,13 @@ export function Nav({
               key={l.href}
               href={l.href}
               onNavigate={onNavigate}
+              // Every one of these sits in the viewport on every dashboard
+              // page, so default (viewport-triggered) prefetch was firing
+              // all of them at once on every render — each one a full
+              // server render with its own DB queries, not a free/static
+              // fetch. These are deliberate destinations someone clicks,
+              // not hover targets worth prefetching speculatively.
+              prefetch={false}
               aria-current={l.href === activeHref ? "page" : undefined}
               className={`flex items-center gap-1.5 transition hover:text-ink ${
                 l.href === activeHref ? "text-ink" : ""
@@ -151,6 +158,7 @@ export function Nav({
               href={l.href}
               onClick={() => setOpen(false)}
               onNavigate={onNavigate}
+              prefetch={false}
               tabIndex={open ? 0 : -1}
               aria-current={l.href === activeHref ? "page" : undefined}
               className={`flex items-center gap-1.5 py-3 border-b border-ink/10 last:border-0 transition hover:text-ink ${
@@ -186,6 +194,7 @@ function NotificationsLink({
     <Link
       href="/dashboard/notifications"
       onNavigate={onNavigate}
+      prefetch={false}
       className="relative text-graphite hover:text-ink transition"
       aria-label="Notifications"
     >

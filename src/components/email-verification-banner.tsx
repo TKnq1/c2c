@@ -38,7 +38,7 @@ export function EmailVerificationBanner() {
       <div className="max-w-5xl mx-auto flex items-center justify-center gap-3">
         <p className="text-center">
           Your email isn&apos;t verified.{" "}
-          <Link href="/dashboard/verify-email" className="underline font-medium">
+          <Link href="/dashboard/verify-email" prefetch={false} className="underline font-medium">
             Verify now
           </Link>
         </p>
