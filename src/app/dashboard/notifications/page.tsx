@@ -39,7 +39,10 @@ export default async function NotificationsPage() {
               </div>
             );
             return n.link ? (
-              <Link key={n.id} href={n.link}>
+              // Unbounded, per-notification hrefs pointing at all sorts of
+              // dynamic destinations — default viewport prefetch would
+              // server-render every one of them just from opening this page.
+              <Link key={n.id} href={n.link} prefetch={false}>
                 {content}
               </Link>
             ) : (

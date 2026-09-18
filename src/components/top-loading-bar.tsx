@@ -11,8 +11,10 @@ type Phase = "idle" | "loading" | "done";
 // for every real page transition) to know when one begins, then watching
 // the resolved path to know when it ends. Only pushState is patched, not
 // replaceState — same-page state synced into the URL (e.g. Discover
-// filters, via router.replace) deliberately avoids pushState already, so
-// this naturally only fires for genuine page-to-page navigation.
+// filters, WelcomeOverlay dropping ?welcome=1) goes through
+// window.history.replaceState directly, deliberately bypassing both
+// router.replace and pushState, so this naturally only fires for genuine
+// page-to-page navigation.
 export function TopLoadingBar() {
   const pathname = usePathname();
   const searchParams = useSearchParams();

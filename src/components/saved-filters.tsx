@@ -56,7 +56,10 @@ export function SavedFilters({ scope, savedFilters }: { scope: string; savedFilt
           key={f.id}
           className="flex items-center gap-1.5 rounded border border-neutral-300 pl-3 pr-1.5 py-1 text-xs dark:border-neutral-700"
         >
-          <Link href={f.query ? `${pathname}?${f.query}` : pathname} className="hover:underline">
+          {/* Each points at this same dynamic page with different query
+              params — default prefetch would server-render the full,
+              differently-filtered page for every saved filter shown. */}
+          <Link href={f.query ? `${pathname}?${f.query}` : pathname} prefetch={false} className="hover:underline">
             {f.name}
           </Link>
           <button

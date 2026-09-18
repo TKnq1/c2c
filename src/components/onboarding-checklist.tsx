@@ -45,7 +45,7 @@ export function OnboardingChecklist({ storageKey, items }: { storageKey: string;
       </div>
       <div className="flex flex-col gap-2">
         {items.map((item) => (
-          <Link key={item.label} href={item.href} className="flex items-center gap-2 text-sm hover:underline">
+          <Link key={item.label} href={item.href} prefetch={false} className="flex items-center gap-2 text-sm hover:underline">
             <span
               className={`flex h-4 w-4 shrink-0 items-center justify-center rounded border ${
                 item.done ? "bg-ink border-ink text-paper" : "border-neutral-300 dark:border-neutral-700"

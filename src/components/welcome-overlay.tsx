@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter, usePathname, useSearchParams } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 
 // Logo is sliced into thirds (roughly one per glyph — C, 2, C) so each can
 // pop in independently, left to right, instead of a flat wipe/fade.
@@ -13,7 +13,6 @@ const LOGO_WIDTH = 240;
 const LOGO_ASPECT = 1520 / 704; // matches public/logo.png's own crop
 
 export function WelcomeOverlay() {
-  const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const show = searchParams.get("welcome") === "1";
@@ -28,11 +27,16 @@ export function WelcomeOverlay() {
       setTimeout(() => setFading(true), HOLD_MS),
       setTimeout(() => {
         setDone(true);
-        router.replace(pathname);
+        // Not router.replace: this route is fully dynamic, so that would
+        // re-run the whole dashboard layout/page just to drop `?welcome=1`
+        // — right as someone's first landing on their dashboard. Dropping
+        // the param is purely cosmetic (nothing reads it after this point),
+        // so a plain history update is all it needs.
+        window.history.replaceState(null, "", pathname);
       }, HOLD_MS + FADE_MS),
     ];
     return () => timers.forEach(clearTimeout);
-  }, [show, router, pathname]);
+  }, [show, pathname]);
 
   if (!show || done) return null;
 
