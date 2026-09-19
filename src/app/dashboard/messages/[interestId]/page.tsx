@@ -4,7 +4,6 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { isBlocked } from "@/lib/moderation";
 import { Avatar } from "@/components/avatar";
-import { MobileChatHeight } from "@/components/mobile-chat-height";
 import { MessageForm } from "@/components/message-form";
 import { MarkThreadRead } from "@/components/mark-thread-read";
 import { ScrollToBottom } from "@/components/scroll-to-bottom";
@@ -68,16 +67,9 @@ export default async function MessageThreadPage({ params }: { params: Promise<{ 
   ].sort((a, b) => a.at.getTime() - b.at.getTime());
 
   return (
-    // Negative margins reclaim <main>'s own px-6/py-8 on mobile, where Nav
-    // and the email-verification banner are also hidden on this route (see
-    // Nav/EmailVerificationBanner) — together that's most of a phone
-    // screen's height back for the chat itself. h-[85vh] is a fallback
-    // (and desktop's actual size, via md:); MobileChatHeight overrides it
-    // on mobile with the real visible height so the keyboard opening never
-    // makes this taller than what's actually on screen.
-    <MobileChatHeight className="flex flex-col h-[85vh] -mx-6 -my-8 md:mx-0 md:my-0 md:h-[75vh]">
+    <div className="flex flex-col h-[75vh]">
       <MarkThreadRead interestId={interestId} />
-      <div className="shrink-0 px-6 pt-4 md:px-0 md:pt-0">
+      <div className="shrink-0">
         <Link href="/dashboard/messages" className="text-sm text-neutral-500 hover:underline dark:text-neutral-400">
           ← Messages
         </Link>
@@ -108,12 +100,7 @@ export default async function MessageThreadPage({ params }: { params: Promise<{ 
 
       <ScrollToBottom
         watch={feed.length}
-        // overscroll-contain: without it, scrolling this list to its top
-        // or bottom edge "chains" into scrolling the outer page instead —
-        // touch gestures near either boundary end up ambiguous about which
-        // one they're meant for. This keeps the scroll contained to the
-        // message list itself, plain CSS, no JS/positioning involved.
-        className="flex-1 min-h-0 overflow-y-auto overscroll-contain flex flex-col gap-2 px-6 pt-4 pb-24 md:px-0 md:pb-4"
+        className="flex-1 min-h-0 overflow-y-auto flex flex-col gap-2 py-4"
       >
         {interest.messages.length === 0 && (
           <p className="text-sm text-neutral-500 dark:text-neutral-400">
@@ -167,16 +154,7 @@ export default async function MessageThreadPage({ params }: { params: Promise<{ 
         })}
       </ScrollToBottom>
 
-      {/* Fixed on mobile, transformed up by --kb (the keyboard's own
-          height, tracked by MobileChatHeight) so it sits right above the
-          keyboard instead of behind it — position: fixed is what actually
-          stays put regardless of any scroll happening around it, which a
-          resized container alone doesn't guarantee. Back to a normal flex
-          child on desktop, unchanged from before. */}
-      <div
-        className="shrink-0 fixed inset-x-0 bottom-0 z-30 bg-background px-6 pt-2 pb-[env(safe-area-inset-bottom)] md:static md:px-0 md:pt-0 md:pb-0 md:bg-transparent"
-        style={{ transform: "translateY(calc(-1 * var(--kb, 0px)))" }}
-      >
+      <div className="shrink-0">
         {otherBlocked ? (
           <p className="text-sm text-neutral-500 text-center py-2 dark:text-neutral-400">
             You&apos;ve blocked {other.name}. Unblock them to send messages again.
@@ -185,6 +163,6 @@ export default async function MessageThreadPage({ params }: { params: Promise<{ 
           <MessageForm interestId={interestId} />
         )}
       </div>
-    </MobileChatHeight>
+    </div>
   );
 }

@@ -2,14 +2,12 @@
 
 import { useLayoutEffect, useState } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
 import { FiX } from "react-icons/fi";
 
 const DISMISS_KEY = "email-verification-banner-dismissed";
 
 export function EmailVerificationBanner() {
   const [dismissed, setDismissed] = useState(false);
-  const pathname = usePathname();
 
   useLayoutEffect(() => {
     // Runs before paint so a returning visitor who already dismissed this
@@ -35,12 +33,8 @@ export function EmailVerificationBanner() {
 
   if (dismissed) return null;
 
-  // Same reasoning as Nav: hidden on mobile while a chat thread is open,
-  // untouched on desktop.
-  const hideOnMobile = pathname.startsWith("/dashboard/messages/");
-
   return (
-    <div className={`bg-fog border-b border-ink/10 px-6 py-2 text-sm text-ink no-print ${hideOnMobile ? "hidden md:block" : ""}`}>
+    <div className="bg-fog border-b border-ink/10 px-6 py-2 text-sm text-ink no-print">
       <div className="max-w-5xl mx-auto flex items-center justify-center gap-3">
         <p className="text-center">
           Your email isn&apos;t verified.{" "}
