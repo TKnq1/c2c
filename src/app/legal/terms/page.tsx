@@ -39,7 +39,11 @@ const SECTIONS: { title: string; body: string }[] = [
   },
   {
     title: "9. Governing law",
-    body: "[These terms are governed by the laws of [jurisdiction], without regard to its conflict-of-law provisions.]",
+    // Temporary placeholder matching the operator's own address (see
+    // Imprint) — not a reviewed choice, just better than a literal unfilled
+    // [jurisdiction] bracket. Still needs real legal review like the rest
+    // of this page.
+    body: "These terms are governed by the laws of Germany, without regard to its conflict-of-law provisions.",
   },
   {
     title: "10. Changes",
