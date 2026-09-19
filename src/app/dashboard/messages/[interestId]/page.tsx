@@ -118,6 +118,7 @@ export default async function MessageThreadPage({ params }: { params: Promise<{ 
 
       <ScrollToBottom
         watch={feed.length}
+        dismissKeyboardOnScroll
         className="flex-1 min-h-0 overflow-y-auto flex flex-col gap-2 py-4"
       >
         {interest.messages.length === 0 && (
