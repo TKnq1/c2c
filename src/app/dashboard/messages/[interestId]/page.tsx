@@ -67,7 +67,7 @@ export default async function MessageThreadPage({ params }: { params: Promise<{ 
   ].sort((a, b) => a.at.getTime() - b.at.getTime());
 
   return (
-    <div className="flex flex-col h-[75vh]">
+    <div className="flex flex-col h-[75dvh]">
       <MarkThreadRead interestId={interestId} />
       <div className="shrink-0">
         <Link href="/dashboard/messages" className="text-sm text-neutral-500 hover:underline dark:text-neutral-400">

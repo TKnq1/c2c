@@ -7,9 +7,14 @@ export function MessageForm({ interestId }: { interestId: string }) {
   const [state, formAction, pending] = useActionState(sendMessageAction.bind(null, interestId), undefined);
   const formRef = useRef<HTMLFormElement>(null);
 
-  // Enter sends (matches every chat app); Shift+Enter still inserts a
-  // newline, same as the textarea's own default for that combination.
+  // Enter sends (matches every chat app on desktop); Shift+Enter still
+  // inserts a newline. Skipped entirely on a coarse (touch) pointer — a
+  // phone has no comfortable Shift+Enter, so the on-screen keyboard's
+  // return key needs to stay a plain newline, same as WhatsApp/Telegram/
+  // iMessage all do; sending there happens via the Send button only.
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    const isTouchPrimary = typeof window !== "undefined" && window.matchMedia("(pointer: coarse)").matches;
+    if (isTouchPrimary) return;
     // nativeEvent.isComposing: Enter during an IME composition (e.g.
     // confirming a Japanese/Chinese candidate) shouldn't send — it's
     // finishing a character, not finishing the message.
