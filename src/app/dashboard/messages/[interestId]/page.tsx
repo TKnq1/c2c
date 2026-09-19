@@ -5,6 +5,7 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { isBlocked } from "@/lib/moderation";
 import { Avatar } from "@/components/avatar";
+import { MobileChatFrame } from "@/components/mobile-chat-frame";
 import { MessageForm } from "@/components/message-form";
 import { MarkThreadRead } from "@/components/mark-thread-read";
 import { ScrollToBottom } from "@/components/scroll-to-bottom";
@@ -21,6 +22,11 @@ import { PLATFORM_FEE_RATE, PRO_PLATFORM_FEE_RATE } from "@/lib/constants";
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
+  // Belt-and-suspenders with the message textarea's 16px font: Safari's
+  // exact auto-zoom-on-focus heuristic has shifted across iOS versions, and
+  // maximumScale=1 is the other documented lever for suppressing it, scoped
+  // to just this page so pinch-zoom isn't disabled site-wide.
+  maximumScale: 1,
   interactiveWidget: "resizes-content",
 };
 
@@ -83,9 +89,11 @@ export default async function MessageThreadPage({ params }: { params: Promise<{ 
     // takes over the whole screen, covering the site's own nav and footer,
     // and isn't part of the page's own scroll) — a confined card on desktop
     // (md+), where there's no keyboard to fight and the site chrome around
-    // it is normal to see. The mobile fixed-overlay is what actually keeps
-    // the input pinned in place instead of drifting with outer page scroll.
-    <div className="fixed inset-0 z-30 flex flex-col bg-background px-6 pb-4 pt-[calc(env(safe-area-inset-top)+1rem)] md:static md:z-auto md:h-[75dvh] md:px-0 md:pb-0 md:pt-0">
+    // it is normal to see. top-0 (not inset-0/bottom-0): the height is set
+    // explicitly by MobileChatFrame from window.visualViewport, which is
+    // what actually keeps this pinned above the keyboard on iOS Safari —
+    // bottom-0 alone doesn't reliably track the keyboard there.
+    <MobileChatFrame className="fixed inset-x-0 top-0 z-30 flex flex-col bg-background px-6 pb-4 pt-[calc(env(safe-area-inset-top)+1rem)] md:static md:z-auto md:h-[75dvh] md:px-0 md:pb-0 md:pt-0">
       <MarkThreadRead interestId={interestId} />
       <div className="shrink-0">
         <Link href="/dashboard/messages" className="text-sm text-neutral-500 hover:underline dark:text-neutral-400">
@@ -182,6 +190,6 @@ export default async function MessageThreadPage({ params }: { params: Promise<{ 
           <MessageForm interestId={interestId} />
         )}
       </div>
-    </div>
+    </MobileChatFrame>
   );
 }
