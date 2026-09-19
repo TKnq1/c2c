@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
+import type { Viewport } from "next";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { isBlocked } from "@/lib/moderation";
@@ -11,6 +12,17 @@ import { ReportBlockActions } from "@/components/report-block-actions";
 import { ChatOfferPanel } from "@/components/chat-offer-panel";
 import { buildCollabTimeline } from "@/lib/collab-timeline";
 import { PLATFORM_FEE_RATE, PRO_PLATFORM_FEE_RATE } from "@/lib/constants";
+
+// Scoped to this page only, not the root layout — resizes-content made the
+// on-screen keyboard properly shrink this page's h-[75dvh] chat container
+// instead of covering it, but applied site-wide it also changed how every
+// other page (login, search inputs, ...) scrolls a focused field into view,
+// which nothing else here was built to expect.
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  interactiveWidget: "resizes-content",
+};
 
 export default async function MessageThreadPage({ params }: { params: Promise<{ interestId: string }> }) {
   const { interestId } = await params;
