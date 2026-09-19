@@ -36,7 +36,10 @@ export function MessageForm({ interestId }: { interestId: string }) {
           placeholder="Write a message…"
           aria-label="Message"
           onKeyDown={handleKeyDown}
-          className="flex-1 rounded-lg border border-neutral-300 px-3 py-2 text-sm resize-none dark:border-neutral-700"
+          // text-base (16px): below that, iOS Safari zooms the whole page
+          // in on focus. Back to text-sm on desktop, where it's just a
+          // font size, not a zoom trigger.
+          className="flex-1 rounded-lg border border-neutral-300 px-3 py-2 text-base md:text-sm resize-none dark:border-neutral-700"
         />
         <button
           type="submit"
