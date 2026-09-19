@@ -79,7 +79,13 @@ export default async function MessageThreadPage({ params }: { params: Promise<{ 
   ].sort((a, b) => a.at.getTime() - b.at.getTime());
 
   return (
-    <div className="flex flex-col h-[75dvh]">
+    // Fixed, full-screen on mobile (like Instagram/WhatsApp: the thread
+    // takes over the whole screen, covering the site's own nav and footer,
+    // and isn't part of the page's own scroll) — a confined card on desktop
+    // (md+), where there's no keyboard to fight and the site chrome around
+    // it is normal to see. The mobile fixed-overlay is what actually keeps
+    // the input pinned in place instead of drifting with outer page scroll.
+    <div className="fixed inset-0 z-30 flex flex-col bg-background px-6 pb-4 pt-[calc(env(safe-area-inset-top)+1rem)] md:static md:z-auto md:h-[75dvh] md:px-0 md:pb-0 md:pt-0">
       <MarkThreadRead interestId={interestId} />
       <div className="shrink-0">
         <Link href="/dashboard/messages" className="text-sm text-neutral-500 hover:underline dark:text-neutral-400">
@@ -166,7 +172,7 @@ export default async function MessageThreadPage({ params }: { params: Promise<{ 
         })}
       </ScrollToBottom>
 
-      <div className="shrink-0">
+      <div className="shrink-0 pb-[env(safe-area-inset-bottom)] md:pb-0">
         {otherBlocked ? (
           <p className="text-sm text-neutral-500 text-center py-2 dark:text-neutral-400">
             You&apos;ve blocked {other.name}. Unblock them to send messages again.
