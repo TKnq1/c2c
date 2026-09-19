@@ -100,7 +100,12 @@ export default async function MessageThreadPage({ params }: { params: Promise<{ 
 
       <ScrollToBottom
         watch={feed.length}
-        className="flex-1 min-h-0 overflow-y-auto flex flex-col gap-2 py-4"
+        // overscroll-contain: without it, scrolling this list to its top
+        // or bottom edge "chains" into scrolling the outer page instead —
+        // touch gestures near either boundary end up ambiguous about which
+        // one they're meant for. This keeps the scroll contained to the
+        // message list itself, plain CSS, no JS/positioning involved.
+        className="flex-1 min-h-0 overflow-y-auto overscroll-contain flex flex-col gap-2 py-4"
       >
         {interest.messages.length === 0 && (
           <p className="text-sm text-neutral-500 dark:text-neutral-400">
