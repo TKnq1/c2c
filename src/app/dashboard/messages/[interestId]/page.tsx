@@ -77,7 +77,7 @@ export default async function MessageThreadPage({ params }: { params: Promise<{ 
     // makes this taller than what's actually on screen.
     <MobileChatHeight className="flex flex-col h-[85vh] -mx-6 -my-8 md:mx-0 md:my-0 md:h-[75vh]">
       <MarkThreadRead interestId={interestId} />
-      <div className="shrink-0">
+      <div className="shrink-0 px-6 pt-4 md:px-0 md:pt-0">
         <Link href="/dashboard/messages" className="text-sm text-neutral-500 hover:underline dark:text-neutral-400">
           ← Messages
         </Link>
@@ -113,7 +113,7 @@ export default async function MessageThreadPage({ params }: { params: Promise<{ 
         // touch gestures near either boundary end up ambiguous about which
         // one they're meant for. This keeps the scroll contained to the
         // message list itself, plain CSS, no JS/positioning involved.
-        className="flex-1 min-h-0 overflow-y-auto overscroll-contain flex flex-col gap-2 py-4"
+        className="flex-1 min-h-0 overflow-y-auto overscroll-contain flex flex-col gap-2 px-6 pt-4 pb-24 md:px-0 md:pb-4"
       >
         {interest.messages.length === 0 && (
           <p className="text-sm text-neutral-500 dark:text-neutral-400">
@@ -167,7 +167,16 @@ export default async function MessageThreadPage({ params }: { params: Promise<{ 
         })}
       </ScrollToBottom>
 
-      <div className="shrink-0">
+      {/* Fixed on mobile, transformed up by --kb (the keyboard's own
+          height, tracked by MobileChatHeight) so it sits right above the
+          keyboard instead of behind it — position: fixed is what actually
+          stays put regardless of any scroll happening around it, which a
+          resized container alone doesn't guarantee. Back to a normal flex
+          child on desktop, unchanged from before. */}
+      <div
+        className="shrink-0 fixed inset-x-0 bottom-0 z-30 bg-background px-6 pt-2 pb-[env(safe-area-inset-bottom)] md:static md:px-0 md:pt-0 md:pb-0 md:bg-transparent"
+        style={{ transform: "translateY(calc(-1 * var(--kb, 0px)))" }}
+      >
         {otherBlocked ? (
           <p className="text-sm text-neutral-500 text-center py-2 dark:text-neutral-400">
             You&apos;ve blocked {other.name}. Unblock them to send messages again.
