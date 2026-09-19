@@ -37,26 +37,6 @@ export function MobileChatFrame({ children, className }: { children: ReactNode; 
     vv?.addEventListener("scroll", sync);
     window.addEventListener("resize", sync);
 
-    // Locks the page behind this full-screen view to its current scroll
-    // position for as long as it's mounted — plain `overflow: hidden` on
-    // body doesn't reliably stop touch-drag scrolling on iOS, but a fixed
-    // body pinned to the negative scroll offset does, and restoring
-    // scrollY on cleanup makes it invisible that this ever happened.
-    let restoreBodyScroll: (() => void) | undefined;
-    if (isMobile()) {
-      const scrollY = window.scrollY;
-      const prev = { position: document.body.style.position, top: document.body.style.top, width: document.body.style.width };
-      document.body.style.position = "fixed";
-      document.body.style.top = `-${scrollY}px`;
-      document.body.style.width = "100%";
-      restoreBodyScroll = () => {
-        document.body.style.position = prev.position;
-        document.body.style.top = prev.top;
-        document.body.style.width = prev.width;
-        window.scrollTo(0, scrollY);
-      };
-    }
-
     return () => {
       vv?.removeEventListener("resize", sync);
       vv?.removeEventListener("scroll", sync);
@@ -65,7 +45,6 @@ export function MobileChatFrame({ children, className }: { children: ReactNode; 
       document.documentElement.style.removeProperty("--vv-top");
       document.documentElement.style.removeProperty("--kb");
       document.documentElement.classList.remove("keyboard-open");
-      restoreBodyScroll?.();
     };
   }, []);
 
