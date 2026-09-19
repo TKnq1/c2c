@@ -97,6 +97,15 @@ html {
   }
 }
 
+/* Set on <html> by MobileChatFrame (window.visualViewport-driven) whenever
+   the on-screen keyboard is open on a mobile viewport. The message
+   thread's input sits flush against the keyboard at that point — the
+   home-indicator safe-area padding it normally needs is redundant (the
+   keyboard already covers that area), so drop it rather than doubling up. */
+html.keyboard-open .chat-input-safe-area {
+  padding-bottom: 0;
+}
+
 @keyframes page-fade-in {
   from {
     opacity: 0;

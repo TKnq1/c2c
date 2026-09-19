@@ -89,11 +89,13 @@ export default async function MessageThreadPage({ params }: { params: Promise<{ 
     // takes over the whole screen, covering the site's own nav and footer,
     // and isn't part of the page's own scroll) — a confined card on desktop
     // (md+), where there's no keyboard to fight and the site chrome around
-    // it is normal to see. top-0 (not inset-0/bottom-0): the height is set
-    // explicitly by MobileChatFrame from window.visualViewport, which is
-    // what actually keeps this pinned above the keyboard on iOS Safari —
-    // bottom-0 alone doesn't reliably track the keyboard there.
-    <MobileChatFrame className="fixed inset-x-0 top-0 z-30 flex flex-col bg-background px-6 pb-4 pt-[calc(env(safe-area-inset-top)+1rem)] md:static md:z-auto md:h-[75dvh] md:px-0 md:pb-0 md:pt-0">
+    // it is normal to see. top/height read the --vv-top/--vvh custom
+    // properties MobileChatFrame maintains from window.visualViewport —
+    // plain top-0 isn't enough on iOS Safari, which shifts (scrolls) the
+    // visual viewport rather than shrinking the layout viewport, so a
+    // fixed element anchored to the layout viewport's top drifts out of
+    // sync with what's actually visible once the keyboard is up.
+    <MobileChatFrame className="fixed inset-x-0 top-[var(--vv-top,0px)] h-[var(--vvh,100dvh)] z-30 flex flex-col bg-background px-6 pb-4 pt-[calc(env(safe-area-inset-top)+1rem)] md:static md:top-auto md:h-[75dvh] md:px-0 md:pb-0 md:pt-0">
       <MarkThreadRead interestId={interestId} />
       <div className="shrink-0">
         <Link href="/dashboard/messages" className="text-sm text-neutral-500 hover:underline dark:text-neutral-400">
@@ -181,7 +183,11 @@ export default async function MessageThreadPage({ params }: { params: Promise<{ 
         })}
       </ScrollToBottom>
 
-      <div className="shrink-0 pb-[env(safe-area-inset-bottom)] md:pb-0">
+      {/* chat-input-safe-area: zeroed out via globals.css while the
+          keyboard is open (see html.keyboard-open) — the home-indicator
+          safe area the keyboard would otherwise leave a gap for is
+          covered by the keyboard itself once it's up. */}
+      <div className="shrink-0 chat-input-safe-area pb-[env(safe-area-inset-bottom)] md:pb-0">
         {otherBlocked ? (
           <p className="text-sm text-neutral-500 text-center py-2 dark:text-neutral-400">
             You&apos;ve blocked {other.name}. Unblock them to send messages again.
