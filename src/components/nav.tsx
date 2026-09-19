@@ -72,8 +72,14 @@ export function Nav({
     };
   }, [open]);
 
+  // Hidden on mobile while a chat thread is open — that view already fights
+  // for vertical space, and the nav isn't reachable from there anyway (the
+  // thread has its own "← Messages" back link). Left alone on desktop,
+  // which was never cramped in the first place.
+  const hideOnMobile = pathname.startsWith("/dashboard/messages/");
+
   return (
-    <header className="border-b border-ink/10 no-print">
+    <header className={`border-b border-ink/10 no-print ${hideOnMobile ? "hidden md:block" : ""}`}>
       <div className="max-w-5xl mx-auto flex items-center justify-between px-6 py-5">
         <Link href={base} onNavigate={onNavigate} className="shrink-0">
           <Logo />

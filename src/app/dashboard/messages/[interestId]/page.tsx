@@ -4,6 +4,7 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { isBlocked } from "@/lib/moderation";
 import { Avatar } from "@/components/avatar";
+import { MobileChatHeight } from "@/components/mobile-chat-height";
 import { MessageForm } from "@/components/message-form";
 import { MarkThreadRead } from "@/components/mark-thread-read";
 import { ScrollToBottom } from "@/components/scroll-to-bottom";
@@ -67,7 +68,14 @@ export default async function MessageThreadPage({ params }: { params: Promise<{ 
   ].sort((a, b) => a.at.getTime() - b.at.getTime());
 
   return (
-    <div className="flex flex-col h-[75vh]">
+    // Negative margins reclaim <main>'s own px-6/py-8 on mobile, where Nav
+    // and the email-verification banner are also hidden on this route (see
+    // Nav/EmailVerificationBanner) — together that's most of a phone
+    // screen's height back for the chat itself. h-[85vh] is a fallback
+    // (and desktop's actual size, via md:); MobileChatHeight overrides it
+    // on mobile with the real visible height so the keyboard opening never
+    // makes this taller than what's actually on screen.
+    <MobileChatHeight className="flex flex-col h-[85vh] -mx-6 -my-8 md:mx-0 md:my-0 md:h-[75vh]">
       <MarkThreadRead interestId={interestId} />
       <div className="shrink-0">
         <Link href="/dashboard/messages" className="text-sm text-neutral-500 hover:underline dark:text-neutral-400">
@@ -168,6 +176,6 @@ export default async function MessageThreadPage({ params }: { params: Promise<{ 
           <MessageForm interestId={interestId} />
         )}
       </div>
-    </div>
+    </MobileChatHeight>
   );
 }
