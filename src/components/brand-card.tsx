@@ -5,6 +5,7 @@ import { PlatformIcon } from "@/components/platform-icons";
 import { RatingSummary } from "@/components/stars";
 import { FavoriteButton } from "@/components/favorite-button";
 import { favoriteStartupAction, unfavoriteStartupAction } from "@/lib/actions/favorites";
+import { isRecentlyCreated } from "@/lib/format";
 
 type Props = {
   id: string;
@@ -16,6 +17,7 @@ type Props = {
   socialLinks: { platform: string; url: string }[];
   rating: { average: number; count: number };
   isFavorited: boolean;
+  createdAt: number;
   responseTimeLabel?: string | null;
   onFavoriteToggle?: (id: string, favorited: boolean) => void;
 };
@@ -30,6 +32,7 @@ export function BrandCard({
   socialLinks,
   rating,
   isFavorited,
+  createdAt,
   responseTimeLabel,
   onFavoriteToggle,
 }: Props) {
@@ -42,7 +45,14 @@ export function BrandCard({
         <div className="flex items-center gap-3">
           <Avatar src={avatarUrl} name={companyName} size={40} />
           <div>
-            <p className="font-semibold">{companyName}</p>
+            <p className="font-semibold flex items-center gap-1.5">
+              {companyName}
+              {isRecentlyCreated(createdAt) && (
+                <span className="text-[10px] font-medium uppercase tracking-wide rounded bg-ink text-paper px-1.5 py-0.5">
+                  New
+                </span>
+              )}
+            </p>
             <RatingSummary average={rating.average} count={rating.count} />
             {responseTimeLabel && (
               <p className="text-xs text-neutral-500 flex items-center gap-1 mt-0.5 dark:text-neutral-400">

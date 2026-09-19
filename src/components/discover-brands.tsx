@@ -116,6 +116,7 @@ export function DiscoverBrands({
               socialLinks={b.socialLinks}
               rating={b.rating}
               isFavorited={favoritedIds.has(b.id)}
+              createdAt={b.createdAt}
               responseTimeLabel={b.responseTimeLabel}
               onFavoriteToggle={handleFavoriteToggle}
             />

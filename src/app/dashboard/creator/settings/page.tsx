@@ -1,7 +1,9 @@
 import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { SITE_URL } from "@/lib/site";
 import { EditProfileForm } from "@/components/edit-profile-form";
+import { CopyProfileLink } from "@/components/copy-profile-link";
 import { ChangePasswordForm } from "@/components/change-password-form";
 import { TwoFactorSettings } from "@/components/two-factor-settings";
 import { LoginActivity } from "@/components/login-activity";
@@ -62,6 +64,9 @@ export default async function CreatorSettingsPage() {
             url: p.url ?? undefined,
           }))}
         />
+        <div className="mt-4">
+          <CopyProfileLink url={`${SITE_URL}/dashboard/startup/discover/${creator.id}`} />
+        </div>
       </div>
 
       <div id="payouts" className="border-t border-ink/10 pt-6 scroll-mt-16">

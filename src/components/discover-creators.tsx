@@ -188,6 +188,7 @@ export function DiscoverCreators({
                 platforms={c.platforms}
                 rating={c.rating}
                 isFavorited={favoritedIds.has(c.id)}
+                createdAt={c.createdAt}
                 responseTimeLabel={c.responseTimeLabel}
                 onFavoriteToggle={handleFavoriteToggle}
               />

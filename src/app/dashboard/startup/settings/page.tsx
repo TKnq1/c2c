@@ -2,7 +2,9 @@ import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { NICHES } from "@/lib/constants";
+import { SITE_URL } from "@/lib/site";
 import { EditBrandProfileForm } from "@/components/edit-brand-profile-form";
+import { CopyProfileLink } from "@/components/copy-profile-link";
 import { ChangePasswordForm } from "@/components/change-password-form";
 import { TwoFactorSettings } from "@/components/two-factor-settings";
 import { LoginActivity } from "@/components/login-activity";
@@ -56,6 +58,9 @@ export default async function StartupSettingsPage() {
           // non-nullable today so it can't hit the same validation failure.
           socialLinks={startup.socialLinks.map((s) => ({ platform: s.platform, url: s.url }))}
         />
+        <div className="mt-4">
+          <CopyProfileLink url={`${SITE_URL}/dashboard/creator/discover/${startup.id}`} />
+        </div>
       </div>
 
       <div id="plan" className="border-t border-ink/10 pt-6 scroll-mt-16">

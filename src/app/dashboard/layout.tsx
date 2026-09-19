@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { Nav } from "@/components/nav";
+import { UnreadTitleBadge } from "@/components/unread-title-badge";
 import { WelcomeOverlay } from "@/components/welcome-overlay";
 import { EmailVerificationBanner } from "@/components/email-verification-banner";
 import { getUnreadCount } from "@/lib/notifications";
@@ -36,6 +37,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
       <Suspense fallback={null}>
         <WelcomeOverlay />
       </Suspense>
+      <UnreadTitleBadge count={unreadCount + unreadMessages} />
       <Nav
         role={session.user.role}
         unreadCount={unreadCount}

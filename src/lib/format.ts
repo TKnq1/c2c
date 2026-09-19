@@ -13,3 +13,11 @@ export function formatFollowers(count: number): string {
   if (count < 1_000_000) return `${Math.floor(count / 1000)}K+`;
   return `${Math.floor(count / 100_000) / 10}M+`;
 }
+
+const NEW_WINDOW_MS = 7 * 24 * 60 * 60 * 1000;
+
+// Drives the "New" badge on Discover cards — a week feels long enough to
+// actually be seen by someone browsing, short enough to still mean "new."
+export function isRecentlyCreated(createdAt: number): boolean {
+  return Date.now() - createdAt < NEW_WINDOW_MS;
+}
