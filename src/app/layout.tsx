@@ -2,6 +2,7 @@ import { Suspense } from "react";
 import type { Metadata } from "next";
 import { Inter, Fraunces } from "next/font/google";
 import { PageTransition } from "@/components/page-transition";
+import { Footer } from "@/components/footer";
 import { Toaster } from "@/components/toaster";
 import { TopLoadingBar } from "@/components/top-loading-bar";
 import { NavigationBlockerProvider } from "@/lib/navigation-blocker";
@@ -83,6 +84,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         </Suspense>
         <NavigationBlockerProvider>
           <PageTransition>{children}</PageTransition>
+          <Footer />
           <Toaster />
         </NavigationBlockerProvider>
       </body>
