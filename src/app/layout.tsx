@@ -1,5 +1,5 @@
 import { Suspense } from "react";
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Inter, Fraunces } from "next/font/google";
 import { PageTransition } from "@/components/page-transition";
 import { Footer } from "@/components/footer";
@@ -26,6 +26,17 @@ const aftenscreen = Fraunces({
 
 const SITE_NAME = "C2C – Brand-Creator Marketplace";
 const SITE_DESCRIPTION = "Brands find matching content creators for collaborations.";
+
+// resizes-content: without it, most mobile browsers only shrink the
+// *visual* viewport when the on-screen keyboard opens, not the layout
+// viewport — so a dvh-sized container (the message thread) never actually
+// reflows around the keyboard, it just gets covered. This makes dvh mean
+// what the message thread page needs it to mean.
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  interactiveWidget: "resizes-content",
+};
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
