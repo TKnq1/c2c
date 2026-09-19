@@ -7,14 +7,9 @@ export function MessageForm({ interestId }: { interestId: string }) {
   const [state, formAction, pending] = useActionState(sendMessageAction.bind(null, interestId), undefined);
   const formRef = useRef<HTMLFormElement>(null);
 
-  // Enter sends (matches every chat app on desktop); Shift+Enter still
-  // inserts a newline. Skipped entirely on a coarse (touch) pointer — a
-  // phone has no comfortable Shift+Enter, so the on-screen keyboard's
-  // return key needs to stay a plain newline, same as WhatsApp/Telegram/
-  // iMessage all do; sending there happens via the Send button only.
+  // Enter sends (matches every chat app); Shift+Enter still inserts a
+  // newline, same as the textarea's own default for that combination.
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    const isTouchPrimary = typeof window !== "undefined" && window.matchMedia("(pointer: coarse)").matches;
-    if (isTouchPrimary) return;
     // nativeEvent.isComposing: Enter during an IME composition (e.g.
     // confirming a Japanese/Chinese candidate) shouldn't send — it's
     // finishing a character, not finishing the message.
@@ -41,12 +36,7 @@ export function MessageForm({ interestId }: { interestId: string }) {
           placeholder="Write a message…"
           aria-label="Message"
           onKeyDown={handleKeyDown}
-          // text-base (16px), not text-sm: below 16px, iOS Safari zooms the
-          // whole page in on focus (its own accessibility heuristic, not
-          // something preventable via the viewport meta) — this is the
-          // only reliable fix. Back to text-sm on desktop, where it's just
-          // a font size, not a zoom trigger.
-          className="flex-1 rounded-lg border border-neutral-300 px-3 py-2 text-base md:text-sm resize-none dark:border-neutral-700"
+          className="flex-1 rounded-lg border border-neutral-300 px-3 py-2 text-sm resize-none dark:border-neutral-700"
         />
         <button
           type="submit"

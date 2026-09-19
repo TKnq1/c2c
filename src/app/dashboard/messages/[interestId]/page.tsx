@@ -1,11 +1,9 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
-import type { Viewport } from "next";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { isBlocked } from "@/lib/moderation";
 import { Avatar } from "@/components/avatar";
-import { MobileChatFrame } from "@/components/mobile-chat-frame";
 import { MessageForm } from "@/components/message-form";
 import { MarkThreadRead } from "@/components/mark-thread-read";
 import { ScrollToBottom } from "@/components/scroll-to-bottom";
@@ -13,22 +11,6 @@ import { ReportBlockActions } from "@/components/report-block-actions";
 import { ChatOfferPanel } from "@/components/chat-offer-panel";
 import { buildCollabTimeline } from "@/lib/collab-timeline";
 import { PLATFORM_FEE_RATE, PRO_PLATFORM_FEE_RATE } from "@/lib/constants";
-
-// Scoped to this page only, not the root layout — resizes-content made the
-// on-screen keyboard properly shrink this page's h-[75dvh] chat container
-// instead of covering it, but applied site-wide it also changed how every
-// other page (login, search inputs, ...) scrolls a focused field into view,
-// which nothing else here was built to expect.
-export const viewport: Viewport = {
-  width: "device-width",
-  initialScale: 1,
-  // Belt-and-suspenders with the message textarea's 16px font: Safari's
-  // exact auto-zoom-on-focus heuristic has shifted across iOS versions, and
-  // maximumScale=1 is the other documented lever for suppressing it, scoped
-  // to just this page so pinch-zoom isn't disabled site-wide.
-  maximumScale: 1,
-  interactiveWidget: "resizes-content",
-};
 
 export default async function MessageThreadPage({ params }: { params: Promise<{ interestId: string }> }) {
   const { interestId } = await params;
@@ -85,17 +67,7 @@ export default async function MessageThreadPage({ params }: { params: Promise<{ 
   ].sort((a, b) => a.at.getTime() - b.at.getTime());
 
   return (
-    // Fixed, full-screen on mobile (like Instagram/WhatsApp: the thread
-    // takes over the whole screen, covering the site's own nav and footer,
-    // and isn't part of the page's own scroll) — a confined card on desktop
-    // (md+), where there's no keyboard to fight and the site chrome around
-    // it is normal to see. top/height read the --vv-top/--vvh custom
-    // properties MobileChatFrame maintains from window.visualViewport —
-    // plain top-0 isn't enough on iOS Safari, which shifts (scrolls) the
-    // visual viewport rather than shrinking the layout viewport, so a
-    // fixed element anchored to the layout viewport's top drifts out of
-    // sync with what's actually visible once the keyboard is up.
-    <MobileChatFrame className="fixed inset-x-0 top-[var(--vv-top,0px)] h-[var(--vvh,100dvh)] z-30 flex flex-col bg-background px-6 pb-4 pt-[calc(env(safe-area-inset-top)+1rem)] md:static md:top-auto md:h-[75dvh] md:px-0 md:pb-0 md:pt-0">
+    <div className="flex flex-col h-[75vh]">
       <MarkThreadRead interestId={interestId} />
       <div className="shrink-0">
         <Link href="/dashboard/messages" className="text-sm text-neutral-500 hover:underline dark:text-neutral-400">
@@ -128,8 +100,7 @@ export default async function MessageThreadPage({ params }: { params: Promise<{ 
 
       <ScrollToBottom
         watch={feed.length}
-        dismissKeyboardOnScroll
-        className="flex-1 min-h-0 overflow-y-auto overscroll-contain flex flex-col gap-2 py-4"
+        className="flex-1 min-h-0 overflow-y-auto flex flex-col gap-2 py-4"
       >
         {interest.messages.length === 0 && (
           <p className="text-sm text-neutral-500 dark:text-neutral-400">
@@ -183,11 +154,7 @@ export default async function MessageThreadPage({ params }: { params: Promise<{ 
         })}
       </ScrollToBottom>
 
-      {/* chat-input-safe-area: zeroed out via globals.css while the
-          keyboard is open (see html.keyboard-open) — the home-indicator
-          safe area the keyboard would otherwise leave a gap for is
-          covered by the keyboard itself once it's up. */}
-      <div className="shrink-0 chat-input-safe-area pb-[env(safe-area-inset-bottom)] md:pb-0">
+      <div className="shrink-0">
         {otherBlocked ? (
           <p className="text-sm text-neutral-500 text-center py-2 dark:text-neutral-400">
             You&apos;ve blocked {other.name}. Unblock them to send messages again.
@@ -196,6 +163,6 @@ export default async function MessageThreadPage({ params }: { params: Promise<{ 
           <MessageForm interestId={interestId} />
         )}
       </div>
-    </MobileChatFrame>
+    </div>
   );
 }

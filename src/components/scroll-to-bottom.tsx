@@ -8,16 +8,10 @@ export function ScrollToBottom({
   children,
   className,
   watch,
-  dismissKeyboardOnScroll,
 }: {
   children: ReactNode;
   className?: string;
   watch: string | number;
-  // Blurs whatever's focused (e.g. the message textarea) the moment this
-  // list is scrolled — same as iMessage/WhatsApp: scrolling through history
-  // closes the keyboard and hands the screen back to the chat, rather than
-  // scrolling underneath a keyboard that's still up.
-  dismissKeyboardOnScroll?: boolean;
 }) {
   const ref = useRef<HTMLDivElement>(null);
 
@@ -26,11 +20,7 @@ export function ScrollToBottom({
   }, [watch]);
 
   return (
-    <div
-      ref={ref}
-      className={className}
-      onScroll={dismissKeyboardOnScroll ? () => (document.activeElement as HTMLElement | null)?.blur() : undefined}
-    >
+    <div ref={ref} className={className}>
       {children}
     </div>
   );
