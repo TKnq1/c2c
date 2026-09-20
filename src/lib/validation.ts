@@ -62,22 +62,31 @@ export const loginSchema = z.object({
   password: z.string().min(8),
 });
 
-export const signupSchema = z.discriminatedUnion("role", [
-  z.object({
-    role: z.literal("STARTUP"),
-    email: z.string().email(),
-    password: z.string().min(8),
-    companyName: z.string().min(1).max(120),
-  }),
-  z.object({
-    role: z.literal("CREATOR"),
-    email: z.string().email(),
-    password: z.string().min(8),
-    displayName: z.string().min(1).max(120),
-    niche: nicheEnum,
-    platforms: platformsField,
-  }),
-]);
+// Just enough to create the account — everything role-specific (company
+// name, or display name/niche/platforms) is collected right after by the
+// onboarding wizard, one field at a time, so the signup form itself stays
+// this short.
+export const signupSchema = z.object({
+  role: z.enum(["STARTUP", "CREATOR"]),
+  email: z.string().email(),
+  password: z.string().min(8),
+});
+
+export const onboardingCompanyNameSchema = z.object({
+  companyName: z.string().min(1).max(120),
+});
+
+export const onboardingDisplayNameSchema = z.object({
+  displayName: z.string().min(1).max(120),
+});
+
+export const onboardingNicheSchema = z.object({
+  niche: nicheEnum,
+});
+
+export const onboardingPlatformsSchema = z.object({
+  platforms: platformsField,
+});
 
 // The form posts languages as one comma-joined hidden input (same encoding
 // the language filter already uses in the URL) rather than repeated form

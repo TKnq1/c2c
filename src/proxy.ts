@@ -60,7 +60,8 @@ export default auth((req) => {
   }
 
   const isAdminPath = pathname.startsWith("/admin");
-  if (!pathname.startsWith("/dashboard") && !isAdminPath) return;
+  const isOnboardingPath = pathname.startsWith("/onboarding");
+  if (!pathname.startsWith("/dashboard") && !isAdminPath && !isOnboardingPath) return;
 
   if (!req.auth) {
     return NextResponse.redirect(new URL("/login", req.url));
@@ -70,6 +71,13 @@ export default auth((req) => {
 
   if (isAdminPath) {
     if (role !== "ADMIN") return NextResponse.redirect(new URL("/login", req.url));
+    return;
+  }
+
+  // Just needs auth, valid for both STARTUP and CREATOR — the page itself
+  // decides which wizard to show and redirects away once it's done.
+  if (isOnboardingPath) {
+    if (role === "ADMIN") return NextResponse.redirect(new URL("/admin", req.url));
     return;
   }
 

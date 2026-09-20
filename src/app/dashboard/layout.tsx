@@ -9,6 +9,7 @@ import { EmailVerificationBanner } from "@/components/email-verification-banner"
 import { getUnreadCount } from "@/lib/notifications";
 import { getUnreadMessageCount } from "@/lib/messages";
 import { getPendingPaymentActionCount } from "@/lib/payments";
+import { isOnboardingComplete } from "@/lib/onboarding";
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   const session = await auth();
@@ -19,12 +20,18 @@ export default async function DashboardLayout({ children }: { children: React.Re
   // creatorProfile lookup would always come back empty, so it's skipped
   // entirely rather than spending a Neon round-trip on every dashboard
   // page load just to compute a number nothing displays.
-  const [unreadCount, unreadMessages, pendingPayments, user] = await Promise.all([
+  const [unreadCount, unreadMessages, pendingPayments, user, onboardingComplete] = await Promise.all([
     getUnreadCount(session.user.id),
     getUnreadMessageCount(session.user.id, session.user.role),
     session.user.role === "CREATOR" ? getPendingPaymentActionCount(session.user.id) : Promise.resolve(0),
     prisma.user.findUnique({ where: { id: session.user.id }, select: { emailVerified: true } }),
+    isOnboardingComplete(session.user.id, session.user.role),
   ]);
+
+  // Signed up but never finished the onboarding wizard (closed the tab,
+  // came back later, whatever) — every dashboard page assumes a filled-in
+  // profile, so send them back to finish it before anything else renders.
+  if (!onboardingComplete) redirect("/onboarding");
 
   return (
     <div className="flex-1 flex flex-col">

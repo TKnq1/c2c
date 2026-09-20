@@ -3,13 +3,32 @@
 import { useActionState, useState } from "react";
 import type { Role } from "@prisma/client";
 import { signupAction } from "@/lib/actions/auth";
-import { NICHES } from "@/lib/constants";
-import { PlatformPicker } from "@/components/platform-picker";
-import { Select } from "@/components/select";
 import { NewPasswordField } from "@/components/new-password-field";
+import { PLATFORM_FEE_RATE, PRO_PLATFORM_FEE_RATE } from "@/lib/constants";
 
-export function SignupForm() {
-  const [role, setRole] = useState<Role>("STARTUP");
+// Only the two self-serve signup roles — admins aren't created through this form.
+export type SignupRole = Extract<Role, "STARTUP" | "CREATOR">;
+
+const FEE_NOTE: Record<SignupRole, string> = {
+  STARTUP: `You pay exactly what you offer, held in escrow until the work goes live — we take ${PLATFORM_FEE_RATE * 100}% from the creator's payout, ${PRO_PLATFORM_FEE_RATE * 100}% with Pro.`,
+  CREATOR: `Keep ${100 - PLATFORM_FEE_RATE * 100}% of every deal, ${100 - PRO_PLATFORM_FEE_RATE * 100}% when the brand's on Pro — paid out the moment you mark the work as posted.`,
+};
+
+type Props = {
+  // Uncontrolled by default (own toggle, own state) — the standalone
+  // /signup page uses it this way. The homepage passes both so the same
+  // Brand/Creator choice also drives what's shown on its left column.
+  role?: SignupRole;
+  onRoleChange?: (role: SignupRole) => void;
+};
+
+// Just email/password/role — company name, or display name/niche/platforms,
+// are collected right after by the /onboarding wizard, one field at a time,
+// so the bar to actually creating an account stays low.
+export function SignupForm({ role: controlledRole, onRoleChange }: Props = {}) {
+  const [internalRole, setInternalRole] = useState<SignupRole>("STARTUP");
+  const role = controlledRole ?? internalRole;
+  const setRole = onRoleChange ?? setInternalRole;
   const [state, formAction, pending] = useActionState(signupAction, undefined);
 
   return (
@@ -35,6 +54,7 @@ export function SignupForm() {
         </button>
       </div>
       <input type="hidden" name="role" value={role} />
+      <p className="text-xs text-neutral-400 dark:text-neutral-500">{FEE_NOTE[role]}</p>
 
       <div className="flex flex-col gap-1">
         <label htmlFor="email" className="text-sm font-medium">
@@ -49,52 +69,6 @@ export function SignupForm() {
         />
       </div>
       <NewPasswordField name="password" />
-
-      {role === "STARTUP" ? (
-        <div className="flex flex-col gap-1">
-          <label htmlFor="companyName" className="text-sm font-medium">
-            Company name
-          </label>
-          <input
-            id="companyName"
-            name="companyName"
-            type="text"
-            required
-            className="rounded-lg border border-neutral-300 px-3 py-2 dark:border-neutral-700"
-          />
-        </div>
-      ) : (
-        <>
-          <div className="flex flex-col gap-1">
-            <label htmlFor="displayName" className="text-sm font-medium">
-              Display name
-            </label>
-            <input
-              id="displayName"
-              name="displayName"
-              type="text"
-              required
-              className="rounded-lg border border-neutral-300 px-3 py-2 dark:border-neutral-700"
-            />
-          </div>
-          <div className="flex flex-col gap-1">
-            <label htmlFor="niche" className="text-sm font-medium">
-              Niche
-            </label>
-            <Select id="niche" name="niche" required>
-              {NICHES.map((n) => (
-                <option key={n} value={n}>
-                  {n}
-                </option>
-              ))}
-            </Select>
-          </div>
-          <div className="flex flex-col gap-1">
-            <span className="text-sm font-medium">Platforms &amp; followers</span>
-            <PlatformPicker name="platforms" />
-          </div>
-        </>
-      )}
 
       {state?.error && <p className="text-sm text-ink">{state.error}</p>}
       <button

@@ -14,7 +14,6 @@ import {
   isPasswordResetRateLimited,
   RESET_RATE_LIMIT_MESSAGE,
 } from "@/lib/login-security";
-import { notify } from "@/lib/notifications";
 import { sendEmail } from "@/lib/email";
 import { SITE_URL } from "@/lib/site";
 import {
@@ -91,6 +90,9 @@ export async function completeLoginAction(_prevState: ActionState, formData: For
   }
 }
 
+// Just email/password/role — the rest (company name, or display
+// name/niche/platforms) is collected right after by the onboarding wizard
+// at /onboarding, so this step alone is enough to get someone signed in.
 export async function signupAction(_prevState: ActionState, formData: FormData): Promise<ActionState> {
   const parsed = signupSchema.safeParse(Object.fromEntries(formData));
   if (!parsed.success) {
@@ -111,53 +113,25 @@ export async function signupAction(_prevState: ActionState, formData: FormData):
         email: data.email,
         passwordHash,
         role: "STARTUP",
-        startupProfile: { create: { companyName: data.companyName } },
+        startupProfile: { create: { companyName: "" } },
       },
     });
   } else {
-    const newUser = await prisma.user.create({
+    await prisma.user.create({
       data: {
         email: data.email,
         passwordHash,
         role: "CREATOR",
-        creatorProfile: {
-          create: {
-            displayName: data.displayName,
-            niche: data.niche,
-            platforms: { create: data.platforms.map((p) => ({ ...p, url: p.url || null })) },
-          },
-        },
+        creatorProfile: { create: { displayName: "", niche: "" } },
       },
-      include: { creatorProfile: true },
     });
-
-    // Let brands with an open matching request know a new creator just
-    // joined — the supply-side mirror of notifying creators about new
-    // matching requests. No block check needed: a brand-new account can't
-    // have any block history yet.
-    const maxFollowers = data.platforms.reduce((max, p) => Math.max(max, p.followerCount), 0);
-    const matchingRequests = await prisma.request.findMany({
-      where: { niche: data.niche, minFollowers: { lte: maxFollowers }, status: "OPEN" },
-      include: { startup: true },
-    });
-    const notifiedStartupIds = new Set<string>();
-    for (const r of matchingRequests) {
-      if (notifiedStartupIds.has(r.startupId)) continue;
-      notifiedStartupIds.add(r.startupId);
-      await notify(
-        r.startup.userId,
-        `New ${data.niche} creator joined: ${data.displayName}`,
-        `/dashboard/startup/discover/${newUser.creatorProfile!.id}`,
-        "newCreators",
-      );
-    }
   }
 
   try {
     await signIn("credentials", {
       email: data.email,
       password: data.password,
-      redirectTo: `${dashboardPathForRole(data.role)}?welcome=1`,
+      redirectTo: "/onboarding",
     });
   } catch (error) {
     if (error instanceof AuthError) {
