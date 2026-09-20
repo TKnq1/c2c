@@ -8,10 +8,14 @@ import { usePathname } from "next/navigation";
 // the imprint to be easily/directly reachable, not buried behind a page
 // nothing links to. Hidden on an open chat thread specifically — that
 // view is already cramped on mobile, and it's one narrow page among many
-// where the footer is still reachable everywhere else.
+// where the footer is still reachable everywhere else. Also hidden on the
+// homepage, whose auth panel already links Terms/Privacy right under the
+// submit button — note this does mean the Imprint itself isn't linked
+// from "/" specifically, only from every other page.
 export function Footer() {
   const pathname = usePathname();
   if (pathname.startsWith("/dashboard/messages/")) return null;
+  if (pathname === "/") return null;
 
   return (
     <footer className="border-t border-ink/10 no-print">
