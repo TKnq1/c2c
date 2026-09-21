@@ -7,7 +7,7 @@ import { prisma } from "@/lib/prisma";
 import { stripe } from "@/lib/stripe";
 import { SITE_URL } from "@/lib/site";
 import { sendOfferSchema, releasePaymentSchema } from "@/lib/validation";
-import { PLATFORM_FEE_RATE, PRO_PLATFORM_FEE_RATE } from "@/lib/constants";
+import { splitPayment } from "@/lib/payment-math";
 import { formatCents } from "@/lib/format";
 import { notify } from "@/lib/notifications";
 import { flagIfAnomalousOffer } from "@/lib/moderation";
@@ -79,8 +79,7 @@ export async function sendOfferAction(
   }
 
   const amountCents = parsed.data.amount;
-  const platformFeeCents = Math.round(amountCents * (startup.isPro ? PRO_PLATFORM_FEE_RATE : PLATFORM_FEE_RATE));
-  const payoutCents = amountCents - platformFeeCents; // subtraction, so fee + payout always sum exactly to amount
+  const { platformFeeCents, payoutCents } = splitPayment(amountCents, startup.isPro);
 
   await prisma.interest.update({
     where: { id: interestId },
@@ -128,8 +127,7 @@ export async function bulkSendOfferAction(requestId: string, interestIds: string
   });
 
   const amountCents = parsed.data.amount;
-  const platformFeeCents = Math.round(amountCents * (startup.isPro ? PRO_PLATFORM_FEE_RATE : PLATFORM_FEE_RATE));
-  const payoutCents = amountCents - platformFeeCents;
+  const { platformFeeCents, payoutCents } = splitPayment(amountCents, startup.isPro);
 
   await Promise.all(
     interests.map(async (interest) => {
@@ -177,10 +175,7 @@ export async function counterOfferAction(
   }
 
   const amountCents = parsed.data.amount;
-  const platformFeeCents = Math.round(
-    amountCents * (interest.request.startup.isPro ? PRO_PLATFORM_FEE_RATE : PLATFORM_FEE_RATE),
-  );
-  const payoutCents = amountCents - platformFeeCents;
+  const { platformFeeCents, payoutCents } = splitPayment(amountCents, interest.request.startup.isPro);
 
   await prisma.interest.update({
     where: { id: interestId },

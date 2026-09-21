@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 import Link from "next/link";
+import * as Sentry from "@sentry/nextjs";
 import { Logo } from "@/components/logo";
 
 export default function ErrorPage({
@@ -13,6 +14,7 @@ export default function ErrorPage({
 }) {
   useEffect(() => {
     console.error(error);
+    Sentry.captureException(error);
   }, [error]);
 
   return (
