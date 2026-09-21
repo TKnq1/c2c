@@ -6,6 +6,7 @@ import { Nav } from "@/components/nav";
 import { UnreadTitleBadge } from "@/components/unread-title-badge";
 import { WelcomeOverlay } from "@/components/welcome-overlay";
 import { EmailVerificationBanner } from "@/components/email-verification-banner";
+import { InstallPrompt } from "@/components/install-prompt";
 import { getUnreadCount } from "@/lib/notifications";
 import { getUnreadMessageCount } from "@/lib/messages";
 import { getPendingPaymentActionCount } from "@/lib/payments";
@@ -52,7 +53,11 @@ export default async function DashboardLayout({ children }: { children: React.Re
         pendingPayments={pendingPayments}
       />
       {!user?.emailVerified && <EmailVerificationBanner />}
-      <main id="main-content" className="flex-1 max-w-5xl w-full mx-auto px-6 py-8">
+      <InstallPrompt />
+      {/* Extra bottom padding on mobile clears the fixed bottom tab bar
+          (see Nav) — back to the normal amount from md up, where nav is a
+          plain header instead. */}
+      <main id="main-content" className="flex-1 max-w-5xl w-full mx-auto px-6 pt-8 pb-24 md:pb-8">
         {children}
       </main>
     </div>

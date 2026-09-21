@@ -1,13 +1,22 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { Role } from "@prisma/client";
-import { FiBell, FiMenu, FiX } from "react-icons/fi";
+import type { IconType } from "react-icons";
+import { FiBell, FiCompass, FiCreditCard, FiInbox, FiMessageCircle, FiSettings, FiZap } from "react-icons/fi";
 import { Logo } from "@/components/logo";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { useNavigationBlocker } from "@/lib/navigation-blocker";
+
+const TAB_ICONS: Record<string, IconType> = {
+  Requests: FiInbox,
+  Feed: FiZap,
+  Discover: FiCompass,
+  Messages: FiMessageCircle,
+  Payments: FiCreditCard,
+  Settings: FiSettings,
+};
 
 export function Nav({
   role,
@@ -22,8 +31,6 @@ export function Nav({
 }) {
   const base = role === "STARTUP" ? "/dashboard/startup" : "/dashboard/creator";
   const pathname = usePathname();
-  const [open, setOpen] = useState(false);
-  const closeButtonRef = useRef<HTMLButtonElement>(null);
   const { isBlocked } = useNavigationBlocker();
 
   const onNavigate = (e: { preventDefault: () => void }) => {
@@ -57,21 +64,6 @@ export function Nav({
     .sort((a, b) => b.href.length - a.href.length)
     .find((l) => pathname === l.href || pathname.startsWith(`${l.href}/`))?.href;
 
-  useEffect(() => {
-    if (!open) return;
-    closeButtonRef.current?.focus();
-    document.body.style.overflow = "hidden";
-
-    const onKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setOpen(false);
-    };
-    document.addEventListener("keydown", onKeyDown);
-    return () => {
-      document.body.style.overflow = "";
-      document.removeEventListener("keydown", onKeyDown);
-    };
-  }, [open]);
-
   // Hidden on mobile while a chat thread is open — that view already fights
   // for vertical space, and the nav isn't reachable from there anyway (the
   // thread has its own "← Messages" back link). Left alone on desktop,
@@ -79,105 +71,84 @@ export function Nav({
   const hideOnMobile = pathname.startsWith("/dashboard/messages/");
 
   return (
-    <header className={`border-b border-ink/10 no-print ${hideOnMobile ? "hidden md:block" : ""}`}>
-      <div className="max-w-5xl mx-auto flex items-center justify-between px-6 py-5">
-        <Link href={base} onNavigate={onNavigate} className="shrink-0">
-          <Logo />
-        </Link>
+    <>
+      <header className={`border-b border-ink/10 no-print ${hideOnMobile ? "hidden md:block" : ""}`}>
+        <div className="max-w-5xl mx-auto flex items-center justify-between px-6 py-5">
+          <Link href={base} onNavigate={onNavigate} className="shrink-0">
+            <Logo />
+          </Link>
 
-        <nav aria-label="Main" className="hidden md:flex items-center gap-5 text-sm text-graphite">
-          {links.map((l) => (
-            <Link
-              key={l.href}
-              href={l.href}
-              onNavigate={onNavigate}
-              // Every one of these sits in the viewport on every dashboard
-              // page, so default (viewport-triggered) prefetch was firing
-              // all of them at once on every render — each one a full
-              // server render with its own DB queries, not a free/static
-              // fetch. These are deliberate destinations someone clicks,
-              // not hover targets worth prefetching speculatively.
-              prefetch={false}
-              aria-current={l.href === activeHref ? "page" : undefined}
-              className={`flex items-center gap-1.5 transition hover:text-ink ${
-                l.href === activeHref ? "text-ink" : ""
-              }`}
-            >
-              {l.label}
-              {l.badge > 0 && <NavBadge count={l.badge} />}
-            </Link>
-          ))}
-          <NotificationsLink unreadCount={unreadCount} onNavigate={onNavigate} />
-          <ThemeToggle />
-        </nav>
+          <nav aria-label="Main" className="hidden md:flex items-center gap-5 text-sm text-graphite">
+            {links.map((l) => (
+              <Link
+                key={l.href}
+                href={l.href}
+                onNavigate={onNavigate}
+                // Every one of these sits in the viewport on every dashboard
+                // page, so default (viewport-triggered) prefetch was firing
+                // all of them at once on every render — each one a full
+                // server render with its own DB queries, not a free/static
+                // fetch. These are deliberate destinations someone clicks,
+                // not hover targets worth prefetching speculatively.
+                prefetch={false}
+                aria-current={l.href === activeHref ? "page" : undefined}
+                className={`flex items-center gap-1.5 transition hover:text-ink ${
+                  l.href === activeHref ? "text-ink" : ""
+                }`}
+              >
+                {l.label}
+                {l.badge > 0 && <NavBadge count={l.badge} />}
+              </Link>
+            ))}
+            <NotificationsLink unreadCount={unreadCount} onNavigate={onNavigate} />
+            <ThemeToggle />
+          </nav>
 
-        <div className="flex items-center gap-4 md:hidden">
-          <NotificationsLink unreadCount={unreadCount} onNavigate={onNavigate} />
-          <ThemeToggle />
-          <button
-            type="button"
-            onClick={() => setOpen(true)}
-            aria-expanded={open}
-            aria-controls="mobile-nav"
-            aria-label="Open menu"
-            className="text-ink transition p-1 -m-1"
-          >
-            <FiMenu className="h-5 w-5" />
-          </button>
+          <div className="flex items-center gap-4 md:hidden">
+            <NotificationsLink unreadCount={unreadCount} onNavigate={onNavigate} />
+            <ThemeToggle />
+          </div>
         </div>
-      </div>
+      </header>
 
-      {/* Backdrop — always mounted so the drawer can animate closed, not just open */}
-      <div
-        onClick={() => setOpen(false)}
-        aria-hidden="true"
-        className={`md:hidden fixed inset-0 z-40 bg-black/30 transition-opacity duration-300 ${
-          open ? "opacity-100" : "opacity-0 pointer-events-none"
-        }`}
-      />
-
+      {/* Bottom tab bar — mobile only. Every destination is one tap away,
+          app-style, instead of behind a hamburger drawer. */}
       <nav
-        id="mobile-nav"
         aria-label="Main"
-        aria-hidden={!open}
-        className={`md:hidden fixed top-0 left-0 h-dvh w-72 max-w-[80vw] z-50 bg-background flex flex-col pb-[env(safe-area-inset-bottom)] transition-transform duration-300 ease-out ${
-          open ? "translate-x-0" : "-translate-x-full"
+        className={`md:hidden fixed inset-x-0 bottom-0 z-40 border-t border-ink/10 bg-background pb-[env(safe-area-inset-bottom)] no-print ${
+          hideOnMobile ? "hidden" : ""
         }`}
       >
-        <div className="flex items-center justify-between px-6 py-5 border-b border-ink/10">
-          <Logo />
-          <button
-            ref={closeButtonRef}
-            type="button"
-            onClick={() => setOpen(false)}
-            tabIndex={open ? 0 : -1}
-            aria-label="Close menu"
-            className="text-ink transition p-1 -m-1"
-          >
-            <FiX className="h-5 w-5" />
-          </button>
-        </div>
-        <div className="flex flex-col px-6 py-2 text-base text-graphite">
-          {links.map((l) => (
-            <Link
-              key={l.href}
-              href={l.href}
-              onClick={() => setOpen(false)}
-              onNavigate={onNavigate}
-              prefetch={false}
-              tabIndex={open ? 0 : -1}
-              aria-current={l.href === activeHref ? "page" : undefined}
-              className={`flex items-center gap-1.5 py-3 border-b border-ink/10 last:border-0 transition hover:text-ink ${
-                l.href === activeHref ? "text-ink" : ""
-              }`}
-            >
-              {l.label}
-              {l.badge > 0 && <NavBadge count={l.badge} />}
-            </Link>
-          ))}
+        <div className="flex items-stretch">
+          {links.map((l) => {
+            const Icon = TAB_ICONS[l.label] ?? FiCompass;
+            const isActive = l.href === activeHref;
+            return (
+              <Link
+                key={l.href}
+                href={l.href}
+                onNavigate={onNavigate}
+                prefetch={false}
+                aria-current={isActive ? "page" : undefined}
+                className={`flex flex-1 flex-col items-center justify-center gap-1 py-2.5 text-[10px] font-medium transition ${
+                  isActive ? "text-ink" : "text-neutral-400 dark:text-neutral-500"
+                }`}
+              >
+                <span className="relative">
+                  <Icon className="h-5 w-5" />
+                  {l.badge > 0 && (
+                    <span className="absolute -top-1.5 -right-2 flex h-3.5 min-w-3.5 items-center justify-center rounded-full bg-ink px-0.5 text-[9px] font-semibold text-paper">
+                      {l.badge > 9 ? "9+" : l.badge}
+                    </span>
+                  )}
+                </span>
+                {l.label}
+              </Link>
+            );
+          })}
         </div>
       </nav>
-    </header>
+    </>
   );
 }
 
