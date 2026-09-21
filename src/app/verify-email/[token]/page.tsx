@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { ConfirmEmailVerificationForm } from "@/components/confirm-email-verification-form";
 import { Logo } from "@/components/logo";
+import { ImprintLink } from "@/components/imprint-link";
 
 export default async function VerifyEmailTokenPage({ params }: { params: Promise<{ token: string }> }) {
   const { token } = await params;
@@ -23,6 +24,7 @@ export default async function VerifyEmailTokenPage({ params }: { params: Promise
           </p>
         )}
       </div>
+      <ImprintLink />
     </main>
   );
 }

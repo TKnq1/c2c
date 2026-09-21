@@ -1,10 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
 import { Logo } from "@/components/logo";
 import { AuthPanel } from "@/components/auth-panel";
 import { PhoneMockup } from "@/components/phone-mockup";
+import { ImprintLink } from "@/components/imprint-link";
 import { type SignupRole } from "@/components/signup-form";
 
 const COPY: Record<SignupRole, { headline: string; body: string }> = {
@@ -49,15 +49,7 @@ export function HomeHero() {
         <AuthPanel role={role} onRoleChange={setRole} />
       </div>
 
-      {/* Footer is hidden on this page (see Footer) — the auth panel
-          already links Terms/Privacy, but Impressumspflicht requires the
-          imprint itself to stay reachable from every page. */}
-      <Link
-        href="/legal/imprint"
-        className="fixed bottom-4 right-4 text-xs text-neutral-400 hover:text-ink transition dark:text-neutral-500 dark:hover:text-white"
-      >
-        Imprint
-      </Link>
+      <ImprintLink />
     </main>
   );
 }

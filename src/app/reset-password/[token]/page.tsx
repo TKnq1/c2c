@@ -2,6 +2,7 @@ import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { ResetPasswordForm } from "@/components/reset-password-form";
 import { Logo } from "@/components/logo";
+import { ImprintLink } from "@/components/imprint-link";
 
 export default async function ResetPasswordPage({ params }: { params: Promise<{ token: string }> }) {
   const { token } = await params;
@@ -29,6 +30,7 @@ export default async function ResetPasswordPage({ params }: { params: Promise<{ 
           </p>
         )}
       </div>
+      <ImprintLink />
     </main>
   );
 }

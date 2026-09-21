@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { SignupForm } from "@/components/signup-form";
 import { Logo } from "@/components/logo";
+import { ImprintLink } from "@/components/imprint-link";
 
 export const metadata: Metadata = {
   title: "Sign up",
@@ -38,6 +39,7 @@ export default function SignupPage() {
           .
         </p>
       </div>
+      <ImprintLink />
     </main>
   );
 }

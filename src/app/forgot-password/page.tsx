@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { ForgotPasswordForm } from "@/components/forgot-password-form";
 import { Logo } from "@/components/logo";
+import { ImprintLink } from "@/components/imprint-link";
 
 export const metadata: Metadata = { title: "Reset your password" };
 
@@ -23,6 +24,7 @@ export default function ForgotPasswordPage() {
           </Link>
         </p>
       </div>
+      <ImprintLink />
     </main>
   );
 }

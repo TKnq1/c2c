@@ -3,6 +3,7 @@ import Link from "next/link";
 import { LoginForm } from "@/components/login-form";
 import { DeletedAccountToast } from "@/components/deleted-account-toast";
 import { Logo } from "@/components/logo";
+import { ImprintLink } from "@/components/imprint-link";
 
 export const metadata: Metadata = { title: "Log in" };
 
@@ -31,6 +32,7 @@ export default function LoginPage() {
           </span>
         </p>
       </div>
+      <ImprintLink />
     </main>
   );
 }

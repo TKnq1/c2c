@@ -13,6 +13,7 @@ import { NotificationPreferences } from "@/components/notification-preferences";
 import { DeleteAccountForm } from "@/components/delete-account-form";
 import { SettingsNav } from "@/components/settings-nav";
 import { ConnectStripeButton } from "@/components/connect-stripe-button";
+import { LegalLinks } from "@/components/legal-links";
 
 export default async function CreatorSettingsPage() {
   const session = await auth();
@@ -124,6 +125,8 @@ export default async function CreatorSettingsPage() {
         <h2 className="text-lg font-semibold mb-2 text-ink">Danger zone</h2>
         <DeleteAccountForm />
       </div>
+
+      <LegalLinks />
 
       <div className="border-t border-ink/10 pt-6">
         <LogoutButton />
