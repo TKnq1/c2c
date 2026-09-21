@@ -119,6 +119,16 @@ model LoginAttempt {
   @@index([userId, createdAt])
 }
 
+// No userId — a signup by definition doesn't have an account yet, so IP is
+// the only key available to cap how many accounts one network can create.
+model SignupAttempt {
+  id        String   @id @default(cuid())
+  ipAddress String?
+  createdAt DateTime @default(now())
+
+  @@index([ipAddress, createdAt])
+}
+
 model PasswordResetToken {
   id        String    @id @default(cuid())
   userId    String

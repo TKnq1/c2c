@@ -13,6 +13,9 @@ import {
   RATE_LIMIT_MESSAGE,
   isPasswordResetRateLimited,
   RESET_RATE_LIMIT_MESSAGE,
+  isSignupRateLimited,
+  logSignupAttempt,
+  SIGNUP_RATE_LIMIT_MESSAGE,
 } from "@/lib/login-security";
 import { sendEmail } from "@/lib/email";
 import { SITE_URL } from "@/lib/site";
@@ -99,6 +102,11 @@ export async function signupAction(_prevState: ActionState, formData: FormData):
     return { error: "Please fill in all fields correctly." };
   }
   const data = parsed.data;
+
+  if (await isSignupRateLimited()) {
+    return { error: SIGNUP_RATE_LIMIT_MESSAGE };
+  }
+  await logSignupAttempt();
 
   const existing = await prisma.user.findUnique({ where: { email: data.email } });
   if (existing) {
