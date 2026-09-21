@@ -17,10 +17,15 @@
 }
 
 .dark {
-  /* Same neutral system, inverted — dark mode stays monochrome too. */
+  /* Same neutral system, inverted — dark mode stays monochrome too. Reads
+     as an actual charcoal gray rather than near-black (#070707 before,
+     #121212 after a first pass that still read as black) — this is the
+     same base VS Code's "Dark+" theme uses, a well-tested reference for
+     "clearly gray, not black" at this scale. --fog sits a further step up
+     so an elevated surface is visibly separate from the page behind it. */
   --ink: #ffffff;
-  --paper: #070707;
-  --fog: #1a1a1a;
+  --paper: #1e1e1e;
+  --fog: #2d2d2d;
   --stone: #797979;
   --graphite: #a2a2a9;
 
@@ -59,11 +64,40 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-bentonsans), ui-sans-serif, system-ui, sans-serif;
+  /* Removes the ~300ms tap delay and double-tap-to-zoom browsers otherwise
+     wait to rule out — app-like tap response on every button/link. Drag
+     gestures still opt out per-element (see SwipeCard's touchAction:
+     "none" while dragging), which wins over this. */
+  touch-action: manipulation;
 }
 
 /* Scrollbar follows the theme instead of always rendering light. */
 html {
   scrollbar-color: var(--scrollbar-thumb) transparent;
+}
+
+/* Stops the whole-page bounce/pull-to-refresh gesture at the scroll
+   boundary — that rubber-band feel reads as "web page", not "app". Doesn't
+   affect scrolling itself, only what happens once it hits the end. Set on
+   both html and body since browsers don't agree on which one they honor. */
+html,
+body {
+  overscroll-behavior-y: none;
+}
+
+/* Tap feedback. hover: never fires on touch, so without this a tap gives
+   zero visual acknowledgement until whatever it triggers finishes loading
+   — the single biggest "this is a website" tell on a phone. transform is
+   compositor-only (no reflow), so this stays cheap even on a long list. */
+button:not(:disabled),
+a[href] {
+  -webkit-tap-highlight-color: transparent;
+}
+
+button:not(:disabled):active,
+a[href]:active {
+  transform: scale(0.97);
+  transition: transform 100ms ease;
 }
 
 *::-webkit-scrollbar {
@@ -100,14 +134,24 @@ html {
 @keyframes page-fade-in {
   from {
     opacity: 0;
+    /* A small rise rather than a flat fade — closer to how a native tab
+       switch settles in than a plain cross-fade reads. */
+    transform: translateY(6px);
   }
   to {
     opacity: 1;
+    transform: translateY(0);
   }
 }
 
 .page-transition-fade {
-  animation: page-fade-in 180ms ease-out;
+  animation: page-fade-in 220ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .page-transition-fade {
+    animation: none;
+  }
 }
 
 @keyframes results-fade-in {
