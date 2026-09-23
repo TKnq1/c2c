@@ -24,7 +24,7 @@ export default async function Image() {
           gap: 32,
         }}
       >
-        <img src={logoSrc} width={440} height={204} alt="" />
+        <img src={logoSrc} width={280} height={280} alt="" />
         <div style={{ fontSize: 32, color: "#525252", fontFamily: "Arial, Helvetica, sans-serif" }}>
           Brands find matching content creators for collaborations.
         </div>

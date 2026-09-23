@@ -26,7 +26,7 @@ export async function GET() {
           background: "#ffffff",
         }}
       >
-        <img src={logoSrc} width={360} height={167} alt="" />
+        <img src={logoSrc} width={360} height={360} alt="" />
       </div>
     ),
     { width: 1170, height: 2532 },

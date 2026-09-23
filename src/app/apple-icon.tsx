@@ -25,7 +25,7 @@ export default async function AppleIcon() {
       >
         {/* iOS applies its own rounded-square mask to this regardless, but
             other consumers (PWA install, Android) use the shape as-is. */}
-        <img src={logoSrc} width={110} height={51} alt="" />
+        <img src={logoSrc} width={110} height={110} alt="" />
       </div>
     ),
     { ...size },

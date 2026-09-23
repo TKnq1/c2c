@@ -23,10 +23,7 @@ export default async function Icon() {
           border: "1px solid #070707",
         }}
       >
-        {/* Real wordmark, letterboxed onto a circle — logo.png is a wide
-            wordmark (1520x704), not a square mark, so it's shrunk to fit
-            the tab-sized canvas rather than cropped or replaced. */}
-        <img src={logoSrc} width={24} height={11} alt="" />
+        <img src={logoSrc} width={24} height={24} alt="" />
       </div>
     ),
     { ...size },

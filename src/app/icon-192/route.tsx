@@ -24,7 +24,7 @@ export async function GET() {
           border: "3px solid #070707",
         }}
       >
-        <img src={logoSrc} width={144} height={67} alt="" />
+        <img src={logoSrc} width={144} height={144} alt="" />
       </div>
     ),
     { width: 192, height: 192 },
