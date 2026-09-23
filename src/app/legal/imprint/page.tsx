@@ -23,7 +23,7 @@ export default function ImprintPage() {
           </div>
           <div>
             <h2 className="font-semibold text-neutral-900 mb-1 dark:text-neutral-100">Contact</h2>
-            <p>Email: info@companytocreator.com</p>
+            <p>Email: info@comtor.app</p>
             <p>Phone: +49 172 4134526</p>
           </div>
           <div>
