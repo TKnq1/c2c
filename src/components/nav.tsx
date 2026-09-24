@@ -157,7 +157,9 @@ export function Nav() {
 
   return (
     <>
-      <header className={`border-b border-ink/10 no-print ${hideOnMobile ? "hidden md:block" : ""}`}>
+      <header
+        className={`border-b border-ink/10 pt-[env(safe-area-inset-top)] no-print ${hideOnMobile ? "hidden md:block" : ""}`}
+      >
         <div className="relative max-w-5xl mx-auto flex items-center justify-between px-6 py-3">
           <Link href={base} onNavigate={onNavigate} className="shrink-0">
             <Logo />
@@ -210,7 +212,7 @@ export function Nav() {
           app-style, instead of behind a hamburger drawer. */}
       <nav
         aria-label="Main"
-        className={`md:hidden fixed inset-x-0 bottom-0 z-40 rounded-t-[20px] border-t border-ink/10 bg-background pb-[calc(env(safe-area-inset-bottom)+12px)] no-print ${
+        className={`md:hidden fixed inset-x-0 bottom-0 z-40 rounded-t-[20px] border-t border-ink/10 bg-background pb-[max(env(safe-area-inset-bottom),8px)] no-print ${
           hideOnMobile ? "hidden" : ""
         }`}
       >
@@ -228,7 +230,7 @@ export function Nav() {
                 prefetch={false}
                 aria-current={isActive ? "page" : undefined}
                 aria-label={l.label}
-                className={`flex flex-1 items-center justify-center py-4 transition ${
+                className={`flex flex-1 items-center justify-center pt-3 pb-2 transition ${
                   isActive ? "text-ink" : "text-neutral-400 dark:text-neutral-500"
                 }`}
               >
