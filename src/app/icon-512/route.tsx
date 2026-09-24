@@ -13,15 +13,13 @@ export async function GET() {
         style={{
           width: "100%",
           height: "100%",
-          borderRadius: "50%",
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
           background: "#ffffff",
-          border: "6px solid #070707",
         }}
       >
-        <img src={logoSrc} width={384} height={384} alt="" />
+        <img src={logoSrc} width={432} height={432} alt="" />
       </div>
     ),
     { width: 512, height: 512 },

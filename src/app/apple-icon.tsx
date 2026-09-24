@@ -11,21 +11,21 @@ export default async function AppleIcon() {
 
   return new ImageResponse(
     (
+      // Full-bleed square, no circle/border of our own — iOS already
+      // applies its own rounded-square mask on top of this, so drawing a
+      // second shape here just doubled up as a ring around a smaller,
+      // off-center-looking mark.
       <div
         style={{
           width: "100%",
           height: "100%",
-          borderRadius: "50%",
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
           background: "#ffffff",
-          border: "3px solid #070707",
         }}
       >
-        {/* iOS applies its own rounded-square mask to this regardless, but
-            other consumers (PWA install, Android) use the shape as-is. */}
-        <img src={logoSrc} width={110} height={110} alt="" />
+        <img src={logoSrc} width={152} height={152} alt="" />
       </div>
     ),
     { ...size },

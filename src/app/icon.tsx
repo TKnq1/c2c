@@ -15,15 +15,13 @@ export default async function Icon() {
         style={{
           width: "100%",
           height: "100%",
-          borderRadius: "50%",
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
           background: "#ffffff",
-          border: "1px solid #070707",
         }}
       >
-        <img src={logoSrc} width={24} height={24} alt="" />
+        <img src={logoSrc} width={27} height={27} alt="" />
       </div>
     ),
     { ...size },
