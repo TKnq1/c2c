@@ -14,7 +14,7 @@ export default function ForgotPasswordPage() {
           <Logo large />
         </div>
         <div className="text-center">
-          <h1 className="font-display text-3xl font-normal">Reset your password</h1>
+          <h1 className="font-display text-title-1 font-bold">Reset your password</h1>
           <p className="text-sm text-neutral-600 mt-1 dark:text-neutral-400">Enter your account email.</p>
         </div>
         <ForgotPasswordForm />

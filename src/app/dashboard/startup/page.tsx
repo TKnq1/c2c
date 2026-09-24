@@ -5,7 +5,6 @@ import { FiInbox } from "react-icons/fi";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { Avatar } from "@/components/avatar";
-import { OnboardingChecklist } from "@/components/onboarding-checklist";
 import { RequestsFilterBar } from "@/components/requests-filter-bar";
 import { BulkRequestsList } from "@/components/bulk-requests-list";
 import { EmptyState } from "@/components/empty-state";
@@ -41,23 +40,10 @@ export default async function StartupDashboardPage(props: PageProps<"/dashboard/
 
   return (
     <div className="flex flex-col gap-6">
-      <OnboardingChecklist
-        storageKey="onboarding-startup"
-        items={[
-          { label: "Add your logo", done: !!startup.avatarUrl, href: "/dashboard/startup/settings#profile" },
-          {
-            label: "Tell creators about your brand",
-            done: !!startup.description,
-            href: "/dashboard/startup/settings#profile",
-          },
-          { label: "Post your first request", done: hasAnyRequests, href: "/dashboard/startup/new" },
-        ]}
-      />
-
       <div className="flex items-center justify-between gap-4">
         <div className="flex items-center gap-3">
           <Avatar src={startup.avatarUrl} name={startup.companyName} size={48} />
-          <h1 className="font-display text-3xl font-normal">{startup.companyName}</h1>
+          <h1 className="font-display text-title-1 font-bold">{startup.companyName}</h1>
         </div>
         <Link
           href="/dashboard/startup/new"

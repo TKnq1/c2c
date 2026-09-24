@@ -77,7 +77,7 @@ export default function FaqPage() {
       <FaqJsonLd />
       <div className="max-w-2xl mx-auto flex flex-col gap-8">
         <div>
-          <h1 className="font-display text-3xl font-normal">Frequently asked questions</h1>
+          <h1 className="font-display text-title-1 font-bold">Frequently asked questions</h1>
           <p className="text-sm text-neutral-600 mt-1 dark:text-neutral-400">
             How the platform works, in plain terms.
           </p>

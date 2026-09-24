@@ -8,7 +8,7 @@ import Link from "next/link";
 export function LegalLinks() {
   return (
     <div id="legal" className="border-t border-ink/10 pt-6 scroll-mt-16">
-      <h2 className="text-lg font-semibold mb-2">Legal</h2>
+      <h2 className="text-title-3 font-semibold mb-2">Legal</h2>
       <nav aria-label="Legal" className="flex flex-wrap items-center gap-4 text-sm">
         <Link
           href="/legal/imprint"

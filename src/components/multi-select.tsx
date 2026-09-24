@@ -42,7 +42,7 @@ export function MultiSelect({ label, options, selected, onChange, wrapperClassNa
         aria-haspopup="listbox"
         aria-expanded={open}
         aria-label={label}
-        className="w-full appearance-none rounded-lg border border-neutral-300 bg-white text-neutral-900 pl-3 pr-9 py-2 text-left truncate dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-100"
+        className="w-full appearance-none rounded-[14px] border border-neutral-300 bg-white text-neutral-900 pl-3 pr-9 py-2 text-left truncate dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-100"
       >
         {buttonLabel}
       </button>
@@ -65,7 +65,7 @@ export function MultiSelect({ label, options, selected, onChange, wrapperClassNa
         <div
           role="listbox"
           aria-multiselectable="true"
-          className="absolute z-20 mt-1 min-w-48 max-h-64 overflow-y-auto rounded-lg border border-ink/10 bg-white py-1 dark:bg-neutral-900"
+          className="animate-dropdown-in absolute z-20 mt-1 min-w-48 max-h-96 overflow-y-auto rounded-[14px] border border-ink/10 bg-white py-1 dark:bg-neutral-900"
         >
           {options.map((o) => (
             <label

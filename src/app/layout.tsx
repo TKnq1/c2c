@@ -1,6 +1,7 @@
 import { Suspense } from "react";
 import type { Metadata, Viewport } from "next";
-import { Inter, Fraunces } from "next/font/google";
+import { Lato } from "next/font/google";
+import { Nav } from "@/components/nav";
 import { PageTransition } from "@/components/page-transition";
 import { Toaster } from "@/components/toaster";
 import { TopLoadingBar } from "@/components/top-loading-bar";
@@ -8,19 +9,14 @@ import { NavigationBlockerProvider } from "@/lib/navigation-blocker";
 import { SITE_URL } from "@/lib/site";
 import "./globals.css";
 
-// Substitutes for the BentonSans / AftenScreen pairing this theme is built
-// around — same roles (grotesque UI text, condensed editorial display).
-const bentonsans = Inter({
+// One typeface for everything (UI text and headings alike) — see the type
+// scale in globals.css, which pairs each size with one of these three
+// weights. --font-display in globals.css points at this same variable, not
+// a second font load: there's no separate display face anymore.
+const lato = Lato({
   variable: "--font-bentonsans",
   subsets: ["latin"],
-  weight: ["400"],
-});
-
-const aftenscreen = Fraunces({
-  variable: "--font-aftenscreen",
-  subsets: ["latin"],
-  weight: ["400"],
-  style: ["normal"],
+  weight: ["400", "700", "900"],
 });
 
 const SITE_NAME = "C2C – Brand-Creator Marketplace";
@@ -83,7 +79,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
       lang="en"
-      className={`${bentonsans.variable} ${aftenscreen.variable} h-full antialiased scroll-smooth`}
+      className={`${lato.variable} h-full antialiased scroll-smooth`}
       suppressHydrationWarning
     >
       <head>
@@ -113,6 +109,11 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           <TopLoadingBar />
         </Suspense>
         <NavigationBlockerProvider>
+          {/* Above PageTransition, not inside it — that div remounts its
+              contents on every navigation on purpose (see page-transition.tsx),
+              which was taking Nav down with it since it used to live inside
+              dashboard/layout.tsx, further down that same tree. */}
+          <Nav />
           <PageTransition>{children}</PageTransition>
           <Toaster />
         </NavigationBlockerProvider>

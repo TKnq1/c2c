@@ -76,7 +76,7 @@ export default async function CreatorProfileDetailPage({ params }: { params: Pro
         <div className="flex items-center gap-4">
           <Avatar src={creator.avatarUrl} name={creator.displayName} size={64} />
           <div>
-            <h1 className="font-display text-3xl font-normal">{creator.displayName}</h1>
+            <h1 className="font-display text-title-1 font-bold">{creator.displayName}</h1>
             <div className="flex items-center gap-2 mt-1 flex-wrap">
               <span className="text-xs rounded bg-fog text-neutral-700 px-3 py-1 dark:text-neutral-300">
                 {creator.niche}

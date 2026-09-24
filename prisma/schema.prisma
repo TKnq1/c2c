@@ -43,7 +43,6 @@ model User {
   blocksMade              Block[]                  @relation("BlocksMade")
   blocksReceived          Block[]                  @relation("BlocksReceived")
   pushSubscriptions       PushSubscription[]
-  savedFilters            SavedFilter[]
 }
 
 enum ReportStatus {
@@ -288,6 +287,10 @@ model Request {
   startup         StartupProfile @relation(fields: [startupId], references: [id], onDelete: Cascade)
   title           String
   description     String
+  // Optional reference image (data URI, same storage approach as avatars —
+  // see AvatarUpload/RequestImageUpload) so a creator can see what the
+  // brand wants at a glance while swiping, not just read about it.
+  imageUrl        String?
   niche           String
   // A creator matches if any one of these overlaps their content language —
   // e.g. a bilingual audience request lists both instead of picking one.
@@ -408,20 +411,4 @@ model Review {
   @@unique([interestId, authorRole])
   @@index([creatorId, authorRole])
   @@index([startupId, authorRole])
-}
-
-// A saved filter combination for a Discover-style page — scope identifies
-// which page it applies to, query is the raw querystring (e.g.
-// "niche=Fitness,Lifestyle&platform=TikTok") so applying it is just a
-// navigation, no separate parsing/rebuilding logic needed.
-model SavedFilter {
-  id        String   @id @default(cuid())
-  userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  scope     String
-  name      String
-  query     String
-  createdAt DateTime @default(now())
-
-  @@index([userId, scope])
 }

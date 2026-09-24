@@ -43,7 +43,7 @@ export function AuthPanel({ role, onRoleChange }: Props) {
       {mode === "signup" ? (
         <>
           <div>
-            <h2 className="font-display text-2xl font-normal">Create your account</h2>
+            <h2 className="font-display text-title-2 font-bold">Create your account</h2>
             <p className="text-sm text-neutral-600 mt-1 dark:text-neutral-400">
               Get started as a brand or a creator.
             </p>
@@ -64,7 +64,7 @@ export function AuthPanel({ role, onRoleChange }: Props) {
       ) : (
         <>
           <div>
-            <h2 className="font-display text-2xl font-normal">Welcome back</h2>
+            <h2 className="font-display text-title-2 font-bold">Welcome back</h2>
             <p className="text-sm text-neutral-600 mt-1 dark:text-neutral-400">Log in to your account.</p>
           </div>
           <LoginForm />

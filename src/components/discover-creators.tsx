@@ -9,7 +9,6 @@ import { MultiSelect } from "@/components/multi-select";
 import { SearchInput } from "@/components/search-input";
 import { CreatorCard } from "@/components/creator-card";
 import { EmptyState } from "@/components/empty-state";
-import { SavedFilters } from "@/components/saved-filters";
 import { computeRelevanceScore } from "@/lib/relevance";
 
 type CreatorEntry = {
@@ -40,15 +39,7 @@ function maxFollowers(c: CreatorEntry) {
   return c.platforms.reduce((max, p) => Math.max(max, p.followerCount), 0);
 }
 
-type SavedFilterEntry = { id: string; name: string; query: string };
-
-export function DiscoverCreators({
-  creators,
-  savedFilters,
-}: {
-  creators: CreatorEntry[];
-  savedFilters: SavedFilterEntry[];
-}) {
+export function DiscoverCreators({ creators }: { creators: CreatorEntry[] }) {
   const [
     { q: search, niche, platform, language, minFollowers, sort: sortParam, favorites },
     setParam,
@@ -154,8 +145,6 @@ export function DiscoverCreators({
           ))}
         </Select>
       </div>
-
-      <SavedFilters scope="discover-creators" savedFilters={savedFilters} />
 
       <p className="text-sm text-neutral-500 dark:text-neutral-400">
         {filtered.length} creator{filtered.length === 1 ? "" : "s"}

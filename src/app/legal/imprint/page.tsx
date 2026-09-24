@@ -7,7 +7,7 @@ export default function ImprintPage() {
     <main className="flex-1 px-6 py-16">
       <div className="max-w-2xl mx-auto flex flex-col gap-8">
         <div>
-          <h1 className="font-display text-3xl font-normal">Imprint</h1>
+          <h1 className="font-display text-title-1 font-bold">Imprint</h1>
           <p className="text-sm text-neutral-600 mt-1 dark:text-neutral-400">
             Filled in as a private individual operating this platform — no registered business
             (Gewerbe) was confirmed, so register entry and VAT ID are left out below as not

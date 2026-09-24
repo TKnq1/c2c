@@ -18,7 +18,7 @@ export default async function NotificationsPage() {
   return (
     <div className="flex flex-col gap-6">
       <MarkNotificationsRead />
-      <h1 className="font-display text-3xl font-normal">Notifications</h1>
+      <h1 className="font-display text-title-1 font-bold">Notifications</h1>
       {notifications.length === 0 ? (
         <EmptyState icon={FiBell} title="No notifications yet." />
       ) : (

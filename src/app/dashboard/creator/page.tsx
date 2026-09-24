@@ -6,24 +6,17 @@ import { prisma } from "@/lib/prisma";
 import { getCreatorFeed } from "@/lib/visibility";
 import { getMutualBlockedUserIds } from "@/lib/moderation";
 import { CreatorFeed } from "@/components/creator-feed";
-import { PlatformIcon } from "@/components/platform-icons";
-import { OnboardingChecklist } from "@/components/onboarding-checklist";
 import { SkeletonCardList } from "@/components/skeleton";
 import { EmptyState } from "@/components/empty-state";
-import { formatFollowers } from "@/lib/format";
 
 export default async function CreatorFeedPage() {
   const session = await auth();
   if (!session || session.user.role !== "CREATOR") redirect("/login");
 
-  const [creator, savedFilters, blockedUserIds] = await Promise.all([
+  const [creator, blockedUserIds] = await Promise.all([
     prisma.creatorProfile.findUniqueOrThrow({
       where: { userId: session.user.id },
       include: { interests: true, platforms: true },
-    }),
-    prisma.savedFilter.findMany({
-      where: { userId: session.user.id, scope: "creator-feed" },
-      orderBy: { createdAt: "asc" },
     }),
     getMutualBlockedUserIds(session.user.id),
   ]);
@@ -31,34 +24,21 @@ export default async function CreatorFeedPage() {
   const requests = await getCreatorFeed(creator, blockedUserIds);
   const interestByRequestId = new Map(creator.interests.map((i) => [i.requestId, i]));
 
+  // Same "brand reputation, from other creators' reviews" rating shown on
+  // Discover — a creator deciding whether to swipe right benefits from the
+  // same trust signal, not just once they're already looking at a profile.
+  const ratingGroups = await prisma.review.groupBy({
+    by: ["startupId"],
+    where: { authorRole: "CREATOR", startupId: { in: requests.map((r) => r.startup.id) } },
+    _avg: { rating: true },
+    _count: { _all: true },
+  });
+  const ratingByStartupId = new Map(
+    ratingGroups.map((g) => [g.startupId, { average: g._avg.rating ?? 0, count: g._count._all }]),
+  );
+
   return (
     <div className="flex flex-col gap-6">
-      <OnboardingChecklist
-        storageKey="onboarding-creator"
-        items={[
-          { label: "Add your photo", done: !!creator.avatarUrl, href: "/dashboard/creator/settings#profile" },
-          { label: "Tell brands about yourself", done: !!creator.bio, href: "/dashboard/creator/settings#profile" },
-          {
-            label: "Add a link to one of your platforms",
-            done: creator.platforms.some((p) => p.url),
-            href: "/dashboard/creator/settings#profile",
-          },
-        ]}
-      />
-
-      <div>
-        <h1 className="font-display text-3xl font-normal">Your Feed</h1>
-        <p className="text-sm text-neutral-600 mt-1 flex flex-wrap items-center gap-x-1.5 gap-y-1 dark:text-neutral-400">
-          <span>Matching requests for {creator.niche} ·</span>
-          {creator.platforms.map((p) => (
-            <span key={p.platform} className="inline-flex items-center gap-1">
-              <PlatformIcon platform={p.platform} className="h-3.5 w-3.5" />
-              {formatFollowers(p.followerCount)}
-            </span>
-          ))}
-        </p>
-      </div>
-
       {requests.length === 0 ? (
         <EmptyState
           icon={FiSearch}
@@ -81,11 +61,12 @@ export default async function CreatorFeedPage() {
                 productCategory: r.productCategory,
                 companyName: r.startup.companyName,
                 companyAvatarUrl: r.startup.avatarUrl,
+                rating: ratingByStartupId.get(r.startup.id) ?? { average: 0, count: 0 },
+                imageUrl: r.imageUrl,
                 interestId: interest?.id ?? null,
                 contactedByStartup: interest?.initiatedBy === "STARTUP",
               };
             })}
-            savedFilters={savedFilters}
           />
         </Suspense>
       )}

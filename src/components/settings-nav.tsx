@@ -2,6 +2,7 @@ import type { Role } from "@prisma/client";
 
 const BASE_SECTIONS = [
   { id: "profile", label: "Profile" },
+  { id: "appearance", label: "Appearance" },
   { id: "password", label: "Password" },
   { id: "two-factor", label: "2FA" },
   { id: "logins", label: "Logins" },

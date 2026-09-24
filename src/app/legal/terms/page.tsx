@@ -56,7 +56,7 @@ export default function TermsPage() {
     <main className="flex-1 px-6 py-16">
       <div className="max-w-2xl mx-auto flex flex-col gap-8">
         <div>
-          <h1 className="font-display text-3xl font-normal">Terms of Service</h1>
+          <h1 className="font-display text-title-1 font-bold">Terms of Service</h1>
           <p className="text-sm text-neutral-600 mt-1 dark:text-neutral-400">
             A starting structure for a prototype — sections in brackets need real legal review
             before this goes live.

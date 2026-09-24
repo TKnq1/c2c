@@ -11,11 +11,11 @@ import Image from "next/image";
 //
 // next/image over a plain <img>: this renders on every single page (nav
 // header, plus large on auth screens), so serving the source PNG's full
-// 2000x2000/45KB at a 32-64px display height on every load added up
+// 2000x2000/45KB at a 38-64px display height on every load added up
 // across the whole site. next/image generates a properly-downsized,
 // modern-format asset instead.
 export function Logo({ large = false }: { large?: boolean }) {
-  const size = large ? 64 : 32;
+  const size = large ? 64 : 38;
   return (
     <Image
       src="/logo.png"

@@ -41,7 +41,7 @@ function DisplayNameStep({ onDone }: { onDone: () => void }) {
   return (
     <form action={formAction} className="flex flex-col gap-4">
       <div>
-        <h1 className="font-display text-2xl font-normal">What should we call you?</h1>
+        <h1 className="font-display text-title-2 font-bold">What should we call you?</h1>
         <p className="text-sm text-neutral-600 mt-1 dark:text-neutral-400">
           Your display name, shown to brands you match with.
         </p>
@@ -76,7 +76,7 @@ function NicheStep({ onBack, onDone }: { onBack: () => void; onDone: () => void 
   return (
     <form action={formAction} className="flex flex-col gap-4">
       <div>
-        <h1 className="font-display text-2xl font-normal">What&apos;s your niche?</h1>
+        <h1 className="font-display text-title-2 font-bold">What&apos;s your niche?</h1>
         <p className="text-sm text-neutral-600 mt-1 dark:text-neutral-400">
           Brands filter requests by this, so pick the closest fit.
         </p>
@@ -118,7 +118,7 @@ function PlatformsStep({ onBack }: { onBack: () => void }) {
   return (
     <form action={formAction} className="flex flex-col gap-4">
       <div>
-        <h1 className="font-display text-2xl font-normal">Where do you post?</h1>
+        <h1 className="font-display text-title-2 font-bold">Where do you post?</h1>
         <p className="text-sm text-neutral-600 mt-1 dark:text-neutral-400">
           Add at least one platform so brands can see your reach.
         </p>

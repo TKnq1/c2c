@@ -76,20 +76,20 @@ export default async function StartupPaymentsPage() {
     <div className="flex flex-col gap-6">
       {(payments.length > 0 || deposits.length > 0) && (
         <div className="no-print">
-          <h1 className="font-display text-3xl font-normal mb-3">Overview</h1>
+          <h1 className="font-display text-title-1 font-bold mb-3">Overview</h1>
           <div className="grid sm:grid-cols-3 gap-4">
             <div className="rounded-2xl border border-ink/10 p-4">
               <p className="text-sm text-neutral-500 dark:text-neutral-400">Total spent</p>
-              <p className="font-display text-3xl font-normal mt-1">{formatCents(totalSpentCents)}</p>
+              <p className="font-display text-title-1 font-bold mt-1">{formatCents(totalSpentCents)}</p>
             </div>
             <div className="rounded-2xl border border-ink/10 p-4">
               <p className="text-sm text-neutral-500 dark:text-neutral-400">Currently held</p>
-              <p className="font-display text-3xl font-normal mt-1">{formatCents(currentlyHeldCents)}</p>
+              <p className="font-display text-title-1 font-bold mt-1">{formatCents(currentlyHeldCents)}</p>
               <p className="text-xs text-neutral-500 mt-1 dark:text-neutral-400">Payments + deposits in escrow</p>
             </div>
             <div className="rounded-2xl border border-ink/10 p-4">
               <p className="text-sm text-neutral-500 dark:text-neutral-400">Creators worked with</p>
-              <p className="font-display text-3xl font-normal mt-1">{creatorsWorkedWith}</p>
+              <p className="font-display text-title-1 font-bold mt-1">{creatorsWorkedWith}</p>
             </div>
           </div>
           {bestRequest && (
@@ -102,7 +102,7 @@ export default async function StartupPaymentsPage() {
       )}
 
       <div>
-        <h1 className="font-display text-3xl font-normal">Payments</h1>
+        <h1 className="font-display text-title-1 font-bold">Payments</h1>
         <p className="text-sm text-neutral-600 mt-1 dark:text-neutral-400">
           Payments run through Stripe. Send an interested creator an offer; once they accept,
           complete payment via Stripe Checkout — funds are held until the creator posts the
@@ -133,11 +133,11 @@ export default async function StartupPaymentsPage() {
         <div className="grid sm:grid-cols-2 gap-4 no-print">
           <div className="rounded-2xl border border-ink/10 p-4">
             <p className="text-sm text-neutral-500 dark:text-neutral-400">Total spent</p>
-            <p className="font-display text-3xl font-normal mt-1">{formatCents(totalSpentCents)}</p>
+            <p className="font-display text-title-1 font-bold mt-1">{formatCents(totalSpentCents)}</p>
           </div>
           <div className="rounded-2xl border border-ink/10 p-4">
             <p className="text-sm text-neutral-500 dark:text-neutral-400">Pending release</p>
-            <p className="font-display text-3xl font-normal mt-1">{formatCents(pendingCents)}</p>
+            <p className="font-display text-title-1 font-bold mt-1">{formatCents(pendingCents)}</p>
             <p className="text-xs text-neutral-500 mt-1 dark:text-neutral-400">Held until the creator posts the content</p>
           </div>
         </div>
@@ -326,7 +326,7 @@ export default async function StartupPaymentsPage() {
       </div>
 
       <div>
-        <h1 className="font-display text-3xl font-normal">Deposits</h1>
+        <h1 className="font-display text-title-1 font-bold">Deposits</h1>
         <p className="text-sm text-neutral-600 mt-1 dark:text-neutral-400">
           Refundable security deposits for shipped product — no platform fee, the full amount is
           either returned or kept by you.

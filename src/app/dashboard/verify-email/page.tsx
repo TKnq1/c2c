@@ -11,7 +11,7 @@ export default async function VerifyEmailPage() {
 
   return (
     <div className="flex flex-col gap-4">
-      <h1 className="font-display text-3xl font-normal">Verify your email</h1>
+      <h1 className="font-display text-title-1 font-bold">Verify your email</h1>
       {user.emailVerified ? (
         <p className="text-sm text-ink">Your email is already verified.</p>
       ) : (

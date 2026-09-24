@@ -22,15 +22,27 @@ import { withSentryConfig } from "@sentry/nextjs";
 // an unconfigured deploy keeps the strictest possible connect-src.
 const sentryConnectSrc = process.env.NEXT_PUBLIC_SENTRY_DSN ? " https://*.sentry.io" : "";
 
+const isDev = process.env.NODE_ENV === "development";
+
+// Clickjacking protection (frame-ancestors/X-Frame-Options) stays maximally
+// strict ('none'/DENY) in production. Both this and frame-src (which
+// controls what THIS app may embed, not just what may embed it) are
+// loosened to same-origin-only in development so the /dev-phone-frame
+// preview tool (a same-origin iframe of the app, for reviewing pages
+// without resizing the browser) isn't blocked by the app framing itself —
+// still blocks any third-party site from framing it either way.
+const frameAncestors = isDev ? "'self'" : "'none'";
+const frameSrc = `https://*.stripe.com${isDev ? " 'self'" : ""}`;
+
 const CSP = [
   "default-src 'self'",
-  `script-src 'self' 'unsafe-inline' https://*.stripe.com${process.env.NODE_ENV === "development" ? " 'unsafe-eval'" : ""}`,
+  `script-src 'self' 'unsafe-inline' https://*.stripe.com${isDev ? " 'unsafe-eval'" : ""}`,
   "style-src 'self' 'unsafe-inline'",
   "img-src 'self' data: blob: https://*.stripe.com",
   "font-src 'self' data:",
-  `connect-src 'self' https://*.stripe.com${sentryConnectSrc}${process.env.NODE_ENV === "development" ? " ws:" : ""}`,
-  "frame-src https://*.stripe.com",
-  "frame-ancestors 'none'",
+  `connect-src 'self' https://*.stripe.com${sentryConnectSrc}${isDev ? " ws:" : ""}`,
+  `frame-src ${frameSrc}`,
+  `frame-ancestors ${frameAncestors}`,
   "base-uri 'self'",
   "form-action 'self'",
 ].join("; ");
@@ -42,7 +54,7 @@ const nextConfig: NextConfig = {
         source: "/:path*",
         headers: [
           { key: "Content-Security-Policy", value: CSP },
-          { key: "X-Frame-Options", value: "DENY" },
+          { key: "X-Frame-Options", value: isDev ? "SAMEORIGIN" : "DENY" },
           { key: "X-Content-Type-Options", value: "nosniff" },
           { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
           { key: "Strict-Transport-Security", value: "max-age=63072000; includeSubDomains; preload" },

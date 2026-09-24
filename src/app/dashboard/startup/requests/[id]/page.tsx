@@ -48,7 +48,7 @@ export default async function RequestDetailPage({ params }: { params: Promise<{ 
           <p className="text-sm text-neutral-500 dark:text-neutral-400">
             {request.niche} · {request.productCategory}
           </p>
-          <h1 className="font-display text-3xl font-normal flex items-center gap-2">
+          <h1 className="font-display text-title-1 font-bold flex items-center gap-2">
             {request.title}
             {request.status === "CLOSED" && (
               <span className="text-xs font-normal rounded bg-fog text-neutral-500 px-2 py-0.5 dark:text-neutral-400">

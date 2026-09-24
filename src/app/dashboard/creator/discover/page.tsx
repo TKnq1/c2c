@@ -5,22 +5,17 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { computeResponseTimeMs, formatResponseTime } from "@/lib/response-time";
 import { DiscoverBrands } from "@/components/discover-brands";
-import { FavoritesOnlyToggle } from "@/components/favorites-only-toggle";
 import { SkeletonCardList } from "@/components/skeleton";
 
 export default async function DiscoverBrandsPage() {
   const session = await auth();
   if (!session || session.user.role !== "CREATOR") redirect("/login");
 
-  const [creator, brands, savedFilters] = await Promise.all([
+  const [creator, brands] = await Promise.all([
     prisma.creatorProfile.findUniqueOrThrow({ where: { userId: session.user.id } }),
     prisma.startupProfile.findMany({
       include: { socialLinks: true },
       orderBy: { createdAt: "desc" },
-    }),
-    prisma.savedFilter.findMany({
-      where: { userId: session.user.id, scope: "discover-brands" },
-      orderBy: { createdAt: "asc" },
     }),
   ]);
   // None of these four depend on each other's results (or on anything but
@@ -82,17 +77,12 @@ export default async function DiscoverBrandsPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex items-start justify-between gap-4">
-        <div>
-          <h1 className="font-display text-3xl font-normal">Discover Brands</h1>
-          <p className="text-sm text-neutral-600 mt-1 dark:text-neutral-400">
-            Browse brands looking for creators like you.
-          </p>
-        </div>
-        <FavoritesOnlyToggle />
-      </div>
+      {/* "Discover" now lives in the navbar title (see nav.tsx) instead of
+          repeating it here as a page-level heading. The favorites-only
+          toggle moved into DiscoverBrands' own search row, next to the
+          search input, rather than sitting alone up here. */}
       <Suspense fallback={<SkeletonCardList />}>
-        <DiscoverBrands brands={brandsWithRatings} savedFilters={savedFilters} />
+        <DiscoverBrands brands={brandsWithRatings} />
       </Suspense>
     </div>
   );

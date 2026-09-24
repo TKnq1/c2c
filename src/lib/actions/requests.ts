@@ -8,8 +8,32 @@ import { createRequestSchema } from "@/lib/validation";
 import { getCreatorFeed } from "@/lib/visibility";
 import { getMutualBlockedUserIds } from "@/lib/moderation";
 import { notify } from "@/lib/notifications";
+import { fileToDataUrl } from "@/lib/file-upload";
 
 export type ActionState = { error?: string } | undefined;
+
+// The client resizes/compresses before submitting (see RequestImageUpload),
+// so a legitimate upload lands well under this — same ceiling-not-target
+// reasoning as MAX_AVATAR_BYTES in profile.ts, just roomier since this is a
+// larger reference image (1024px), not a small avatar.
+const MAX_REQUEST_IMAGE_BYTES = 2 * 1024 * 1024;
+
+async function processRequestImageUpload(formData: FormData): Promise<{ imageUrl?: string | null; error?: string }> {
+  const imageFile = formData.get("image");
+  if (imageFile instanceof File && imageFile.size > 0) {
+    if (!imageFile.type.startsWith("image/")) {
+      return { error: "The image must be an image file." };
+    }
+    if (imageFile.size > MAX_REQUEST_IMAGE_BYTES) {
+      return { error: "The image must be under 4MB." };
+    }
+    return { imageUrl: await fileToDataUrl(imageFile) };
+  }
+  if (formData.get("imageRemove") === "1") {
+    return { imageUrl: null };
+  }
+  return {};
+}
 
 // Shared by createRequestAction and duplicateRequestAction — a duplicate is
 // a genuinely new, open request, so it should reach matching creators too.
@@ -50,10 +74,13 @@ export async function createRequestAction(_prevState: ActionState, formData: For
     return { error: "Please fill in all fields correctly." };
   }
 
+  const image = await processRequestImageUpload(formData);
+  if (image.error) return { error: image.error };
+
   const startup = await prisma.startupProfile.findUniqueOrThrow({ where: { userId: session.user.id } });
 
   const request = await prisma.request.create({
-    data: { ...parsed.data, startupId: startup.id },
+    data: { ...parsed.data, imageUrl: image.imageUrl, startupId: startup.id },
   });
 
   // Let creators whose niche and follower count already qualify know right
@@ -108,13 +135,16 @@ export async function updateRequestAction(
     return { error: "Please fill in all fields correctly." };
   }
 
+  const image = await processRequestImageUpload(formData);
+  if (image.error) return { error: image.error };
+
   const startup = await prisma.startupProfile.findUniqueOrThrow({ where: { userId: session.user.id } });
   const request = await prisma.request.findUnique({ where: { id: requestId } });
   if (!request || request.startupId !== startup.id) {
     return { error: "This request could not be found." };
   }
 
-  await prisma.request.update({ where: { id: requestId }, data: parsed.data });
+  await prisma.request.update({ where: { id: requestId }, data: { ...parsed.data, ...image } });
 
   revalidatePath(`/dashboard/startup/requests/${requestId}`);
   revalidatePath("/dashboard/startup");

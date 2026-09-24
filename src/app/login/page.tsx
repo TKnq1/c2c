@@ -16,7 +16,7 @@ export default function LoginPage() {
           <Logo large />
         </div>
         <div className="text-center">
-          <h1 className="font-display text-3xl font-normal">Welcome back</h1>
+          <h1 className="font-display text-title-1 font-bold">Welcome back</h1>
           <p className="text-sm text-neutral-600 mt-1 dark:text-neutral-400">Log in to your account.</p>
         </div>
         <LoginForm />

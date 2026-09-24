@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect } from "react";
+import { use, useEffect } from "react";
+import type { NavCounts } from "@/components/nav";
 
 // Prefixes the browser tab's title with the unread count (e.g. "(3) Requests
 // · C2C") so new activity is noticeable even on a background tab. Next.js
@@ -14,7 +15,10 @@ import { useEffect } from "react";
 // via the Badging API, where supported (Chrome/Edge desktop + Android;
 // not iOS Safari) — the one piece of this that only does anything once
 // someone's actually installed the app, everyone else just gets the title.
-export function UnreadTitleBadge({ count }: { count: number }) {
+export function UnreadTitleBadge({ countsPromise }: { countsPromise: Promise<NavCounts> }) {
+  const { unreadCount, unreadMessages } = use(countsPromise);
+  const count = unreadCount + unreadMessages;
+
   useEffect(() => {
     const badge = count > 0 ? `(${count > 9 ? "9+" : count}) ` : "";
 

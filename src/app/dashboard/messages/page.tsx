@@ -25,7 +25,10 @@ export default async function MessagesInboxPage() {
         interestId: i.id,
         requestTitle: i.request.title,
         other: { name: i.creator.displayName, avatarUrl: i.creator.avatarUrl },
-        lastMessage: i.messages[0] ?? null,
+        lastMessage: i.messages[0]
+          ? { body: i.messages[0].body, createdAt: i.messages[0].createdAt.getTime(), isMine: i.messages[0].senderRole === role }
+          : null,
+        messageSearchText: i.messages.map((m) => m.body).join(" "),
         unreadCount: i.messages.filter((m) => m.senderRole !== role && !m.read).length,
         lastActivityAt: i.messages[0]?.createdAt ?? i.createdAt,
       }))
@@ -39,7 +42,10 @@ export default async function MessagesInboxPage() {
         interestId: i.id,
         requestTitle: i.request.title,
         other: { name: i.request.startup.companyName, avatarUrl: i.request.startup.avatarUrl },
-        lastMessage: i.messages[0] ?? null,
+        lastMessage: i.messages[0]
+          ? { body: i.messages[0].body, createdAt: i.messages[0].createdAt.getTime(), isMine: i.messages[0].senderRole === role }
+          : null,
+        messageSearchText: i.messages.map((m) => m.body).join(" "),
         unreadCount: i.messages.filter((m) => m.senderRole !== role && !m.read).length,
         lastActivityAt: i.messages[0]?.createdAt ?? i.createdAt,
       }));
@@ -48,13 +54,8 @@ export default async function MessagesInboxPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <div>
-        <h1 className="font-display text-3xl font-normal">Messages</h1>
-        <p className="text-sm text-neutral-600 mt-1 dark:text-neutral-400">
-          Conversations with everyone you&apos;ve matched with.
-        </p>
-      </div>
-
+      {/* "Messages" now lives in the navbar title (see nav.tsx) instead of
+          repeating it here as a page-level heading. */}
       {conversations.length === 0 ? (
         <EmptyState
           icon={FiMessageSquare}

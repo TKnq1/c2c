@@ -11,7 +11,7 @@ type Props = {
 };
 
 const actionClassName =
-  "mt-2 rounded bg-ink text-paper px-4 py-2 text-sm font-medium hover:bg-graphite transition";
+  "mt-2 rounded-full bg-ink text-paper px-4 py-2 text-sm font-medium hover:bg-graphite transition";
 
 export function EmptyState({ icon: Icon, title, description, action }: Props) {
   return (

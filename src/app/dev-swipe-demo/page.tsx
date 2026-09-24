@@ -1,20 +1,28 @@
 "use client";
 
-import { useState } from "react";
-import { FiArrowLeft, FiCheck, FiHeart, FiRotateCcw, FiX } from "react-icons/fi";
-import { Nav } from "@/components/nav";
-import { SwipeCard, type SwipeRequest } from "@/components/swipe-card";
+import { useRef, useState } from "react";
+import { FiCheck, FiHeart, FiRotateCcw, FiX } from "react-icons/fi";
+import { IoStar, IoStarOutline } from "react-icons/io5";
+import { SwipeCard, type SwipeCardHandle, type SwipeRequest } from "@/components/swipe-card";
 import { EmptyState } from "@/components/empty-state";
-import { Avatar } from "@/components/avatar";
-import { PlatformIcon } from "@/components/platform-icons";
-import { formatFollowers } from "@/lib/format";
 import { vibrate } from "@/lib/haptics";
 
 // Throwaway preview route — the real Nav shell, fake creator + fake
-// requests, no login and nothing persisted. Swiping only updates local
-// state (no server action), so every other nav tab still points at the
-// real, auth-gated route (expected to bounce to /login from here).
-const FAKE_CREATOR = { niche: "Beauty", platform: "Instagram", followerCount: 50000 };
+// requests, no login and nothing persisted. Nav itself is rendered
+// globally from the root layout now (see nav.tsx's wantsNav), not by this
+// page — it shows up here because this path is explicitly allow-listed
+// there ("Feed" in its title comes from the same place). Swiping only
+// updates local state (no server action), so every other nav tab still
+// points at the real, auth-gated route (expected to bounce to /login from
+// here).
+
+// Inline SVG data URIs — real requests store an uploaded photo the same
+// way (see RequestImageUpload/processRequestImageUpload), but the CSP's
+// img-src only allows 'self'/data:/blob:, not an external placeholder host.
+function mockImage(bg: string, label: string) {
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="800" height="450"><rect width="800" height="450" fill="${bg}"/><text x="400" y="225" font-family="sans-serif" font-size="28" fill="#ffffff" text-anchor="middle" opacity="0.85">${label}</text></svg>`;
+  return `data:image/svg+xml,${encodeURIComponent(svg)}`;
+}
 
 const MOCK_REQUESTS: SwipeRequest[] = [
   {
@@ -28,6 +36,8 @@ const MOCK_REQUESTS: SwipeRequest[] = [
     productCategory: "Cosmetics",
     companyName: "Glow Beauty Co.",
     companyAvatarUrl: null,
+    rating: { average: 4.8, count: 23 },
+    imageUrl: mockImage("#e8b4a8", "Vitamin C Serum"),
   },
   {
     id: "2",
@@ -40,6 +50,8 @@ const MOCK_REQUESTS: SwipeRequest[] = [
     productCategory: "Cosmetics",
     companyName: "Lumen Cosmetics",
     companyAvatarUrl: null,
+    rating: { average: 4.2, count: 8 },
+    imageUrl: mockImage("#c9a0dc", "Eyeshadow Palette"),
   },
   {
     id: "3",
@@ -52,6 +64,8 @@ const MOCK_REQUESTS: SwipeRequest[] = [
     productCategory: "Cosmetics",
     companyName: "Petal & Co.",
     companyAvatarUrl: null,
+    rating: { average: 0, count: 0 },
+    imageUrl: null,
   },
   {
     id: "4",
@@ -64,6 +78,8 @@ const MOCK_REQUESTS: SwipeRequest[] = [
     productCategory: "Cosmetics",
     companyName: "Dermly",
     companyAvatarUrl: null,
+    rating: { average: 3.6, count: 5 },
+    imageUrl: null,
   },
   {
     id: "5",
@@ -76,165 +92,167 @@ const MOCK_REQUESTS: SwipeRequest[] = [
     productCategory: "Cosmetics",
     companyName: "Sunlit Skin",
     companyAvatarUrl: null,
+    rating: { average: 5, count: 41 },
+    imageUrl: mockImage("#f5c26b", "SPF Moisturizer"),
   },
 ];
 
 export default function SwipeDemoPage() {
   const [stack, setStack] = useState(MOCK_REQUESTS);
-  const [matches, setMatches] = useState<SwipeRequest[]>([]);
-  const [view, setView] = useState<"swipe" | "matches">("swipe");
   const [lastPassed, setLastPassed] = useState<SwipeRequest | null>(null);
+  // Local only, same as the rest of this demo's interaction polish — no
+  // server field for this yet, just a per-session bookmark.
+  const [favoritedIds, setFavoritedIds] = useState<Set<string>>(new Set());
+  function toggleFavorite(id: string) {
+    setFavoritedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }
+  // Pass/Interested used to call handleSwipe directly, skipping the fly-out
+  // animation entirely (the card would just vanish) since that animation
+  // lives inside SwipeCard's own pointer handling, which a button click
+  // never touches. This ref lets the buttons trigger the same exit a
+  // completed drag does — handleSwipe still only ever runs from
+  // SwipeCard's onSwipe, once the animation actually finishes.
+  const topCardRef = useRef<SwipeCardHandle>(null);
+  // The undone card is a fresh mount (fully removed from stack while
+  // passed, not the same instance re-appearing), so it needs to be told
+  // it just arrived via undo — see restoredFromPass on SwipeCard. Stays
+  // set after that; it's only ever read at that one card's mount moment.
+  const [justRestoredId, setJustRestoredId] = useState<string | null>(null);
 
   function handleSwipe(id: string, direction: "left" | "right") {
     vibrate();
-    const card = stack.find((r) => r.id === id);
-    if (direction === "right" && card) {
-      setMatches((prev) => [card, ...prev]);
+    if (direction === "left") {
+      setLastPassed(stack.find((r) => r.id === id) ?? null);
+    } else {
       setLastPassed(null);
-    } else if (direction === "left" && card) {
-      setLastPassed(card);
     }
     setStack((prev) => prev.filter((r) => r.id !== id));
   }
 
   function undoLastPass() {
     if (!lastPassed) return;
+    setJustRestoredId(lastPassed.id);
     setStack((prev) => [lastPassed, ...prev]);
     setLastPassed(null);
   }
 
   const visible = stack.slice(0, 3);
-  const top = visible[0];
+  const topCard = visible[0];
+  const topIsFavorited = topCard ? favoritedIds.has(topCard.id) : false;
 
   return (
-    <div className="h-dvh flex flex-col overflow-hidden">
-      <Nav role="CREATOR" unreadCount={2} unreadMessages={1} pendingPayments={1} />
-
+    // flex-1 min-h-0, not h-dvh — Nav (rendered globally now, see nav.tsx)
+    // already locks <body> to one viewport tall for this route via the
+    // dashboard-shell class, so this just has to fill what's left under
+    // its header instead of re-asserting a full-viewport height itself.
+    <div className="flex-1 min-h-0 flex flex-col overflow-hidden">
       {/* flex-1 + min-h-0 makes this fill exactly what's left under the top
           bar (the bottom tab bar is fixed, so its height is reserved via
           padding instead) — overflow-hidden means the page itself never
           scrolls; the card stack below sizes to whatever room remains. */}
-      <main className="flex-1 min-h-0 overflow-hidden flex flex-col max-w-5xl w-full mx-auto px-6 pt-4 pb-24 md:pb-4">
-        {view === "swipe" ? (
-          <>
-            <div className="shrink-0 pb-3 flex items-start justify-between gap-3">
-              <div>
-                <h1 className="font-display text-2xl font-normal">Your Feed</h1>
-                <p className="text-sm text-neutral-600 mt-1 flex flex-wrap items-center gap-x-1.5 gap-y-1 dark:text-neutral-400">
-                  <span>Matching requests for {FAKE_CREATOR.niche} ·</span>
-                  <span className="inline-flex items-center gap-1">
-                    <PlatformIcon platform={FAKE_CREATOR.platform} className="h-3.5 w-3.5" />
-                    {formatFollowers(FAKE_CREATOR.followerCount)}
-                  </span>
-                  <span className="rounded bg-fog px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-neutral-500 dark:text-neutral-400">
-                    Demo data
-                  </span>
-                </p>
-              </div>
-              <button
-                type="button"
-                onClick={() => setView("matches")}
-                className="shrink-0 flex items-center gap-1.5 rounded-full border border-ink/10 px-3 py-1.5 text-sm font-medium transition hover:border-ink"
-              >
-                <FiHeart className="h-4 w-4" />
-                {matches.length}
-              </button>
-            </div>
-
-            {stack.length === 0 ? (
-              <EmptyState
-                icon={FiCheck}
-                title="You're all caught up."
-                description="That's every simulated card — reload the page to try again."
-                action={lastPassed ? { label: "Undo last pass", onClick: undoLastPass } : undefined}
-              />
-            ) : (
-              <div className="flex-1 min-h-0 flex flex-col items-center gap-3">
-                <div className="relative w-full max-w-md flex-1 min-h-0">
-                  {visible.map((r, i) => (
-                    <SwipeCard key={r.id} request={r} stackIndex={i} onSwipe={(dir) => handleSwipe(r.id, dir)} />
-                  ))}
-                </div>
-
-                <div className="shrink-0 w-full max-w-md flex flex-col items-center gap-2">
-                  <div className="flex items-center gap-2">
-                    {lastPassed && (
-                      <button
-                        type="button"
-                        onClick={undoLastPass}
-                        aria-label="Undo last pass"
-                        className="flex h-6 w-6 items-center justify-center rounded-full text-neutral-400 transition hover:text-ink dark:hover:text-white"
-                      >
-                        <FiRotateCcw className="h-3.5 w-3.5" />
-                      </button>
-                    )}
-                    <p className="text-xs text-neutral-400 dark:text-neutral-500">
-                      {stack.length} card{stack.length === 1 ? "" : "s"} left
-                    </p>
-                  </div>
-                  <div className="flex w-full gap-3">
-                    <button
-                      type="button"
-                      onClick={() => handleSwipe(top.id, "left")}
-                      className="flex h-12 flex-1 items-center justify-center gap-2 rounded-full border border-ink/10 text-sm font-medium text-neutral-600 transition hover:border-ink hover:text-ink dark:text-neutral-400 dark:hover:text-white"
-                    >
-                      <FiX className="h-5 w-5" />
-                      Pass
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => handleSwipe(top.id, "right")}
-                      className="flex h-12 flex-1 items-center justify-center gap-2 rounded-full bg-ink text-sm font-medium text-paper transition hover:bg-graphite"
-                    >
-                      <FiHeart className="h-5 w-5" />
-                      Interested
-                    </button>
-                  </div>
-                </div>
-              </div>
-            )}
-          </>
+      {/* No local "your matches" view or entry point here anymore — the
+          real navbar heart (MatchesLink, see nav.tsx) is the one and only
+          way to it, same as on the real Feed page. */}
+      {/* No horizontal/top padding here anymore — the card itself is meant
+          to run edge-to-edge and flush against the navbar above it, so
+          padding is applied per-section below instead of once for the
+          whole page. */}
+      <main className="flex-1 min-h-0 overflow-hidden flex flex-col max-w-5xl w-full mx-auto pb-24 md:pb-4">
+        {stack.length === 0 ? (
+          <div className="px-6 pt-4">
+            <EmptyState
+              icon={FiCheck}
+              title="You're all caught up."
+              description="That's every simulated card — reload the page to try again."
+              action={lastPassed ? { label: "Undo last pass", onClick: undoLastPass } : undefined}
+            />
+          </div>
         ) : (
-          <>
-            <div className="shrink-0 pb-3 flex items-center gap-3">
-              <button
-                type="button"
-                onClick={() => setView("swipe")}
-                aria-label="Back to swiping"
-                className="flex h-9 w-9 items-center justify-center rounded-full border border-ink/10 transition hover:border-ink"
-              >
-                <FiArrowLeft className="h-4 w-4" />
-              </button>
-              <h1 className="font-display text-2xl font-normal">Your matches</h1>
+          <div className="flex-1 min-h-0 flex flex-col items-center gap-3">
+            <div className="relative w-full flex-1 min-h-0">
+              {visible.map((r, i) => (
+                <SwipeCard
+                  key={r.id}
+                  ref={i === 0 ? topCardRef : undefined}
+                  request={r}
+                  stackIndex={i}
+                  onSwipe={(dir) => handleSwipe(r.id, dir)}
+                  restoredFromPass={r.id === justRestoredId}
+                />
+              ))}
             </div>
 
-            {matches.length === 0 ? (
-              <EmptyState
-                icon={FiHeart}
-                title="No matches yet."
-                description="Swipe right on a card to see it here."
-                action={{ label: "Back to swiping", onClick: () => setView("swipe") }}
-              />
-            ) : (
-              <div className="flex-1 min-h-0 overflow-y-auto flex flex-col gap-3 pb-2">
-                {matches.map((m) => (
-                  <div
-                    key={m.id}
-                    className="flex items-center gap-3 rounded-2xl border border-ink/10 p-4 shrink-0"
-                  >
-                    <Avatar src={m.companyAvatarUrl} name={m.companyName} size={40} />
-                    <div className="min-w-0 flex-1">
-                      <p className="text-sm text-neutral-500 dark:text-neutral-400">{m.companyName}</p>
-                      <p className="font-semibold truncate">{m.title}</p>
-                    </div>
-                    <span className="shrink-0 rounded bg-fog px-2.5 py-1 text-xs text-neutral-700 dark:text-neutral-300">
-                      {m.niche}
-                    </span>
-                  </div>
-                ))}
+            <div className="shrink-0 w-full max-w-md px-6 flex flex-col items-center gap-2">
+              <p className="text-xs text-neutral-400 dark:text-neutral-500">
+                {stack.length} card{stack.length === 1 ? "" : "s"} left
+              </p>
+              {/* Pass / Favorite / Interested / Undo, big-small-big-small —
+                  same weighting as Tinder's own row for the swipe actions,
+                  with undo as a lighter secondary one off to the side
+                  rather than competing with Pass for the leftmost spot.
+                  Undo and favorite are always mounted (not popped in/out)
+                  and just dim out via :disabled when there's nothing to
+                  act on, rather than appearing/disappearing — a steady
+                  4-button row instead of one that resizes itself
+                  mid-session.
+
+                  Five equal grid columns, not a flex row — undo sitting
+                  alone on the right (instead of mirrored by another button
+                  on the left) would otherwise pull the whole group's
+                  visual center off to the left of the page. The empty
+                  first column weighs exactly as much as undo's column, so
+                  favorite — the middle column — lands on the page's actual
+                  center rather than just the midpoint between Pass and
+                  Interested. */}
+              <div className="grid w-full grid-cols-5 items-center">
+                <div aria-hidden="true" />
+                <button
+                  type="button"
+                  onClick={() => topCardRef.current?.triggerExit("left")}
+                  aria-label="Pass"
+                  className="flex h-14 w-14 shrink-0 items-center justify-center justify-self-center rounded-full border border-ink/10 text-neutral-600 transition hover:border-ink hover:text-ink dark:text-neutral-400 dark:hover:text-white"
+                >
+                  <FiX className="h-6 w-6" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => topCard && toggleFavorite(topCard.id)}
+                  disabled={!topCard}
+                  aria-label={topIsFavorited ? "Remove from favorites" : "Add to favorites"}
+                  aria-pressed={topIsFavorited}
+                  className={`flex h-10 w-10 shrink-0 items-center justify-center justify-self-center rounded-full border transition-colors disabled:opacity-40 ${
+                    topIsFavorited
+                      ? "border-amber-400 bg-amber-400 text-white"
+                      : "border-ink/10 text-neutral-400 hover:border-ink hover:text-ink dark:hover:text-white"
+                  }`}
+                >
+                  {topIsFavorited ? <IoStar className="h-4 w-4" /> : <IoStarOutline className="h-4 w-4" />}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => topCardRef.current?.triggerExit("right")}
+                  aria-label="Interested"
+                  className="flex h-14 w-14 shrink-0 items-center justify-center justify-self-center rounded-full bg-ink text-paper transition hover:bg-graphite"
+                >
+                  <FiHeart className="h-6 w-6" />
+                </button>
+                <button
+                  type="button"
+                  onClick={undoLastPass}
+                  disabled={!lastPassed}
+                  aria-label="Undo last pass"
+                  className="flex h-10 w-10 shrink-0 items-center justify-center justify-self-center rounded-full border border-ink/10 text-neutral-400 transition-colors hover:border-ink hover:text-ink disabled:opacity-40 disabled:hover:border-ink/10 disabled:hover:text-neutral-400 dark:hover:text-white"
+                >
+                  <FiRotateCcw className="h-4 w-4" />
+                </button>
               </div>
-            )}
-          </>
+            </div>
+          </div>
         )}
       </main>
     </div>

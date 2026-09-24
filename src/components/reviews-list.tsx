@@ -10,7 +10,7 @@ export function ReviewsList({ reviews }: { reviews: ReviewEntry[] }) {
   return (
     <div className="flex flex-col gap-3">
       {reviews.map((r) => (
-        <div key={r.id} className="rounded-xl border border-ink/10 p-3">
+        <div key={r.id} className="rounded-[16px] border border-ink/10 p-3">
           <div className="flex items-center gap-2">
             <Stars rating={r.rating} />
             <span className="text-xs text-neutral-500 dark:text-neutral-400">{r.createdAt.toLocaleDateString("en-US")}</span>

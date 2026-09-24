@@ -15,7 +15,7 @@ export default async function VerifyEmailTokenPage({ params }: { params: Promise
         <div className="flex justify-center">
           <Logo large />
         </div>
-        <h1 className="font-display text-3xl font-normal">Verify your email</h1>
+        <h1 className="font-display text-title-1 font-bold">Verify your email</h1>
         {isValid ? (
           <ConfirmEmailVerificationForm token={token} />
         ) : (

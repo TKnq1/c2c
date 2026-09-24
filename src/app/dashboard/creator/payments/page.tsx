@@ -49,7 +49,7 @@ export default async function CreatorPaymentsPage() {
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <h1 className="font-display text-3xl font-normal">Payments</h1>
+        <h1 className="font-display text-title-1 font-bold">Payments</h1>
         <p className="text-sm text-neutral-600 mt-1 dark:text-neutral-400">
           Payments run through Stripe. Amounts below are already net of our platform fee. Connect
           Stripe in Settings before a payment can be released to you.
@@ -130,11 +130,11 @@ export default async function CreatorPaymentsPage() {
         <div className="grid sm:grid-cols-2 gap-4 no-print">
           <div className="rounded-2xl border border-ink/10 p-4">
             <p className="text-sm text-neutral-500 dark:text-neutral-400">Total earned</p>
-            <p className="font-display text-3xl font-normal mt-1">{formatCents(totalEarnedCents)}</p>
+            <p className="font-display text-title-1 font-bold mt-1">{formatCents(totalEarnedCents)}</p>
           </div>
           <div className="rounded-2xl border border-ink/10 p-4">
             <p className="text-sm text-neutral-500 dark:text-neutral-400">Available to withdraw</p>
-            <p className="font-display text-3xl font-normal mt-1">{formatCents(availableToWithdrawCents)}</p>
+            <p className="font-display text-title-1 font-bold mt-1">{formatCents(availableToWithdrawCents)}</p>
             <p className="text-xs text-neutral-500 mt-1 dark:text-neutral-400">Held until you post the content</p>
           </div>
         </div>
@@ -213,7 +213,7 @@ export default async function CreatorPaymentsPage() {
       )}
 
       <div>
-        <h1 className="font-display text-3xl font-normal">Deposits</h1>
+        <h1 className="font-display text-title-1 font-bold">Deposits</h1>
         <p className="text-sm text-neutral-600 mt-1 dark:text-neutral-400">
           Refundable security deposits for shipped product — no platform fee, you get the full
           amount back once the brand confirms your post.

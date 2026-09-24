@@ -17,7 +17,7 @@ export default function SignupPage() {
           <Logo large />
         </div>
         <div className="text-center">
-          <h1 className="font-display text-3xl font-normal">Create your account</h1>
+          <h1 className="font-display text-title-1 font-bold">Create your account</h1>
           <p className="text-sm text-neutral-600 mt-1 dark:text-neutral-400">Get started as a brand or a creator.</p>
         </div>
         <SignupForm />

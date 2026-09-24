@@ -68,7 +68,24 @@ export function Toaster() {
   if (toasts.length === 0) return null;
 
   return (
-    <div className="fixed bottom-4 right-4 z-[60] flex flex-col gap-2 w-full max-w-sm pointer-events-none no-print">
+    // Clears the fixed mobile tab bar (~69px content + its own safe-area
+    // padding, see nav.tsx) with room to spare, instead of the flat
+    // bottom-4 every fixed-bottom element not near the tab bar uses — that
+    // offset was landing the toast half-hidden behind the bar. No tab bar
+    // exists past md, so it reverts to the tighter bottom-4 there.
+    //
+    // On mobile: left-4 AND right-4, with NO width class — width is left
+    // auto so the browser solves it from those two edges (the gap between
+    // them), which is the one combination that can't overflow either side.
+    // Explicitly setting width here (w-full) alongside both left and right
+    // over-constrains the box; for LTR that means left+width win and right
+    // gets silently dropped, so a w-full box anchored by left-4 (or
+    // right-4 alone, which implies left:auto=0) always ends up wider than
+    // the gap and overflows past whichever edge lost. Past md: left-auto
+    // hands left back to the browser and w-full max-w-sm apply instead,
+    // for the usual bottom-right-anchored, width-capped toast stack — safe
+    // there since only one edge (right) is ever set alongside the width.
+    <div className="fixed bottom-[calc(env(safe-area-inset-bottom)+84px)] left-4 right-4 md:bottom-4 md:left-auto md:w-full md:max-w-sm z-[60] flex flex-col gap-2 pointer-events-none no-print">
       {toasts.map((t) => (
         <ToastItem key={t.id} item={t} />
       ))}

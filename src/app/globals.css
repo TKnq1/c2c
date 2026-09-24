@@ -45,7 +45,40 @@
   --color-graphite: var(--graphite);
 
   --font-sans: var(--font-bentonsans);
-  --font-display: var(--font-aftenscreen);
+  /* Not a second typeface — Lato covers both roles now (see layout.tsx).
+     Kept as its own utility name so call sites that mean "this is a
+     heading" stay legible as that, even though it resolves to the same
+     font file as --font-sans today. */
+  --font-display: var(--font-bentonsans);
+
+  /* Type scale — iOS Human Interface Guidelines-style hierarchy, ported to
+     rem (1pt/sp treated as 1px, then /16). Each pairs a size with a
+     line-height; weight is applied separately per use (see the table this
+     was specified from: large-title/title-1/title-2 are bold-to-black,
+     title-3 down through headline are bold, everything from body down is
+     regular — Lato only ships 400/700/900, so "Semi-Bold/Medium" roles in
+     the original spec collapse to bold here rather than a weight that'd
+     silently fall back in the browser). */
+  --text-large-title: 2.125rem; /* 34px */
+  --text-large-title--line-height: 2.5rem;
+  --text-title-1: 1.5625rem; /* 25px — capped down from 28px, which was wrapping badly on longer headings (company names, etc.) */
+  --text-title-1--line-height: 1.875rem;
+  --text-title-2: 1.375rem; /* 22px */
+  --text-title-2--line-height: 1.75rem;
+  --text-title-3: 1.25rem; /* 20px */
+  --text-title-3--line-height: 1.5625rem;
+  --text-headline: 1.0625rem; /* 17px — same size as Body, bold instead of regular */
+  --text-headline--line-height: 1.375rem;
+  --text-body: 1.0625rem; /* 17px */
+  --text-body--line-height: 1.375rem;
+  --text-callout: 1rem; /* 16px */
+  --text-callout--line-height: 1.3125rem;
+  --text-subhead: 0.9375rem; /* 15px */
+  --text-subhead--line-height: 1.25rem;
+  --text-footnote: 0.8125rem; /* 13px */
+  --text-footnote--line-height: 1.125rem;
+  --text-caption-2: 0.6875rem; /* 11px — Tab Bar labels */
+  --text-caption-2--line-height: 0.875rem;
 
   /* Editorial gallery discipline: every corner is 4px, no exceptions —
      rounded-full (avatars, and anything left as a true circle) is the one
@@ -154,6 +187,63 @@ a[href]:active {
   }
 }
 
+@keyframes pop-in {
+  from {
+    opacity: 0;
+    transform: scale(0.5);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes pop-out {
+  from {
+    opacity: 1;
+    transform: scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: scale(0.5);
+  }
+}
+
+/* Paired with an onAnimationEnd handler that unmounts the element once
+   pop-out finishes — a plain conditional render has no chance to play an
+   exit animation, since React removes the node before anything could
+   paint. forwards on pop-out holds its end state (scale 0, invisible)
+   for that last instant instead of snapping back to normal before the
+   unmount lands. cubic-bezier(0.34, 1.56, 0.64, 1) overshoots past 1 on
+   the way in for a springy "pop" rather than a flat ease. */
+.animate-pop-in {
+  animation: pop-in 320ms cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.animate-pop-out {
+  animation: pop-out 160ms cubic-bezier(0.4, 0, 1, 1) forwards;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /* Not "none" — onAnimationEnd must still fire once or the exiting
+     element never gets unmounted. This just makes it effectively
+     instant instead of skipping the animation (and the event) entirely. */
+  .animate-pop-in,
+  .animate-pop-out {
+    animation-duration: 1ms;
+  }
+}
+
+/* Toggled on <body> by Nav (see nav.tsx) for dashboard routes only — locks
+   the page to one viewport tall with no page-level scroll, so a page like
+   the creator Feed can rely on its own <main> scrolling internally instead.
+   Marketing/auth/legal pages never get this class and keep normal document
+   scroll. */
+body.dashboard-shell {
+  height: 100dvh;
+  overflow: hidden;
+}
+
 @keyframes results-fade-in {
   from {
     opacity: 0;
@@ -165,6 +255,50 @@ a[href]:active {
 
 .discover-results-fade {
   animation: results-fade-in 180ms ease-out;
+}
+
+@keyframes dropdown-in {
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+/* transform-origin: top — it drops down from the trigger button above it,
+   so growing from its top edge reads as "opening from there" instead of
+   expanding from the panel's own center. */
+.animate-dropdown-in {
+  animation: dropdown-in 120ms ease-out;
+  transform-origin: top;
+}
+
+@keyframes stagger-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* "both" holds the 0%-keyframe state during animation-delay (set per item
+   via an inline style) — without it, every item would flash visible at
+   opacity:1 for that delay before its own fade-in actually starts. */
+.animate-stagger-fade-in {
+  animation: stagger-fade-in 260ms ease-out both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-dropdown-in,
+  .animate-stagger-fade-in {
+    animation-duration: 1ms;
+  }
 }
 
 @keyframes toast-in {

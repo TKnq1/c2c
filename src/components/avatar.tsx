@@ -7,7 +7,8 @@ export function Avatar({ src, name, size = 40 }: { src: string | null; name: str
       <img
         src={src}
         alt=""
-        className="rounded-full object-cover border border-ink/10 bg-white shrink-0"
+        draggable={false}
+        className="rounded-full object-cover border border-ink/10 bg-white shrink-0 select-none"
         style={{ width: size, height: size }}
       />
     );

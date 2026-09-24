@@ -13,7 +13,7 @@ export default async function DiscoverCreatorsPage() {
   const session = await auth();
   if (!session || session.user.role !== "STARTUP") redirect("/login");
 
-  const [startup, blockedUserIds, savedFilters] = await Promise.all([
+  const [startup, blockedUserIds] = await Promise.all([
     prisma.startupProfile.findUniqueOrThrow({
       where: { userId: session.user.id },
       // Filtered — a creator favoriting this startup back writes a row with
@@ -22,10 +22,6 @@ export default async function DiscoverCreatorsPage() {
       include: { favorites: { where: { favoritedByRole: "STARTUP" } } },
     }),
     getMutualBlockedUserIds(session.user.id),
-    prisma.savedFilter.findMany({
-      where: { userId: session.user.id, scope: "discover-creators" },
-      orderBy: { createdAt: "asc" },
-    }),
   ]);
   const favoritedCreatorIds = new Set(startup.favorites.map((f) => f.creatorId));
 
@@ -88,7 +84,7 @@ export default async function DiscoverCreatorsPage() {
     <div className="flex flex-col gap-6">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h1 className="font-display text-3xl font-normal">Discover Creators</h1>
+          <h1 className="font-display text-title-1 font-bold">Discover Creators</h1>
           <p className="text-sm text-neutral-600 mt-1 dark:text-neutral-400">
             Browse creators across every niche and filter down to the right fit.
           </p>
@@ -96,7 +92,7 @@ export default async function DiscoverCreatorsPage() {
         <FavoritesOnlyToggle />
       </div>
       <Suspense fallback={<SkeletonCardList />}>
-        <DiscoverCreators creators={creatorsWithRatings} savedFilters={savedFilters} />
+        <DiscoverCreators creators={creatorsWithRatings} />
       </Suspense>
     </div>
   );

@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { updateBrandProfileSchema, updateCreatorProfileSchema } from "@/lib/validation";
+import { fileToDataUrl } from "@/lib/file-upload";
 
 export type ActionState = { error?: string; success?: boolean } | undefined;
 
@@ -11,11 +12,6 @@ export type ActionState = { error?: string; success?: boolean } | undefined;
 // legitimate upload lands well under this — it's a ceiling against someone
 // bypassing that client-side step, not the expected normal size.
 const MAX_AVATAR_BYTES = 500 * 1024;
-
-async function fileToDataUrl(file: File): Promise<string> {
-  const buffer = Buffer.from(await file.arrayBuffer());
-  return `data:${file.type};base64,${buffer.toString("base64")}`;
-}
 
 // Only re-encode and save a new image if the user actually picked one — an
 // untouched file input still submits an empty File, not null. `avatarUrl:

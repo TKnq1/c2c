@@ -8,7 +8,7 @@ export default async function NewRequestPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <h1 className="font-display text-3xl font-normal">New request</h1>
+      <h1 className="font-display text-title-1 font-bold">New request</h1>
       <RequestForm />
     </div>
   );

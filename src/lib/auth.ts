@@ -78,9 +78,23 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       const checkedAt = typeof token.checkedAt === "number" ? token.checkedAt : 0;
       if (Date.now() - checkedAt < 5 * 60 * 1000) return token;
 
-      const stillExists = await prisma.user.findUnique({ where: { id: token.id }, select: { id: true } });
-      if (!stillExists) return null;
-      token.checkedAt = Date.now();
+      // A thrown error here (Neon's serverless compute waking from
+      // autosuspend after 5+ idle minutes — see /api/health — is slow
+      // enough to occasionally time out) is not the same thing as a
+      // confirmed-absent user, but was being treated as one: any error
+      // out of findUnique propagated out of this callback and invalidated
+      // the session just like a genuine `stillExists === null` would,
+      // logging someone out over a connectivity blip. Only an actual
+      // "row not found" result should log anyone out; a query failure
+      // just leaves checkedAt alone so this retries on the next request
+      // instead of waiting out the full 5 minutes again.
+      try {
+        const stillExists = await prisma.user.findUnique({ where: { id: token.id }, select: { id: true } });
+        if (!stillExists) return null;
+        token.checkedAt = Date.now();
+      } catch {
+        // Fall through and return the token below, checkedAt untouched.
+      }
       return token;
     },
     session({ session, token }) {

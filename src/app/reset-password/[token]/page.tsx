@@ -17,7 +17,7 @@ export default async function ResetPasswordPage({ params }: { params: Promise<{ 
           <Logo large />
         </div>
         <div className="text-center">
-          <h1 className="font-display text-3xl font-normal">Set a new password</h1>
+          <h1 className="font-display text-title-1 font-bold">Set a new password</h1>
         </div>
         {isValid ? (
           <ResetPasswordForm token={token} />

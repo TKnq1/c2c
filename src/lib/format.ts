@@ -21,3 +21,18 @@ const NEW_WINDOW_MS = 7 * 24 * 60 * 60 * 1000;
 export function isRecentlyCreated(createdAt: number): boolean {
   return Date.now() - createdAt < NEW_WINDOW_MS;
 }
+
+// A bare time (e.g. "12:59 PM") only reads as "just now" for something
+// actually sent today — for anything older it would misleadingly look
+// fresh, so this steps down to a weekday, then a full date, the way
+// WhatsApp/Telegram inbox previews do.
+export function formatMessageTimestamp(ms: number): string {
+  const date = new Date(ms);
+  const now = new Date();
+  const startOfDay = (d: Date) => new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
+  const dayDiff = Math.round((startOfDay(now) - startOfDay(date)) / 86_400_000);
+
+  if (dayDiff <= 0) return date.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
+  if (dayDiff < 7) return date.toLocaleDateString("en-US", { weekday: "short" });
+  return date.toLocaleDateString("en-US");
+}

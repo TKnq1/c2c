@@ -10,7 +10,7 @@ export function SearchInput({ className = "", wrapperClassName = "", ...props }:
       <input
         type="search"
         {...props}
-        className={`w-full rounded-lg border border-neutral-300 pl-9 pr-3 py-2 dark:border-neutral-700 ${className}`}
+        className={`w-full rounded-[14px] border border-neutral-300 pl-9 pr-3 py-2 dark:border-neutral-700 ${className}`}
       />
     </div>
   );

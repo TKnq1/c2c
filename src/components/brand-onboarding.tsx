@@ -39,7 +39,7 @@ function CompanyNameStep({ onDone }: { onDone: () => void }) {
   return (
     <form action={formAction} className="flex flex-col gap-4">
       <div>
-        <h1 className="font-display text-2xl font-normal">What&apos;s your company called?</h1>
+        <h1 className="font-display text-title-2 font-bold">What&apos;s your company called?</h1>
         <p className="text-sm text-neutral-600 mt-1 dark:text-neutral-400">
           Shown to creators when you post a request or reach out.
         </p>
@@ -70,7 +70,7 @@ function NicheStep({ onBack }: { onBack: () => void }) {
   return (
     <form action={formAction} className="flex flex-col gap-4">
       <div>
-        <h1 className="font-display text-2xl font-normal">What&apos;s your niche?</h1>
+        <h1 className="font-display text-title-2 font-bold">What&apos;s your niche?</h1>
         <p className="text-sm text-neutral-600 mt-1 dark:text-neutral-400">
           Shown on your brand profile so creators know what you&apos;re about.
         </p>

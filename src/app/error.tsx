@@ -23,7 +23,7 @@ export default function ErrorPage({
         <Logo large />
         <div>
           <p className="text-sm font-medium text-neutral-500 dark:text-neutral-400">Error</p>
-          <h1 className="font-display text-3xl font-normal mt-1">Something went wrong</h1>
+          <h1 className="font-display text-title-1 font-bold mt-1">Something went wrong</h1>
           <p className="text-sm text-neutral-600 mt-2 dark:text-neutral-400">
             An unexpected error occurred. You can try again, or head back to your dashboard.
           </p>

@@ -5,6 +5,7 @@ import { createRequestAction, updateRequestAction } from "@/lib/actions/requests
 import { NICHES, PRODUCT_CATEGORIES, LANGUAGES } from "@/lib/constants";
 import { Select } from "@/components/select";
 import { MultiSelect } from "@/components/multi-select";
+import { RequestImageUpload } from "@/components/request-image-upload";
 
 type Props = {
   requestId?: string;
@@ -15,6 +16,7 @@ type Props = {
     languages: string[];
     productCategory: string;
     minFollowers: number;
+    imageUrl?: string | null;
   };
 };
 
@@ -25,6 +27,14 @@ export function RequestForm({ requestId, initial }: Props) {
 
   return (
     <form action={formAction} className="flex flex-col gap-4">
+      <div className="flex flex-col gap-1">
+        <label className="text-sm font-medium">Reference image (optional)</label>
+        <p className="text-xs text-neutral-500 dark:text-neutral-400 mb-1">
+          Shown at the top of the card in a creator&apos;s feed — a product photo or mood image helps them
+          understand what you want at a glance.
+        </p>
+        <RequestImageUpload initial={initial?.imageUrl} />
+      </div>
       <div className="flex flex-col gap-1">
         <label htmlFor="title" className="text-sm font-medium">
           Title

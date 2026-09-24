@@ -75,7 +75,7 @@ export default async function AdminOverviewPage() {
   return (
     <div className="flex flex-col gap-8">
       <div>
-        <h1 className="font-display text-3xl font-normal">Admin overview</h1>
+        <h1 className="font-display text-title-1 font-bold">Admin overview</h1>
         <p className="text-sm text-neutral-600 mt-1 dark:text-neutral-400">
           Platform-wide snapshot — mostly read-only, aside from resolving reports below.
         </p>
@@ -84,28 +84,28 @@ export default async function AdminOverviewPage() {
       <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="rounded-2xl border border-ink/10 p-4">
           <p className="text-sm text-neutral-500 dark:text-neutral-400">Users</p>
-          <p className="font-display text-3xl font-normal mt-1">{totalUsers}</p>
+          <p className="font-display text-title-1 font-bold mt-1">{totalUsers}</p>
           <p className="text-xs text-neutral-500 mt-1 dark:text-neutral-400">
             {totalStartups} brands · {totalCreators} creators
           </p>
         </div>
         <div className="rounded-2xl border border-ink/10 p-4">
           <p className="text-sm text-neutral-500 dark:text-neutral-400">Requests</p>
-          <p className="font-display text-3xl font-normal mt-1">{totalRequests}</p>
+          <p className="font-display text-title-1 font-bold mt-1">{totalRequests}</p>
           <p className="text-xs text-neutral-500 mt-1 dark:text-neutral-400">
             {openRequests} open · {totalInterests} interests expressed
           </p>
         </div>
         <div className="rounded-2xl border border-ink/10 p-4">
           <p className="text-sm text-neutral-500 dark:text-neutral-400">Commission revenue</p>
-          <p className="font-display text-3xl font-normal mt-1">{formatCents(platformRevenueCents)}</p>
+          <p className="font-display text-title-1 font-bold mt-1">{formatCents(platformRevenueCents)}</p>
           <p className="text-xs text-neutral-500 mt-1 dark:text-neutral-400">
             {formatCents(pendingFeeCents)} pending in escrow
           </p>
         </div>
         <div className="rounded-2xl border border-ink/10 p-4">
           <p className="text-sm text-neutral-500 dark:text-neutral-400">Pro subscribers</p>
-          <p className="font-display text-3xl font-normal mt-1">{proSubscribers}</p>
+          <p className="font-display text-title-1 font-bold mt-1">{proSubscribers}</p>
           <p className="text-xs text-neutral-500 mt-1 dark:text-neutral-400">
             {formatCents(mrrCents)}/mo recurring
           </p>
@@ -114,7 +114,7 @@ export default async function AdminOverviewPage() {
 
       <div className="rounded-2xl border border-ink/10 p-4">
         <p className="text-sm text-neutral-500 dark:text-neutral-400">Total payment volume</p>
-        <p className="font-display text-3xl font-normal mt-1">{formatCents(totalVolumeCents)}</p>
+        <p className="font-display text-title-1 font-bold mt-1">{formatCents(totalVolumeCents)}</p>
         <p className="text-xs text-neutral-500 mt-1 dark:text-neutral-400">
           Across {volumeCount} non-refunded payments — real escrow via Stripe.
         </p>

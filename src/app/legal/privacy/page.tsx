@@ -50,7 +50,7 @@ export default function PrivacyPage() {
     <main className="flex-1 px-6 py-16">
       <div className="max-w-2xl mx-auto flex flex-col gap-8">
         <div>
-          <h1 className="font-display text-3xl font-normal">Privacy Policy</h1>
+          <h1 className="font-display text-title-1 font-bold">Privacy Policy</h1>
           <p className="text-sm text-neutral-600 mt-1 dark:text-neutral-400">
             A factual description of what this prototype collects — not a substitute for real
             legal review before this goes live beyond a closed demo.

@@ -16,7 +16,7 @@ export default async function EditRequestPage({ params }: { params: Promise<{ id
 
   return (
     <div className="flex flex-col gap-6">
-      <h1 className="font-display text-3xl font-normal">Edit request</h1>
+      <h1 className="font-display text-title-1 font-bold">Edit request</h1>
       <RequestForm
         requestId={request.id}
         initial={{
@@ -26,6 +26,7 @@ export default async function EditRequestPage({ params }: { params: Promise<{ id
           languages: request.languages,
           productCategory: request.productCategory,
           minFollowers: request.minFollowers,
+          imageUrl: request.imageUrl,
         }}
       />
     </div>
