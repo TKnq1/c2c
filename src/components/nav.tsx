@@ -34,6 +34,22 @@ export type NavCounts = { unreadCount: number; unreadMessages: number; pendingPa
 
 const ZERO_COUNTS: NavCounts = { unreadCount: 0, unreadMessages: 0, pendingPayments: 0 };
 
+// iOS standalone PWAs have a known bug where env(safe-area-inset-*) creeps
+// up the more times the app soft-navigates — referencing it live in CSS on
+// every route change let that growth show up as the whole nav drifting
+// further down with each tap. Measuring it once via a throwaway probe
+// element and freezing the pixel value in state sidesteps that: the notch
+// doesn't change size mid-session, so there was never a reason to let the
+// browser keep recomputing it.
+function measureSafeAreaInset(side: "top" | "bottom"): number {
+  const probe = document.createElement("div");
+  probe.style.cssText = `position:fixed;${side}:0;height:env(safe-area-inset-${side});width:0;visibility:hidden;pointer-events:none;`;
+  document.body.appendChild(probe);
+  const value = probe.getBoundingClientRect().height;
+  document.body.removeChild(probe);
+  return value;
+}
+
 // /dev-swipe-demo is a throwaway preview route (fake data, no real
 // dashboard layout) that still wants the real chrome around it — see that
 // file for why. Everything else that should show Nav lives under
@@ -68,6 +84,7 @@ export function Nav() {
   const { isBlocked } = useNavigationBlocker();
   const [role, setRole] = useState<Role | null>(null);
   const [counts, setCounts] = useState<NavCounts>(ZERO_COUNTS);
+  const [safeArea, setSafeArea] = useState({ top: 0, bottom: 0 });
 
   const showNav = wantsNav(pathname);
 
@@ -80,6 +97,18 @@ export function Nav() {
   useLayoutEffect(() => {
     document.body.classList.toggle("dashboard-shell", showNav);
   }, [showNav]);
+
+  // Empty deps — measured exactly once for the life of this mounted Nav
+  // (which itself never unmounts across navigations, see the comment on
+  // the component below), not on every route change. See
+  // measureSafeAreaInset above for why that matters. A genuine one-time DOM
+  // read has nowhere else to report its result from, so this is the case
+  // the lint rule's own "subscribe for updates, setState in a callback"
+  // allowance describes — just with no async gap to hang that callback off.
+  useLayoutEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setSafeArea({ top: measureSafeAreaInset("top"), bottom: measureSafeAreaInset("bottom") });
+  }, []);
 
   useEffect(() => {
     if (!showNav) return;
@@ -158,7 +187,8 @@ export function Nav() {
   return (
     <>
       <header
-        className={`border-b border-ink/10 pt-[env(safe-area-inset-top)] no-print ${hideOnMobile ? "hidden md:block" : ""}`}
+        style={{ paddingTop: safeArea.top }}
+        className={`border-b border-ink/10 no-print ${hideOnMobile ? "hidden md:block" : ""}`}
       >
         <div className="relative max-w-5xl mx-auto flex items-center justify-between px-6 py-3">
           <Link href={base} onNavigate={onNavigate} className="shrink-0">
@@ -212,7 +242,8 @@ export function Nav() {
           app-style, instead of behind a hamburger drawer. */}
       <nav
         aria-label="Main"
-        className={`md:hidden fixed inset-x-0 bottom-0 z-40 rounded-t-[20px] border-t border-ink/10 bg-background pb-[max(env(safe-area-inset-bottom),8px)] no-print ${
+        style={{ paddingBottom: Math.max(safeArea.bottom, 8) }}
+        className={`md:hidden fixed inset-x-0 bottom-0 z-40 rounded-t-[20px] border-t border-ink/10 bg-background no-print ${
           hideOnMobile ? "hidden" : ""
         }`}
       >
