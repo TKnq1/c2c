@@ -85,7 +85,7 @@ export function Toaster() {
     // hands left back to the browser and w-full max-w-sm apply instead,
     // for the usual bottom-right-anchored, width-capped toast stack — safe
     // there since only one edge (right) is ever set alongside the width.
-    <div className="fixed bottom-[calc(env(safe-area-inset-bottom)+84px)] left-4 right-4 md:bottom-4 md:left-auto md:w-full md:max-w-sm z-[60] flex flex-col gap-2 pointer-events-none no-print">
+    <div className="fixed bottom-[calc(var(--safe-bottom)+84px)] left-4 right-4 md:bottom-4 md:left-auto md:w-full md:max-w-sm z-[60] flex flex-col gap-2 pointer-events-none no-print">
       {toasts.map((t) => (
         <ToastItem key={t.id} item={t} />
       ))}

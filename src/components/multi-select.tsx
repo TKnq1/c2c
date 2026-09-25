@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useExitAnimation } from "@/lib/use-exit-animation";
 
 type Props = {
   label: string;
@@ -16,6 +17,7 @@ type Props = {
 // value.
 export function MultiSelect({ label, options, selected, onChange, wrapperClassName = "" }: Props) {
   const [open, setOpen] = useState(false);
+  const panel = useExitAnimation(open);
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -61,11 +63,14 @@ export function MultiSelect({ label, options, selected, onChange, wrapperClassNa
         />
       </svg>
 
-      {open && (
+      {panel.present && (
         <div
           role="listbox"
           aria-multiselectable="true"
-          className="animate-dropdown-in absolute z-20 mt-1 min-w-48 max-h-96 overflow-y-auto rounded-[14px] border border-ink/10 bg-white py-1 dark:bg-neutral-900"
+          onAnimationEnd={panel.onExitEnd}
+          className={`${
+            panel.closing ? "animate-dropdown-out pointer-events-none" : "animate-dropdown-in"
+          } absolute z-20 mt-1 min-w-48 max-h-96 overflow-y-auto rounded-[14px] border border-ink/10 bg-white py-1 dark:bg-neutral-900`}
         >
           {options.map((o) => (
             <label

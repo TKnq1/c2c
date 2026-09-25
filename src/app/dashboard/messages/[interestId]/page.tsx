@@ -1,15 +1,17 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
+import { IoChevronBack } from "react-icons/io5";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { isBlocked } from "@/lib/moderation";
+import { hasBlocked, isBlocked } from "@/lib/moderation";
 import { Avatar } from "@/components/avatar";
-import { MessageForm } from "@/components/message-form";
 import { MarkThreadRead } from "@/components/mark-thread-read";
-import { ScrollToBottom } from "@/components/scroll-to-bottom";
 import { ReportBlockActions } from "@/components/report-block-actions";
-import { ChatOfferPanel } from "@/components/chat-offer-panel";
+import { ChatConversation } from "@/components/chat-conversation";
+import { ChatLiveUpdates } from "@/components/chat-live-updates";
+import { ChatViewport } from "@/components/chat-viewport";
 import { buildCollabTimeline } from "@/lib/collab-timeline";
+import { chatThreadVersion } from "@/lib/chat-version";
 import { PLATFORM_FEE_RATE, PRO_PLATFORM_FEE_RATE } from "@/lib/constants";
 
 export default async function MessageThreadPage({ params }: { params: Promise<{ interestId: string }> }) {
@@ -47,122 +49,111 @@ export default async function MessageThreadPage({ params }: { params: Promise<{ 
         href: `/dashboard/creator/discover/${interest.request.startup.id}`,
         userId: interest.request.startup.userId,
       };
-  const otherBlocked = await isBlocked(session.user.id, other.userId);
 
-  // One combined, chronological feed — chat bubbles for messages, small
-  // centered rows for offer/payment/deposit/review milestones — so the
-  // whole collab's story reads in one place instead of being split across
-  // this thread, the Payments page, and the request detail page.
-  const timelineEvents = buildCollabTimeline(interest);
-  const feed = [
-    ...interest.messages.map((m, i) => ({
-      at: m.createdAt,
-      kind: "message" as const,
-      message: m,
-      isLastMine:
-        m.senderRole === session.user.role &&
-        !interest.messages.slice(i + 1).some((later) => later.senderRole === session.user.role),
-    })),
-    ...timelineEvents.map((e) => ({ at: e.at, kind: "event" as const, event: e })),
-  ].sort((a, b) => a.at.getTime() - b.at.getTime());
+  // Either side's block stops messaging; only this viewer's own block is
+  // one they can lift, so the menu and the notice below need both.
+  const [blockedEitherWay, blockedByMe] = await Promise.all([
+    isBlocked(session.user.id, other.userId),
+    hasBlocked(session.user.id, other.userId),
+  ]);
+  const blockedNotice = blockedByMe
+    ? `You blocked ${other.name}. Unblock them from the ⋯ menu to message again.`
+    : blockedEitherWay
+      ? `You can't message ${other.name} anymore.`
+      : null;
+
+  const latestUnreadId =
+    interest.messages.findLast((m) => m.senderRole !== session.user.role && !m.read)?.id ?? null;
+
+  const feeRatePercent = (interest.request.startup.isPro ? PRO_PLATFORM_FEE_RATE : PLATFORM_FEE_RATE) * 100;
+  // The current offer, shown as a card in the conversation at the time it
+  // was made (see ChatOfferCard) rather than pinned above it.
+  const offer =
+    interest.paymentStatus !== null && interest.amountCents !== null
+      ? {
+          at: (interest.offeredAt ?? interest.createdAt).getTime(),
+          status: interest.paymentStatus,
+          offerRole: interest.offerRole,
+          amountCents: interest.amountCents,
+          payoutCents: interest.payoutCents,
+          viewerRole: session.user.role,
+          otherPartyName: other.name,
+          paymentsHref: isStartup ? "/dashboard/startup/payments" : "/dashboard/creator/payments",
+          feeRatePercent,
+          proofUrl: interest.proofUrl,
+          proofSubmittedAt: interest.proofSubmittedAt?.getTime() ?? null,
+          disputed: interest.disputedAt !== null,
+          payoutsReady: interest.creator.stripeOnboarded,
+        }
+      : null;
+  // Only brands open the negotiation, and only while nothing's on the table
+  // — the same rule sendOfferAction enforces server-side.
+  const makeOffer = isStartup && interest.paymentStatus === null && !blockedEitherWay ? { feeRatePercent } : null;
+
+  const version = chatThreadVersion({
+    messageCount: interest.messages.length,
+    readCount: interest.messages.filter((m) => m.read).length,
+    paymentStatus: interest.paymentStatus,
+    offerRole: interest.offerRole,
+    amountCents: interest.amountCents,
+    depositStatus: interest.depositStatus,
+    proofSubmittedAt: interest.proofSubmittedAt,
+    disputedAt: interest.disputedAt,
+    reviewCount: interest.reviews.length,
+    blocked: blockedEitherWay,
+  });
 
   return (
-    <div className="flex flex-col h-[75vh]">
-      <MarkThreadRead interestId={interestId} />
-      <div className="shrink-0">
-        <Link href="/dashboard/messages" className="text-sm text-neutral-500 hover:underline dark:text-neutral-400">
-          ← Messages
+    // chat-thread: on phones, main drops its padding for this page (see
+    // globals.css) so the thread can run edge to edge — its own header and
+    // composer take over the safe-area insets instead, since the nav bars
+    // that normally handle them are hidden here.
+    <div className="chat-thread flex h-full flex-col">
+      <MarkThreadRead interestId={interestId} latestUnreadId={latestUnreadId} />
+      <ChatLiveUpdates interestId={interestId} version={version} />
+      <ChatViewport />
+
+      <header className="flex shrink-0 items-center gap-2 border-b border-ink/10 px-2 pb-2 pt-[calc(var(--safe-top)+8px)] md:px-0 md:pb-3 md:pt-0">
+        <Link
+          href="/dashboard/messages"
+          transitionTypes={["nav-back"]}
+          aria-label="Back to messages"
+          className="-ml-1 flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-ink transition hover:bg-fog md:ml-0"
+        >
+          <IoChevronBack className="h-6 w-6" />
         </Link>
-        <div className="flex items-start justify-between gap-3 mt-2">
-          <div className="flex items-center gap-3">
-            <Avatar src={other.avatarUrl} name={other.name} size={40} />
-            <div>
-              <Link href={other.href} className="font-semibold hover:underline">
-                {other.name}
-              </Link>
-              <p className="text-sm text-neutral-500 dark:text-neutral-400">{interest.request.title}</p>
-            </div>
-          </div>
-          <ReportBlockActions otherUserId={other.userId} initialBlocked={otherBlocked} />
-        </div>
-        <ChatOfferPanel
-          interestId={interestId}
-          viewerRole={session.user.role}
-          paymentStatus={interest.paymentStatus}
-          offerRole={interest.offerRole}
-          amountCents={interest.amountCents}
-          payoutCents={interest.payoutCents}
-          otherPartyName={other.name}
-          paymentsHref={isStartup ? "/dashboard/startup/payments" : "/dashboard/creator/payments"}
-          feeRatePercent={(interest.request.startup.isPro ? PRO_PLATFORM_FEE_RATE : PLATFORM_FEE_RATE) * 100}
-        />
-      </div>
+        <Link href={other.href} className="flex min-w-0 flex-1 items-center gap-3">
+          <Avatar src={other.avatarUrl} name={other.name} size={40} />
+          <span className="min-w-0 truncate font-semibold">{other.name}</span>
+        </Link>
+        <ReportBlockActions otherUserId={other.userId} otherName={other.name} initialBlockedByMe={blockedByMe} />
+      </header>
 
-      <ScrollToBottom
-        watch={feed.length}
-        className="flex-1 min-h-0 overflow-y-auto flex flex-col gap-2 py-4"
-      >
-        {interest.messages.length === 0 && (
-          <p className="text-sm text-neutral-500 dark:text-neutral-400">
-            No messages yet. Say hi — this is the start of your conversation about &quot;{interest.request.title}&quot;.
-          </p>
-        )}
-        {feed.map((item, i) => {
-          if (item.kind === "event") {
-            const content = (
-              <p className="text-center text-xs text-neutral-500 dark:text-neutral-400">
-                {item.event.label} · {item.event.at.toLocaleString("en-US")}
-              </p>
-            );
-            return (
-              <div key={`event-${i}`} className="py-1">
-                {item.event.href ? (
-                  <a
-                    href={item.event.href}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="block hover:underline"
-                  >
-                    {content}
-                  </a>
-                ) : (
-                  content
-                )}
-              </div>
-            );
-          }
-
-          const m = item.message;
-          const isMine = m.senderRole === session.user.role;
-          return (
-            <div key={m.id} className={`flex ${isMine ? "justify-end" : "justify-start"}`}>
-              <div
-                className={`max-w-[75%] rounded-[18px] px-4 py-2 ${
-                  isMine
-                    ? "bg-ink text-paper"
-                    : "bg-fog text-neutral-900 dark:text-neutral-100"
-                }`}
-              >
-                <p className="text-sm whitespace-pre-wrap">{m.body}</p>
-                <p className={`text-[11px] mt-1 ${isMine ? "text-neutral-300 dark:text-neutral-500" : "text-neutral-500 dark:text-neutral-400"}`}>
-                  {m.createdAt.toLocaleString("en-US")}
-                  {item.isLastMine && m.read && " · Seen"}
-                </p>
-              </div>
-            </div>
-          );
-        })}
-      </ScrollToBottom>
-
-      <div className="shrink-0">
-        {otherBlocked ? (
-          <p className="text-sm text-neutral-500 text-center py-2 dark:text-neutral-400">
-            You&apos;ve blocked {other.name}. Unblock them to send messages again.
-          </p>
-        ) : (
-          <MessageForm interestId={interestId} />
-        )}
-      </div>
+      {/* One combined, chronological feed — chat bubbles for messages, the
+          current offer as a card, small centered rows for payment/deposit/
+          review milestones — so the whole collab's story reads in one place
+          instead of being split across this thread, the Payments page, and
+          the request detail page. The timeline's own "proposed" row is left
+          out since the offer card already stands in for it. Dates cross into
+          the client as plain numbers; formatting happens there, in the
+          viewer's own time zone. */}
+      <ChatConversation
+        interestId={interestId}
+        requestTitle={interest.request.title}
+        blockedNotice={blockedNotice}
+        offer={offer}
+        makeOffer={makeOffer}
+        messages={interest.messages.map((m) => ({
+          id: m.id,
+          body: m.body,
+          createdAt: m.createdAt.getTime(),
+          isMine: m.senderRole === session.user.role,
+          read: m.read,
+        }))}
+        events={buildCollabTimeline(interest)
+          .filter((e) => e.type !== "offer")
+          .map((e) => ({ at: e.at.getTime(), label: e.label, href: e.href }))}
+      />
     </div>
   );
 }

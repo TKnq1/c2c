@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { getUnreadCount } from "@/lib/notifications";
 import { getUnreadMessageCount } from "@/lib/messages";
-import { getPendingPaymentActionCount } from "@/lib/payments";
+import { getBrandPendingPaymentActionCount, getPendingPaymentActionCount } from "@/lib/payments";
 import type { NavCounts } from "@/components/nav";
 
 // Fetched client-side by Nav (see nav.tsx) instead of passed down as a
@@ -18,7 +18,9 @@ export async function GET() {
   const [unreadCount, unreadMessages, pendingPayments] = await Promise.all([
     getUnreadCount(session.user.id),
     getUnreadMessageCount(session.user.id, session.user.role),
-    session.user.role === "CREATOR" ? getPendingPaymentActionCount(session.user.id) : Promise.resolve(0),
+    session.user.role === "CREATOR"
+      ? getPendingPaymentActionCount(session.user.id)
+      : getBrandPendingPaymentActionCount(session.user.id),
   ]);
 
   const counts: NavCounts = { unreadCount, unreadMessages, pendingPayments };

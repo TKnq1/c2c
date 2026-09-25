@@ -1,15 +1,17 @@
 "use client";
 
 import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from "react";
-import { createPortal } from "react-dom";
-import { FiX } from "react-icons/fi";
+import { FiHeart, FiX } from "react-icons/fi";
 import { IoCubeOutline, IoLanguageOutline, IoPeopleOutline } from "react-icons/io5";
 import { Avatar } from "@/components/avatar";
 import { RatingSummary } from "@/components/stars";
+import { Dialog } from "@/components/dialog";
 import { DEFAULT_NICHE_ICON, NICHE_ICONS } from "@/lib/niche-icons";
 
 export type SwipeRequest = {
   id: string;
+  startupId: string;
+  isBrandFavorited: boolean;
   title: string;
   description: string;
   niche: string;
@@ -56,19 +58,22 @@ export const SwipeCard = forwardRef<SwipeCardHandle, {
   request: SwipeRequest;
   stackIndex: number;
   onSwipe: (direction: "left" | "right") => void;
-  // Set only for the one card a parent just restored via undo — this is a
-  // brand new mount (the card was fully removed from the stack array when
-  // passed, so undo re-adds it as a fresh instance, not the same one
+  // Set only for the one card a parent just put back — undoing a pass, or
+  // an "interested" swipe that failed to send — to the side it flew off
+  // to. This is a brand new mount (the card was fully removed from the
+  // stack array, so it comes back as a fresh instance, not the same one
   // re-appearing), so without this it would just pop into place at rest
-  // with no transition to animate through. Starting it off-screen and
-  // stepping back to center one frame later gives it the same fly
+  // with no transition to animate through. Starting it off-screen on that
+  // side and stepping back to center one frame later gives it the same fly
   // (reversed) that swiping it away had, using the exact spring curve
-  // below — "undo" reads as the swipe undoing itself, not a separate effect.
-  restoredFromPass?: boolean;
-}>(function SwipeCard({ request, stackIndex, onSwipe, restoredFromPass }, ref) {
+  // below — it reads as the swipe undoing itself, not a separate effect.
+  restoredFrom?: "left" | "right";
+}>(function SwipeCard({ request, stackIndex, onSwipe, restoredFrom }, ref) {
   const isTop = stackIndex === 0;
   const [drag, setDrag] = useState(() =>
-    restoredFromPass ? { x: -FLY_OUT_DISTANCE, y: 0, dragging: false } : { x: 0, y: 0, dragging: false },
+    restoredFrom
+      ? { x: restoredFrom === "left" ? -FLY_OUT_DISTANCE : FLY_OUT_DISTANCE, y: 0, dragging: false }
+      : { x: 0, y: 0, dragging: false },
   );
   const [exiting, setExiting] = useState<"left" | "right" | null>(null);
   // Normally just EXIT_MS (see commitSwipe) — shortened when the release
@@ -111,7 +116,7 @@ export const SwipeCard = forwardRef<SwipeCardHandle, {
   // actually paints first; setting x:0 in the same tick as the initial
   // render would never give the browser anything to transition from.
   useEffect(() => {
-    if (!restoredFromPass) return;
+    if (!restoredFrom) return;
     const id = requestAnimationFrame(() => {
       dragRef.current = { x: 0, y: 0 };
       setDrag({ x: 0, y: 0, dragging: false });
@@ -123,7 +128,15 @@ export const SwipeCard = forwardRef<SwipeCardHandle, {
   // velocityPxMs is the measured release speed (see handlePointerUp) — left
   // at 0 for a button-triggered exit (triggerExit below), which has no drag
   // to measure and always gets the plain fixed-duration exit.
+  // Once per card, whichever way it's triggered (drag, the stack's buttons,
+  // the details sheet) — a double tap would otherwise fire onSwipe twice,
+  // i.e. send the same interest twice. A ref, not the exiting state, since
+  // two taps can land before a re-render.
+  const committedRef = useRef(false);
+
   function commitSwipe(direction: "left" | "right", velocityPxMs = 0) {
+    if (committedRef.current) return;
+    committedRef.current = true;
     const speed = Math.abs(velocityPxMs);
     let duration = EXIT_MS;
     if (speed > FLICK_VELOCITY) {
@@ -416,77 +429,81 @@ export const SwipeCard = forwardRef<SwipeCardHandle, {
         </div>
       )}
 
-      {/* Portal, not a plain child — the card above has its own transform
-          (for the drag) and overflow-hidden (for the image's rounded
-          corners), and a transformed ancestor turns position:fixed
-          descendants into something scoped to it instead of the viewport.
-          Rendering at document.body sidesteps both. showDetails can only
-          ever be true client-side (never during the server render), so
-          this never runs where document doesn't exist. */}
-      {showDetails &&
-        createPortal(
-          <div
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-6"
-            onClick={() => setShowDetails(false)}
-            // Defensive: the card underneath captures its own pointer on
-            // tap-to-open, and this portal renders outside that card's DOM
-            // subtree — stopping propagation here means nothing about the
-            // card's own drag/tap handling can ever reach through it.
-            onPointerDown={(e) => e.stopPropagation()}
-          >
-            <div
-              className="flex max-h-[80dvh] w-full max-w-md flex-col overflow-hidden rounded-2xl bg-paper shadow-2xl"
-              onClick={(e) => e.stopPropagation()}
-            >
-              {request.imageUrl && (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={request.imageUrl} alt="" className="h-48 w-full shrink-0 object-cover" />
-              )}
-              <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto px-6 pt-6 pb-8">
-                <div className="flex items-start justify-between gap-3">
-                  <div className="flex items-center gap-3">
-                    <Avatar src={request.companyAvatarUrl} name={request.companyName} size={44} />
-                    <div>
-                      <p className="text-sm text-neutral-500 dark:text-neutral-400">{request.companyName}</p>
-                      <h3 className="font-display text-title-3 font-bold">{request.title}</h3>
-                    </div>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => setShowDetails(false)}
-                    aria-label="Close"
-                    className="shrink-0 rounded-full p-1.5 text-neutral-400 hover:text-ink transition dark:hover:text-white"
-                  >
-                    <FiX className="h-5 w-5" />
-                  </button>
-                </div>
-                <RatingSummary average={request.rating.average} count={request.rating.count} />
-                <p className="text-base text-neutral-600 dark:text-neutral-400">{request.description}</p>
-                <div className="flex flex-wrap gap-2 text-sm text-neutral-500 dark:text-neutral-400">
-                  <span className="inline-flex items-center gap-1.5 rounded bg-fog px-3 py-1.5 text-neutral-700 dark:text-neutral-300">
-                    <NicheIcon className="h-3.5 w-3.5 shrink-0" />
-                    {request.niche}
-                  </span>
-                  <span className="inline-flex items-center gap-1.5 rounded border border-ink/10 px-2.5 py-1.5">
-                    <IoPeopleOutline className="h-3.5 w-3.5 shrink-0" />
-                    Min. {request.minFollowers.toLocaleString("en-US")} followers
-                  </span>
-                  <span className="inline-flex items-center gap-1.5 rounded border border-ink/10 px-2.5 py-1.5">
-                    <IoCubeOutline className="h-3.5 w-3.5 shrink-0" />
-                    {request.productCategory}
-                  </span>
-                  {request.languages.map((l) => (
-                    <span key={l} className="inline-flex items-center gap-1.5 rounded border border-ink/10 px-2.5 py-1.5">
-                      <IoLanguageOutline className="h-3.5 w-3.5 shrink-0" />
-                      {l}
-                    </span>
-                  ))}
-                </div>
-              </div>
+      {/* The details sheet is a native <dialog>, so it renders in the top
+          layer — clear of this card's transform and overflow-hidden without
+          needing a portal. It's still a React (and DOM) descendant of the
+          card, though, so a tap inside it would bubble into the card's own
+          pointerdown and start a drag; the display:contents wrapper stops
+          that without adding a box to the card's layout. */}
+      <div className="contents" onPointerDown={(e) => e.stopPropagation()}>
+        <Dialog
+          open={showDetails}
+          onClose={() => setShowDetails(false)}
+          title={request.title}
+          media={
+            request.imageUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={request.imageUrl} alt="" className="h-48 w-full shrink-0 object-cover" />
+            ) : undefined
+          }
+        >
+          <div className="flex items-center gap-3">
+            <Avatar src={request.companyAvatarUrl} name={request.companyName} size={40} />
+            <div className="min-w-0">
+              <p className="truncate text-sm font-medium">{request.companyName}</p>
+              <RatingSummary average={request.rating.average} count={request.rating.count} />
             </div>
-          </div>,
-          document.body,
-        )}
+          </div>
+          <p className="whitespace-pre-wrap text-sm text-neutral-600 dark:text-neutral-400">{request.description}</p>
+          <div className="flex flex-wrap gap-2 text-sm text-neutral-500 dark:text-neutral-400">
+            <span className="inline-flex items-center gap-1.5 rounded bg-fog px-3 py-1.5 text-neutral-700 dark:text-neutral-300">
+              <NicheIcon className="h-3.5 w-3.5 shrink-0" />
+              {request.niche}
+            </span>
+            <span className="inline-flex items-center gap-1.5 rounded border border-ink/10 px-2.5 py-1.5">
+              <IoPeopleOutline className="h-3.5 w-3.5 shrink-0" />
+              Min. {request.minFollowers.toLocaleString("en-US")} followers
+            </span>
+            <span className="inline-flex items-center gap-1.5 rounded border border-ink/10 px-2.5 py-1.5">
+              <IoCubeOutline className="h-3.5 w-3.5 shrink-0" />
+              {request.productCategory}
+            </span>
+            {request.languages.map((l) => (
+              <span key={l} className="inline-flex items-center gap-1.5 rounded border border-ink/10 px-2.5 py-1.5">
+                <IoLanguageOutline className="h-3.5 w-3.5 shrink-0" />
+                {l}
+              </span>
+            ))}
+          </div>
+          {/* Decide straight from the details instead of closing them first
+              — same exit as swiping, so the card flies off behind the sheet
+              as it slides away. */}
+          <div className="flex gap-2 pt-1">
+            <button
+              type="button"
+              onClick={() => {
+                setShowDetails(false);
+                commitSwipe("left");
+              }}
+              className="flex flex-1 items-center justify-center gap-1.5 rounded-full border border-neutral-300 px-4 py-2.5 text-sm font-medium transition hover:border-neutral-400 dark:border-neutral-700"
+            >
+              <FiX className="h-4 w-4" />
+              Pass
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setShowDetails(false);
+                commitSwipe("right");
+              }}
+              className="flex flex-1 items-center justify-center gap-1.5 rounded-full bg-ink px-4 py-2.5 text-sm font-medium text-paper transition hover:bg-graphite"
+            >
+              <FiHeart className="h-4 w-4" />
+              Interested
+            </button>
+          </div>
+        </Dialog>
+      </div>
     </div>
   );
 });

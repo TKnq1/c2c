@@ -53,7 +53,7 @@ export async function POST(req: Request) {
       // either way there's nothing left to do.
       if (!interest || interest.paymentStatus !== "ACCEPTED") break;
 
-      // releasePaymentAction's transfer needs a Charge id (source_transaction
+      // releaseHeldPayment's transfer needs a Charge id (source_transaction
       // only accepts ch_..., see .agents/skills/connect-recommend/references/
       // charge-patterns.md) — the session only carries the PaymentIntent id,
       // so the charge has to be resolved via its latest_charge.

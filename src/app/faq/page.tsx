@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { PLATFORM_FEE_RATE, PRO_PLATFORM_FEE_RATE, PRO_SUBSCRIPTION_PRICE_CENTS } from "@/lib/constants";
+import { PLATFORM_FEE_RATE, PRO_PLATFORM_FEE_RATE, PRO_SUBSCRIPTION_PRICE_CENTS, RELEASE_REVIEW_DAYS } from "@/lib/constants";
 import { formatCents } from "@/lib/format";
 
 export const metadata: Metadata = {
@@ -22,7 +22,7 @@ const FAQS: { question: string; answer: string }[] = [
   {
     question: "How do payments work?",
     answer:
-      `A brand pays a creator through the platform, not directly. The payment is held in escrow until the creator marks the work as posted, at which point it's released to them. The platform keeps a ${PLATFORM_FEE_RATE * 100}% fee out of every payment by default. Brands doing regular volume can subscribe to Pro for ${formatCents(PRO_SUBSCRIPTION_PRICE_CENTS)}/month to drop that to ${PRO_PLATFORM_FEE_RATE * 100}%.`,
+      `A brand pays a creator through the platform, not directly. The payment is held in escrow until the creator posts the content and submits the link. The brand then has ${RELEASE_REVIEW_DAYS} days to approve it — which releases it right away — or to report a problem; if the brand doesn't respond, it's released automatically. The platform keeps a ${PLATFORM_FEE_RATE * 100}% fee out of every payment by default. Brands doing regular volume can subscribe to Pro for ${formatCents(PRO_SUBSCRIPTION_PRICE_CENTS)}/month to drop that to ${PRO_PLATFORM_FEE_RATE * 100}%.`,
   },
   {
     question: "What's the Pro plan?",
@@ -32,7 +32,7 @@ const FAQS: { question: string; answer: string }[] = [
   {
     question: "What if the creator never posts?",
     answer:
-      "A brand can cancel a payment that's still held in escrow and get a full refund at any time before it's released. Once released, it can't be reversed — reviews from both sides help everyone judge who's reliable before paying.",
+      `A brand can cancel a payment and get a full refund any time before the creator submits their post. If a post is submitted but something's wrong — it's missing, taken down, or not what was agreed — the brand can report a problem within the ${RELEASE_REVIEW_DAYS} days. The payment then stays on hold while we look into it, and we either release it to the creator or refund the brand. Once released, a payment can't be reversed — reviews from both sides help everyone judge who's reliable before paying.`,
   },
   {
     question: "Is this real money?",

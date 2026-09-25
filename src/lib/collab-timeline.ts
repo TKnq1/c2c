@@ -1,7 +1,9 @@
 import type { PaymentStatus, DepositStatus, Role } from "@prisma/client";
 import { formatCents } from "@/lib/format";
 
-export type TimelineEvent = { at: Date; label: string; href?: string };
+// type "offer" marks the current proposal — the chat shows that one as an
+// interactive offer card instead of a plain milestone row.
+export type TimelineEvent = { at: Date; label: string; href?: string; type?: "offer" };
 
 type TimelineInterest = {
   createdAt: Date;
@@ -14,6 +16,8 @@ type TimelineInterest = {
   releasedAt: Date | null;
   refundedAt: Date | null;
   proofUrl: string | null;
+  proofSubmittedAt: Date | null;
+  disputedAt: Date | null;
   depositCents: number | null;
   depositStatus: DepositStatus | null;
   depositRequestedAt: Date | null;
@@ -38,10 +42,25 @@ export function buildCollabTimeline(interest: TimelineInterest): TimelineEvent[]
 
   if (interest.offeredAt) {
     const proposer = interest.offerRole === "CREATOR" ? creatorName : startupName;
-    events.push({ at: interest.offeredAt, label: `${proposer} proposed ${formatCents(interest.amountCents!)}` });
+    events.push({
+      at: interest.offeredAt,
+      label: `${proposer} proposed ${formatCents(interest.amountCents!)}`,
+      type: "offer",
+    });
   }
   if (interest.paidAt) {
     events.push({ at: interest.paidAt, label: `Offer accepted — ${formatCents(interest.amountCents!)} held in escrow` });
+  }
+  // Only the latest submission — a corrected link overwrites the time.
+  if (interest.proofSubmittedAt) {
+    events.push({
+      at: interest.proofSubmittedAt,
+      label: `${creatorName} submitted their post`,
+      href: interest.proofUrl ?? undefined,
+    });
+  }
+  if (interest.disputedAt) {
+    events.push({ at: interest.disputedAt, label: `${startupName} reported a problem — payment on hold` });
   }
   if (interest.releasedAt) {
     events.push({

@@ -16,6 +16,7 @@ const GATE_BYPASS_SECRET = process.env.GATE_BYPASS_SECRET;
 
 const GATE_INFRA_PREFIXES = [
   "/api/webhooks",
+  "/api/cron",
   "/api/health",
   "/api/auth",
   "/favicon.ico",

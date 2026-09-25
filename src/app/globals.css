@@ -35,6 +35,15 @@
   color-scheme: dark;
 }
 
+/* Notch/Dynamic Island/punch-hole at the top, home indicator at the bottom.
+   Live env() values only until Nav mounts and overwrites both with frozen
+   pixel values on <html> — see measureSafeAreaInset in nav.tsx for why
+   everything should read these instead of env() directly. */
+:root {
+  --safe-top: env(safe-area-inset-top);
+  --safe-bottom: env(safe-area-inset-bottom);
+}
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -244,6 +253,290 @@ body.dashboard-shell {
   overflow: hidden;
 }
 
+/* On phones the chat thread runs edge to edge — the nav bars are hidden
+   there, so its own header and composer take over the safe-area insets and
+   spacing that main's padding normally provides. Unlayered, so it beats
+   main's Tailwind padding utilities without !important. */
+@media (max-width: 767.98px) {
+  main:has(.chat-thread) {
+    padding: 0;
+  }
+
+  /* Pinned to the part of the screen that's actually visible — the whole
+     screen normally, just the area above the keyboard while typing — so
+     the composer sits on top of the keyboard and only the messages scroll.
+     --vvh/--vv-top come from ChatViewport; the fallbacks are what the page
+     looks like before it runs (keyboard closed). */
+  .chat-thread {
+    position: fixed;
+    inset-inline: 0;
+    top: var(--vv-top, 0px);
+    height: var(--vvh, 100dvh);
+  }
+
+  /* The home-indicator inset is under the keyboard while it's up — keeping
+     it would leave a gap between the composer and the keys. */
+  html.keyboard-open .chat-composer {
+    padding-bottom: 8px;
+  }
+}
+
+/* Dialog entrance: slides up as a bottom sheet on phones, a small scale-in
+   for the centered card from md up. */
+@keyframes sheet-up {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+@keyframes dialog-in {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.animate-sheet-in {
+  animation: sheet-up 280ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@media (min-width: 768px) {
+  .animate-sheet-in {
+    animation: dialog-in 160ms ease-out;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-sheet-in {
+    animation: none;
+  }
+}
+
+/* Dialog exit — Dialog sets data-state="closing" and only calls close()
+   once this has played (see useExitAnimation), so the sheet can actually
+   slide out instead of vanishing. The backdrop fades both ways too. Same
+   specificity for the two ::backdrop rules, so closing has to stay last. */
+@keyframes sheet-down {
+  from {
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY(100%);
+  }
+}
+
+@keyframes dialog-out {
+  from {
+    opacity: 1;
+    transform: scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+}
+
+@keyframes backdrop-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes backdrop-out {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+dialog[open]::backdrop {
+  animation: backdrop-in 200ms ease-out;
+}
+
+dialog[data-state="closing"] {
+  animation: sheet-down 200ms cubic-bezier(0.4, 0, 1, 1) forwards;
+}
+
+dialog[data-state="closing"]::backdrop {
+  animation: backdrop-out 200ms ease-in forwards;
+}
+
+@media (min-width: 768px) {
+  dialog[data-state="closing"] {
+    animation: dialog-out 140ms ease-in forwards;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  dialog[open]::backdrop {
+    animation: none;
+  }
+  /* 1ms, not none — the exit's animationend is what lets the dialog close. */
+  dialog[data-state="closing"],
+  dialog[data-state="closing"]::backdrop {
+    animation-duration: 1ms;
+  }
+}
+
+/* Chat bubble arriving while the thread is open (never the history shown
+   on open) — rises into place from its sender's side; the row sets
+   transform-origin to its own bottom corner. */
+@keyframes bubble-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.animate-bubble-in {
+  animation: bubble-in 280ms cubic-bezier(0.34, 1.4, 0.64, 1);
+}
+
+/* A just-sent bubble settling from its dimmed "Sending…" look to solid. */
+@keyframes bubble-confirm {
+  from {
+    opacity: 0.6;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.animate-bubble-confirm {
+  animation: bubble-confirm 240ms ease-out;
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.animate-fade-in {
+  animation: fade-in 220ms ease-out;
+}
+
+/* The send arrow's little hop, replayed on every send. */
+@keyframes send-hop {
+  0% {
+    transform: translateY(0);
+  }
+  40% {
+    transform: translateY(-5px);
+  }
+  100% {
+    transform: translateY(0);
+  }
+}
+
+.animate-send-hop {
+  animation: send-hop 320ms cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-bubble-in,
+  .animate-bubble-confirm,
+  .animate-fade-in,
+  .animate-send-hop {
+    animation: none;
+  }
+}
+
+/* Directional page slide for <Link transitionTypes={["nav-forward"]}> /
+   ["nav-back"] (see PageTransition) — currently Messages list <-> chat
+   thread. The outgoing page fades while drifting 60px the opposite way, the
+   incoming one slides in from the side it came from. 60px is enough to
+   read as direction without making anyone track content across the whole
+   screen. Browsers without view-transition types just swap pages as before. */
+::view-transition-old(.nav-forward) {
+  --slide-offset: -60px;
+  animation:
+    150ms ease-in both fade-in reverse,
+    400ms ease-in-out both vt-slide reverse;
+}
+
+::view-transition-new(.nav-forward) {
+  --slide-offset: 60px;
+  animation:
+    210ms ease-out 150ms both fade-in,
+    400ms ease-in-out both vt-slide;
+}
+
+::view-transition-old(.nav-back) {
+  --slide-offset: 60px;
+  animation:
+    150ms ease-in both fade-in reverse,
+    400ms ease-in-out both vt-slide reverse;
+}
+
+::view-transition-new(.nav-back) {
+  --slide-offset: -60px;
+  animation:
+    210ms ease-out 150ms both fade-in,
+    400ms ease-in-out both vt-slide;
+}
+
+@keyframes vt-slide {
+  from {
+    translate: var(--slide-offset);
+  }
+  to {
+    translate: 0;
+  }
+}
+
+/* React starts a view transition on every navigation now (PageTransition's
+   keyed boundary), and the browser's default for everything outside a
+   named element is a cross-fade of the whole page — which would stack on
+   top of the regular CSS page fade for every plain tab switch. Off by
+   default; only the directional slides fade the rest of the page (nav bar,
+   tab bar) along with them. */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+}
+
+:root:active-view-transition-type(nav-forward, nav-back)::view-transition-old(root) {
+  animation: 150ms ease-in both fade-in reverse;
+}
+
+:root:active-view-transition-type(nav-forward, nav-back)::view-transition-new(root) {
+  animation: 210ms ease-out 150ms both fade-in;
+}
+
+/* The transition overlay would otherwise swallow taps for its duration. */
+::view-transition {
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-old(*),
+  ::view-transition-new(*),
+  ::view-transition-group(*) {
+    animation-duration: 0s !important;
+    animation-delay: 0s !important;
+  }
+}
+
 @keyframes results-fade-in {
   from {
     opacity: 0;
@@ -276,6 +569,22 @@ body.dashboard-shell {
   transform-origin: top;
 }
 
+@keyframes dropdown-out {
+  from {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: scale(0.95) translateY(-4px);
+  }
+}
+
+.animate-dropdown-out {
+  animation: dropdown-out 100ms ease-in forwards;
+  transform-origin: top;
+}
+
 @keyframes stagger-fade-in {
   from {
     opacity: 0;
@@ -296,6 +605,7 @@ body.dashboard-shell {
 
 @media (prefers-reduced-motion: reduce) {
   .animate-dropdown-in,
+  .animate-dropdown-out,
   .animate-stagger-fade-in {
     animation-duration: 1ms;
   }

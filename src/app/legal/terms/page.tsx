@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { PLATFORM_FEE_RATE, PRO_PLATFORM_FEE_RATE, PRO_SUBSCRIPTION_PRICE_CENTS } from "@/lib/constants";
+import { PLATFORM_FEE_RATE, PRO_PLATFORM_FEE_RATE, PRO_SUBSCRIPTION_PRICE_CENTS, RELEASE_REVIEW_DAYS } from "@/lib/constants";
 import { formatCents } from "@/lib/format";
 
 export const metadata: Metadata = { title: "Terms of Service" };
@@ -23,7 +23,7 @@ const SECTIONS: { title: string; body: string }[] = [
   },
   {
     title: "5. Payments and escrow",
-    body: "When a brand pays a creator, the payment is held by the platform until the creator marks the associated work as posted, at which point it is released to the creator (minus our fee). A brand may cancel a payment that is still held and receive a full refund at any time before it is released. Once released, a payment cannot be reversed through the platform.",
+    body: `When a brand pays a creator, the payment is held by the platform until the creator submits a link to the associated posted work. The brand then has ${RELEASE_REVIEW_DAYS} days to either approve the work, which releases the payment to the creator (minus our fee), or report a problem with it. If the brand does neither within ${RELEASE_REVIEW_DAYS} days, the payment is released automatically. If a problem is reported, the payment remains held while we review the case, after which we either release it to the creator or refund it in full to the brand. A brand may cancel a payment and receive a full refund at any time before the creator submits the link. Once released, a payment cannot be reversed through the platform.`,
   },
   {
     title: "6. Conduct",

@@ -34,7 +34,18 @@ function buildConnectInstance(): StripeConnectInstance {
   });
 }
 
-export function ConnectStripeButton({ isOnboarded }: { isOnboarded: boolean }) {
+// embedClassName frames the onboarding once it's open — Payments already
+// shows the button inside a card of its own, where a second border around
+// the embed would just be a box in a box.
+export function ConnectStripeButton({
+  isOnboarded,
+  label = isOnboarded ? "Update payout details" : "Connect Stripe to receive payouts",
+  embedClassName = "rounded-[20px] border border-ink/10 p-4",
+}: {
+  isOnboarded: boolean;
+  label?: string;
+  embedClassName?: string;
+}) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [connectInstance, setConnectInstance] = useState<StripeConnectInstance | null>(null);
@@ -64,7 +75,7 @@ export function ConnectStripeButton({ isOnboarded }: { isOnboarded: boolean }) {
 
   if (open && connectInstance) {
     return (
-      <div className="rounded-2xl border border-ink/10 p-4">
+      <div className={embedClassName}>
         <ConnectComponentsProvider connectInstance={connectInstance}>
           <ConnectAccountOnboarding
             onExit={handleExit}
@@ -81,9 +92,9 @@ export function ConnectStripeButton({ isOnboarded }: { isOnboarded: boolean }) {
       <button
         type="button"
         onClick={handleOpen}
-        className="rounded bg-ink text-paper px-4 py-2 text-sm font-medium hover:bg-graphite transition disabled:opacity-50 self-start"
+        className="rounded-full bg-ink text-paper px-4 py-2.5 text-sm font-medium hover:bg-graphite transition disabled:opacity-50 self-start"
       >
-        {isOnboarded ? "Update payout details" : "Connect Stripe to receive payouts"}
+        {label}
       </button>
       {error && <p className="text-sm text-ink">{error}</p>}
     </div>

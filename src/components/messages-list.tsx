@@ -5,6 +5,8 @@ import Link from "next/link";
 import { FiMessageSquare } from "react-icons/fi";
 import { IoFilterOutline } from "react-icons/io5";
 import { useUrlState } from "@/lib/use-url-state";
+import { useViewerTimeZone } from "@/lib/use-viewer-time-zone";
+import { useExitAnimation } from "@/lib/use-exit-animation";
 import { formatMessageTimestamp } from "@/lib/format";
 import { SearchInput } from "@/components/search-input";
 import { Avatar } from "@/components/avatar";
@@ -22,8 +24,10 @@ type Conversation = {
 export function MessagesList({ conversations }: { conversations: Conversation[] }) {
   const [{ q: search, unread }, setParam, setParams] = useUrlState(["q", "unread"]);
   const [filterOpen, setFilterOpen] = useState(false);
+  const filterPanel = useExitAnimation(filterOpen);
   const filterRef = useRef<HTMLDivElement>(null);
   const activeFilterCount = unread === "1" ? 1 : 0;
+  const timeZone = useViewerTimeZone();
 
   useEffect(() => {
     if (!filterOpen) return;
@@ -78,10 +82,13 @@ export function MessagesList({ conversations }: { conversations: Conversation[] 
             )}
           </button>
 
-          {filterOpen && (
+          {filterPanel.present && (
             <div
               role="menu"
-              className="animate-dropdown-in absolute right-0 z-20 mt-1 min-w-40 rounded-[14px] border border-ink/10 bg-white py-1 dark:bg-neutral-900"
+              onAnimationEnd={filterPanel.onExitEnd}
+              className={`${
+                filterPanel.closing ? "animate-dropdown-out pointer-events-none" : "animate-dropdown-in"
+              } absolute right-0 z-20 mt-1 min-w-40 rounded-[14px] border border-ink/10 bg-white py-1 dark:bg-neutral-900`}
             >
               <label className="flex items-center gap-2 px-3 py-2 text-sm text-neutral-700 whitespace-nowrap hover:bg-neutral-50 cursor-pointer dark:text-neutral-300 dark:hover:bg-neutral-800">
                 <input
@@ -109,6 +116,7 @@ export function MessagesList({ conversations }: { conversations: Conversation[] 
             <Link
               key={c.interestId}
               href={`/dashboard/messages/${c.interestId}`}
+              transitionTypes={["nav-forward"]}
               className="rounded-[20px] border border-ink/10 p-4 flex gap-3 items-start hover:border-neutral-400 transition dark:hover:border-neutral-600"
             >
               <Avatar src={c.other.avatarUrl} name={c.other.name} size={40} />
@@ -120,7 +128,7 @@ export function MessagesList({ conversations }: { conversations: Conversation[] 
                   <div className="flex flex-col items-end gap-1 shrink-0">
                     {c.lastMessage && (
                       <p className="text-xs text-neutral-500 whitespace-nowrap dark:text-neutral-400">
-                        {formatMessageTimestamp(c.lastMessage.createdAt)}
+                        {formatMessageTimestamp(c.lastMessage.createdAt, timeZone)}
                       </p>
                     )}
                     {c.unreadCount > 0 && (

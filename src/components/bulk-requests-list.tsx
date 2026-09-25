@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { bulkCloseRequestsAction } from "@/lib/actions/requests";
 import { toast } from "@/lib/toast";
+import { errorMessage } from "@/lib/error-message";
 
 type RequestEntry = {
   id: string;
@@ -41,7 +42,7 @@ export function BulkRequestsList({ requests }: { requests: RequestEntry[] }) {
       setSelected(new Set());
       router.refresh();
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Something went wrong.");
+      toast.error(errorMessage(err));
     } finally {
       setClosing(false);
     }

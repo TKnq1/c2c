@@ -27,6 +27,8 @@ function mockImage(bg: string, label: string) {
 const MOCK_REQUESTS: SwipeRequest[] = [
   {
     id: "1",
+    startupId: "demo-brand-1",
+    isBrandFavorited: false,
     title: "Skincare Launch Video",
     description:
       "Looking for an authentic first-impressions video featuring our new vitamin C serum. Natural lighting, no heavy editing — just your honest take. We'll ship the full-size product plus two backups so you can reshoot if the light's bad that day.",
@@ -41,6 +43,8 @@ const MOCK_REQUESTS: SwipeRequest[] = [
   },
   {
     id: "2",
+    startupId: "demo-brand-2",
+    isBrandFavorited: false,
     title: "Get Ready With Me Post",
     description:
       "GRWM using our new eyeshadow palette for a night-out look. Tag us and link the palette in your bio. Open to either a Reel or a multi-photo carousel, whatever fits your feed better.",
@@ -55,6 +59,8 @@ const MOCK_REQUESTS: SwipeRequest[] = [
   },
   {
     id: "3",
+    startupId: "demo-brand-3",
+    isBrandFavorited: false,
     title: "Unboxing Collab",
     description:
       "Unbox our skincare gift set live or on Reels — we'll send the full set plus a bonus item for you to keep. No script, just your genuine first reaction.",
@@ -69,6 +75,8 @@ const MOCK_REQUESTS: SwipeRequest[] = [
   },
   {
     id: "4",
+    startupId: "demo-brand-4",
+    isBrandFavorited: false,
     title: "Before/After Story Series",
     description:
       "3-day story series showing your routine with our retinol serum. We provide the product, you provide the honesty — even a 'this broke me out' update is fine, we'd rather know.",
@@ -83,6 +91,8 @@ const MOCK_REQUESTS: SwipeRequest[] = [
   },
   {
     id: "5",
+    startupId: "demo-brand-5",
+    isBrandFavorited: false,
     title: "Product Review Reel",
     description:
       "60-second review reel of our new SPF moisturizer — what you liked, what you'd change, all good. We only ask that you mention SPF number and skin type on camera.",
@@ -120,7 +130,7 @@ export default function SwipeDemoPage() {
   const topCardRef = useRef<SwipeCardHandle>(null);
   // The undone card is a fresh mount (fully removed from stack while
   // passed, not the same instance re-appearing), so it needs to be told
-  // it just arrived via undo — see restoredFromPass on SwipeCard. Stays
+  // it just arrived via undo — see restoredFrom on SwipeCard. Stays
   // set after that; it's only ever read at that one card's mount moment.
   const [justRestoredId, setJustRestoredId] = useState<string | null>(null);
 
@@ -182,7 +192,7 @@ export default function SwipeDemoPage() {
                   request={r}
                   stackIndex={i}
                   onSwipe={(dir) => handleSwipe(r.id, dir)}
-                  restoredFromPass={r.id === justRestoredId}
+                  restoredFrom={r.id === justRestoredId ? "left" : undefined}
                 />
               ))}
             </div>

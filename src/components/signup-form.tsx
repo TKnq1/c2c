@@ -4,14 +4,14 @@ import { useActionState, useState } from "react";
 import type { Role } from "@prisma/client";
 import { signupAction } from "@/lib/actions/auth";
 import { NewPasswordField } from "@/components/new-password-field";
-import { PLATFORM_FEE_RATE, PRO_PLATFORM_FEE_RATE } from "@/lib/constants";
+import { PLATFORM_FEE_RATE, PRO_PLATFORM_FEE_RATE, RELEASE_REVIEW_DAYS } from "@/lib/constants";
 
 // Only the two self-serve signup roles — admins aren't created through this form.
 export type SignupRole = Extract<Role, "STARTUP" | "CREATOR">;
 
 const FEE_NOTE: Record<SignupRole, string> = {
-  STARTUP: `You pay exactly what you offer, held in escrow until the work goes live — we take ${PLATFORM_FEE_RATE * 100}% from the creator's payout, ${PRO_PLATFORM_FEE_RATE * 100}% with Pro.`,
-  CREATOR: `Keep ${100 - PLATFORM_FEE_RATE * 100}% of every deal, ${100 - PRO_PLATFORM_FEE_RATE * 100}% when the brand's on Pro — paid out the moment you mark the work as posted.`,
+  STARTUP: `You pay exactly what you offer, held in escrow until the work is live and you've approved it — we take ${PLATFORM_FEE_RATE * 100}% from the creator's payout, ${PRO_PLATFORM_FEE_RATE * 100}% with Pro.`,
+  CREATOR: `Keep ${100 - PLATFORM_FEE_RATE * 100}% of every deal, ${100 - PRO_PLATFORM_FEE_RATE * 100}% when the brand's on Pro — paid out once the brand approves your post, or automatically after ${RELEASE_REVIEW_DAYS} days.`,
 };
 
 type Props = {

@@ -4,6 +4,7 @@ import { useActionState } from "react";
 import type { Role } from "@prisma/client";
 import { updateNotificationPreferencesAction } from "@/lib/actions/notification-preferences";
 import { useActionToast } from "@/lib/use-action-toast";
+import { DEPOSITS_ENABLED } from "@/lib/constants";
 
 type Preferences = {
   notifyNewRequests: boolean;
@@ -24,11 +25,15 @@ export function NotificationPreferences({ role, preferences }: { role: Role; pre
   if (role === "STARTUP") items.push({ key: "notifyNewCreators", label: "New matching creators" });
   items.push({ key: "notifyMessages", label: "Messages" });
   items.push({ key: "notifyPayments", label: "Payments" });
-  items.push({ key: "notifyDeposits", label: "Deposits" });
+  if (DEPOSITS_ENABLED) items.push({ key: "notifyDeposits", label: "Deposits" });
 
   return (
     <form action={formAction} className="flex flex-col gap-2 mt-4">
       <p className="text-sm font-medium">Notify me about</p>
+      {/* Carries the current setting through while deposits are switched
+          off — the save action reads every field, so leaving this out
+          would quietly turn deposit notifications off for anyone who saves. */}
+      {!DEPOSITS_ENABLED && preferences.notifyDeposits && <input type="hidden" name="notifyDeposits" value="on" />}
       {items.map((item) => (
         <label key={item.key} className="flex items-center gap-2 text-sm text-neutral-700 dark:text-neutral-300">
           <input

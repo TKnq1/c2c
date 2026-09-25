@@ -16,6 +16,15 @@ export async function isBlocked(userIdA: string, userIdB: string): Promise<boole
   return !!block;
 }
 
+// Direction matters here, unlike isBlocked: only the blocker can lift a
+// block, so this is what decides whether to offer "Unblock".
+export async function hasBlocked(blockerId: string, blockedId: string): Promise<boolean> {
+  const block = await prisma.block.findUnique({
+    where: { blockerId_blockedId: { blockerId, blockedId } },
+  });
+  return !!block;
+}
+
 // All user ids that should be hidden from `viewerId` — everyone they've
 // blocked, and everyone who's blocked them.
 export async function getMutualBlockedUserIds(viewerId: string): Promise<string[]> {

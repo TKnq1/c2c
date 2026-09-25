@@ -6,6 +6,7 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { ActionButton } from "@/components/action-button";
 import { BulkInterestedCreatorsList } from "@/components/bulk-interested-creators-list";
+import { paymentStage } from "@/components/payment-status-badge";
 import { EmptyState } from "@/components/empty-state";
 import { closeRequestAction, reopenRequestAction, duplicateRequestAction } from "@/lib/actions/requests";
 import { PLATFORM_FEE_RATE, PRO_PLATFORM_FEE_RATE } from "@/lib/constants";
@@ -135,6 +136,8 @@ function toInterestEntry(i: {
   payoutCents: number | null;
   depositStatus: DepositStatus | null;
   depositCents: number | null;
+  proofSubmittedAt: Date | null;
+  disputedAt: Date | null;
   reviews: unknown[];
 }) {
   return {
@@ -145,6 +148,10 @@ function toInterestEntry(i: {
     email: i.creator.user.email,
     platforms: i.creator.platforms,
     paymentStatus: i.paymentStatus,
+    paymentStage:
+      i.paymentStatus === null
+        ? null
+        : paymentStage({ paymentStatus: i.paymentStatus, proofSubmittedAt: i.proofSubmittedAt, disputedAt: i.disputedAt }),
     amountCents: i.amountCents,
     payoutCents: i.payoutCents,
     depositStatus: i.depositStatus,

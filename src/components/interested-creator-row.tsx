@@ -6,6 +6,7 @@ import { rejectInterestAction } from "@/lib/actions/requests";
 import { Avatar } from "@/components/avatar";
 import { PlatformIcon } from "@/components/platform-icons";
 import { CollabStatus } from "@/components/collab-status";
+import type { PaymentStage } from "@/components/payment-status-badge";
 import { useUndoableAction } from "@/lib/use-undoable-action";
 import { formatFollowers } from "@/lib/format";
 
@@ -17,6 +18,7 @@ type Props = {
   email: string;
   platforms: { platform: string; followerCount: number }[];
   paymentStatus: PaymentStatus | null;
+  paymentStage: PaymentStage | null;
   amountCents: number | null;
   payoutCents: number | null;
   depositStatus: DepositStatus | null;
@@ -34,6 +36,7 @@ export function InterestedCreatorRow({
   email,
   platforms,
   paymentStatus,
+  paymentStage,
   amountCents,
   payoutCents,
   depositStatus,
@@ -83,7 +86,7 @@ export function InterestedCreatorRow({
           </a>
         </p>
         <CollabStatus
-          paymentStatus={paymentStatus}
+          paymentStage={paymentStage}
           amountCents={amountCents}
           payoutCents={payoutCents}
           depositStatus={depositStatus}

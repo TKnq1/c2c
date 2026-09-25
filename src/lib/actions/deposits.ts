@@ -6,6 +6,7 @@ import { prisma } from "@/lib/prisma";
 import { requestDepositSchema } from "@/lib/validation";
 import { formatCents } from "@/lib/format";
 import { notify } from "@/lib/notifications";
+import { DEPOSITS_ENABLED } from "@/lib/constants";
 
 export type DepositActionState = { error?: string; success?: boolean } | undefined;
 
@@ -21,6 +22,10 @@ export async function requestDepositAction(
   const session = await auth();
   if (!session || session.user.role !== "STARTUP") {
     return { error: "Not authorized." };
+  }
+  // See DEPOSITS_ENABLED — no new ones until they move real money.
+  if (!DEPOSITS_ENABLED) {
+    return { error: "Deposits aren't available yet." };
   }
 
   const parsed = requestDepositSchema.safeParse(Object.fromEntries(formData));

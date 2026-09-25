@@ -6,15 +6,16 @@ import { AuthPanel } from "@/components/auth-panel";
 import { PhoneMockup } from "@/components/phone-mockup";
 import { ImprintLink } from "@/components/imprint-link";
 import { type SignupRole } from "@/components/signup-form";
+import { RELEASE_REVIEW_DAYS } from "@/lib/constants";
 
 const COPY: Record<SignupRole, { headline: string; body: string }> = {
   STARTUP: {
     headline: "Find the right creator. Pay only when the work is live.",
-    body: "C2C matches brands with creators by niche and reach, then holds every payment in escrow until the collab is actually posted.",
+    body: "C2C matches brands with creators by niche and reach, then holds every payment in escrow until the collab is posted and you've approved it.",
   },
   CREATOR: {
-    headline: "Find brand collabs that fit you. Get paid the moment you post.",
-    body: "C2C matches you with brands by niche and reach, then pays out the moment your work goes live — held safely in escrow until then.",
+    headline: "Find brand collabs that fit you. Get paid for what you post.",
+    body: `C2C matches you with brands by niche and reach, then holds every payment safely in escrow — released to you once the brand approves your post, or automatically after ${RELEASE_REVIEW_DAYS} days.`,
   },
 };
 

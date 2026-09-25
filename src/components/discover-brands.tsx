@@ -5,6 +5,7 @@ import { FiSearch } from "react-icons/fi";
 import { IoFilterOutline } from "react-icons/io5";
 import { NICHES } from "@/lib/constants";
 import { useUrlState } from "@/lib/use-url-state";
+import { useExitAnimation } from "@/lib/use-exit-animation";
 import { SearchInput } from "@/components/search-input";
 import { BrandCard } from "@/components/brand-card";
 import { EmptyState } from "@/components/empty-state";
@@ -30,6 +31,7 @@ export function DiscoverBrands({ brands }: { brands: BrandEntry[] }) {
   const [{ q: search, niche, favorites }, setParam, setParams] = useUrlState(["q", "niche", "favorites"]);
   const niches = useMemo(() => (niche ? niche.split(",") : []), [niche]);
   const [filterOpen, setFilterOpen] = useState(false);
+  const filterPanel = useExitAnimation(filterOpen);
   const filterRef = useRef<HTMLDivElement>(null);
   const activeFilterCount = (favorites === "1" ? 1 : 0) + niches.length;
 
@@ -110,10 +112,13 @@ export function DiscoverBrands({ brands }: { brands: BrandEntry[] }) {
             )}
           </button>
 
-          {filterOpen && (
+          {filterPanel.present && (
             <div
               role="menu"
-              className="animate-dropdown-in absolute right-0 z-20 mt-1 w-52 max-h-96 overflow-y-auto rounded-[14px] border border-ink/10 bg-white py-1 dark:bg-neutral-900"
+              onAnimationEnd={filterPanel.onExitEnd}
+              className={`${
+                filterPanel.closing ? "animate-dropdown-out pointer-events-none" : "animate-dropdown-in"
+              } absolute right-0 z-20 mt-1 w-52 max-h-96 overflow-y-auto rounded-[14px] border border-ink/10 bg-white py-1 dark:bg-neutral-900`}
             >
               <label className="flex items-center gap-2 px-3 py-2 text-sm text-neutral-700 whitespace-nowrap hover:bg-neutral-50 cursor-pointer dark:text-neutral-300 dark:hover:bg-neutral-800">
                 <input

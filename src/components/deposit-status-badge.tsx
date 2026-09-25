@@ -17,7 +17,7 @@ const STYLES: Record<DepositStatus, string> = {
 
 export function DepositStatusBadge({ status }: { status: DepositStatus }) {
   return (
-    <span className={`text-xs rounded px-3 py-1 whitespace-nowrap font-medium ${STYLES[status]}`}>
+    <span className={`text-xs rounded-full px-2.5 py-1 whitespace-nowrap font-medium ${STYLES[status]}`}>
       {LABELS[status]}
     </span>
   );

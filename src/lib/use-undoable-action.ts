@@ -2,6 +2,7 @@
 
 import { useRef, useState } from "react";
 import { toast } from "@/lib/toast";
+import { errorMessage } from "@/lib/error-message";
 
 const UNDO_WINDOW_MS = 5000;
 
@@ -24,7 +25,7 @@ export function useUndoableAction(action: () => Promise<void>) {
         await action();
       } catch (err) {
         setPending(false);
-        toast.error(err instanceof Error ? err.message : "Something went wrong.");
+        toast.error(errorMessage(err));
       }
     }, UNDO_WINDOW_MS);
 

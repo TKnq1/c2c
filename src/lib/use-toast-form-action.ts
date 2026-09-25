@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { toast } from "@/lib/toast";
+import { errorMessage } from "@/lib/error-message";
 
 // Same tuple shape as useActionState ([state, formAction, pending]), but for
 // forms whose success can remove or remount the very component holding the
@@ -19,7 +20,15 @@ export function useToastFormAction<S extends { error?: string; success?: boolean
 
   const formAction = (formData: FormData) => {
     startTransition(async () => {
-      const result = await action(state, formData);
+      let result: S | undefined;
+      try {
+        result = await action(state, formData);
+      } catch (err) {
+        // A dropped connection throws rather than returning an error state,
+        // and a throw inside a transition takes the whole page down to
+        // error.tsx — show it on the form like any other error instead.
+        result = { error: errorMessage(err) } as S;
+      }
       setState(result);
       if (result?.success) toast.success(successMessage);
     });

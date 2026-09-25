@@ -2,7 +2,7 @@ import { notFound, redirect } from "next/navigation";
 import { FiClock } from "react-icons/fi";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { isBlocked } from "@/lib/moderation";
+import { hasBlocked } from "@/lib/moderation";
 import { computeResponseTimeMs, formatResponseTime } from "@/lib/response-time";
 import { Avatar } from "@/components/avatar";
 import { PlatformIcon } from "@/components/platform-icons";
@@ -39,8 +39,8 @@ export default async function CreatorProfileDetailPage({ params }: { params: Pro
 
   // These six all depend only on creator/startup ids resolved above, not on
   // each other, so they too run as one round-trip.
-  const [blocked, favorite, conversations, existingInterest, openRequests, completedCollabs] = await Promise.all([
-    isBlocked(session.user.id, creator.userId),
+  const [blockedByMe, favorite, conversations, existingInterest, openRequests, completedCollabs] = await Promise.all([
+    hasBlocked(session.user.id, creator.userId),
     prisma.favorite.findUnique({
       where: {
         startupId_creatorId_favoritedByRole: { startupId: startup.id, creatorId: creator.id, favoritedByRole: "STARTUP" },
@@ -118,8 +118,13 @@ export default async function CreatorProfileDetailPage({ params }: { params: Pro
               existingInterestId={existingInterest?.id ?? null}
               openRequests={openRequests}
             />
+            <ReportBlockActions
+              otherUserId={creator.userId}
+              otherName={creator.displayName}
+              initialBlockedByMe={blockedByMe}
+              bordered
+            />
           </div>
-          <ReportBlockActions otherUserId={creator.userId} initialBlocked={blocked} />
         </div>
       </div>
 

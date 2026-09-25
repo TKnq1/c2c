@@ -6,11 +6,13 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { stripe } from "@/lib/stripe";
 import { SITE_URL } from "@/lib/site";
-import { sendOfferSchema, releasePaymentSchema } from "@/lib/validation";
+import { sendOfferSchema, submitPostSchema, reportProblemSchema } from "@/lib/validation";
 import { splitPayment } from "@/lib/payment-math";
 import { formatCents } from "@/lib/format";
 import { notify } from "@/lib/notifications";
 import { flagIfAnomalousOffer } from "@/lib/moderation";
+import { RELEASE_REVIEW_DAYS } from "@/lib/constants";
+import { refundHeldPayment, releaseHeldPayment, type MoneyMoveResult } from "@/lib/payment-release";
 
 export type PaymentActionState = { error?: string; success?: boolean } | undefined;
 
@@ -302,8 +304,19 @@ export async function createCheckoutSessionAction(interestId: string): Promise<{
   // session's id: if the brand finishes paying on it anyway, the webhook's
   // lookup by session id would find nothing and silently drop a real charge.
   if (interest.stripeCheckoutSessionId) {
-    const existing = await stripe.checkout.sessions.retrieve(interest.stripeCheckoutSessionId);
+    const existing = await stripe.checkout.sessions.retrieve(interest.stripeCheckoutSessionId, {
+      expand: ["payment_intent"],
+    });
     if (existing.status === "open") return { url: existing.url! };
+    // Paid (or a bank debit still clearing) and only waiting on the webhook
+    // to flip this to HELD — Stripe sends the brand back here right as it
+    // completes, still showing "Pay", and a fresh session from that tap
+    // would charge them a second time. A failed debit leaves its intent at
+    // requires_payment_method, which falls through to a new session.
+    const intent = existing.payment_intent;
+    if (existing.payment_status === "paid" || (typeof intent === "object" && intent?.status === "processing")) {
+      return { error: "This payment is already going through — it'll show as held in escrow shortly." };
+    }
   }
 
   const checkoutSession = await stripe.checkout.sessions.create({
@@ -318,7 +331,9 @@ export async function createCheckoutSessionAction(interestId: string): Promise<{
         quantity: 1,
       },
     ],
-    success_url: `${SITE_URL}/dashboard/startup/payments?checkout=success`,
+    // Names the interest so the page knows which row to wait on while the
+    // webhook catches up (see CheckoutReturn).
+    success_url: `${SITE_URL}/dashboard/startup/payments?checkout=success&interest=${interest.id}`,
     cancel_url: `${SITE_URL}/dashboard/startup/payments?checkout=cancelled`,
     metadata: { interestId: interest.id },
   });
@@ -360,10 +375,13 @@ export async function declineOfferAction(interestId: string) {
   await revalidateOfferPaths(interest.requestId);
 }
 
-// Creator marks their work as posted, releasing a HELD payment to
-// themselves. The link to the post is optional — same honor-system trust
-// level as the release itself — but gives the brand something to check.
-export async function releasePaymentAction(
+// Creator submits the link to their post — this no longer releases
+// anything by itself. The brand gets RELEASE_REVIEW_DAYS to approve it
+// (releasing the money right away) or report a problem; after that the
+// daily job releases it (api/cron/release-payments). Submitting again with
+// a corrected link restarts that window, so the brand always gets the full
+// time to check the link they're actually approving.
+export async function submitPostAction(
   interestId: string,
   _prevState: PaymentActionState,
   formData: FormData,
@@ -373,9 +391,9 @@ export async function releasePaymentAction(
     return { error: "Not authorized." };
   }
 
-  const parsed = releasePaymentSchema.safeParse(Object.fromEntries(formData));
+  const parsed = submitPostSchema.safeParse(Object.fromEntries(formData));
   if (!parsed.success) {
-    return { error: parsed.error.issues[0]?.message ?? "Please enter a valid link." };
+    return { error: parsed.error.issues[0]?.message ?? "Paste the link to your post." };
   }
 
   const creator = await prisma.creatorProfile.findUniqueOrThrow({ where: { userId: session.user.id } });
@@ -388,130 +406,126 @@ export async function releasePaymentAction(
     return { error: "This payment could not be found." };
   }
   if (interest.paymentStatus !== "HELD") {
-    return { error: "This payment is not currently held." };
+    return { error: "This payment isn't held anymore." };
   }
+  if (interest.disputedAt) {
+    return { error: "A problem was reported on this collab — we're looking into it, so the link can't change right now." };
+  }
+  // Checked now rather than only at release: approval pays out on the spot,
+  // and a brand shouldn't be approving into an account that can't receive it.
   if (!creator.stripeOnboarded || !creator.stripeAccountId) {
-    return { error: "Connect Stripe in Settings → Payouts before releasing a payment." };
+    return { error: "Set up payouts first — the money needs somewhere to go once it's approved." };
   }
 
-  // Atomic claim before touching Stripe: a double-click or a retried
-  // request could otherwise both pass the HELD check above and each fire a
-  // real transfer, paying the creator twice out of the platform's own
-  // margin. Only the request whose updateMany actually matches a row (still
-  // HELD at that instant) proceeds — a second concurrent call sees 0 rows
-  // updated and bails out below instead of calling Stripe at all.
-  const claimed = await prisma.interest.updateMany({
-    where: { id: interestId, creatorId: creator.id, paymentStatus: "HELD" },
-    data: { paymentStatus: "RELEASED", releasedAt: new Date(), proofUrl: parsed.data.proofUrl || null },
-  });
-  if (claimed.count === 0) {
-    return { error: "This payment is not currently held." };
-  }
-
-  // Transfer-math fee retention, not application_fee_amount (that's only
-  // for destination/direct charges) — transferring payoutCents rather than
-  // amountCents out of the original charge is how the platform fee stays
-  // with the platform under separate charges and transfers. idempotencyKey
-  // means a retry of this exact call (e.g. after a network error) can't
-  // create a second transfer even if the DB claim above already succeeded.
-  let transfer;
-  try {
-    transfer = await stripe.transfers.create(
-      {
-        amount: interest.payoutCents!,
-        currency: "eur",
-        destination: creator.stripeAccountId,
-        source_transaction: interest.stripeChargeId!,
-      },
-      { idempotencyKey: `release-${interestId}` },
-    );
-  } catch {
-    // Give the creator a working retry instead of a stuck "Released" with
-    // no money actually transferred.
-    await prisma.interest.update({
-      where: { id: interestId },
-      data: { paymentStatus: "HELD", releasedAt: null, proofUrl: null },
-    });
-    return { error: "Releasing the payment failed. Please try again." };
-  }
-
+  const resubmitted = interest.proofSubmittedAt !== null;
   await prisma.interest.update({
     where: { id: interestId },
-    data: { stripeTransferId: transfer.id },
+    data: { proofUrl: parsed.data.proofUrl, proofSubmittedAt: new Date() },
   });
 
   await notify(
     interest.request.startup.userId,
-    `${creator.displayName} marked the work as posted — your payment of ${formatCents(interest.amountCents!)} for "${interest.request.title}" was released`,
+    resubmitted
+      ? `${creator.displayName} updated the link to their post for "${interest.request.title}" — you have ${RELEASE_REVIEW_DAYS} days to approve it or report a problem`
+      : `${creator.displayName} posted the content for "${interest.request.title}" — approve the payment or report a problem within ${RELEASE_REVIEW_DAYS} days`,
     "/dashboard/startup/payments",
     "payments",
   );
 
-  revalidatePath(`/dashboard/startup/requests/${interest.requestId}`);
-  revalidatePath("/dashboard/startup/payments");
-  revalidatePath("/dashboard/creator/payments");
+  await revalidateOfferPaths(interest.requestId);
   return { success: true };
 }
 
-// Brand cancels a payment that's still HELD — e.g. the creator never
-// delivered. Simulated refund: same honor-system trust level as release
-// (neither side's claim is independently verified), just reversed.
-export async function refundPaymentAction(interestId: string) {
-  const session = await auth();
-  if (!session || session.user.role !== "STARTUP") {
-    throw new Error("Not authorized.");
-  }
-
-  const startup = await prisma.startupProfile.findUniqueOrThrow({ where: { userId: session.user.id } });
+// Loads a HELD payment for one of the brand's own actions on it, or says
+// why it can't be acted on.
+async function loadBrandHeldPayment(interestId: string, userId: string) {
   const interest = await prisma.interest.findUnique({
     where: { id: interestId },
-    include: { request: true, creator: true },
+    include: { request: { include: { startup: true } }, creator: true },
   });
+  if (!interest || interest.request.startup.userId !== userId) return null;
+  return interest;
+}
 
-  if (!interest || interest.request.startupId !== startup.id) {
-    throw new Error("This payment could not be found.");
+// Brand approves the submitted post — the money goes to the creator now.
+export async function approvePaymentAction(interestId: string): Promise<MoneyMoveResult> {
+  const session = await auth();
+  if (!session || session.user.role !== "STARTUP") return { error: "Not authorized." };
+
+  const interest = await loadBrandHeldPayment(interestId, session.user.id);
+  if (!interest) return { error: "This payment could not be found." };
+  if (interest.paymentStatus !== "HELD" || !interest.proofSubmittedAt) {
+    return { error: "There's no submitted post to approve on this payment." };
   }
-  if (interest.paymentStatus !== "HELD") {
-    throw new Error("This payment is not currently held.");
+  if (interest.disputedAt) return { error: "You reported a problem on this payment — we'll settle it from here." };
+
+  return releaseHeldPayment(interestId, "approved");
+}
+
+// Brand says the post isn't what was agreed (missing, taken down, wrong
+// content). Freezes the payment — neither approval nor the daily job can
+// release it — until an admin releases or refunds it from /admin.
+export async function reportProblemAction(
+  interestId: string,
+  _prevState: PaymentActionState,
+  formData: FormData,
+): Promise<PaymentActionState> {
+  const session = await auth();
+  if (!session || session.user.role !== "STARTUP") return { error: "Not authorized." };
+
+  const parsed = reportProblemSchema.safeParse(Object.fromEntries(formData));
+  if (!parsed.success) {
+    return { error: parsed.error.issues[0]?.message ?? "Tell us what's wrong in a sentence or two." };
   }
 
-  // Same atomic-claim-before-Stripe-call pattern as releasePaymentAction —
-  // see the comment there for why. Here it guards against a double refund.
+  const interest = await loadBrandHeldPayment(interestId, session.user.id);
+  if (!interest) return { error: "This payment could not be found." };
+  if (interest.disputedAt) return { error: "You already reported a problem — we're looking into it." };
+
+  // Claimed like a release, so a report and the daily job (or a double
+  // tap) can't both win: whichever updates the still-open payment first.
   const claimed = await prisma.interest.updateMany({
-    where: { id: interestId, requestId: interest.requestId, paymentStatus: "HELD" },
-    data: { paymentStatus: "REFUNDED", refundedAt: new Date() },
+    where: { id: interestId, paymentStatus: "HELD", disputedAt: null, proofSubmittedAt: { not: null } },
+    data: { disputedAt: new Date(), disputeReason: parsed.data.reason },
   });
   if (claimed.count === 0) {
-    throw new Error("This payment is not currently held.");
+    return { error: "This payment can't be put on hold anymore — it may have just been released. Refresh the page." };
   }
 
-  // Nothing was ever transferred out at HELD (separate charges and
-  // transfers — the transfer only happens on release), so a plain refund
-  // of the original charge is the whole reversal; no transfer to claw back.
-  let refund;
-  try {
-    refund = await stripe.refunds.create(
-      { charge: interest.stripeChargeId! },
-      { idempotencyKey: `refund-${interestId}` },
-    );
-  } catch {
-    await prisma.interest.update({ where: { id: interestId }, data: { paymentStatus: "HELD", refundedAt: null } });
-    throw new Error("Refunding the payment failed. Please try again.");
-  }
-
-  await prisma.interest.update({
-    where: { id: interestId },
-    data: { stripeRefundId: refund.id },
-  });
-
+  const brand = interest.request.startup.companyName;
+  const title = interest.request.title;
   await notify(
     interest.creator.userId,
-    `${startup.companyName} cancelled and refunded the payment for "${interest.request.title}"`,
+    `${brand} reported a problem with your post for "${title}" — the payment is on hold while we look into it`,
     "/dashboard/creator/payments",
     "payments",
   );
+  const admins = await prisma.user.findMany({ where: { role: "ADMIN" }, select: { id: true } });
+  await Promise.all(
+    admins.map((a) =>
+      notify(
+        a.id,
+        `Payment dispute: ${brand} reported a problem with ${interest.creator.displayName}'s post for "${title}" (${formatCents(interest.amountCents!)})`,
+        "/admin",
+        "payments",
+      ),
+    ),
+  );
 
-  revalidatePath(`/dashboard/startup/requests/${interest.requestId}`);
-  revalidatePath("/dashboard/startup/payments");
-  revalidatePath("/dashboard/creator/payments");
+  await revalidateOfferPaths(interest.requestId);
+  revalidatePath("/admin");
+  return { success: true };
+}
+
+// Brand cancels a payment the creator hasn't submitted a post for yet —
+// e.g. they never delivered. Once a post is submitted, a refund only
+// happens through a reported problem that an admin settles.
+export async function refundPaymentAction(interestId: string): Promise<MoneyMoveResult> {
+  const session = await auth();
+  if (!session || session.user.role !== "STARTUP") return { error: "Not authorized." };
+
+  const interest = await loadBrandHeldPayment(interestId, session.user.id);
+  if (!interest) return { error: "This payment could not be found." };
+
+  return refundHeldPayment(interestId, "brand");
 }

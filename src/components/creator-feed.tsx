@@ -5,6 +5,8 @@ import { SwipeCardStack } from "@/components/swipe-card-stack";
 
 type RequestEntry = {
   id: string;
+  startupId: string;
+  isBrandFavorited: boolean;
   title: string;
   description: string;
   niche: string;

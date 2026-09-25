@@ -246,6 +246,34 @@ export async function expressInterestAction(requestId: string) {
   revalidatePath("/dashboard/creator");
 }
 
+async function requireCreatorProfileId() {
+  const session = await auth();
+  if (!session || session.user.role !== "CREATOR") throw new Error("Not authorized.");
+  const creator = await prisma.creatorProfile.findUniqueOrThrow({
+    where: { userId: session.user.id },
+    select: { id: true },
+  });
+  return creator.id;
+}
+
+// Remembers a left swipe so the request stays out of the Feed on later
+// visits. Deliberately no revalidatePath (unlike expressInterestAction):
+// re-rendering the Feed would remount the swipe stack and drop its undo
+// state — the card is already gone locally anyway.
+export async function passRequestAction(requestId: string) {
+  const creatorId = await requireCreatorProfileId();
+  await prisma.requestPass.upsert({
+    where: { creatorId_requestId: { creatorId, requestId } },
+    create: { creatorId, requestId },
+    update: {},
+  });
+}
+
+export async function undoPassAction(requestId: string) {
+  const creatorId = await requireCreatorProfileId();
+  await prisma.requestPass.deleteMany({ where: { creatorId, requestId } });
+}
+
 // Lets a creator start a conversation directly from a brand's Discover
 // profile, picking which of the brand's matching requests it's about —
 // same underlying "interest" as expressInterestAction, just landing in the

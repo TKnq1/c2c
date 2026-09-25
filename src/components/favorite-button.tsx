@@ -4,6 +4,7 @@ import { useRef, useState } from "react";
 import { FiStar } from "react-icons/fi";
 import { FaStar } from "react-icons/fa";
 import { toast } from "@/lib/toast";
+import { errorMessage } from "@/lib/error-message";
 
 export function FavoriteButton({
   id,
@@ -54,7 +55,7 @@ export function FavoriteButton({
     } catch (err) {
       setFavorited(!next);
       onToggle?.(id, !next);
-      toast.error(err instanceof Error ? err.message : "Something went wrong.");
+      toast.error(errorMessage(err));
     } finally {
       pendingRef.current = false;
     }

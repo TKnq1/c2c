@@ -18,7 +18,7 @@ export function FloatingBackButton() {
       // Same tab-bar clearance as Toaster (see toaster.tsx) — a fixed
       // bottom-right element on a route with the mobile tab bar needs the
       // same offset or it ends up half-hidden behind it.
-      className="animate-pop-in fixed bottom-[calc(env(safe-area-inset-bottom)+84px)] right-4 md:bottom-6 z-40 flex h-14 w-14 items-center justify-center rounded-full bg-ink text-paper shadow-lg transition hover:bg-graphite no-print"
+      className="animate-pop-in fixed bottom-[calc(var(--safe-bottom)+84px)] right-4 md:bottom-6 z-40 flex h-14 w-14 items-center justify-center rounded-full bg-ink text-paper shadow-lg transition hover:bg-graphite no-print"
     >
       <IoArrowBack className="h-6 w-6" />
     </button>

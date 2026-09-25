@@ -245,8 +245,24 @@ model CreatorProfile {
   interests   Interest[]
   reviews     Review[]
   favoritedBy Favorite[]
+  passes      RequestPass[]
 
   @@index([stripeAccountId])
+}
+
+// A creator swiping a request away in their Feed, so it doesn't come back
+// on the next visit. Only the Feed reads this — it doesn't block anything
+// else (the creator can still message the brand about that request from
+// its profile). Undo deletes the row.
+model RequestPass {
+  id        String         @id @default(cuid())
+  creatorId String
+  creator   CreatorProfile @relation(fields: [creatorId], references: [id], onDelete: Cascade)
+  requestId String
+  request   Request        @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  createdAt DateTime       @default(now())
+
+  @@unique([creatorId, requestId])
 }
 
 model Favorite {
@@ -301,6 +317,7 @@ model Request {
   createdAt       DateTime       @default(now())
 
   interests Interest[]
+  passes    RequestPass[]
 
   @@index([startupId, createdAt])
   @@index([niche])
@@ -352,6 +369,16 @@ model Interest {
   releasedAt       DateTime?
   refundedAt       DateTime?
   proofUrl         String?
+  // The approval step between "posted" and "paid out" — paymentStatus stays
+  // HELD throughout. The creator submits the link to their post
+  // (proofSubmittedAt); the brand then approves it, which releases the
+  // money right away, or reports a problem (disputedAt), which freezes it
+  // until an admin releases or refunds it from /admin. No answer within
+  // RELEASE_REVIEW_DAYS and it's released automatically (see
+  // api/cron/release-payments).
+  proofSubmittedAt DateTime?
+  disputedAt       DateTime?
+  disputeReason    String?
 
   // Stripe identifiers for the real money movement behind this interest —
   // separate charges & transfers pattern (see src/lib/actions/payments.ts):
@@ -380,6 +407,8 @@ model Interest {
 
   @@unique([requestId, creatorId])
   @@index([creatorId, paymentStatus])
+  // The daily auto-release job's lookup: HELD payments past their review window.
+  @@index([paymentStatus, proofSubmittedAt])
   @@index([creatorId, depositStatus])
 }
 

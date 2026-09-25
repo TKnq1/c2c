@@ -1,7 +1,9 @@
 import { prisma } from "@/lib/prisma";
 import { formatCents } from "@/lib/format";
 import { ActionButton } from "@/components/action-button";
+import { ConfirmActionButton } from "@/components/confirm-action-button";
 import { resolveReportAction, dismissReportAction } from "@/lib/actions/moderation";
+import { refundDisputedPaymentAction, releaseDisputedPaymentAction } from "@/lib/actions/disputes";
 import { PRO_SUBSCRIPTION_PRICE_CENTS } from "@/lib/constants";
 
 export default async function AdminOverviewPage() {
@@ -66,6 +68,12 @@ export default async function AdminOverviewPage() {
       orderBy: { createdAt: "desc" },
     }),
   ]);
+  // Oldest first — the money has been frozen longest there.
+  const disputes = await prisma.interest.findMany({
+    where: { paymentStatus: "HELD", disputedAt: { not: null } },
+    include: { creator: { include: { user: true } }, request: { include: { startup: { include: { user: true } } } } },
+    orderBy: { disputedAt: "asc" },
+  });
 
   const mrrCents = proSubscribers * PRO_SUBSCRIPTION_PRICE_CENTS;
   const totalVolumeCents = volumeAgg._sum.amountCents ?? 0;
@@ -77,7 +85,7 @@ export default async function AdminOverviewPage() {
       <div>
         <h1 className="font-display text-title-1 font-bold">Admin overview</h1>
         <p className="text-sm text-neutral-600 mt-1 dark:text-neutral-400">
-          Platform-wide snapshot — mostly read-only, aside from resolving reports below.
+          Platform-wide snapshot — mostly read-only, aside from settling payment disputes and resolving reports below.
         </p>
       </div>
 
@@ -118,6 +126,68 @@ export default async function AdminOverviewPage() {
         <p className="text-xs text-neutral-500 mt-1 dark:text-neutral-400">
           Across {volumeCount} non-refunded payments — real escrow via Stripe.
         </p>
+      </div>
+
+      <div>
+        <h2 className="font-semibold mb-1">Payment disputes ({disputes.length})</h2>
+        <p className="text-sm text-neutral-500 mb-3 dark:text-neutral-400">
+          A brand reported a problem with a creator&apos;s post, so the payment is frozen. Check the post, contact both
+          sides by email, then release it to the creator or refund the brand.
+        </p>
+        {disputes.length === 0 ? (
+          <p className="text-sm text-neutral-500 dark:text-neutral-400">Nothing to settle.</p>
+        ) : (
+          <div className="flex flex-col gap-2">
+            {disputes.map((d) => (
+              <div key={d.id} className="rounded-xl border border-ink/10 px-4 py-3 flex flex-col gap-1.5">
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-sm">
+                    <span className="font-medium">{d.request.startup.companyName}</span> →{" "}
+                    <span className="font-medium">{d.creator.displayName}</span> · {d.request.title}
+                  </span>
+                  <span className="text-sm font-medium shrink-0">{formatCents(d.amountCents!)}</span>
+                </div>
+                <p className="text-sm text-neutral-700 dark:text-neutral-300">“{d.disputeReason}”</p>
+                <p className="text-xs text-neutral-500 dark:text-neutral-400">
+                  {d.proofUrl && (
+                    <>
+                      <a href={d.proofUrl} target="_blank" rel="noopener noreferrer" className="underline">
+                        View post
+                      </a>
+                      {" · "}
+                    </>
+                  )}
+                  Brand: {d.request.startup.user.email} · Creator: {d.creator.user.email} · Reported{" "}
+                  {d.disputedAt!.toLocaleDateString("en-US")}
+                </p>
+                <div className="flex items-center gap-4 mt-1">
+                  <ConfirmActionButton
+                    action={releaseDisputedPaymentAction.bind(null, d.id)}
+                    successMessage="Released to the creator."
+                    title="Release to the creator?"
+                    description={`${d.creator.displayName} gets ${formatCents(d.payoutCents!)} (after the platform fee) and the dispute is closed. This can't be undone.`}
+                    confirmLabel="Release"
+                    pendingLabel="Releasing…"
+                    className="text-xs font-medium underline disabled:opacity-50"
+                  >
+                    Release to creator
+                  </ConfirmActionButton>
+                  <ConfirmActionButton
+                    action={refundDisputedPaymentAction.bind(null, d.id)}
+                    successMessage="Refunded to the brand."
+                    title="Refund the brand?"
+                    description={`${d.request.startup.companyName} gets the full ${formatCents(d.amountCents!)} back and ${d.creator.displayName} isn't paid. This can't be undone.`}
+                    confirmLabel="Refund"
+                    pendingLabel="Refunding…"
+                    className="text-xs font-medium underline disabled:opacity-50"
+                  >
+                    Refund brand
+                  </ConfirmActionButton>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       <div>

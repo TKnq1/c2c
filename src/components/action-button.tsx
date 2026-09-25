@@ -2,6 +2,7 @@
 
 import { useTransition } from "react";
 import { toast } from "@/lib/toast";
+import { errorMessage } from "@/lib/error-message";
 
 type Props = {
   action: () => Promise<void>;
@@ -10,6 +11,7 @@ type Props = {
   className?: string;
   pendingChildren?: React.ReactNode;
   confirmMessage?: string;
+  onSuccess?: () => void;
 };
 
 // Drop-in replacement for `<form action={serverAction.bind(...)}><button>`
@@ -24,6 +26,7 @@ export function ActionButton({
   className,
   pendingChildren,
   confirmMessage,
+  onSuccess,
 }: Props) {
   const [pending, startTransition] = useTransition();
 
@@ -38,8 +41,9 @@ export function ActionButton({
           try {
             await action();
             toast.success(successMessage);
+            onSuccess?.();
           } catch (err) {
-            toast.error(err instanceof Error ? err.message : "Something went wrong.");
+            toast.error(errorMessage(err));
           }
         });
       }}

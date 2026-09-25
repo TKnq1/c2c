@@ -5,7 +5,9 @@ import { useRouter } from "next/navigation";
 import type { PaymentStatus, DepositStatus } from "@prisma/client";
 import { bulkSendOfferAction } from "@/lib/actions/payments";
 import { InterestedCreatorRow } from "@/components/interested-creator-row";
+import type { PaymentStage } from "@/components/payment-status-badge";
 import { toast } from "@/lib/toast";
+import { errorMessage } from "@/lib/error-message";
 
 type InterestEntry = {
   id: string;
@@ -15,6 +17,7 @@ type InterestEntry = {
   email: string;
   platforms: { platform: string; followerCount: number }[];
   paymentStatus: PaymentStatus | null;
+  paymentStage: PaymentStage | null;
   amountCents: number | null;
   payoutCents: number | null;
   depositStatus: DepositStatus | null;
@@ -54,7 +57,7 @@ export function BulkInterestedCreatorsList({
       setSelected(new Set());
       router.refresh();
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Something went wrong.");
+      toast.error(errorMessage(err));
     } finally {
       setSending(false);
     }

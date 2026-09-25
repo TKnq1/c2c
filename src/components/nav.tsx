@@ -38,9 +38,10 @@ const ZERO_COUNTS: NavCounts = { unreadCount: 0, unreadMessages: 0, pendingPayme
 // up the more times the app soft-navigates — referencing it live in CSS on
 // every route change let that growth show up as the whole nav drifting
 // further down with each tap. Measuring it once via a throwaway probe
-// element and freezing the pixel value in state sidesteps that: the notch
-// doesn't change size mid-session, so there was never a reason to let the
-// browser keep recomputing it.
+// element and freezing the pixel values as --safe-top/--safe-bottom on
+// <html> sidesteps that for everything that reads those variables (nav,
+// chat thread, toasts, dialogs): the notch doesn't change size mid-session,
+// so there was never a reason to let the browser keep recomputing it.
 function measureSafeAreaInset(side: "top" | "bottom"): number {
   const probe = document.createElement("div");
   probe.style.cssText = `position:fixed;${side}:0;height:env(safe-area-inset-${side});width:0;visibility:hidden;pointer-events:none;`;
@@ -67,6 +68,7 @@ function getPageTitle(pathname: string) {
   if (pathname === "/dashboard/creator" || pathname === "/dev-swipe-demo") return "Feed";
   if (pathname === "/dashboard/creator/discover") return "Discover";
   if (pathname === "/dashboard/messages") return "Messages";
+  if (pathname === "/dashboard/creator/payments" || pathname === "/dashboard/startup/payments") return "Payments";
   return null;
 }
 
@@ -84,7 +86,6 @@ export function Nav() {
   const { isBlocked } = useNavigationBlocker();
   const [role, setRole] = useState<Role | null>(null);
   const [counts, setCounts] = useState<NavCounts>(ZERO_COUNTS);
-  const [safeArea, setSafeArea] = useState({ top: 0, bottom: 0 });
 
   const showNav = wantsNav(pathname);
 
@@ -101,13 +102,11 @@ export function Nav() {
   // Empty deps — measured exactly once for the life of this mounted Nav
   // (which itself never unmounts across navigations, see the comment on
   // the component below), not on every route change. See
-  // measureSafeAreaInset above for why that matters. A genuine one-time DOM
-  // read has nowhere else to report its result from, so this is the case
-  // the lint rule's own "subscribe for updates, setState in a callback"
-  // allowance describes — just with no async gap to hang that callback off.
+  // measureSafeAreaInset above for why that matters.
   useLayoutEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setSafeArea({ top: measureSafeAreaInset("top"), bottom: measureSafeAreaInset("bottom") });
+    const root = document.documentElement.style;
+    root.setProperty("--safe-top", `${measureSafeAreaInset("top")}px`);
+    root.setProperty("--safe-bottom", `${measureSafeAreaInset("bottom")}px`);
   }, []);
 
   useEffect(() => {
@@ -155,7 +154,7 @@ export function Nav() {
           { href: "/dashboard/startup", label: "Requests", badge: 0 },
           { href: "/dashboard/startup/discover", label: "Discover", badge: 0 },
           { href: "/dashboard/messages", label: "Messages", badge: unreadMessages },
-          { href: "/dashboard/startup/payments", label: "Payments", badge: 0 },
+          { href: "/dashboard/startup/payments", label: "Payments", badge: pendingPayments },
           { href: "/dashboard/startup/settings", label: "Settings", badge: 0 },
         ]
       : [
@@ -180,15 +179,17 @@ export function Nav() {
   // which was never cramped in the first place.
   const hideOnMobile = pathname.startsWith("/dashboard/messages/");
   const pageTitle = getPageTitle(pathname);
-  // Matches heart doesn't belong on the Messages pages — you're either
-  // already in a conversation or browsing your inbox, not looking to match.
-  const hideMatchesLink = pathname.startsWith("/dashboard/messages");
+  // The heart is the way into Your matches, so it only shows where you're
+  // doing the matching — the Feed you swipe in, and Discover. On Messages,
+  // Payments, Settings or the matches page itself it was just clutter.
+  const showMatchesLink =
+    role === "CREATOR" &&
+    (pathname === "/dashboard/creator" || pathname === "/dashboard/creator/discover" || pathname === "/dev-swipe-demo");
 
   return (
     <>
       <header
-        style={{ paddingTop: safeArea.top }}
-        className={`border-b border-ink/10 no-print ${hideOnMobile ? "hidden md:block" : ""}`}
+        className={`border-b border-ink/10 pt-[var(--safe-top)] no-print ${hideOnMobile ? "hidden md:block" : ""}`}
       >
         <div className="relative max-w-5xl mx-auto flex items-center justify-between px-6 py-3">
           <Link href={base} onNavigate={onNavigate} className="shrink-0">
@@ -227,12 +228,12 @@ export function Nav() {
                 {l.badge > 0 && <NavBadge count={l.badge} />}
               </Link>
             ))}
-            {role === "CREATOR" && !hideMatchesLink && <MatchesLink onNavigate={onNavigate} />}
+            {showMatchesLink && <MatchesLink onNavigate={onNavigate} />}
             <NotificationsLink unreadCount={unreadCount} onNavigate={onNavigate} />
           </nav>
 
           <div className="flex items-center gap-4 md:hidden">
-            {role === "CREATOR" && !hideMatchesLink && <MatchesLink onNavigate={onNavigate} />}
+            {showMatchesLink && <MatchesLink onNavigate={onNavigate} />}
             <NotificationsLink unreadCount={unreadCount} onNavigate={onNavigate} />
           </div>
         </div>
@@ -242,8 +243,7 @@ export function Nav() {
           app-style, instead of behind a hamburger drawer. */}
       <nav
         aria-label="Main"
-        style={{ paddingBottom: Math.max(safeArea.bottom, 8) }}
-        className={`md:hidden fixed inset-x-0 bottom-0 z-40 rounded-t-[20px] border-t border-ink/10 bg-background no-print ${
+        className={`md:hidden fixed inset-x-0 bottom-0 z-40 rounded-t-[20px] border-t border-ink/10 bg-background pb-[max(var(--safe-bottom),8px)] no-print ${
           hideOnMobile ? "hidden" : ""
         }`}
       >

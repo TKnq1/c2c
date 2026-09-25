@@ -136,8 +136,24 @@ export const sendOfferSchema = z.object({
   amount: dollarsToCents,
 });
 
-export const releasePaymentSchema = z.object({
-  proofUrl: optionalUrl,
+// Required now — it's what the brand approves the payment against. http(s)
+// only: new URL() happily accepts "javascript:" too, and this ends up as a
+// link the brand clicks.
+export const submitPostSchema = z.object({
+  proofUrl: z
+    .string()
+    .trim()
+    .min(1, "Paste the link to your post.")
+    .url("That doesn't look like a link — paste the full address of your post.")
+    .refine((url) => /^https?:\/\//i.test(url), "Use the full link, starting with https://"),
+});
+
+export const reportProblemSchema = z.object({
+  reason: z
+    .string()
+    .trim()
+    .min(10, "Tell us what's wrong in a sentence or two.")
+    .max(1000, "Keep it under 1000 characters."),
 });
 
 export const requestDepositSchema = z.object({
