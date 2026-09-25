@@ -262,16 +262,19 @@ body.dashboard-shell {
     padding: 0;
   }
 
-  /* Pinned to the part of the screen that's actually visible — the whole
-     screen normally, just the area above the keyboard while typing — so
-     the composer sits on top of the keyboard and only the messages scroll.
-     --vvh/--vv-top come from ChatViewport; the fallbacks are what the page
-     looks like before it runs (keyboard closed). */
-  .chat-thread {
-    position: fixed;
-    inset-inline: 0;
+  /* While a chat is open the page is exactly as tall as what's visible —
+     the whole screen normally, just the area above the keyboard while
+     typing — so the composer sits right on top of the keyboard and only
+     the messages scroll. --vvh/--vv-top come from ChatViewport; the
+     fallbacks are what the page looks like before it runs (keyboard
+     closed). position: relative + top rather than a transform, which
+     would turn <body> into the containing block for everything fixed. */
+  body.dashboard-shell:has(.chat-thread) {
+    position: relative;
     top: var(--vv-top, 0px);
     height: var(--vvh, 100dvh);
+    /* <body>'s own min-h-full would otherwise hold it at full screen height. */
+    min-height: 0;
   }
 
   /* The home-indicator inset is under the keyboard while it's up — keeping

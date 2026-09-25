@@ -20,6 +20,7 @@ import {
 } from "react-icons/io5";
 import { Logo } from "@/components/logo";
 import { useNavigationBlocker } from "@/lib/navigation-blocker";
+import { isTextField, resetPageScroll } from "@/lib/keyboard";
 
 const TAB_ICONS: Record<string, { outline: IconType; filled: IconType }> = {
   Requests: { outline: IoHomeOutline, filled: IoHome },
@@ -108,6 +109,28 @@ export function Nav() {
     root.setProperty("--safe-top", `${measureSafeAreaInset("top")}px`);
     root.setProperty("--safe-bottom", `${measureSafeAreaInset("bottom")}px`);
   }, []);
+
+  // iOS scrolls the whole page to bring a focused field above the keyboard
+  // (it doesn't resize the page — see ChatViewport) and doesn't always
+  // scroll it back once the keyboard is gone, leaving everything — the
+  // fixed tab bar included — shifted up until a few taps nudge it down.
+  // Dashboard pages never scroll at the page level, so whatever's left
+  // once no field has focus is put back. Deferred a frame: focus moves
+  // before the keyboard has finished closing.
+  useEffect(() => {
+    if (!showNav) return;
+    const vv = window.visualViewport;
+    const settle = () =>
+      requestAnimationFrame(() => {
+        if (!isTextField(document.activeElement)) resetPageScroll();
+      });
+    document.addEventListener("focusout", settle);
+    vv?.addEventListener("resize", settle);
+    return () => {
+      document.removeEventListener("focusout", settle);
+      vv?.removeEventListener("resize", settle);
+    };
+  }, [showNav]);
 
   useEffect(() => {
     if (!showNav) return;
