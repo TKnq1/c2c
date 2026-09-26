@@ -80,6 +80,9 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     <html
       lang="en"
       className={`${lato.variable} h-full antialiased scroll-smooth`}
+      // Tells the router to switch scroll-smooth off while it scrolls to
+      // the top on a navigation — a tab change shouldn't glide.
+      data-scroll-behavior="smooth"
       suppressHydrationWarning
     >
       <head>

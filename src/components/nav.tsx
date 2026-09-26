@@ -35,23 +35,6 @@ export type NavCounts = { unreadCount: number; unreadMessages: number; pendingPa
 
 const ZERO_COUNTS: NavCounts = { unreadCount: 0, unreadMessages: 0, pendingPayments: 0 };
 
-// iOS standalone PWAs have a known bug where env(safe-area-inset-*) creeps
-// up the more times the app soft-navigates — referencing it live in CSS on
-// every route change let that growth show up as the whole nav drifting
-// further down with each tap. Measuring it once via a throwaway probe
-// element and freezing the pixel values as --safe-top/--safe-bottom on
-// <html> sidesteps that for everything that reads those variables (nav,
-// chat thread, toasts, dialogs): the notch doesn't change size mid-session,
-// so there was never a reason to let the browser keep recomputing it.
-function measureSafeAreaInset(side: "top" | "bottom"): number {
-  const probe = document.createElement("div");
-  probe.style.cssText = `position:fixed;${side}:0;height:env(safe-area-inset-${side});width:0;visibility:hidden;pointer-events:none;`;
-  document.body.appendChild(probe);
-  const value = probe.getBoundingClientRect().height;
-  document.body.removeChild(probe);
-  return value;
-}
-
 // /dev-swipe-demo is a throwaway preview route (fake data, no real
 // dashboard layout) that still wants the real chrome around it — see that
 // file for why. Everything else that should show Nav lives under
@@ -90,25 +73,16 @@ export function Nav() {
 
   const showNav = wantsNav(pathname);
 
-  // dashboard-shell (see globals.css) locks the body to one viewport tall
-  // with internal scroll only, which is what lets the Feed page opt out of
-  // page-level scroll entirely. Every other route keeps normal document
-  // scroll. Nav is the one thing that's always mounted and already knows
-  // which kind of route this is, so it owns the toggle — useLayoutEffect,
-  // not useEffect, so it lands before paint instead of after.
+  // dashboard-shell (see globals.css) pins the body to the screen with
+  // internal scroll only — no page underneath for iOS to move, and what lets
+  // the Feed page opt out of page-level scroll entirely. Every other route
+  // keeps normal document scroll. Nav is the one thing that's always
+  // mounted and already knows which kind of route this is, so it owns the
+  // toggle — useLayoutEffect, not useEffect, so it lands before paint
+  // instead of after.
   useLayoutEffect(() => {
     document.body.classList.toggle("dashboard-shell", showNav);
   }, [showNav]);
-
-  // Empty deps — measured exactly once for the life of this mounted Nav
-  // (which itself never unmounts across navigations, see the comment on
-  // the component below), not on every route change. See
-  // measureSafeAreaInset above for why that matters.
-  useLayoutEffect(() => {
-    const root = document.documentElement.style;
-    root.setProperty("--safe-top", `${measureSafeAreaInset("top")}px`);
-    root.setProperty("--safe-bottom", `${measureSafeAreaInset("bottom")}px`);
-  }, []);
 
   // iOS scrolls the whole page to bring a focused field above the keyboard
   // (it doesn't resize the page — see ChatViewport) and doesn't always
