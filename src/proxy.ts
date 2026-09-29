@@ -60,6 +60,13 @@ export default auth((req) => {
     }
   }
 
+  // /dev-* are local review tools (phone frame, swipe demo with fake data)
+  // — never reachable in a production build, where a store reviewer or a
+  // real user could stumble onto them.
+  if (process.env.NODE_ENV === "production" && pathname.startsWith("/dev-")) {
+    return NextResponse.rewrite(new URL("/__not-found", req.url));
+  }
+
   const isAdminPath = pathname.startsWith("/admin");
   const isOnboardingPath = pathname.startsWith("/onboarding");
   if (!pathname.startsWith("/dashboard") && !isAdminPath && !isOnboardingPath) return;
