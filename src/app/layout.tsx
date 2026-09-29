@@ -2,6 +2,7 @@ import { Suspense } from "react";
 import type { Metadata, Viewport } from "next";
 import { Lato } from "next/font/google";
 import { Nav } from "@/components/nav";
+import { NativePushBridge } from "@/components/native-push-bridge";
 import { PageTransition } from "@/components/page-transition";
 import { Toaster } from "@/components/toaster";
 import { TopLoadingBar } from "@/components/top-loading-bar";
@@ -119,6 +120,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           <Nav />
           <PageTransition>{children}</PageTransition>
           <Toaster />
+          <NativePushBridge />
         </NavigationBlockerProvider>
       </body>
     </html>

@@ -38,6 +38,7 @@ model User {
   emailVerificationTokens EmailVerificationToken[]
   recoveryCodes           RecoveryCode[]
   loginAttempts           LoginAttempt[]
+  nativePushTokens        NativePushToken[]
   reportsMade             Report[]                 @relation("ReportsMade")
   reportsReceived         Report[]                 @relation("ReportsReceived")
   blocksMade              Block[]                  @relation("BlocksMade")
@@ -89,6 +90,26 @@ model PushSubscription {
   p256dh    String
   auth      String
   createdAt DateTime @default(now())
+
+  @@index([userId])
+}
+
+enum NativePlatform {
+  IOS
+  ANDROID
+}
+
+// Device tokens from the Capacitor store apps — APNs tokens on iOS, FCM
+// tokens on Android. Kept apart from PushSubscription (browser Web Push),
+// which needs endpoint/p256dh/auth instead of a single token.
+model NativePushToken {
+  id        String         @id @default(cuid())
+  userId    String
+  user      User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  token     String         @unique
+  platform  NativePlatform
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
 
   @@index([userId])
 }
@@ -342,18 +363,18 @@ enum DepositStatus {
 }
 
 model Interest {
-  id        String         @id @default(cuid())
-  requestId String
-  request   Request        @relation(fields: [requestId], references: [id], onDelete: Cascade)
-  creatorId String
-  creator   CreatorProfile @relation(fields: [creatorId], references: [id], onDelete: Cascade)
-  createdAt DateTime       @default(now())
+  id          String         @id @default(cuid())
+  requestId   String
+  request     Request        @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  creatorId   String
+  creator     CreatorProfile @relation(fields: [creatorId], references: [id], onDelete: Cascade)
+  createdAt   DateTime       @default(now())
   // Who started this thread — a creator applying to an open request, or a
   // startup reaching out to a creator directly. Both paths create the same
   // Interest row, so without this, a startup messaging a creator makes that
   // creator look (to both sides) like they'd expressed interest on their
   // own — they hadn't. Drives how each side's UI describes/labels the row.
-  initiatedBy Role @default(CREATOR)
+  initiatedBy Role           @default(CREATOR)
 
   amountCents      Int?
   platformFeeCents Int?
