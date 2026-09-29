@@ -2,11 +2,18 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { PLATFORM_FEE_RATE, PRO_PLATFORM_FEE_RATE, PRO_SUBSCRIPTION_PRICE_CENTS, RELEASE_REVIEW_DAYS } from "@/lib/constants";
 import { formatCents } from "@/lib/format";
+import { getNativePlatform } from "@/lib/native-app-server";
 
 export const metadata: Metadata = {
   title: "FAQ",
   description: "How matching, payments, and reviews work on C2C.",
 };
+
+// Stands in for the Pro upsell sentence in the payments answer, so the iOS
+// app (which can't sell Pro — App Store rule 3.1.1) can drop it.
+const PRO_OFFER_MARKER = "{{pro-offer}}";
+const PRO_OFFER_SENTENCE = ` Brands doing regular volume can subscribe to Pro for ${formatCents(PRO_SUBSCRIPTION_PRICE_CENTS)}/month to drop that to ${PRO_PLATFORM_FEE_RATE * 100}%.`;
+const PRO_QUESTION = "What's the Pro plan?";
 
 const FAQS: { question: string; answer: string }[] = [
   {
@@ -22,10 +29,10 @@ const FAQS: { question: string; answer: string }[] = [
   {
     question: "How do payments work?",
     answer:
-      `A brand pays a creator through the platform, not directly. The payment is held in escrow until the creator posts the content and submits the link. The brand then has ${RELEASE_REVIEW_DAYS} days to approve it — which releases it right away — or to report a problem; if the brand doesn't respond, it's released automatically. The platform keeps a ${PLATFORM_FEE_RATE * 100}% fee out of every payment by default. Brands doing regular volume can subscribe to Pro for ${formatCents(PRO_SUBSCRIPTION_PRICE_CENTS)}/month to drop that to ${PRO_PLATFORM_FEE_RATE * 100}%.`,
+      `A brand pays a creator through the platform, not directly. The payment is held in escrow until the creator posts the content and submits the link. The brand then has ${RELEASE_REVIEW_DAYS} days to approve it — which releases it right away — or to report a problem; if the brand doesn't respond, it's released automatically. The platform keeps a ${PLATFORM_FEE_RATE * 100}% fee out of every payment by default.${PRO_OFFER_MARKER}`,
   },
   {
-    question: "What's the Pro plan?",
+    question: PRO_QUESTION,
     answer:
       `An optional monthly subscription for brands (${formatCents(PRO_SUBSCRIPTION_PRICE_CENTS)}/month) that lowers the platform fee from ${PLATFORM_FEE_RATE * 100}% to ${PRO_PLATFORM_FEE_RATE * 100}% on every offer. It pays for itself once you're sending roughly ${formatCents(Math.round(PRO_SUBSCRIPTION_PRICE_CENTS / (PLATFORM_FEE_RATE - PRO_PLATFORM_FEE_RATE)))}/month or more in offers. Billed monthly through Stripe — manage or cancel it from Settings.`,
   },
@@ -58,11 +65,18 @@ const FAQS: { question: string; answer: string }[] = [
 // Lets Google render these as an expandable rich result directly in search,
 // rather than just a plain blue link — the exact question/answer pairs
 // below, structured as https://schema.org/FAQPage expects.
-function FaqJsonLd() {
+function faqsFor(isIosApp: boolean) {
+  return FAQS.filter((f) => !isIosApp || f.question !== PRO_QUESTION).map((f) => ({
+    ...f,
+    answer: f.answer.replace(PRO_OFFER_MARKER, isIosApp ? "" : PRO_OFFER_SENTENCE),
+  }));
+}
+
+function FaqJsonLd({ faqs }: { faqs: typeof FAQS }) {
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "FAQPage",
-    mainEntity: FAQS.map((f) => ({
+    mainEntity: faqs.map((f) => ({
       "@type": "Question",
       name: f.question,
       acceptedAnswer: { "@type": "Answer", text: f.answer },
@@ -71,10 +85,12 @@ function FaqJsonLd() {
   return <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />;
 }
 
-export default function FaqPage() {
+export default async function FaqPage() {
+  const faqs = faqsFor((await getNativePlatform()) === "ios");
+
   return (
     <main className="flex-1 px-6 py-16">
-      <FaqJsonLd />
+      <FaqJsonLd faqs={faqs} />
       <div className="max-w-2xl mx-auto flex flex-col gap-8">
         <div>
           <h1 className="font-display text-title-1 font-bold">Frequently asked questions</h1>
@@ -84,7 +100,7 @@ export default function FaqPage() {
         </div>
 
         <div className="flex flex-col gap-6">
-          {FAQS.map((f) => (
+          {faqs.map((f) => (
             <div key={f.question}>
               <h2 className="font-semibold">{f.question}</h2>
               <p className="text-sm text-neutral-700 mt-1 dark:text-neutral-300">{f.answer}</p>

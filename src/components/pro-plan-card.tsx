@@ -6,7 +6,16 @@ import { ActionButton } from "@/components/action-button";
 import { formatCents } from "@/lib/format";
 import { PLATFORM_FEE_RATE, PRO_PLATFORM_FEE_RATE, PRO_SUBSCRIPTION_PRICE_CENTS } from "@/lib/constants";
 
-export function ProPlanCard({ isPro, proSince }: { isPro: boolean; proSince: Date | null }) {
+export function ProPlanCard({
+  isPro,
+  proSince,
+  canPurchase,
+}: {
+  isPro: boolean;
+  proSince: Date | null;
+  // False in the iOS app — shows the current plan without any upgrade offer.
+  canPurchase: boolean;
+}) {
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -42,6 +51,20 @@ export function ProPlanCard({ isPro, proSince }: { isPro: boolean; proSince: Dat
         >
           Cancel Pro
         </ActionButton>
+      </div>
+    );
+  }
+
+  if (!canPurchase) {
+    return (
+      <div className="rounded-2xl border border-ink/10 p-4 flex flex-col gap-2">
+        <div className="flex items-center justify-between gap-2">
+          <p className="font-medium">Standard plan</p>
+          <span className="text-xs text-neutral-500 dark:text-neutral-400">{PLATFORM_FEE_RATE * 100}% per offer</span>
+        </div>
+        <p className="text-sm text-neutral-600 dark:text-neutral-400">
+          A {PLATFORM_FEE_RATE * 100}% platform fee is included in every offer you send.
+        </p>
       </div>
     );
   }
