@@ -6,7 +6,7 @@ import { ImprintLink } from "@/components/imprint-link";
 
 export const metadata: Metadata = {
   title: "Sign up",
-  description: "Create a brand or creator account on C2C.",
+  description: "Create a brand or creator account on comtor.",
 };
 
 export default function SignupPage() {

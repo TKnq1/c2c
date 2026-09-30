@@ -4,7 +4,7 @@ import { use, useEffect } from "react";
 import type { NavCounts } from "@/components/nav";
 
 // Prefixes the browser tab's title with the unread count (e.g. "(3) Requests
-// · C2C") so new activity is noticeable even on a background tab. Next.js
+// · comtor") so new activity is noticeable even on a background tab. Next.js
 // re-renders <title> itself on every navigation — sometimes by replacing
 // the element outright rather than just mutating its text — so this reads/
 // writes through document.title (always resolves to whatever's current,

@@ -78,7 +78,7 @@ export function PushNotificationsSettings() {
 
   if (!supported) {
     return (
-      <SettingsRow label="Push notifications" hint="Not supported in this browser — add C2C to your home screen to get them." />
+      <SettingsRow label="Push notifications" hint="Not supported in this browser — add comtor to your home screen to get them." />
     );
   }
 

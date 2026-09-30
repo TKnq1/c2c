@@ -53,7 +53,7 @@ export function WelcomeOverlay() {
         }}
       >
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src="/logo.png" alt="C2C" className="dark:invert" style={{ width: LOGO_SIZE, height: LOGO_SIZE }} />
+        <img src="/logo.png" alt="comtor" className="dark:invert" style={{ width: LOGO_SIZE, height: LOGO_SIZE }} />
       </div>
     </div>
   );

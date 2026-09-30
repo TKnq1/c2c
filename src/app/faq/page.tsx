@@ -5,7 +5,7 @@ import { formatCents } from "@/lib/format";
 
 export const metadata: Metadata = {
   title: "FAQ",
-  description: "How matching, payments, and reviews work on C2C.",
+  description: "How matching, payments, and reviews work on comtor.",
 };
 
 const FAQS: { question: string; answer: string }[] = [

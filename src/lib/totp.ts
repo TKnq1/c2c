@@ -75,7 +75,7 @@ export function verifyTotpCode(base32Secret: string, code: string, at: number = 
   return false;
 }
 
-export function totpUri(base32Secret: string, email: string, issuer = "C2C"): string {
+export function totpUri(base32Secret: string, email: string, issuer = "comtor"): string {
   const label = encodeURIComponent(`${issuer}:${email}`);
   const params = new URLSearchParams({
     secret: base32Secret,

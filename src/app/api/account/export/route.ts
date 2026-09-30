@@ -71,7 +71,7 @@ export async function GET() {
   return new Response(JSON.stringify(data, null, 2), {
     headers: {
       "Content-Type": "application/json; charset=utf-8",
-      "Content-Disposition": 'attachment; filename="my-c2c-data.json"',
+      "Content-Disposition": 'attachment; filename="my-comtor-data.json"',
     },
   });
 }

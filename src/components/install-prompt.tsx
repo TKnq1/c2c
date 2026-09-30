@@ -89,10 +89,10 @@ export function InstallPrompt() {
         <p className="text-center">
           {isIOS ? (
             <>
-              Install C2C: tap Share, then <strong className="font-semibold">Add to Home Screen</strong>.
+              Install comtor: tap Share, then <strong className="font-semibold">Add to Home Screen</strong>.
             </>
           ) : (
-            "Install C2C for quicker access and a full-screen view."
+            "Install comtor for quicker access and a full-screen view."
           )}
         </p>
         {!isIOS && (

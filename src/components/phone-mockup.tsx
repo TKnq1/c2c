@@ -29,7 +29,7 @@ export function PhoneMockup({ role = "STARTUP", className }: { role?: SignupRole
       <div className="aspect-[9/19.5] w-full overflow-hidden rounded-[2.25rem] bg-paper flex flex-col">
         <div className="h-9 shrink-0" />
         <div className="flex items-center justify-between px-4 pb-3 shrink-0">
-          <span className="font-display text-sm">c2c</span>
+          <span className="font-display text-sm">comtor</span>
           <span className="text-[9px] font-medium uppercase tracking-wide text-neutral-400">
             {role === "STARTUP" ? "Discover" : "Feed"}
           </span>

@@ -28,7 +28,7 @@ export function CopyProfileLink({ url }: { url: string }) {
         Copy profile link
       </button>
       <p className="text-xs text-neutral-500 dark:text-neutral-400">
-        Only opens correctly for someone already signed in on C2C.
+        Only opens correctly for someone already signed in on comtor.
       </p>
     </div>
   );
