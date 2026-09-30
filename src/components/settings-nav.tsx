@@ -26,13 +26,13 @@ export function SettingsNav({ role }: { role: Role }) {
   return (
     <nav
       aria-label="Settings sections"
-      className="sticky top-0 z-10 bg-background px-2 py-2 border-b border-ink/10 flex items-center gap-4 overflow-x-auto scrollbar-hide text-sm text-neutral-500 dark:text-neutral-400"
+      className="sticky top-0 z-10 -mx-6 flex items-center gap-2 overflow-x-auto bg-background px-6 py-2 text-sm scrollbar-hide md:mx-0 md:px-0"
     >
       {sections.map((s) => (
         <a
           key={s.id}
           href={`#${s.id}`}
-          className="shrink-0 whitespace-nowrap hover:text-neutral-900 transition dark:hover:text-neutral-100"
+          className="shrink-0 whitespace-nowrap rounded-full bg-fog px-3.5 py-1.5 font-medium text-neutral-700 transition hover:bg-neutral-200 dark:text-neutral-300 dark:hover:bg-neutral-700"
         >
           {s.label}
         </a>

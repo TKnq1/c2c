@@ -130,7 +130,7 @@ export function DiscoverCreators({ creators }: { creators: CreatorEntry[] }) {
           onChange={(e) => setParam("minFollowers", e.target.value)}
           placeholder="Min. followers"
           aria-label="Minimum followers"
-          className="rounded-lg border border-neutral-300 px-3 py-2 w-36 dark:border-neutral-700"
+          className="rounded-[14px] border border-neutral-300 px-3 py-2.5 w-36 dark:border-neutral-700"
         />
         <Select
           value={sort}

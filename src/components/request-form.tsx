@@ -45,7 +45,7 @@ export function RequestForm({ requestId, initial }: Props) {
           type="text"
           defaultValue={initial?.title}
           required
-          className="rounded-lg border border-neutral-300 px-3 py-2 dark:border-neutral-700"
+          className="rounded-[14px] border border-neutral-300 px-3 py-2.5 dark:border-neutral-700"
         />
       </div>
       <div className="flex flex-col gap-1">
@@ -58,7 +58,7 @@ export function RequestForm({ requestId, initial }: Props) {
           defaultValue={initial?.description}
           required
           rows={5}
-          className="rounded-lg border border-neutral-300 px-3 py-2 dark:border-neutral-700"
+          className="rounded-[14px] border border-neutral-300 px-3 py-2.5 dark:border-neutral-700"
         />
       </div>
       <div className="grid grid-cols-2 gap-4">
@@ -103,7 +103,7 @@ export function RequestForm({ requestId, initial }: Props) {
           min={0}
           defaultValue={initial?.minFollowers ?? 0}
           required
-          className="rounded-lg border border-neutral-300 px-3 py-2 dark:border-neutral-700"
+          className="rounded-[14px] border border-neutral-300 px-3 py-2.5 dark:border-neutral-700"
         />
       </div>
       {state?.error && <p className="text-sm text-ink">{state.error}</p>}

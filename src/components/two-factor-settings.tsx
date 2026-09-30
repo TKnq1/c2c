@@ -26,7 +26,7 @@ export function TwoFactorSettings({ initialEnabled }: { initialEnabled: boolean 
     return (
       <div className="flex flex-col gap-3">
         <p className="text-sm font-medium text-ink">Two-factor authentication is now enabled.</p>
-        <div className="rounded border border-ink/10 bg-fog p-3">
+        <div className="rounded-[14px] bg-fog p-3">
           <p className="text-sm text-ink font-medium">Save your recovery codes</p>
           <p className="text-xs text-graphite mt-1">
             Each code works once, if you ever lose access to your authenticator app. They won&apos;t be shown
@@ -34,7 +34,7 @@ export function TwoFactorSettings({ initialEnabled }: { initialEnabled: boolean 
           </p>
           <div className="grid grid-cols-2 gap-1.5 mt-3 font-mono text-sm">
             {confirmState.recoveryCodes.map((c) => (
-              <span key={c} className="rounded bg-paper border border-ink/10 px-2 py-1 text-center">
+              <span key={c} className="rounded-lg border border-ink/10 bg-paper px-2 py-1 text-center">
                 {c}
               </span>
             ))}
@@ -43,7 +43,7 @@ export function TwoFactorSettings({ initialEnabled }: { initialEnabled: boolean 
         <button
           type="button"
           onClick={() => setAcknowledged(true)}
-          className="rounded bg-ink text-paper px-4 py-2 text-sm font-medium hover:bg-graphite transition self-start"
+          className="self-start rounded-full bg-ink px-4 py-2.5 text-sm font-medium text-paper transition hover:bg-graphite"
         >
           I&apos;ve saved these
         </button>
@@ -79,14 +79,14 @@ export function TwoFactorSettings({ initialEnabled }: { initialEnabled: boolean 
           name="password"
           type="password"
           required
-          className="rounded-lg border border-neutral-300 px-3 py-2 dark:border-neutral-700"
+          className="rounded-[14px] border border-neutral-300 px-3 py-2.5 dark:border-neutral-700"
         />
         {disableState?.error && <p className="text-sm text-ink">{disableState.error}</p>}
         <div className="flex items-center gap-2">
           <button
             type="submit"
             disabled={disablePending}
-            className="rounded bg-ink text-paper px-4 py-2 text-sm font-medium hover:bg-graphite transition disabled:opacity-50"
+            className="rounded-full bg-ink px-4 py-2.5 text-sm font-medium text-paper transition hover:bg-graphite disabled:opacity-50"
           >
             {disablePending ? "Disabling…" : "Disable 2FA"}
           </button>
@@ -125,7 +125,7 @@ export function TwoFactorSettings({ initialEnabled }: { initialEnabled: boolean 
             maxLength={6}
             required
             autoComplete="one-time-code"
-            className="rounded-lg border border-neutral-300 px-3 py-2 w-32 tracking-widest dark:border-neutral-700"
+            className="rounded-[14px] border border-neutral-300 px-3 py-2.5 w-32 tracking-widest dark:border-neutral-700"
           />
         </div>
         {confirmState?.error && <p className="text-sm text-ink">{confirmState.error}</p>}
@@ -133,7 +133,7 @@ export function TwoFactorSettings({ initialEnabled }: { initialEnabled: boolean 
           <button
             type="submit"
             disabled={confirmPending}
-            className="rounded bg-ink text-paper px-4 py-2 text-sm font-medium hover:bg-graphite transition disabled:opacity-50"
+            className="rounded-full bg-ink px-4 py-2.5 text-sm font-medium text-paper transition hover:bg-graphite disabled:opacity-50"
           >
             {confirmPending ? "Verifying…" : "Confirm"}
           </button>
@@ -164,7 +164,7 @@ export function TwoFactorSettings({ initialEnabled }: { initialEnabled: boolean 
               else setEnrollData({ secret: result.secret!, qrDataUrl: result.qrDataUrl! });
             });
           }}
-          className="rounded border border-neutral-300 px-4 py-2 text-sm font-medium hover:bg-neutral-50 transition disabled:opacity-50 shrink-0 dark:border-neutral-700 dark:hover:bg-neutral-800/50"
+          className="shrink-0 rounded-full border border-neutral-300 px-4 py-2 text-sm font-medium transition hover:border-neutral-400 disabled:opacity-50 dark:border-neutral-700"
         >
           {pendingStart ? "Starting…" : "Enable 2FA"}
         </button>

@@ -65,7 +65,7 @@ export function SignupForm({ role: controlledRole, onRoleChange }: Props = {}) {
           name="email"
           type="email"
           required
-          className="rounded-lg border border-neutral-300 px-3 py-2 dark:border-neutral-700"
+          className="rounded-[14px] border border-neutral-300 px-3 py-2.5 dark:border-neutral-700"
         />
       </div>
       <NewPasswordField name="password" />

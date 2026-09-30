@@ -94,7 +94,7 @@ export function BulkInterestedCreatorsList({
               placeholder="250.00"
               aria-label="Offer amount in euros"
               required
-              className="rounded-lg border border-neutral-300 px-3 py-2 w-32 dark:border-neutral-700"
+              className="rounded-[14px] border border-neutral-300 px-3 py-2.5 w-32 dark:border-neutral-700"
             />
             <button
               type="submit"

@@ -1,5 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { parseUserAgent } from "@/lib/user-agent";
+import { LocalDate } from "@/components/local-date";
+import { SettingsRow } from "@/components/settings-section";
 
 export async function LoginActivity({ userId }: { userId: string }) {
   const attempts = await prisma.loginAttempt.findMany({
@@ -12,17 +14,22 @@ export async function LoginActivity({ userId }: { userId: string }) {
     return <p className="text-sm text-neutral-500 dark:text-neutral-400">No login history yet.</p>;
   }
 
+  // Times in the viewer's own zone — formatted on the server they came out
+  // in UTC, an hour or two off for anyone in Germany.
   return (
-    <div className="flex flex-col gap-2">
+    <>
       {attempts.map((a) => (
-        <div key={a.id} className="flex items-center justify-between gap-3 text-sm">
-          <span className="text-neutral-700 dark:text-neutral-300">{parseUserAgent(a.userAgent)}</span>
-          <span className="text-neutral-500 text-xs whitespace-nowrap dark:text-neutral-400">
-            {a.createdAt.toLocaleString("en-US", { dateStyle: "medium", timeStyle: "short" })}
-            {a.ipAddress ? ` · ${a.ipAddress}` : ""}
-          </span>
-        </div>
+        <SettingsRow
+          key={a.id}
+          label={parseUserAgent(a.userAgent)}
+          hint={
+            <>
+              <LocalDate ms={a.createdAt.getTime()} withTime />
+              {a.ipAddress ? ` · ${a.ipAddress}` : ""}
+            </>
+          }
+        />
       ))}
-    </div>
+    </>
   );
 }

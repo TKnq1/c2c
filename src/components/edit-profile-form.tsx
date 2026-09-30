@@ -50,7 +50,7 @@ export function EditProfileForm({
           type="text"
           defaultValue={displayName}
           required
-          className="rounded-lg border border-neutral-300 px-3 py-2 dark:border-neutral-700"
+          className="rounded-[14px] border border-neutral-300 px-3 py-2.5 dark:border-neutral-700"
         />
       </div>
       <div className="flex flex-col gap-1">
@@ -88,7 +88,7 @@ export function EditProfileForm({
           maxLength={2000}
           placeholder="Tell brands a bit about yourself and your content"
           defaultValue={bio ?? ""}
-          className="rounded-lg border border-neutral-300 px-3 py-2 dark:border-neutral-700"
+          className="rounded-[14px] border border-neutral-300 px-3 py-2.5 dark:border-neutral-700"
         />
       </div>
       <div className="flex flex-col gap-1">
@@ -102,7 +102,7 @@ export function EditProfileForm({
       <button
         type="submit"
         disabled={pending}
-        className="rounded bg-ink text-paper px-4 py-2 font-medium hover:bg-graphite transition disabled:opacity-50 self-start"
+        className="w-full rounded-full bg-ink px-4 py-2.5 text-sm font-medium text-paper transition hover:bg-graphite disabled:opacity-50 sm:w-auto sm:self-start"
       >
         {pending ? "Saving…" : "Save"}
       </button>

@@ -40,7 +40,7 @@ export function SocialLinksPicker({
           {entries.map((e) => (
             <div
               key={e.platform}
-              className="flex items-center justify-between gap-3 rounded-lg border border-neutral-300 px-3 py-2 dark:border-neutral-700"
+              className="flex items-center justify-between gap-3 rounded-[14px] border border-neutral-300 px-3 py-2.5 dark:border-neutral-700"
             >
               <span className="flex items-center gap-2 text-sm truncate">
                 <PlatformIcon platform={e.platform} className="h-4 w-4 text-neutral-600 shrink-0 dark:text-neutral-400" />
@@ -79,13 +79,13 @@ export function SocialLinksPicker({
             aria-label="Profile URL"
             value={url}
             onChange={(e) => setUrl(e.target.value)}
-            className="rounded-lg border border-neutral-300 px-3 py-2 flex-1 min-w-0 dark:border-neutral-700"
+            className="rounded-[14px] border border-neutral-300 px-3 py-2.5 flex-1 min-w-0 dark:border-neutral-700"
           />
           <button
             type="button"
             onClick={addEntry}
             disabled={!selectedPlatform || url.trim() === ""}
-            className="rounded-lg border border-neutral-300 px-3 py-2 text-sm font-medium hover:bg-neutral-50 transition disabled:opacity-50 whitespace-nowrap dark:border-neutral-700 dark:hover:bg-neutral-800/50"
+            className="rounded-full border border-neutral-300 px-4 py-2 text-sm font-medium hover:border-neutral-400 transition disabled:opacity-50 whitespace-nowrap dark:border-neutral-700 dark:hover:bg-neutral-800/50"
           >
             + Add
           </button>

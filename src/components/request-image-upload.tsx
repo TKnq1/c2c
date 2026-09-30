@@ -53,7 +53,7 @@ export function RequestImageUpload({ initial }: { initial?: string | null }) {
         </div>
       )}
       <div className="flex items-center gap-3">
-        <label className="rounded-lg border border-neutral-300 px-3 py-2 text-sm font-medium hover:bg-neutral-50 transition cursor-pointer dark:border-neutral-700 dark:hover:bg-neutral-800/50">
+        <label className="rounded-full border border-neutral-300 px-4 py-2 text-sm font-medium hover:border-neutral-400 transition cursor-pointer dark:border-neutral-700 dark:hover:bg-neutral-800/50">
           Choose image
           <input
             ref={inputRef}

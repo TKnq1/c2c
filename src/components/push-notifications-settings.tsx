@@ -3,6 +3,8 @@
 import { useEffect, useState } from "react";
 import { savePushSubscriptionAction, deletePushSubscriptionAction } from "@/lib/actions/push";
 import { toast } from "@/lib/toast";
+import { SettingsRow } from "@/components/settings-section";
+import { Switch } from "@/components/switch";
 
 function urlBase64ToUint8Array(base64String: string) {
   const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
@@ -56,6 +58,7 @@ export function PushNotificationsSettings() {
   };
 
   const unsubscribe = async () => {
+    setError(undefined);
     setPending(true);
     try {
       const registration = await navigator.serviceWorker.ready;
@@ -66,31 +69,30 @@ export function PushNotificationsSettings() {
       }
       setSubscribed(false);
       toast.success("Push notifications disabled.");
+    } catch {
+      setError("Couldn't turn push notifications off — try again.");
     } finally {
       setPending(false);
     }
   };
 
   if (!supported) {
-    return <p className="text-sm text-neutral-500 dark:text-neutral-400">Push notifications aren&apos;t supported in this browser.</p>;
+    return (
+      <SettingsRow label="Push notifications" hint="Not supported in this browser — add C2C to your home screen to get them." />
+    );
   }
 
   return (
-    <div className="flex flex-col gap-2">
-      <div className="flex items-center justify-between gap-3">
-        <p className="text-sm text-neutral-600 dark:text-neutral-400">
-          {subscribed ? "Enabled for this browser." : "Get notified here even when the tab is closed."}
-        </p>
-        <button
-          type="button"
-          onClick={subscribed ? unsubscribe : subscribe}
-          disabled={pending}
-          className="rounded border border-neutral-300 px-4 py-2 text-sm font-medium hover:bg-neutral-50 transition disabled:opacity-50 shrink-0 dark:border-neutral-700 dark:hover:bg-neutral-800/50"
-        >
-          {pending ? "…" : subscribed ? "Disable" : "Enable"}
-        </button>
-      </div>
-      {error && <p className="text-sm text-ink">{error}</p>}
-    </div>
+    <SettingsRow
+      label="Push notifications"
+      hint={error ?? (subscribed ? "On for this device." : "Get notified on this device, even when the app is closed.")}
+    >
+      <Switch
+        checked={subscribed}
+        onChange={(next) => (next ? subscribe() : unsubscribe())}
+        disabled={pending}
+        label="Push notifications"
+      />
+    </SettingsRow>
   );
 }

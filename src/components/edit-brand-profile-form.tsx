@@ -52,7 +52,7 @@ export function EditBrandProfileForm({
           type="text"
           defaultValue={companyName}
           required
-          className="rounded-lg border border-neutral-300 px-3 py-2 dark:border-neutral-700"
+          className="rounded-[14px] border border-neutral-300 px-3 py-2.5 dark:border-neutral-700"
         />
       </div>
       <div className="flex flex-col gap-1">
@@ -65,7 +65,7 @@ export function EditBrandProfileForm({
           type="url"
           placeholder="https://yourbrand.com"
           defaultValue={website}
-          className="rounded-lg border border-neutral-300 px-3 py-2 dark:border-neutral-700"
+          className="rounded-[14px] border border-neutral-300 px-3 py-2.5 dark:border-neutral-700"
         />
       </div>
       <div className="flex flex-col gap-1">
@@ -96,7 +96,7 @@ export function EditBrandProfileForm({
           maxLength={2000}
           placeholder="What does your brand stand for?"
           defaultValue={description}
-          className="rounded-lg border border-neutral-300 px-3 py-2 dark:border-neutral-700"
+          className="rounded-[14px] border border-neutral-300 px-3 py-2.5 dark:border-neutral-700"
         />
       </div>
       <div className="flex flex-col gap-1">
@@ -110,14 +110,14 @@ export function EditBrandProfileForm({
           maxLength={2000}
           placeholder="Anything else creators should know before reaching out"
           defaultValue={lookingFor}
-          className="rounded-lg border border-neutral-300 px-3 py-2 dark:border-neutral-700"
+          className="rounded-[14px] border border-neutral-300 px-3 py-2.5 dark:border-neutral-700"
         />
       </div>
       {state?.error && <p className="text-sm text-ink">{state.error}</p>}
       <button
         type="submit"
         disabled={pending}
-        className="rounded bg-ink text-paper px-4 py-2 font-medium hover:bg-graphite transition disabled:opacity-50 self-start"
+        className="w-full rounded-full bg-ink px-4 py-2.5 text-sm font-medium text-paper transition hover:bg-graphite disabled:opacity-50 sm:w-auto sm:self-start"
       >
         {pending ? "Saving…" : "Save"}
       </button>

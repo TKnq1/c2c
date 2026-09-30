@@ -12,6 +12,7 @@ import { PushNotificationsSettings } from "@/components/push-notifications-setti
 import { NotificationPreferences } from "@/components/notification-preferences";
 import { DeleteAccountForm } from "@/components/delete-account-form";
 import { SettingsNav } from "@/components/settings-nav";
+import { SettingsRow, SettingsSection } from "@/components/settings-section";
 import { ConnectStripeButton } from "@/components/connect-stripe-button";
 import { LegalLinks } from "@/components/legal-links";
 import { AppearanceSettings } from "@/components/appearance-settings";
@@ -42,7 +43,6 @@ export default async function CreatorSettingsPage() {
 
   return (
     <div className="flex flex-col gap-8">
-      <h1 className="font-display text-title-1 font-bold">Settings</h1>
       <SettingsNav role="CREATOR" />
 
       <OnboardingChecklist
@@ -53,8 +53,7 @@ export default async function CreatorSettingsPage() {
         ]}
       />
 
-      <div id="profile" className="scroll-mt-16">
-        <h2 className="text-title-3 font-semibold mb-4">Profile</h2>
+      <SettingsSection id="profile" title="Profile" description="What brands see when they look at your profile.">
         <EditProfileForm
           displayName={creator.displayName}
           avatarUrl={creator.avatarUrl}
@@ -75,43 +74,48 @@ export default async function CreatorSettingsPage() {
             url: p.url ?? undefined,
           }))}
         />
-        <div className="mt-4">
+        <div className="mt-4 border-t border-ink/10 pt-4">
           <CopyProfileLink url={`${SITE_URL}/dashboard/startup/discover/${creator.id}`} />
         </div>
-      </div>
+      </SettingsSection>
 
-      <div id="appearance" className="border-t border-ink/10 pt-6 scroll-mt-16">
-        <h2 className="text-title-3 font-semibold mb-4">Appearance</h2>
+      <SettingsSection id="payouts" title="Payouts">
+        <SettingsRow
+          label={creator.stripeOnboarded ? "Connected" : creator.stripeAccountId ? "Setup not finished" : "Not connected"}
+          hint={
+            creator.stripeOnboarded
+              ? "Released payments go to your bank account."
+              : creator.stripeAccountId
+                ? "Stripe hasn't confirmed your payout account yet."
+                : "Connect Stripe so a brand's payment can reach your bank account."
+          }
+        />
+        <div>
+          <ConnectStripeButton
+            isOnboarded={creator.stripeOnboarded}
+            label={creator.stripeOnboarded ? undefined : creator.stripeAccountId ? "Continue setup" : "Connect Stripe"}
+            embedClassName="mt-1"
+          />
+        </div>
+      </SettingsSection>
+
+      <SettingsSection id="appearance" title="Appearance">
         <AppearanceSettings />
-      </div>
+      </SettingsSection>
 
-      <div id="payouts" className="border-t border-ink/10 pt-6 scroll-mt-16">
-        <h2 className="text-title-3 font-semibold mb-2">Payouts</h2>
-        <p className="text-sm text-neutral-600 mb-3 dark:text-neutral-400">
-          {creator.stripeOnboarded
-            ? "Connected — released payments go to your linked account."
-            : "Connect a Stripe account before a brand's payment can be released to you."}
-        </p>
-        <ConnectStripeButton isOnboarded={creator.stripeOnboarded} />
-      </div>
-
-      <div id="password" className="border-t border-ink/10 pt-6 scroll-mt-16">
-        <h2 className="text-title-3 font-semibold mb-4">Password</h2>
+      <SettingsSection id="password" title="Password">
         <ChangePasswordForm />
-      </div>
+      </SettingsSection>
 
-      <div id="two-factor" className="border-t border-ink/10 pt-6 scroll-mt-16">
-        <h2 className="text-title-3 font-semibold mb-2">Two-factor authentication</h2>
+      <SettingsSection id="two-factor" title="Two-factor authentication">
         <TwoFactorSettings initialEnabled={user.totpEnabled} />
-      </div>
+      </SettingsSection>
 
-      <div id="logins" className="border-t border-ink/10 pt-6 scroll-mt-16">
-        <h2 className="text-title-3 font-semibold mb-2">Recent logins</h2>
+      <SettingsSection id="logins" title="Recent logins">
         <LoginActivity userId={session.user.id} />
-      </div>
+      </SettingsSection>
 
-      <div id="push" className="border-t border-ink/10 pt-6 scroll-mt-16">
-        <h2 className="text-title-3 font-semibold mb-2">Notifications</h2>
+      <SettingsSection id="push" title="Notifications">
         <PushNotificationsSettings />
         <NotificationPreferences
           role="CREATOR"
@@ -124,28 +128,27 @@ export default async function CreatorSettingsPage() {
             notifyNewCreators: user.notifyNewCreators,
           }}
         />
-      </div>
 
-      <div id="data" className="border-t border-ink/10 pt-6 scroll-mt-16">
-        <h2 className="text-title-3 font-semibold mb-2">Your data</h2>
-        <a
-          href="/api/account/export"
-          className="text-sm text-neutral-600 underline hover:text-neutral-900 transition dark:text-neutral-400 dark:hover:text-neutral-100"
-        >
-          Export my data (JSON)
-        </a>
-      </div>
+      </SettingsSection>
 
-      <div id="danger" className="border-t border-ink/10 pt-6 scroll-mt-16">
-        <h2 className="text-title-3 font-semibold mb-2 text-ink">Danger zone</h2>
+      <SettingsSection id="data" title="Your data">
+        <SettingsRow label="Export my data" hint="Everything in your account, as a JSON file.">
+          <a
+            href="/api/account/export"
+            className="shrink-0 rounded-full border border-neutral-300 px-4 py-2 text-sm font-medium transition hover:border-neutral-400 dark:border-neutral-700"
+          >
+            Export
+          </a>
+        </SettingsRow>
+      </SettingsSection>
+
+      <SettingsSection id="danger" title="Danger zone">
         <DeleteAccountForm />
-      </div>
+      </SettingsSection>
 
       <LegalLinks />
 
-      <div className="border-t border-ink/10 pt-6">
-        <LogoutButton />
-      </div>
+      <LogoutButton className="w-full rounded-full border border-neutral-300 px-4 py-2.5 text-sm font-medium text-neutral-700 transition hover:border-ink dark:border-neutral-700 dark:text-neutral-300" />
     </div>
   );
 }

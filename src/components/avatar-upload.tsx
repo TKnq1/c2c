@@ -62,7 +62,7 @@ export function AvatarUpload({
         </div>
       )}
       <div className="flex flex-col items-start gap-1.5">
-        <label className="rounded-lg border border-neutral-300 px-3 py-2 text-sm font-medium hover:bg-neutral-50 transition cursor-pointer dark:border-neutral-700 dark:hover:bg-neutral-800/50">
+        <label className="rounded-full border border-neutral-300 px-4 py-2 text-sm font-medium hover:border-neutral-400 transition cursor-pointer dark:border-neutral-700 dark:hover:bg-neutral-800/50">
           Choose image
           <input
             ref={inputRef}
