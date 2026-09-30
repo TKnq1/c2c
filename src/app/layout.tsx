@@ -2,6 +2,7 @@ import { Suspense } from "react";
 import type { Metadata, Viewport } from "next";
 import { Lato } from "next/font/google";
 import { Nav } from "@/components/nav";
+import { InAppNavigationMarker } from "@/lib/in-app-navigation";
 import { PageTransition } from "@/components/page-transition";
 import { Toaster } from "@/components/toaster";
 import { TopLoadingBar } from "@/components/top-loading-bar";
@@ -117,6 +118,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
               which was taking Nav down with it since it used to live inside
               dashboard/layout.tsx, further down that same tree. */}
           <Nav />
+          <InAppNavigationMarker />
           <PageTransition>{children}</PageTransition>
           <Toaster />
         </NavigationBlockerProvider>

@@ -1,77 +1,83 @@
 import type { Metadata } from "next";
 import { PLATFORM_FEE_RATE, PRO_PLATFORM_FEE_RATE, PRO_SUBSCRIPTION_PRICE_CENTS, RELEASE_REVIEW_DAYS } from "@/lib/constants";
 import { formatCents } from "@/lib/format";
+import { LegalDocument } from "@/components/legal-document";
 
 export const metadata: Metadata = { title: "Terms of Service" };
 
-const SECTIONS: { title: string; body: string }[] = [
+const SECTIONS: { title: string; body: string[] }[] = [
   {
-    title: "1. Acceptance",
-    body: "By creating an account, you agree to these terms. If you don't agree, don't use the platform.",
+    title: "Scope and operator",
+    body: [
+      "These terms apply to your use of comtor (comtor.app), operated by Teethawat Kanpai, Berlin, Germany (see Imprint). By creating an account you agree to them; if you don't, please don't use comtor.",
+    ],
   },
   {
-    title: "2. The service",
-    body: "We operate a marketplace connecting brands with content creators for paid collaborations. Brands post requests describing what they're looking for; creators who match can express interest, message the brand, and be paid through the platform.",
+    title: "The service",
+    body: [
+      "comtor connects brands with content creators for paid collaborations. Brands post requests — what they want made, on which platform, for what budget and by when. Creators who match can express interest, agree a price with the brand in the chat, and get paid through comtor. comtor isn't a party to the collaboration itself.",
+    ],
   },
   {
-    title: "3. Accounts",
-    body: "You're responsible for the accuracy of the information on your profile and for keeping your login credentials secure. One account per person or company.",
+    title: "Accounts",
+    body: [
+      "You're responsible for the accuracy of your profile and for keeping your login details secure. One account per person or company.",
+    ],
   },
   {
-    title: "4. Fees",
-    body: `We charge a ${PLATFORM_FEE_RATE * 100}% platform fee on every payment made through the platform. Brands may optionally subscribe to Pro for ${formatCents(PRO_SUBSCRIPTION_PRICE_CENTS)}/month to reduce this to ${PRO_PLATFORM_FEE_RATE * 100}%. There is no other listing or membership fee — you only pay the platform fee when a collaboration is paid for, plus the optional Pro subscription if you choose it.`,
+    title: "Fees",
+    body: [
+      `We charge a ${PLATFORM_FEE_RATE * 100}% platform fee on every payment made through comtor. Brands can subscribe to Pro for ${formatCents(PRO_SUBSCRIPTION_PRICE_CENTS)}/month, which lowers it to ${PRO_PLATFORM_FEE_RATE * 100}%. There are no other listing or membership fees — the fee only applies when a collaboration is paid for, plus Pro if you choose it.`,
+    ],
   },
   {
-    title: "5. Payments and escrow",
-    body: `When a brand pays a creator, the payment is held by the platform until the creator submits a link to the associated posted work. The brand then has ${RELEASE_REVIEW_DAYS} days to either approve the work, which releases the payment to the creator (minus our fee), or report a problem with it. If the brand does neither within ${RELEASE_REVIEW_DAYS} days, the payment is released automatically. If a problem is reported, the payment remains held while we review the case, after which we either release it to the creator or refund it in full to the brand. A brand may cancel a payment and receive a full refund at any time before the creator submits the link. Once released, a payment cannot be reversed through the platform.`,
+    title: "Payments and escrow",
+    body: [
+      `When a brand pays a creator, comtor holds the payment until the creator submits the link to the posted work. The brand then has ${RELEASE_REVIEW_DAYS} days to either approve it, which releases the payment to the creator (minus our fee), or report a problem. If the brand does neither within ${RELEASE_REVIEW_DAYS} days, the payment is released automatically. If a problem is reported, the payment stays held while we review the case, after which we either release it to the creator or refund it in full to the brand.`,
+      "A brand can cancel a payment and get a full refund at any time before the creator submits the link. Once released, a payment can't be reversed through comtor.",
+    ],
   },
   {
-    title: "6. Conduct",
-    body: "Don't misrepresent your follower counts, post fraudulent reviews, or use the platform to solicit payments outside of it in order to avoid our fee. We may suspend accounts that do.",
+    title: "Requests and posts",
+    body: [
+      "Brands are responsible for their requests — that the details are accurate, and that they have the rights to the photos they upload. Creators are responsible for their posts and must label them as advertising wherever the law requires it (in Germany, for example, as “Werbung” or “Anzeige”).",
+    ],
   },
   {
-    title: "7. Content ownership",
-    body: "Content created under a collaboration is governed by whatever agreement the brand and creator reach directly — the platform is not a party to that agreement and does not hold rights to it.",
+    title: "Conduct",
+    body: [
+      "Don't misrepresent your follower counts, post fraudulent reviews, or use comtor to arrange payments outside of it to avoid our fee. We may suspend accounts that do.",
+    ],
   },
   {
-    title: "8. Limitation of liability",
-    body: "The platform is provided as-is. We facilitate connections and payments between independent brands and creators, but we are not responsible for the quality, timeliness, or legality of the content or collaborations agreed between them.",
+    title: "Content ownership",
+    body: [
+      "Content created in a collaboration is governed by whatever the brand and creator agree between themselves — comtor isn't a party to that agreement and holds no rights to the content.",
+    ],
   },
   {
-    title: "9. Governing law",
-    // Temporary placeholder matching the operator's own address (see
-    // Imprint) — not a reviewed choice, just better than a literal unfilled
-    // [jurisdiction] bracket. Still needs real legal review like the rest
-    // of this page.
-    body: "These terms are governed by the laws of Germany, without regard to its conflict-of-law provisions.",
+    title: "Liability",
+    body: [
+      "We're liable without limitation for intent and gross negligence, for injury to life, body or health, and under the Product Liability Act. For simple negligence, we're only liable for breaching an obligation that's essential to the contract, and then only for the damage that's typical and foreseeable for this kind of contract.",
+      "Beyond that, we're not responsible for the quality, timeliness or legality of the content and collaborations agreed between brands and creators.",
+    ],
   },
   {
-    title: "10. Changes",
-    body: "We may update these terms from time to time. Continued use of the platform after a change means you accept the updated terms.",
+    title: "Ending your account",
+    body: ["You can delete your account at any time in Settings. We may suspend or close accounts that break these terms."],
+  },
+  {
+    title: "Governing law",
+    body: [
+      "German law applies. If you're a consumer, this doesn't take away the protection of the mandatory law of the country where you live.",
+    ],
+  },
+  {
+    title: "Changes",
+    body: ["We may update these terms. We'll tell you about significant changes by email before they take effect."],
   },
 ];
 
 export default function TermsPage() {
-  return (
-    <main className="flex-1 px-6 py-16">
-      <div className="max-w-2xl mx-auto flex flex-col gap-8">
-        <div>
-          <h1 className="font-display text-title-1 font-bold">Terms of Service</h1>
-          <p className="text-sm text-neutral-600 mt-1 dark:text-neutral-400">
-            A starting structure for a prototype — sections in brackets need real legal review
-            before this goes live.
-          </p>
-        </div>
-
-        <div className="flex flex-col gap-6">
-          {SECTIONS.map((s) => (
-            <div key={s.title}>
-              <h2 className="font-semibold">{s.title}</h2>
-              <p className="text-sm text-neutral-700 mt-1 dark:text-neutral-300">{s.body}</p>
-            </div>
-          ))}
-        </div>
-      </div>
-    </main>
-  );
+  return <LegalDocument title="Terms of Service" updated="September 30, 2026" sections={SECTIONS} />;
 }

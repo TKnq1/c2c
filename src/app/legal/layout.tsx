@@ -1,33 +1,19 @@
-import Link from "next/link";
-import { Logo } from "@/components/logo";
+import { LegalHeader, LegalOtherDocs } from "@/components/legal-header";
 
-// These 3 pages used to get their only navigation — both back out to the
-// app and to each other — from the site-wide footer. That's gone now
-// (logged-in users find these links in Settings instead), so without this
-// shared layout a legal page was a dead end: no way back, no way to the
-// other two.
+// Shared by the three legal pages. Logged-in users reach them from
+// Settings (the old site-wide footer is gone), so they look like any other
+// screen of the app — a back button and a centered title — and each one
+// links to the other two at the bottom.
 export default function LegalLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="flex-1 flex flex-col">
-      <header className="border-b border-ink/10">
-        <div className="max-w-2xl mx-auto flex items-center justify-between px-6 py-5">
-          <Link href="/">
-            <Logo />
-          </Link>
-          <nav aria-label="Legal" className="flex items-center gap-4 text-sm text-graphite">
-            <Link href="/legal/imprint" className="hover:text-ink transition">
-              Imprint
-            </Link>
-            <Link href="/legal/privacy" className="hover:text-ink transition">
-              Privacy Policy
-            </Link>
-            <Link href="/legal/terms" className="hover:text-ink transition">
-              Terms
-            </Link>
-          </nav>
+    <div className="flex flex-1 flex-col">
+      <LegalHeader />
+      <main className="flex-1 px-6 pt-6 pb-16">
+        <div className="mx-auto flex max-w-2xl flex-col gap-8">
+          {children}
+          <LegalOtherDocs />
         </div>
-      </header>
-      {children}
+      </main>
     </div>
   );
 }
