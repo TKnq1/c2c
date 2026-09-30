@@ -16,7 +16,12 @@ export async function GET() {
         where: { userId: user.id },
         include: {
           socialLinks: true,
-          requests: { include: { interests: { include: { creator: true, messages: true, reviews: true } } } },
+          requests: {
+            include: {
+              images: { orderBy: { position: "asc" } },
+              interests: { include: { creator: true, messages: true, reviews: true } },
+            },
+          },
           reviews: true,
           favorites: {
             where: { favoritedByRole: "STARTUP" },
@@ -59,7 +64,15 @@ export async function GET() {
   const data = {
     exportedAt: new Date().toISOString(),
     account: user,
-    startupProfile,
+    // Request photos are stored as bytes — exported as data URIs, the way
+    // the single image before them was.
+    startupProfile: startupProfile && {
+      ...startupProfile,
+      requests: startupProfile.requests.map(({ images, ...request }) => ({
+        ...request,
+        photos: images.map((i) => `data:${i.contentType};base64,${Buffer.from(i.data).toString("base64")}`),
+      })),
+    },
     creatorProfile,
     notifications,
     loginHistory,

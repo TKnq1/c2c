@@ -1,13 +1,13 @@
 import { notFound, redirect } from "next/navigation";
 import { FiClock } from "react-icons/fi";
-import { IoChatbubble, IoCubeOutline, IoPeopleOutline } from "react-icons/io5";
+import { IoCalendarClearOutline, IoChatbubble, IoCubeOutline, IoPeopleOutline } from "react-icons/io5";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { computeResponseTimeMs, formatResponseTime } from "@/lib/response-time";
 import { getCreatorFeed } from "@/lib/visibility";
 import { getMutualBlockedUserIds } from "@/lib/moderation";
 import { startConversationAsCreatorAction } from "@/lib/actions/requests";
-import { formatFollowers } from "@/lib/format";
+import { formatBudget, formatFollowers, formatPostBy } from "@/lib/format";
 import { Avatar } from "@/components/avatar";
 import { PlatformIcon } from "@/components/platform-icons";
 import { RatingSummary } from "@/components/stars";
@@ -54,6 +54,7 @@ export default async function BrandProfileDetailPage({ params }: { params: Promi
       getMutualBlockedUserIds(session.user.id),
       prisma.request.findMany({
         where: { startupId: id, status: "OPEN" },
+        omit: { imageUrl: true },
         orderBy: { createdAt: "desc" },
       }),
     ]);
@@ -218,7 +219,25 @@ export default async function BrandProfileDetailPage({ params }: { params: Promi
                       </form>
                     )}
                   </div>
+                  {r.budgetMinCents !== null && (
+                    <p className="-mt-1 text-sm">
+                      <span className="font-bold">{formatBudget(r.budgetMinCents, r.budgetMaxCents)}</span>{" "}
+                      <span className="text-neutral-500 dark:text-neutral-400">budget</span>
+                    </p>
+                  )}
                   <div className="flex flex-wrap gap-2 text-sm text-neutral-500 dark:text-neutral-400">
+                    {r.platform && r.deliverables && (
+                      <span className="inline-flex items-center gap-1.5 rounded bg-fog px-3 py-1.5 text-neutral-700 dark:text-neutral-300">
+                        <PlatformIcon platform={r.platform} className="h-3.5 w-3.5 shrink-0" />
+                        {r.deliverables}
+                      </span>
+                    )}
+                    {r.postBy && (
+                      <span className="inline-flex items-center gap-1.5 rounded border border-ink/10 px-2.5 py-1.5">
+                        <IoCalendarClearOutline className="h-3.5 w-3.5 shrink-0" />
+                        Post by {formatPostBy(r.postBy)}
+                      </span>
+                    )}
                     <span className="inline-flex items-center gap-1.5 rounded bg-fog px-3 py-1.5 text-neutral-700 dark:text-neutral-300">
                       <ReqNicheIcon className="h-3.5 w-3.5 shrink-0" />
                       {r.niche}

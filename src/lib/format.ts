@@ -75,3 +75,25 @@ export function formatDayLabel(ms: number, timeZone: string): string {
   if (diff < 7) return new Date(ms).toLocaleDateString("en-US", { timeZone, weekday: "long" });
   return new Date(ms).toLocaleDateString("en-US", { timeZone, month: "short", day: "numeric", year: "numeric" });
 }
+
+// A request's budget, in the same German money format as formatCents but
+// without cents when there are none: "200–400 €", or "250 €" when fixed.
+export function formatBudget(minCents: number | null, maxCents: number | null): string | null {
+  if (minCents === null) return null;
+  const amount = (cents: number) =>
+    (cents / 100).toLocaleString("de-DE", { minimumFractionDigits: cents % 100 ? 2 : 0, maximumFractionDigits: 2 });
+  return maxCents !== null && maxCents !== minCents ? `${amount(minCents)}–${amount(maxCents)} €` : `${amount(minCents)} €`;
+}
+
+// "Oct 15" for a request's post-by date — stored as a plain calendar day
+// (midnight UTC), so it's formatted in UTC too or it would slip a day west
+// of Greenwich. The year only shows when it isn't this one.
+export function formatPostBy(date: Date): string {
+  const sameYear = date.getUTCFullYear() === new Date().getUTCFullYear();
+  return date.toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    ...(sameYear ? {} : { year: "numeric" }),
+    timeZone: "UTC",
+  });
+}

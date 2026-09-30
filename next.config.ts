@@ -48,6 +48,14 @@ const CSP = [
 ].join("; ");
 
 const nextConfig: NextConfig = {
+  experimental: {
+    serverActions: {
+      // A new request can carry up to five photos (resized to a few hundred
+      // KB each in the browser). Vercel caps a function's body at 4.5 MB
+      // regardless, so this only lifts Next's own 1 MB default up to that.
+      bodySizeLimit: "4.5mb",
+    },
+  },
   async headers() {
     return [
       {

@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { expressInterestAction, withdrawInterestAction } from "@/lib/actions/requests";
 import { Avatar } from "@/components/avatar";
+import { PlatformIcon } from "@/components/platform-icons";
 import { ActionButton } from "@/components/action-button";
 import { useUndoableAction } from "@/lib/use-undoable-action";
 
@@ -14,6 +15,10 @@ type Props = {
   languages: string[];
   minFollowers: number;
   productCategory: string;
+  budget: string | null;
+  platform: string | null;
+  deliverables: string | null;
+  postBy: string | null;
   companyName: string;
   companyAvatarUrl: string | null;
   interestId: string | null;
@@ -31,6 +36,10 @@ export function RequestCard({
   languages,
   minFollowers,
   productCategory,
+  budget,
+  platform,
+  deliverables,
+  postBy,
   companyName,
   companyAvatarUrl,
   interestId,
@@ -56,11 +65,25 @@ export function RequestCard({
           {niche}
         </span>
       </div>
+      {budget && (
+        <p className="flex items-baseline gap-1.5">
+          <span className="font-bold">{budget}</span>
+          <span className="text-xs text-neutral-500 dark:text-neutral-400">budget</span>
+        </p>
+      )}
       <p className="text-sm text-neutral-600 dark:text-neutral-400">{description}</p>
       <div className="flex flex-wrap gap-2 text-xs text-neutral-500 dark:text-neutral-400">
-        <span className="rounded border border-ink/10 px-2 py-1">
-          Min. {minFollowers.toLocaleString("en-US")} followers
-        </span>
+        {platform && deliverables ? (
+          <span className="inline-flex items-center gap-1.5 rounded border border-ink/10 px-2 py-1">
+            <PlatformIcon platform={platform} className="h-3 w-3" />
+            {deliverables}
+          </span>
+        ) : (
+          <span className="rounded border border-ink/10 px-2 py-1">
+            Min. {minFollowers.toLocaleString("en-US")} followers
+          </span>
+        )}
+        {postBy && <span className="rounded border border-ink/10 px-2 py-1">Post by {postBy}</span>}
         <span className="rounded border border-ink/10 px-2 py-1">{productCategory}</span>
         {languages.map((l) => (
           <span key={l} className="rounded border border-ink/10 px-2 py-1">

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { formatCents, formatFollowers, isRecentlyCreated } from "@/lib/format";
+import { formatBudget, formatCents, formatFollowers, formatPostBy, isRecentlyCreated } from "@/lib/format";
 
 describe("formatCents", () => {
   it("formats whole euros", () => {
@@ -37,5 +37,39 @@ describe("isRecentlyCreated", () => {
 
   it("is false for something created two weeks ago", () => {
     expect(isRecentlyCreated(Date.now() - 14 * 24 * 60 * 60 * 1000)).toBe(false);
+  });
+});
+
+describe("formatBudget", () => {
+  it("shows a range without cents", () => {
+    expect(formatBudget(20_000, 40_000)).toBe("200–400 €");
+  });
+
+  it("shows a fixed price once", () => {
+    expect(formatBudget(25_000, 25_000)).toBe("250 €");
+  });
+
+  it("keeps cents when there are some", () => {
+    expect(formatBudget(19_950, 19_950)).toBe("199,50 €");
+  });
+
+  it("uses German thousands separators", () => {
+    expect(formatBudget(150_000, 300_000)).toBe("1.500–3.000 €");
+  });
+
+  it("is empty for requests without a budget", () => {
+    expect(formatBudget(null, null)).toBeNull();
+  });
+});
+
+describe("formatPostBy", () => {
+  it("reads a stored calendar day in UTC, so it never slips a day", () => {
+    const year = new Date().getUTCFullYear();
+    expect(formatPostBy(new Date(`${year}-10-15T00:00:00Z`))).toBe("Oct 15");
+  });
+
+  it("adds the year when it isn't this one", () => {
+    const next = new Date().getUTCFullYear() + 1;
+    expect(formatPostBy(new Date(`${next}-01-03T00:00:00Z`))).toBe(`Jan 3, ${next}`);
   });
 });

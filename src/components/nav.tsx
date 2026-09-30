@@ -53,6 +53,8 @@ function getPageTitle(pathname: string) {
   if (pathname === "/dashboard/creator/discover") return "Discover";
   if (pathname === "/dashboard/messages") return "Messages";
   if (pathname === "/dashboard/creator/payments" || pathname === "/dashboard/startup/payments") return "Payments";
+  if (pathname === "/dashboard/startup/new") return "New request";
+  if (/^\/dashboard\/startup\/requests\/[^/]+\/edit$/.test(pathname)) return "Edit request";
   if (pathname === "/dashboard/creator/settings" || pathname === "/dashboard/startup/settings") return "Settings";
   return null;
 }

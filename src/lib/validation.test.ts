@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { sendOfferSchema } from "@/lib/validation";
+import { createRequestSchema, sendOfferSchema } from "@/lib/validation";
 
 // sendOfferSchema's `amount` field is the euro string straight out of a
 // payment form (see PayCreatorForm/OfferForm) — this is the boundary where
@@ -49,5 +49,75 @@ describe("sendOfferSchema (dollarsToCents)", () => {
     const result = sendOfferSchema.safeParse({ amount: "100000" });
     expect(result.success).toBe(true);
     if (result.success) expect(result.data.amount).toBe(10_000_000);
+  });
+});
+
+describe("createRequestSchema", () => {
+  const valid = {
+    title: "Summer skincare launch",
+    description: "Show our serum in your morning routine.",
+    niche: "Beauty",
+    languages: "English",
+    minFollowers: "5000",
+    productCategory: "Cosmetics",
+    platform: "Instagram",
+    deliverables: "1 Reel + 2 Stories",
+    budgetMin: "200",
+    budgetMax: "400",
+    postBy: "",
+    productIncluded: "true",
+  };
+  const inDays = (days: number) => new Date(Date.now() + days * 86_400_000).toISOString().slice(0, 10);
+
+  it("turns the budget range into cents", () => {
+    const r = createRequestSchema.parse(valid);
+    expect(r.budgetMin).toBe(20_000);
+    expect(r.budgetMax).toBe(40_000);
+    expect(r.productIncluded).toBe(true);
+    expect(r.postBy).toBeNull();
+  });
+
+  it("accepts a comma as the decimal separator", () => {
+    expect(createRequestSchema.parse({ ...valid, budgetMin: "199,50", budgetMax: "" }).budgetMin).toBe(19_950);
+  });
+
+  it("treats an empty top of the range as a fixed price", () => {
+    expect(createRequestSchema.parse({ ...valid, budgetMax: "" }).budgetMax).toBeNull();
+  });
+
+  it("rejects a range that runs backwards", () => {
+    const r = createRequestSchema.safeParse({ ...valid, budgetMin: "400", budgetMax: "200" });
+    expect(r.success).toBe(false);
+  });
+
+  it("requires a budget", () => {
+    expect(createRequestSchema.safeParse({ ...valid, budgetMin: "" }).success).toBe(false);
+  });
+
+  it("requires what should be posted", () => {
+    expect(createRequestSchema.safeParse({ ...valid, deliverables: "  " }).success).toBe(false);
+  });
+
+  it("only takes known platforms", () => {
+    expect(createRequestSchema.safeParse({ ...valid, platform: "MySpace" }).success).toBe(false);
+  });
+
+  it("stores the post-by day as midnight UTC", () => {
+    const day = inDays(10);
+    expect(createRequestSchema.parse({ ...valid, postBy: day }).postBy?.toISOString()).toBe(`${day}T00:00:00.000Z`);
+  });
+
+  it("rejects a post-by date in the past", () => {
+    expect(createRequestSchema.safeParse({ ...valid, postBy: inDays(-5) }).success).toBe(false);
+  });
+
+  it("rejects a post-by date more than a year out", () => {
+    expect(createRequestSchema.safeParse({ ...valid, postBy: inDays(500) }).success).toBe(false);
+  });
+
+  it("reads a missing product switch as not included", () => {
+    const { productIncluded, ...rest } = valid;
+    void productIncluded;
+    expect(createRequestSchema.parse(rest).productIncluded).toBe(false);
   });
 });

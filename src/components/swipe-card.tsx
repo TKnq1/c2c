@@ -2,26 +2,15 @@
 
 import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from "react";
 import { FiHeart, FiX } from "react-icons/fi";
-import { IoCubeOutline, IoLanguageOutline, IoPeopleOutline } from "react-icons/io5";
 import { Avatar } from "@/components/avatar";
 import { RatingSummary } from "@/components/stars";
 import { Dialog } from "@/components/dialog";
-import { DEFAULT_NICHE_ICON, NICHE_ICONS } from "@/lib/niche-icons";
+import { PhotoStrip, RequestCardFace, RequestFacts, type CardRequest } from "@/components/request-card-face";
 
-export type SwipeRequest = {
+export type SwipeRequest = CardRequest & {
   id: string;
   startupId: string;
   isBrandFavorited: boolean;
-  title: string;
-  description: string;
-  niche: string;
-  languages: string[];
-  minFollowers: number;
-  productCategory: string;
-  companyName: string;
-  companyAvatarUrl: string | null;
-  rating: { average: number; count: number };
-  imageUrl: string | null;
 };
 
 const SWIPE_THRESHOLD = 100;
@@ -82,6 +71,8 @@ export const SwipeCard = forwardRef<SwipeCardHandle, {
   // a standstill.
   const [exitMs, setExitMs] = useState(EXIT_MS);
   const [showDetails, setShowDetails] = useState(false);
+  // Which photo the card is on — see the tap handling in handlePointerUp.
+  const [photoIndex, setPhotoIndex] = useState(0);
   const startRef = useRef<{ x: number; y: number } | null>(null);
   const movedRef = useRef(false);
   // handlePointerUp needs the position from the very last pointermove, not
@@ -209,7 +200,7 @@ export const SwipeCard = forwardRef<SwipeCardHandle, {
     }
   }
 
-  function handlePointerUp() {
+  function handlePointerUp(e: React.PointerEvent) {
     if (!isTop || !startRef.current) return;
     startRef.current = null;
     const { x: dragX } = dragRef.current;
@@ -235,7 +226,20 @@ export const SwipeCard = forwardRef<SwipeCardHandle, {
       setDrag({ x: 0, y: 0, dragging: false });
       // A real drag (even one that snapped back without crossing the swipe
       // threshold) shouldn't also open the modal — only a clean tap does.
-      if (!movedRef.current) setShowDetails(true);
+      // On the info at the bottom, a clean tap opens the details; on the
+      // photo itself, its left or right half steps through the photos, like
+      // any photo stack. With one photo, anywhere opens the details.
+      if (!movedRef.current) {
+        const count = request.photos.length;
+        const onInfo = !!document.elementFromPoint(e.clientX, e.clientY)?.closest("[data-card-info]");
+        const rect = cardElRef.current?.getBoundingClientRect();
+        if (count > 1 && !onInfo && rect) {
+          const back = e.clientX - rect.left < rect.width / 2;
+          setPhotoIndex((i) => (back ? Math.max(0, i - 1) : Math.min(count - 1, i + 1)));
+        } else {
+          setShowDetails(true);
+        }
+      }
     }
   }
 
@@ -292,8 +296,6 @@ export const SwipeCard = forwardRef<SwipeCardHandle, {
   const pastLikeThreshold = exiting === "right" || (drag.dragging && thresholdSide === "like");
   const pastPassThreshold = exiting === "left" || (drag.dragging && thresholdSide === "pass");
 
-  const NicheIcon = NICHE_ICONS[request.niche] ?? DEFAULT_NICHE_ICON;
-
   return (
     <div
       ref={cardElRef}
@@ -324,110 +326,7 @@ export const SwipeCard = forwardRef<SwipeCardHandle, {
         </>
       )}
 
-      {request.imageUrl ? (
-        // Full-bleed — the image fills the card and everything else reads
-        // as an overlay on top of it, not a separate section below it.
-        <div className="relative min-h-0 flex-1">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={request.imageUrl}
-            alt=""
-            draggable={false}
-            className="absolute inset-0 h-full w-full select-none object-cover"
-          />
-          {/* All three children share one grid cell so the fade tracks the
-              content's real (dynamic — avatar/title/tags wrap differently
-              per card) height exactly, instead of guessing a fixed
-              fraction of the card — lines up with the top of the content
-              every time. z-index is explicit on each layer rather than
-              relying on source order, since backdrop-filter through a
-              mask turned out to composite unpredictably (rendered as a
-              visible seam instead of a smooth fade) — a second, directly
-              blurred copy of the image plus a plain gradient tint is more
-              predictable than backdrop-blur here. */}
-          <div className="absolute inset-x-0 bottom-0 grid">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={request.imageUrl}
-              alt=""
-              aria-hidden="true"
-              draggable={false}
-              className="relative z-0 col-start-1 row-start-1 h-full w-full select-none object-cover blur-xl"
-              style={{
-                maskImage: "linear-gradient(to bottom, transparent 0%, black 100%)",
-                WebkitMaskImage: "linear-gradient(to bottom, transparent 0%, black 100%)",
-              }}
-            />
-            <div
-              aria-hidden="true"
-              className="relative z-[1] col-start-1 row-start-1 bg-gradient-to-t from-black/70 to-transparent"
-            />
-            <div className="relative z-10 col-start-1 row-start-1 flex flex-col gap-4 px-6 pt-6 pb-8 text-white">
-              <div className="flex items-center gap-3.5">
-                <Avatar src={request.companyAvatarUrl} name={request.companyName} size={56} />
-                <div className="min-w-0">
-                  <p className="text-base text-white/70">{request.companyName}</p>
-                  <h3 className="font-display text-body font-bold">{request.title}</h3>
-                  <RatingSummary average={request.rating.average} count={request.rating.count} light />
-                </div>
-              </div>
-
-              <div className="flex flex-wrap gap-2.5 text-sm text-white/90">
-                <span className="inline-flex items-center gap-1.5 rounded bg-white/25 px-3 py-1.5 backdrop-blur-sm">
-                  <NicheIcon className="h-3.5 w-3.5 shrink-0" />
-                  {request.niche}
-                </span>
-                <span className="inline-flex items-center gap-1.5 rounded border border-white/40 px-2.5 py-1.5">
-                  <IoPeopleOutline className="h-3.5 w-3.5 shrink-0" />
-                  Min. {request.minFollowers.toLocaleString("en-US")} followers
-                </span>
-                <span className="inline-flex items-center gap-1.5 rounded border border-white/40 px-2.5 py-1.5">
-                  <IoCubeOutline className="h-3.5 w-3.5 shrink-0" />
-                  {request.productCategory}
-                </span>
-                {request.languages.map((l) => (
-                  <span key={l} className="inline-flex items-center gap-1.5 rounded border border-white/40 px-2.5 py-1.5">
-                    <IoLanguageOutline className="h-3.5 w-3.5 shrink-0" />
-                    {l}
-                  </span>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
-      ) : (
-        <div className="flex min-h-0 flex-1 flex-col gap-4 px-6 pt-6 pb-8">
-          <div className="flex items-center gap-3.5">
-            <Avatar src={request.companyAvatarUrl} name={request.companyName} size={56} />
-            <div className="min-w-0">
-              <p className="text-base text-neutral-500 dark:text-neutral-400">{request.companyName}</p>
-              <h3 className="font-display text-body font-bold">{request.title}</h3>
-              <RatingSummary average={request.rating.average} count={request.rating.count} />
-            </div>
-          </div>
-
-          <div className="mt-auto flex flex-wrap gap-2.5 text-sm text-neutral-500 dark:text-neutral-400">
-            <span className="inline-flex items-center gap-1.5 rounded bg-fog px-3 py-1.5 text-neutral-700 dark:text-neutral-300">
-              <NicheIcon className="h-3.5 w-3.5 shrink-0" />
-              {request.niche}
-            </span>
-            <span className="inline-flex items-center gap-1.5 rounded border border-ink/10 px-2.5 py-1.5">
-              <IoPeopleOutline className="h-3.5 w-3.5 shrink-0" />
-              Min. {request.minFollowers.toLocaleString("en-US")} followers
-            </span>
-            <span className="inline-flex items-center gap-1.5 rounded border border-ink/10 px-2.5 py-1.5">
-              <IoCubeOutline className="h-3.5 w-3.5 shrink-0" />
-              {request.productCategory}
-            </span>
-            {request.languages.map((l) => (
-              <span key={l} className="inline-flex items-center gap-1.5 rounded border border-ink/10 px-2.5 py-1.5">
-                <IoLanguageOutline className="h-3.5 w-3.5 shrink-0" />
-                {l}
-              </span>
-            ))}
-          </div>
-        </div>
-      )}
+      <RequestCardFace request={request} photoIndex={photoIndex} />
 
       {/* The details sheet is a native <dialog>, so it renders in the top
           layer — clear of this card's transform and overflow-hidden without
@@ -440,12 +339,7 @@ export const SwipeCard = forwardRef<SwipeCardHandle, {
           open={showDetails}
           onClose={() => setShowDetails(false)}
           title={request.title}
-          media={
-            request.imageUrl ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={request.imageUrl} alt="" className="h-48 w-full shrink-0 object-cover" />
-            ) : undefined
-          }
+          media={request.photos.length > 0 ? <PhotoStrip photos={request.photos} start={photoIndex} /> : undefined}
         >
           <div className="flex items-center gap-3">
             <Avatar src={request.companyAvatarUrl} name={request.companyName} size={40} />
@@ -455,26 +349,7 @@ export const SwipeCard = forwardRef<SwipeCardHandle, {
             </div>
           </div>
           <p className="whitespace-pre-wrap text-sm text-neutral-600 dark:text-neutral-400">{request.description}</p>
-          <div className="flex flex-wrap gap-2 text-sm text-neutral-500 dark:text-neutral-400">
-            <span className="inline-flex items-center gap-1.5 rounded bg-fog px-3 py-1.5 text-neutral-700 dark:text-neutral-300">
-              <NicheIcon className="h-3.5 w-3.5 shrink-0" />
-              {request.niche}
-            </span>
-            <span className="inline-flex items-center gap-1.5 rounded border border-ink/10 px-2.5 py-1.5">
-              <IoPeopleOutline className="h-3.5 w-3.5 shrink-0" />
-              Min. {request.minFollowers.toLocaleString("en-US")} followers
-            </span>
-            <span className="inline-flex items-center gap-1.5 rounded border border-ink/10 px-2.5 py-1.5">
-              <IoCubeOutline className="h-3.5 w-3.5 shrink-0" />
-              {request.productCategory}
-            </span>
-            {request.languages.map((l) => (
-              <span key={l} className="inline-flex items-center gap-1.5 rounded border border-ink/10 px-2.5 py-1.5">
-                <IoLanguageOutline className="h-3.5 w-3.5 shrink-0" />
-                {l}
-              </span>
-            ))}
-          </div>
+          <RequestFacts request={request} />
           {/* Decide straight from the details instead of closing them first
               — same exit as swiping, so the card flies off behind the sheet
               as it slides away. */}

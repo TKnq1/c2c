@@ -12,6 +12,7 @@ type RequestEntry = {
   title: string;
   niche: string;
   minFollowers: number;
+  budget: string | null;
   status: "OPEN" | "CLOSED";
   interestCount: number;
 };
@@ -104,7 +105,7 @@ export function BulkRequestsList({ requests }: { requests: RequestEntry[] }) {
               )}
             </p>
             <p className="text-sm text-neutral-500 dark:text-neutral-400">
-              {r.niche} · Min. {r.minFollowers.toLocaleString("en-US")} followers ·{" "}
+              {r.niche} · {r.budget ? `${r.budget} · ` : ""}Min. {r.minFollowers.toLocaleString("en-US")} followers ·{" "}
               <span className={r.interestCount > 0 ? "font-semibold text-neutral-900 dark:text-neutral-100" : ""}>
                 {r.interestCount} interested
               </span>

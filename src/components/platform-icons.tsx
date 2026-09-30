@@ -15,12 +15,15 @@ const ICONS: Record<string, { Icon: IconType; color?: string; colorClassName?: s
 
 /**
  * Small platform mark in each brand's own color. Falls back to a plain
- * neutral link icon for "Website" or anything unrecognized.
+ * neutral link icon for "Website" or anything unrecognized. `mono` drops
+ * the brand color for the surrounding text color instead — for marks on a
+ * photo, where a red or purple logo would fight the picture.
  */
-export function PlatformIcon({ platform, className }: { platform: string; className?: string }) {
+export function PlatformIcon({ platform, className, mono }: { platform: string; className?: string; mono?: boolean }) {
   const entry = ICONS[platform];
   if (!entry) return <FiLink className={className ?? "h-4 w-4"} />;
   const { Icon, color, colorClassName } = entry;
+  if (mono) return <Icon className={className ?? "h-4 w-4"} />;
   return (
     <Icon
       className={`${className ?? "h-4 w-4"} ${colorClassName ?? ""}`}

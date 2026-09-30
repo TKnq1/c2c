@@ -4,6 +4,7 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { RequestCard } from "@/components/request-card";
 import { EmptyState } from "@/components/empty-state";
+import { formatBudget, formatPostBy } from "@/lib/format";
 
 export default async function CreatorMatchesPage() {
   const session = await auth();
@@ -11,7 +12,7 @@ export default async function CreatorMatchesPage() {
 
   const interests = await prisma.interest.findMany({
     where: { creator: { userId: session.user.id } },
-    include: { request: { include: { startup: true } } },
+    include: { request: { include: { startup: true }, omit: { imageUrl: true } } },
     orderBy: { createdAt: "desc" },
   });
 
@@ -38,6 +39,10 @@ export default async function CreatorMatchesPage() {
               languages={i.request.languages}
               minFollowers={i.request.minFollowers}
               productCategory={i.request.productCategory}
+              budget={formatBudget(i.request.budgetMinCents, i.request.budgetMaxCents)}
+              platform={i.request.platform}
+              deliverables={i.request.deliverables}
+              postBy={i.request.postBy ? formatPostBy(i.request.postBy) : null}
               companyName={i.request.startup.companyName}
               companyAvatarUrl={i.request.startup.avatarUrl}
               interestId={i.id}

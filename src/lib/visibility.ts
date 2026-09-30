@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { requestPhotoIds } from "@/lib/request-photos";
 
 /**
  * A creator's feed: every request matching niche + follower threshold. A
@@ -24,7 +25,10 @@ export async function getCreatorFeed(
       status: "OPEN",
       startup: { userId: { notIn: blockedUserIds } },
     },
-    include: { startup: true },
+    // Photo ids only (served by /api/request-images), never the legacy
+    // data-URI column — a feed would otherwise ship every image inline.
+    include: { startup: true, ...requestPhotoIds },
+    omit: { imageUrl: true },
     orderBy: [{ createdAt: "desc" }, { id: "desc" }],
   });
 }
