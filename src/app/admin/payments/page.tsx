@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { PaymentStatus, Prisma } from "@prisma/client";
 import { FiCreditCard } from "react-icons/fi";
 import { prisma } from "@/lib/prisma";
+import { requireAdminSession } from "@/lib/admin-session";
 import { formatCents } from "@/lib/format";
 import { EmptyState } from "@/components/empty-state";
 import { LocalDate } from "@/components/local-date";
@@ -52,6 +53,7 @@ function stageDate(p: {
 }
 
 export default async function AdminPaymentsPage(props: PageProps<"/admin/payments">) {
+  await requireAdminSession();
   const params = firstParams(await props.searchParams);
   const page = pageFrom(params.page);
   const stage = STAGES.find((s) => s.value === params.status);

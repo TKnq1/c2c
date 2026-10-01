@@ -15,6 +15,8 @@ export default async function DiscoverBrandsPage() {
   const [creator, brands] = await Promise.all([
     prisma.creatorProfile.findUniqueOrThrow({ where: { userId: session.user.id } }),
     prisma.startupProfile.findMany({
+      // Suspended accounts (see /admin/users) drop out of Discover entirely.
+      where: { user: { suspendedAt: null } },
       include: { socialLinks: true },
       orderBy: { createdAt: "desc" },
     }),

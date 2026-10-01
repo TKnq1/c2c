@@ -27,9 +27,9 @@ function niceMax(max: number) {
   return step * magnitude;
 }
 
-// One series of daily columns, in ink on the grey panel. Hover (or focus)
-// a day for its exact value; the visually hidden table carries every value
-// for screen readers.
+// One series of daily columns, in ink on the grey panel. Hover a day for its
+// exact value; the visually hidden table carries every value for screen
+// readers and keyboard users.
 export function DailyBarChart({
   title,
   points,

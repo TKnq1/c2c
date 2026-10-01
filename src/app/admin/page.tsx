@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { FiAlertTriangle, FiChevronRight } from "react-icons/fi";
 import { prisma } from "@/lib/prisma";
+import { requireAdminSession } from "@/lib/admin-session";
 import { formatCents } from "@/lib/format";
 import { PRO_SUBSCRIPTION_PRICE_CENTS } from "@/lib/constants";
 import { dailySeries, windowStart } from "@/lib/admin-stats";
@@ -13,6 +14,7 @@ import { RoleBadge } from "@/components/admin/role-badge";
 const CHART_DAYS = 30;
 
 export default async function AdminOverviewPage() {
+  await requireAdminSession();
   const since = windowStart(CHART_DAYS);
   const weekAgo = windowStart(7);
 

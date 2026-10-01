@@ -23,7 +23,7 @@ export default async function CreatorProfileDetailPage({ params }: { params: Pro
   // on `id` (the route param) or `session.user.id`, both already available.
   const [creator, startup, reviews] = await Promise.all([
     prisma.creatorProfile.findUnique({
-      where: { id },
+      where: { id, user: { suspendedAt: null } },
       include: { platforms: true },
     }),
     prisma.startupProfile.findUniqueOrThrow({ where: { userId: session.user.id } }),

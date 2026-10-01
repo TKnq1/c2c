@@ -2,7 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { FiArrowLeft } from "react-icons/fi";
 import { prisma } from "@/lib/prisma";
-import { auth } from "@/lib/auth";
+import { requireAdminSession } from "@/lib/admin-session";
 import { formatCents } from "@/lib/format";
 import { parseUserAgent } from "@/lib/user-agent";
 import { unsuspendUserAction } from "@/lib/actions/admin";
@@ -28,8 +28,8 @@ function Empty({ children }: { children: React.ReactNode }) {
 }
 
 export default async function AdminUserPage(props: PageProps<"/admin/users/[id]">) {
+  const session = await requireAdminSession();
   const { id } = await props.params;
-  const session = await auth();
 
   const user = await prisma.user.findUnique({
     where: { id },
@@ -79,7 +79,7 @@ export default async function AdminUserPage(props: PageProps<"/admin/users/[id]"
 
   const name = brand?.companyName ?? creator?.displayName ?? user.email;
   const openReports = user.reportsReceived.filter((r) => r.status === "OPEN").length;
-  const canSuspend = user.role !== "ADMIN" && user.id !== session?.user.id;
+  const canSuspend = user.role !== "ADMIN" && user.id !== session.user.id;
 
   return (
     <div className="flex flex-col gap-8">

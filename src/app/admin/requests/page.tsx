@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { Prisma, RequestStatus } from "@prisma/client";
 import { FiFileText } from "react-icons/fi";
 import { prisma } from "@/lib/prisma";
+import { requireAdminSession } from "@/lib/admin-session";
 import { formatBudget } from "@/lib/format";
 import { setRequestStatusAction } from "@/lib/actions/admin";
 import { EmptyState } from "@/components/empty-state";
@@ -13,6 +14,7 @@ const PATH = "/admin/requests";
 const PAGE_SIZE = 25;
 
 export default async function AdminRequestsPage(props: PageProps<"/admin/requests">) {
+  await requireAdminSession();
   const params = firstParams(await props.searchParams);
   const page = pageFrom(params.page);
   const status = params.status === "OPEN" || params.status === "CLOSED" ? (params.status as RequestStatus) : undefined;

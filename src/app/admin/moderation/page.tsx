@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { ReportStatus } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
+import { requireAdminSession } from "@/lib/admin-session";
 import { formatCents } from "@/lib/format";
 import { resolveReportAction, dismissReportAction } from "@/lib/actions/moderation";
 import { refundDisputedPaymentAction, releaseDisputedPaymentAction } from "@/lib/actions/disputes";
@@ -14,6 +15,7 @@ const REPORT_STATUSES: ReportStatus[] = ["OPEN", "RESOLVED", "DISMISSED"];
 const STATUS_LABELS: Record<ReportStatus, string> = { OPEN: "Open", RESOLVED: "Resolved", DISMISSED: "Dismissed" };
 
 export default async function AdminModerationPage(props: PageProps<"/admin/moderation">) {
+  await requireAdminSession();
   const params = firstParams(await props.searchParams);
   const reportStatus = REPORT_STATUSES.includes(params.reports as ReportStatus)
     ? (params.reports as ReportStatus)

@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { Prisma, Role } from "@prisma/client";
 import { FiUsers } from "react-icons/fi";
 import { prisma } from "@/lib/prisma";
+import { requireAdminSession } from "@/lib/admin-session";
 import { EmptyState } from "@/components/empty-state";
 import { LocalDate } from "@/components/local-date";
 import { RoleBadge } from "@/components/admin/role-badge";
@@ -12,6 +13,7 @@ const PAGE_SIZE = 25;
 const ROLES: Role[] = ["STARTUP", "CREATOR", "ADMIN"];
 
 export default async function AdminUsersPage(props: PageProps<"/admin/users">) {
+  await requireAdminSession();
   const params = firstParams(await props.searchParams);
   const page = pageFrom(params.page);
   const role = ROLES.includes(params.role as Role) ? (params.role as Role) : undefined;

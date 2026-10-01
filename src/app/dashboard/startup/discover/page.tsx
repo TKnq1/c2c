@@ -33,7 +33,8 @@ export default async function DiscoverCreatorsPage() {
   // on the creators query above to know what to ask for.
   const [creators, ratingGroups, completedGroups, interestsForResponseTime] = await Promise.all([
     prisma.creatorProfile.findMany({
-      where: { userId: { notIn: blockedUserIds } },
+      // Suspended accounts (see /admin/users) drop out of Discover entirely.
+      where: { userId: { notIn: blockedUserIds }, user: { suspendedAt: null } },
       include: { platforms: true },
       orderBy: { createdAt: "desc" },
     }),
