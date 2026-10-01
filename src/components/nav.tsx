@@ -407,7 +407,7 @@ function SidebarLink({
       aria-current={active ? "page" : undefined}
       // Icons only on tablets: the label shows as a tooltip there.
       title={link.label}
-      className={`flex h-11 items-center justify-center gap-3.5 rounded-full px-3 text-[15px] transition lg:justify-start ${
+      className={`flex h-11 items-center justify-center gap-3.5 rounded px-3 text-[15px] transition lg:justify-start ${
         active ? "bg-fog font-semibold text-ink" : "text-graphite hover:bg-fog hover:text-ink"
       }`}
     >
