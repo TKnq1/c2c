@@ -62,7 +62,7 @@ export async function resolveReportAction(reportId: string) {
   if (!session || session.user.role !== "ADMIN") throw new Error("Not authorized.");
 
   await prisma.report.update({ where: { id: reportId }, data: { status: "RESOLVED" } });
-  revalidatePath("/admin");
+  revalidatePath("/admin", "layout");
 }
 
 export async function dismissReportAction(reportId: string) {
@@ -70,5 +70,5 @@ export async function dismissReportAction(reportId: string) {
   if (!session || session.user.role !== "ADMIN") throw new Error("Not authorized.");
 
   await prisma.report.update({ where: { id: reportId }, data: { status: "DISMISSED" } });
-  revalidatePath("/admin");
+  revalidatePath("/admin", "layout");
 }

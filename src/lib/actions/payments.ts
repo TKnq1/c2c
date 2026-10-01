@@ -506,14 +506,14 @@ export async function reportProblemAction(
       notify(
         a.id,
         `Payment dispute: ${brand} reported a problem with ${interest.creator.displayName}'s post for "${title}" (${formatCents(interest.amountCents!)})`,
-        "/admin",
+        "/admin/moderation",
         "payments",
       ),
     ),
   );
 
   await revalidateOfferPaths(interest.requestId);
-  revalidatePath("/admin");
+  revalidatePath("/admin", "layout");
   return { success: true };
 }
 

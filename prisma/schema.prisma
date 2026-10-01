@@ -22,6 +22,11 @@ model User {
   totpEnabled   Boolean  @default(false)
   createdAt     DateTime @default(now())
 
+  // Set by an admin from /admin/users. A suspended account can't sign in,
+  // and an existing session ends at its next periodic check (see auth.ts).
+  suspendedAt     DateTime?
+  suspendedReason String?
+
   // Per-category notification preferences (in-app + push) — default to on
   // so existing behavior doesn't change until someone opts out.
   notifyNewRequests Boolean @default(true)

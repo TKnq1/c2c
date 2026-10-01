@@ -42,6 +42,11 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           return null;
         }
 
+        if (user.suspendedAt) {
+          await logLoginAttempt({ email, succeeded: false, userId: user.id });
+          return null;
+        }
+
         if (user.totpEnabled) {
           const validCode =
             (user.totpSecret ? verifyTotpCode(user.totpSecret, code) : false) ||
@@ -89,8 +94,12 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       // just leaves checkedAt alone so this retries on the next request
       // instead of waiting out the full 5 minutes again.
       try {
-        const stillExists = await prisma.user.findUnique({ where: { id: token.id }, select: { id: true } });
-        if (!stillExists) return null;
+        const stillExists = await prisma.user.findUnique({
+          where: { id: token.id },
+          select: { id: true, suspendedAt: true },
+        });
+        // A suspension (see /admin/users) ends the session the same way.
+        if (!stillExists || stillExists.suspendedAt) return null;
         token.checkedAt = Date.now();
       } catch {
         // Fall through and return the token below, checkedAt untouched.
