@@ -18,6 +18,7 @@ import { ConnectStripeButton } from "@/components/connect-stripe-button";
 import { LegalLinks } from "@/components/legal-links";
 import { AppearanceSettings } from "@/components/appearance-settings";
 import { OnboardingChecklist } from "@/components/onboarding-checklist";
+import { PageTitle } from "@/components/page-title";
 
 export default async function CreatorSettingsPage() {
   const session = await auth();
@@ -44,6 +45,7 @@ export default async function CreatorSettingsPage() {
 
   return (
     <div className="flex flex-col gap-8">
+      <PageTitle>Settings</PageTitle>
       <SettingsNav role="CREATOR" />
 
       <OnboardingChecklist

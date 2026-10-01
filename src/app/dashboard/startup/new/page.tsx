@@ -3,6 +3,7 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { brandRating } from "@/lib/request-photos";
 import { RequestForm } from "@/components/request-form";
+import { PageTitle } from "@/components/page-title";
 
 export default async function NewRequestPage() {
   const session = await auth();
@@ -15,9 +16,9 @@ export default async function NewRequestPage() {
   const rating = await brandRating(startup.id);
 
   return (
-    // The header shows the title (see getPageTitle in nav.tsx).
+    // On phones the header shows the title (see getPageTitle in nav.tsx).
     <div className="flex flex-col gap-6">
-      <h1 className="sr-only">New request</h1>
+      <PageTitle>New request</PageTitle>
       <RequestForm brand={{ companyName: startup.companyName, avatarUrl: startup.avatarUrl, rating }} />
     </div>
   );

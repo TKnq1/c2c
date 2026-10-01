@@ -67,7 +67,7 @@ export function BulkRequestsList({ requests }: { requests: RequestEntry[] }) {
             type="button"
             onClick={handleBulkClose}
             disabled={closing}
-            className="rounded bg-ink text-paper px-4 py-2 text-sm font-medium hover:bg-graphite transition disabled:opacity-50"
+            className="rounded-full bg-ink text-paper px-4 py-2 text-sm font-medium hover:bg-graphite transition disabled:opacity-50"
           >
             {closing ? "Closing…" : "Close selected"}
           </button>

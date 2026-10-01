@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { brandRating, legacyRequestPhotoUrl, requestPhotoUrl } from "@/lib/request-photos";
 import { RequestForm } from "@/components/request-form";
 import type { PhotoItem } from "@/components/request-photos-input";
+import { PageTitle } from "@/components/page-title";
 
 export default async function EditRequestPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -31,9 +32,9 @@ export default async function EditRequestPage({ params }: { params: Promise<{ id
         : [];
 
   return (
-    // The header shows the title (see getPageTitle in nav.tsx).
+    // On phones the header shows the title (see getPageTitle in nav.tsx).
     <div className="flex flex-col gap-6">
-      <h1 className="sr-only">Edit request</h1>
+      <PageTitle>Edit request</PageTitle>
       <RequestForm
         requestId={request.id}
         brand={{ companyName: startup.companyName, avatarUrl: startup.avatarUrl, rating }}

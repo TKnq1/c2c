@@ -4,6 +4,7 @@ import { auth } from "@/lib/auth";
 import { getConversations } from "@/lib/conversations";
 import { MessagesList } from "@/components/messages-list";
 import { SkeletonCardList } from "@/components/skeleton";
+import { PageTitle } from "@/components/page-title";
 
 // From lg up Messages is two columns, like a desktop mail or chat app: the
 // conversation list stays on the left and the inbox page or an open thread
@@ -19,15 +20,22 @@ export default async function MessagesLayout({ children }: { children: React.Rea
     // Full height only where something needs it (an open thread, or the two
     // columns on desktop): a fixed height around the scrolling inbox on a
     // phone would let its last rows run under the tab bar.
-    <div className="has-[.chat-thread]:h-full lg:grid lg:h-full lg:grid-cols-[minmax(0,20rem)_minmax(0,1fr)] lg:gap-6">
-      <aside aria-label="Conversations" className="hidden min-h-0 overflow-y-auto lg:block">
-        {conversations.length > 0 && (
-          <Suspense fallback={<SkeletonCardList />}>
-            <MessagesList conversations={conversations} compact />
-          </Suspense>
-        )}
-      </aside>
-      <section className="min-h-0 min-w-0 has-[.chat-thread]:h-full lg:h-full">{children}</section>
+    <div className="group flex flex-col gap-6 has-[.chat-thread]:h-full lg:h-full">
+      {/* Above the inbox from md, and above both columns on desktop; a
+          thread on a tablet has its own header instead. */}
+      <div className="md:group-has-[.chat-thread]:max-lg:sr-only">
+        <PageTitle>Messages</PageTitle>
+      </div>
+      <div className="min-h-0 flex-1 lg:grid lg:grid-cols-[minmax(0,20rem)_minmax(0,1fr)] lg:gap-6">
+        <aside aria-label="Conversations" className="hidden min-h-0 overflow-y-auto lg:block">
+          {conversations.length > 0 && (
+            <Suspense fallback={<SkeletonCardList />}>
+              <MessagesList conversations={conversations} compact />
+            </Suspense>
+          )}
+        </aside>
+        <section className="min-h-0 min-w-0 has-[.chat-thread]:h-full lg:h-full">{children}</section>
+      </div>
     </div>
   );
 }

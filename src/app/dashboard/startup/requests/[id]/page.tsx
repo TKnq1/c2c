@@ -87,14 +87,14 @@ export default async function RequestDetailPage({ params }: { params: Promise<{ 
         <div className="flex flex-col gap-2 shrink-0">
           <Link
             href={`/dashboard/startup/requests/${request.id}/edit`}
-            className="rounded border border-neutral-300 px-4 py-2 text-sm font-medium text-center hover:bg-neutral-50 transition dark:border-neutral-700 dark:hover:bg-neutral-800/50"
+            className="rounded-full border border-neutral-300 px-4 py-2 text-sm font-medium text-center hover:bg-neutral-50 transition dark:border-neutral-700 dark:hover:bg-neutral-800/50"
           >
             Edit
           </Link>
           <form action={duplicateRequestAction.bind(null, request.id)}>
             <button
               type="submit"
-              className="w-full rounded border border-neutral-300 px-4 py-2 text-sm font-medium hover:bg-neutral-50 transition dark:border-neutral-700 dark:hover:bg-neutral-800/50"
+              className="w-full rounded-full border border-neutral-300 px-4 py-2 text-sm font-medium hover:bg-neutral-50 transition dark:border-neutral-700 dark:hover:bg-neutral-800/50"
             >
               Duplicate
             </button>
@@ -106,7 +106,7 @@ export default async function RequestDetailPage({ params }: { params: Promise<{ 
                 : reopenRequestAction.bind(null, request.id)
             }
             successMessage={request.status === "OPEN" ? "Request closed." : "Request reopened."}
-            className="w-full rounded border border-neutral-300 px-4 py-2 text-sm font-medium hover:bg-neutral-50 transition disabled:opacity-50 dark:border-neutral-700 dark:hover:bg-neutral-800/50"
+            className="w-full rounded-full border border-neutral-300 px-4 py-2 text-sm font-medium hover:bg-neutral-50 transition disabled:opacity-50 dark:border-neutral-700 dark:hover:bg-neutral-800/50"
           >
             {request.status === "OPEN" ? "Close request" : "Reopen request"}
           </ActionButton>

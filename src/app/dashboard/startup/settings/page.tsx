@@ -20,6 +20,7 @@ import { LegalLinks } from "@/components/legal-links";
 import { AppearanceSettings } from "@/components/appearance-settings";
 import { OnboardingChecklist } from "@/components/onboarding-checklist";
 import { canSellProSubscription } from "@/lib/native-app-server";
+import { PageTitle } from "@/components/page-title";
 
 export default async function StartupSettingsPage() {
   const session = await auth();
@@ -47,6 +48,7 @@ export default async function StartupSettingsPage() {
 
   return (
     <div className="flex flex-col gap-8">
+      <PageTitle>Settings</PageTitle>
       <SettingsNav role="STARTUP" />
 
       <OnboardingChecklist

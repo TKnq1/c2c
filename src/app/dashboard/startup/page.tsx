@@ -51,7 +51,7 @@ export default async function StartupDashboardPage(props: PageProps<"/dashboard/
         </div>
         <Link
           href="/dashboard/startup/new"
-          className="rounded bg-ink text-paper px-4 py-2 text-sm font-medium hover:bg-graphite transition whitespace-nowrap"
+          className="rounded-full bg-ink text-paper px-4 py-2 text-sm font-medium hover:bg-graphite transition whitespace-nowrap"
         >
           + New request
         </Link>
