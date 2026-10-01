@@ -24,7 +24,9 @@ for (let attempt = 1; ; attempt++) {
   try {
     execSync("npx prisma migrate deploy", {
       stdio: "inherit",
-      env: { ...process.env, DATABASE_URL: url.toString() },
+      // Prisma's advisory lock kept timing out on Vercel (P1002) while
+      // another session held it. Deploys run one at a time here, so skip it.
+      env: { ...process.env, DATABASE_URL: url.toString(), PRISMA_SCHEMA_DISABLE_ADVISORY_LOCK: "1" },
     });
     break;
   } catch (err) {
