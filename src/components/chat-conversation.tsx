@@ -441,7 +441,7 @@ export function ChatConversation({
         )}
       </div>
 
-      <div className="chat-composer shrink-0 border-t border-ink/10 bg-background px-3 pt-2 pb-[max(var(--safe-bottom),8px)] md:px-0 md:pt-3 md:pb-0">
+      <div className="chat-composer shrink-0 border-t border-ink/10 bg-background px-3 pt-2 pb-[var(--bar-bottom)] md:px-0 md:pt-3 md:pb-0">
         {blockedNotice ? (
           <p className="py-2 text-center text-sm text-neutral-500 dark:text-neutral-400">{blockedNotice}</p>
         ) : (

@@ -243,7 +243,7 @@ export function Nav() {
           app-style, instead of behind a hamburger drawer. */}
       <nav
         aria-label="Main"
-        className={`md:hidden fixed inset-x-0 bottom-0 z-40 rounded-t-[20px] border-t border-ink/10 bg-background pb-[max(var(--safe-bottom),8px)] no-print ${
+        className={`md:hidden fixed inset-x-0 bottom-0 z-40 rounded-t-[20px] border-t border-ink/10 bg-background pb-[var(--bar-bottom)] no-print ${
           hideOnMobile ? "hidden" : ""
         }`}
       >

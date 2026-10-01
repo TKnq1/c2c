@@ -44,6 +44,11 @@
 :root {
   --safe-top: env(safe-area-inset-top);
   --safe-bottom: env(safe-area-inset-bottom);
+  /* Padding under the bars that sit on the bottom edge (the tab bar, the
+     chat composer). They only have to clear the home indicator itself, not
+     all 34px iOS reserves around it: the full inset left a band of empty
+     space under them in the installed app. 8px where there's no inset. */
+  --bar-bottom: max(calc(var(--safe-bottom) - 14px), 8px);
 }
 
 @theme inline {
