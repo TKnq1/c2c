@@ -2,15 +2,15 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { PLATFORM_FEE_RATE, PRO_PLATFORM_FEE_RATE, PRO_SUBSCRIPTION_PRICE_CENTS, RELEASE_REVIEW_DAYS } from "@/lib/constants";
 import { formatCents } from "@/lib/format";
-import { getNativePlatform } from "@/lib/native-app-server";
+import { canSellProSubscription } from "@/lib/native-app-server";
 
 export const metadata: Metadata = {
   title: "FAQ",
   description: "How matching, payments, and reviews work on comtor.",
 };
 
-// Stands in for the Pro upsell sentence in the payments answer, so the iOS
-// app (which can't sell Pro — App Store rule 3.1.1) can drop it.
+// Stands in for the Pro upsell sentence in the payments answer, so the store
+// apps (which can't sell Pro, see canSellProSubscription) can drop it.
 const PRO_OFFER_MARKER = "{{pro-offer}}";
 const PRO_OFFER_SENTENCE = ` Brands doing regular volume can subscribe to Pro for ${formatCents(PRO_SUBSCRIPTION_PRICE_CENTS)}/month to drop that to ${PRO_PLATFORM_FEE_RATE * 100}%.`;
 const PRO_QUESTION = "What's the Pro plan?";
@@ -65,10 +65,10 @@ const FAQS: { question: string; answer: string }[] = [
 // Lets Google render these as an expandable rich result directly in search,
 // rather than just a plain blue link — the exact question/answer pairs
 // below, structured as https://schema.org/FAQPage expects.
-function faqsFor(isIosApp: boolean) {
-  return FAQS.filter((f) => !isIosApp || f.question !== PRO_QUESTION).map((f) => ({
+function faqsFor(inStoreApp: boolean) {
+  return FAQS.filter((f) => !inStoreApp || f.question !== PRO_QUESTION).map((f) => ({
     ...f,
-    answer: f.answer.replace(PRO_OFFER_MARKER, isIosApp ? "" : PRO_OFFER_SENTENCE),
+    answer: f.answer.replace(PRO_OFFER_MARKER, inStoreApp ? "" : PRO_OFFER_SENTENCE),
   }));
 }
 
@@ -86,7 +86,7 @@ function FaqJsonLd({ faqs }: { faqs: typeof FAQS }) {
 }
 
 export default async function FaqPage() {
-  const faqs = faqsFor((await getNativePlatform()) === "ios");
+  const faqs = faqsFor(!(await canSellProSubscription()));
 
   return (
     <main className="flex-1 px-6 py-16">

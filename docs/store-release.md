@@ -9,12 +9,18 @@ permissions, `capacitor.config.ts`) need a new build.
 ## 1. Before the first build
 
 1. **Production URL.** Deploy the site and note its public HTTPS URL
-   (custom domain recommended — it gets baked into the apps).
-2. **Separate database.** Production must not share the database with local dev
+   (custom domain recommended — it gets baked into the apps). Use the same
+   origin for `CAP_SERVER_URL` and `NEXT_PUBLIC_SITE_URL`: Stripe's return
+   URLs are built from the latter and only stay in the app on that origin.
+2. **Migrations first.** Run `npm run db:deploy` against production *before*
+   deploying code from this branch. The new columns and tables are additive,
+   so the old code keeps working on the new schema, but the new code fails
+   on sign-in without them.
+3. **Separate database.** Production must not share the database with local dev
    (see README) — reviewers and real users will create data there.
-3. **Review accounts.** On production, create one brand and one creator account
+4. **Review accounts.** On production, create one brand and one creator account
    with realistic sample data and **2FA off**. Both stores ask for them.
-4. **App ID.** `appId` in `capacitor.config.ts` is `app.comtor`.
+5. **App ID.** `appId` in `capacitor.config.ts` is `app.comtor`.
    Change it now if you want a different one — it can't change after the first
    upload. Update `PRODUCT_BUNDLE_IDENTIFIER` in Xcode and `applicationId` in
    `android/app/build.gradle` to match.
@@ -27,7 +33,20 @@ CAP_SERVER_URL=https://your-domain.com npx cap sync
 ```
 
 Re-run this whenever `capacitor.config.ts`, a Capacitor plugin or
-`CAP_SERVER_URL` changes.
+`CAP_SERVER_URL` changes. It also writes the server URL into the offline page
+(`capacitor/www`, shown when the site can't be reached) through the
+`capacitor:copy:before` hook.
+
+How the shell behaves:
+
+- Links to other sites open in the system browser. Stripe (`*.stripe.com`) is
+  the exception, so Checkout returns to the app. Payment methods that redirect
+  to a third party (PayPal, Klarna, bank redirects) still leave the app for
+  that step; card payments and 3D Secure stay inside.
+- Android's back button steps back through pages and, on the first page,
+  sends the app to the background (`components/native-back-button.tsx`).
+- iOS asks for camera/photo access only when someone picks a photo (texts in
+  `ios/App/App/Info.plist`).
 
 ## 3. Push notifications
 
@@ -65,16 +84,21 @@ to use; tokens live in the `NativePushToken` table.
 6. Review notes worth including:
    - Brand-to-creator payments pay for real-world services (content creation
      and posting) between users, processed with Stripe.
-   - The Pro subscription is not sold in the iOS app (it's hidden when the
-     user agent contains `ComtorApp/ios`, see `lib/native-app.ts`).
+   - The Pro subscription is not sold in the app (it's hidden when the user
+     agent contains `ComtorApp/`, see `canSellProSubscription` in
+     `lib/native-app-server.ts`).
    - Users can report and block other users, and delete their account in
      Settings → Danger zone.
 
 ## What the code already covers
 
 - Account deletion and data export in Settings
+- Suspended accounts (`/admin/users`) can't sign in and disappear from
+  Discover, the Feed and new-request notifications
 - Report/block for user-generated content (chat, profiles)
 - Privacy policy, terms, imprint under `/legal/*`
 - `/dev-*` review tools return 404 in production builds
-- iOS app: no Pro upsell (settings, payments page, FAQ, and the checkout
-  action itself refuses)
+- No "Add to Home Screen" banner inside the store apps
+- Both store apps: no Pro upsell (settings, payments page, FAQ, and the
+  checkout action itself refuses). Apple and Google both require their own
+  billing for digital subscriptions; Pro stays on sale on the website.

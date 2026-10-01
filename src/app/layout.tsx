@@ -3,6 +3,7 @@ import type { Metadata, Viewport } from "next";
 import { Lato } from "next/font/google";
 import { Nav } from "@/components/nav";
 import { NativePushBridge } from "@/components/native-push-bridge";
+import { NativeBackButton } from "@/components/native-back-button";
 import { InAppNavigationMarker } from "@/lib/in-app-navigation";
 import { PageTransition } from "@/components/page-transition";
 import { Toaster } from "@/components/toaster";
@@ -123,6 +124,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           <PageTransition>{children}</PageTransition>
           <Toaster />
           <NativePushBridge />
+          <NativeBackButton />
         </NavigationBlockerProvider>
       </body>
     </html>

@@ -6,6 +6,10 @@
 	<string>$(CAPACITOR_DEBUG)</string>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>en</string>
+	<key>NSCameraUsageDescription</key>
+	<string>comtor uses the camera when you take a photo for your profile, a request or your payout verification.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>comtor opens your photos when you choose a picture for your profile, a request or your payout verification.</string>
 	<key>CFBundleDisplayName</key>
         <string>comtor</string>
 	<key>CFBundleExecutable</key>

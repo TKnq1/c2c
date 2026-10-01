@@ -18,7 +18,7 @@ import { ProPlanCard } from "@/components/pro-plan-card";
 import { LegalLinks } from "@/components/legal-links";
 import { AppearanceSettings } from "@/components/appearance-settings";
 import { OnboardingChecklist } from "@/components/onboarding-checklist";
-import { getNativePlatform } from "@/lib/native-app-server";
+import { canSellProSubscription } from "@/lib/native-app-server";
 
 export default async function StartupSettingsPage() {
   const session = await auth();
@@ -80,10 +80,7 @@ export default async function StartupSettingsPage() {
           key={String(startup.isPro)}
           isPro={startup.isPro}
           proSince={startup.proSince}
-          // App Store rule 3.1.1: a digital subscription bought inside the
-          // iOS app has to go through Apple's In-App Purchase, so the iOS app
-          // doesn't sell Pro at all (Stripe Checkout stays on the web).
-          canPurchase={(await getNativePlatform()) !== "ios"}
+          canPurchase={await canSellProSubscription()}
         />
       </SettingsSection>
 

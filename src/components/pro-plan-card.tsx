@@ -16,7 +16,8 @@ export function ProPlanCard({
 }: {
   isPro: boolean;
   proSince: Date | null;
-  // False in the iOS app — shows the current plan without any upgrade offer.
+  // False in the store apps (see canSellProSubscription): shows the current
+  // plan without any upgrade offer.
   canPurchase: boolean;
 }) {
   const [pending, setPending] = useState(false);

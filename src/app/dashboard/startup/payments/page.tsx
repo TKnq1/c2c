@@ -20,7 +20,7 @@ import { EmptyState } from "@/components/empty-state";
 import { refundPaymentAction, withdrawOfferAction } from "@/lib/actions/payments";
 import { releaseDepositAction, forfeitDepositAction } from "@/lib/actions/deposits";
 import { formatCents } from "@/lib/format";
-import { getNativePlatform } from "@/lib/native-app-server";
+import { canSellProSubscription } from "@/lib/native-app-server";
 import {
   DEPOSITS_ENABLED,
   PLATFORM_FEE_RATE,
@@ -116,8 +116,8 @@ export default async function StartupPaymentsPage(props: PageProps<"/dashboard/s
     Math.round((i.platformFeeCents! / i.amountCents!) * 100);
 
   const requestHref = (requestId: string) => `/dashboard/startup/requests/${requestId}`;
-  // No Pro upsell in the iOS app — see ProPlanCard's canPurchase.
-  const showProOffer = !startup.isPro && (await getNativePlatform()) !== "ios";
+  // No Pro upsell in the store apps, see canSellProSubscription.
+  const showProOffer = !startup.isPro && (await canSellProSubscription());
 
   return (
     <div className="flex flex-col gap-8">

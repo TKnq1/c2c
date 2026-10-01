@@ -27,12 +27,17 @@ export function NativePushBridge() {
       }),
       PushNotifications.addListener("pushNotificationActionPerformed", ({ notification }) => {
         const url = notification.data?.url;
-        if (typeof url === "string" && url.startsWith("/")) router.push(url);
+        // App paths only; "//host" would be another site.
+        if (typeof url === "string" && url.startsWith("/") && !url.startsWith("//")) router.push(url);
       }),
     ];
 
+    // The web code is loaded live and can be newer than the installed app
+    // build. If that build lacks the plugin, push simply stays off.
+    listeners.forEach((l) => l.catch(() => {}));
+
     return () => {
-      listeners.forEach((l) => l.then((h) => h.remove()));
+      listeners.forEach((l) => l.then((h) => h.remove()).catch(() => {}));
     };
   }, [router]);
 
