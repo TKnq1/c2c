@@ -280,7 +280,11 @@ export const SwipeCard = forwardRef<SwipeCardHandle, {
           ? {}
           : { transform: `translate(${offsetX}px, ${drag.y}px) rotate(${rotate}deg) scale(1)` }),
         transition: drag.dragging ? "none" : exiting ? exitTransition : returnTransition,
-        touchAction: "none",
+        // Off while the details sheet is open: the sheet is a DOM child of
+        // this card, and Safari applies an ancestor's touch-action: none to
+        // everything inside, so its photos couldn't be swiped and its text
+        // couldn't scroll. The card can't be dragged behind a modal anyway.
+        touchAction: showDetails ? undefined : "none",
         cursor: drag.dragging ? "grabbing" : "grab",
         willChange: "transform",
         zIndex: 10,
