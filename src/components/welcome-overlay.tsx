@@ -84,7 +84,7 @@ export function WelcomeOverlay() {
   );
 }
 
-// On the pages that lead to the overlay (login, onboarding): loads the same
+// On the page that leads to the overlay (login): loads the same
 // downsized logo out of sight, so it's already cached when the dashboard
 // opens and the pop starts at once.
 export function WelcomeLogoPreload() {
