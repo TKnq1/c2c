@@ -500,7 +500,10 @@ export async function reportProblemAction(
     "/dashboard/creator/payments",
     "payments",
   );
-  const admins = await prisma.user.findMany({ where: { role: "ADMIN" }, select: { id: true } });
+  const admins = await prisma.user.findMany({
+    where: { OR: [{ role: "ADMIN" }, { isAdmin: true }] },
+    select: { id: true },
+  });
   await Promise.all(
     admins.map((a) =>
       notify(

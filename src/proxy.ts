@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
+import { hasAdminAccess } from "@/lib/admin-access";
 
 // Pre-launch gate — flip to false once setup is finished and the site is
 // ready for real signups. While on, EVERYTHING is off-limits — login and
@@ -78,7 +79,7 @@ export default auth((req) => {
   const role = req.auth.user.role;
 
   if (isAdminPath) {
-    if (role !== "ADMIN") return NextResponse.redirect(new URL("/login", req.url));
+    if (!hasAdminAccess(req.auth.user)) return NextResponse.redirect(new URL("/login", req.url));
     return;
   }
 

@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
@@ -130,6 +131,19 @@ export default async function CreatorSettingsPage() {
         />
 
       </SettingsSection>
+
+      {session.user.isAdmin && (
+        <SettingsSection id="admin" title="Admin">
+          <SettingsRow label="Admin dashboard" hint="Users, payments, reports and disputes across comtor.">
+            <Link
+              href="/admin"
+              className="shrink-0 rounded-full border border-neutral-300 px-4 py-2 text-sm font-medium transition hover:border-neutral-400 dark:border-neutral-700"
+            >
+              Open
+            </Link>
+          </SettingsRow>
+        </SettingsSection>
+      )}
 
       <SettingsSection id="data" title="Your data">
         <SettingsRow label="Export my data" hint="Everything in your account, as a JSON file.">

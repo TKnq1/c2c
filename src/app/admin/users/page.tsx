@@ -20,7 +20,7 @@ export default async function AdminUsersPage(props: PageProps<"/admin/users">) {
   const q = params.q?.trim();
 
   const where: Prisma.UserWhereInput = {
-    ...(role && { role }),
+    ...(role && (role === "ADMIN" ? { OR: [{ role: "ADMIN" as const }, { isAdmin: true }] } : { role })),
     ...(params.status === "suspended" && { suspendedAt: { not: null } }),
     ...(params.pro === "1" && { startupProfile: { isPro: true } }),
     ...(q && {
@@ -32,7 +32,7 @@ export default async function AdminUsersPage(props: PageProps<"/admin/users">) {
     }),
   };
 
-  const [users, total, roleCounts, suspendedCount] = await Promise.all([
+  const [users, total, roleCounts, suspendedCount, adminCount] = await Promise.all([
     prisma.user.findMany({
       where,
       orderBy: { createdAt: "desc" },
@@ -47,6 +47,7 @@ export default async function AdminUsersPage(props: PageProps<"/admin/users">) {
     prisma.user.count({ where }),
     prisma.user.groupBy({ by: ["role"], _count: true }),
     prisma.user.count({ where: { suspendedAt: { not: null } } }),
+    prisma.user.count({ where: { OR: [{ role: "ADMIN" }, { isAdmin: true }] } }),
   ]);
   const countFor = (r: Role) => roleCounts.find((c) => c.role === r)?._count ?? 0;
   const allCount = roleCounts.reduce((sum, c) => sum + c._count, 0);
@@ -69,7 +70,7 @@ export default async function AdminUsersPage(props: PageProps<"/admin/users">) {
             { value: undefined, label: "All", count: allCount },
             { value: "STARTUP", label: "Brands", count: countFor("STARTUP") },
             { value: "CREATOR", label: "Creators", count: countFor("CREATOR") },
-            { value: "ADMIN", label: "Admins", count: countFor("ADMIN") },
+            { value: "ADMIN", label: "Admins", count: adminCount },
           ]}
         />
         <ListSearch path={PATH} params={params} placeholder="Search email or name" />
@@ -119,7 +120,7 @@ export default async function AdminUsersPage(props: PageProps<"/admin/users">) {
                         {u._count.reportsReceived} report{u._count.reportsReceived === 1 ? "" : "s"}
                       </span>
                     )}
-                    <RoleBadge role={u.role} suspended={!!u.suspendedAt} />
+                    <RoleBadge role={u.role} isAdmin={u.isAdmin} suspended={!!u.suspendedAt} />
                   </span>
                 </Link>
               </li>

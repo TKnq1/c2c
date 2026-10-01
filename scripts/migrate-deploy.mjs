@@ -4,14 +4,34 @@
 import { execSync } from "node:child_process";
 import "dotenv/config";
 
-const url = process.env.DATABASE_URL;
-if (!url) {
-  console.log("DATABASE_URL isn't set, skipping migrations.");
+// Prisma Migrate needs a direct connection, not Neon's pooler (it can't
+// hold the lock migrations take). Neon's Vercel integration provides one;
+// otherwise derive it from the pooled host (ep-…-pooler → ep-…).
+const pooledOrDirect =
+  process.env.DATABASE_URL_UNPOOLED ?? process.env.POSTGRES_URL_NON_POOLING ?? process.env.DATABASE_URL;
+if (!pooledOrDirect) {
+  console.log("No database URL set, skipping migrations.");
   process.exit(0);
 }
 
-// Prisma Migrate needs a direct connection; Neon's pooled host (ep-…-pooler)
-// can't hold the lock it takes. Same database, without "-pooler".
-const directUrl = url.replace(/(ep-[a-z0-9-]+?)-pooler\./, "$1.");
+const url = new URL(pooledOrDirect.replace(/(ep-[a-z0-9-]+?)-pooler\./, "$1."));
+// A suspended Neon database takes a few seconds to wake up, longer than
+// Prisma's default 5s connect timeout (that surfaced as P1002).
+if (!url.searchParams.has("connect_timeout")) url.searchParams.set("connect_timeout", "30");
 
-execSync("npx prisma migrate deploy", { stdio: "inherit", env: { ...process.env, DATABASE_URL: directUrl } });
+const ATTEMPTS = 3;
+for (let attempt = 1; ; attempt++) {
+  try {
+    execSync("npx prisma migrate deploy", {
+      stdio: "inherit",
+      // Prisma's advisory lock kept timing out on Vercel (P1002) while
+      // another session held it. Deploys run one at a time here, so skip it.
+      env: { ...process.env, DATABASE_URL: url.toString(), PRISMA_SCHEMA_DISABLE_ADVISORY_LOCK: "1" },
+    });
+    break;
+  } catch (err) {
+    if (attempt === ATTEMPTS) throw err;
+    console.log(`Migration attempt ${attempt} failed, retrying in 10s…`);
+    await new Promise((resolve) => setTimeout(resolve, 10_000));
+  }
+}
