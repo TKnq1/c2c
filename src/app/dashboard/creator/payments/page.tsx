@@ -87,7 +87,7 @@ export default async function CreatorPaymentsPage() {
       />
 
       {creator.stripeOnboarded ? (
-        <div className="flex items-center justify-between gap-3 rounded-[20px] bg-fog px-4 py-3 no-print">
+        <div className="flex items-center justify-between gap-3 rounded bg-fog px-4 py-3 no-print">
           <p className="flex min-w-0 items-center gap-2 text-sm text-neutral-700 dark:text-neutral-300">
             <IoCheckmarkCircle className="h-5 w-5 shrink-0 text-ink" />
             Payouts connected. Released payments go to your bank account.
@@ -97,9 +97,9 @@ export default async function CreatorPaymentsPage() {
           </Link>
         </div>
       ) : (
-        <div className="rounded-[20px] border border-ink/10 p-4 no-print">
+        <div className="rounded bg-fog p-4 no-print">
           <div className="flex items-start gap-3">
-            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-fog">
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-paper">
               <IoWalletOutline className="h-5 w-5" />
             </span>
             {/* A Stripe account without the flag means setup was started

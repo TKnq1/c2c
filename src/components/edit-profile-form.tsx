@@ -50,7 +50,7 @@ export function EditProfileForm({
           type="text"
           defaultValue={displayName}
           required
-          className="rounded-[14px] border border-neutral-300 px-3 py-2.5 dark:border-neutral-700"
+          className="rounded border border-neutral-300 px-3 py-2.5 dark:border-neutral-700"
         />
       </div>
       <div className="flex flex-col gap-1">
@@ -88,7 +88,7 @@ export function EditProfileForm({
           maxLength={2000}
           placeholder="Tell brands a bit about yourself and your content"
           defaultValue={bio ?? ""}
-          className="rounded-[14px] border border-neutral-300 px-3 py-2.5 dark:border-neutral-700"
+          className="rounded border border-neutral-300 px-3 py-2.5 dark:border-neutral-700"
         />
       </div>
       <div className="flex flex-col gap-1">

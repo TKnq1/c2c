@@ -37,7 +37,7 @@ export function DeleteAccountForm() {
             autoComplete="current-password"
             placeholder="Your password"
             aria-label="Password"
-            className="rounded-[14px] border border-neutral-300 bg-transparent px-3 py-2.5 text-base outline-none focus:border-neutral-500 md:text-sm dark:border-neutral-700"
+            className="rounded border border-neutral-300 bg-transparent px-3 py-2.5 text-base outline-none focus:border-neutral-500 md:text-sm dark:border-neutral-700"
           />
           {state?.error && <p className="text-sm font-medium text-ink">{state.error}</p>}
           <div className="flex gap-2">

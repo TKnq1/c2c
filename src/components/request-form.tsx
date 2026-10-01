@@ -146,7 +146,7 @@ export function RequestForm({ requestId, brand, initial }: Props) {
           </Section>
 
           <Section title="The deal">
-            <div className="rounded-[20px] border border-ink/10 px-4 pt-4 pb-1">
+            <div className="rounded bg-fog px-4 pt-4 pb-1">
               <div className="flex flex-col gap-1.5 pb-3">
                 <label htmlFor="title" className="text-sm font-semibold">
                   Title
@@ -180,7 +180,7 @@ export function RequestForm({ requestId, brand, initial }: Props) {
           </Section>
 
           <Section title="Who it's for">
-            <div className="rounded-[20px] border border-ink/10 px-4 py-1">
+            <div className="rounded bg-fog px-4 py-1">
               <Row label="Niche" value={niche} onClick={() => setSheet("niche")} first />
               <Row label="Min. followers" value={(Number(minFollowers) || 0).toLocaleString("en-US")} onClick={() => setSheet("followers")} />
               <Row label="Language" value={languages.join(", ")} onClick={() => setSheet("languages")} />
@@ -379,7 +379,7 @@ export function RequestForm({ requestId, brand, initial }: Props) {
   );
 }
 
-const input = "w-full rounded-[14px] border border-neutral-300 bg-transparent px-3 py-2.5 dark:border-neutral-700";
+const input = "w-full rounded border border-neutral-300 bg-transparent px-3 py-2.5 dark:border-neutral-700";
 
 function Section({ title, hint, children }: { title: string; hint?: string; children: React.ReactNode }) {
   return (

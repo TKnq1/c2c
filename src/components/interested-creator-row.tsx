@@ -52,7 +52,7 @@ export function InterestedCreatorRow({
   if (pending) return null;
 
   return (
-    <div className="rounded-2xl border border-ink/10 p-4 flex gap-3">
+    <div className="flex gap-3 px-4 py-3">
       {onToggleSelect && paymentStatus === null && (
         <input
           type="checkbox"
@@ -77,7 +77,7 @@ export function InterestedCreatorRow({
         <p className="text-sm text-neutral-700 mt-2 flex items-center gap-3 dark:text-neutral-300">
           <Link
             href={`/dashboard/messages/${id}`}
-            className="rounded bg-ink text-paper px-3 py-1 text-xs font-medium hover:bg-graphite transition"
+            className="rounded-full bg-ink text-paper px-3 py-1 text-xs font-medium hover:bg-graphite transition"
           >
             Message
           </Link>
@@ -97,7 +97,7 @@ export function InterestedCreatorRow({
         <button
           type="button"
           onClick={() => trigger("Creator removed.", "Creator restored.")}
-          className="text-xs text-neutral-400 hover:text-ink transition mt-2 dark:text-neutral-500"
+          className="mt-2 block text-xs text-neutral-400 hover:text-ink transition dark:text-neutral-500"
         >
           Not a fit? Remove
         </button>

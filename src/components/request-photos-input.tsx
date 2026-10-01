@@ -75,7 +75,7 @@ export function RequestPhotosInput({ photos, onChange }: { photos: PhotoItem[]; 
     <div className="flex flex-col gap-2">
       <div className="grid grid-cols-4 gap-2 sm:grid-cols-6">
         {photos.map((p, i) => (
-          <div key={p.key} className="relative aspect-square overflow-hidden rounded-[14px] border border-ink/10 bg-fog">
+          <div key={p.key} className="relative aspect-square overflow-hidden rounded border border-ink/10 bg-fog">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={p.url} alt={`Photo ${i + 1}`} className="h-full w-full object-cover" />
             <button
@@ -102,7 +102,7 @@ export function RequestPhotosInput({ photos, onChange }: { photos: PhotoItem[]; 
         ))}
         {photos.length < MAX_REQUEST_PHOTOS && (
           <label
-            className={`flex aspect-square cursor-pointer flex-col items-center justify-center gap-1 rounded-[14px] border border-dashed border-neutral-300 text-neutral-500 transition hover:border-neutral-400 dark:border-neutral-700 dark:text-neutral-400 ${busy ? "opacity-50" : ""}`}
+            className={`flex aspect-square cursor-pointer flex-col items-center justify-center gap-1 rounded border border-dashed border-neutral-300 text-neutral-500 transition hover:border-neutral-400 dark:border-neutral-700 dark:text-neutral-400 ${busy ? "opacity-50" : ""}`}
           >
             <FiPlus className="h-5 w-5" />
             <span className="text-xs font-medium">{busy ? "Adding…" : "Add"}</span>

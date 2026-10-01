@@ -13,7 +13,7 @@ export function OnboardingChecklist({ items }: { items: Item[] }) {
   const doneCount = items.filter((i) => i.done).length;
 
   return (
-    <div className="flex flex-col gap-3 rounded-[20px] border border-ink/10 p-4">
+    <div className="flex flex-col gap-3 rounded bg-fog p-4">
       <p className="text-sm font-medium">
         Finish setting up your account ({doneCount}/{items.length})
       </p>

@@ -44,7 +44,7 @@ export function LoginForm() {
             autoFocus
             autoComplete="one-time-code"
             placeholder={useRecoveryCode ? "XXXXX-XXXXX" : "123456"}
-            className="rounded-[14px] border border-neutral-300 px-3 py-2.5 tracking-widest dark:border-neutral-700"
+            className="rounded border border-neutral-300 px-3 py-2.5 tracking-widest dark:border-neutral-700"
           />
         </div>
         <button
@@ -83,7 +83,7 @@ export function LoginForm() {
           name="email"
           type="email"
           required
-          className="rounded-[14px] border border-neutral-300 px-3 py-2.5 dark:border-neutral-700"
+          className="rounded border border-neutral-300 px-3 py-2.5 dark:border-neutral-700"
         />
       </div>
       <div className="flex flex-col gap-1">
@@ -96,7 +96,7 @@ export function LoginForm() {
           type="password"
           required
           minLength={8}
-          className="rounded-[14px] border border-neutral-300 px-3 py-2.5 dark:border-neutral-700"
+          className="rounded border border-neutral-300 px-3 py-2.5 dark:border-neutral-700"
         />
       </div>
       {(checkState?.error || completeState?.error) && (

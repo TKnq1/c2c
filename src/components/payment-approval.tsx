@@ -104,7 +104,7 @@ function ReportProblemForm({
         autoFocus
         placeholder="What's wrong? E.g. the post was taken down, or it's not what we agreed on."
         aria-label="What's wrong with the post"
-        className="resize-none rounded-[14px] border border-neutral-300 bg-transparent px-3 py-2.5 text-base outline-none focus:border-neutral-500 md:text-sm dark:border-neutral-700"
+        className="resize-none rounded border border-neutral-300 bg-transparent px-3 py-2.5 text-base outline-none focus:border-neutral-500 md:text-sm dark:border-neutral-700"
       />
       {error && <p className="text-sm text-ink">{error}</p>}
       <button

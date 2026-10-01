@@ -205,7 +205,7 @@ export function RequestFacts({ request }: { request: CardRequest }) {
   rows.push(["Min. followers", request.minFollowers.toLocaleString("en-US")]);
 
   return (
-    <dl className="rounded-[20px] border border-ink/10 px-4 text-sm">
+    <dl className="rounded bg-fog px-4 text-sm">
       {rows.map(([label, value]) => (
         <div key={label} className="flex items-center justify-between gap-4 border-ink/10 py-2.5 [&+&]:border-t">
           <dt className="text-neutral-500 dark:text-neutral-400">{label}</dt>

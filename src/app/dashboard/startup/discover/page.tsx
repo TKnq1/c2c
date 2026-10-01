@@ -7,7 +7,7 @@ import { getMutualBlockedUserIds } from "@/lib/moderation";
 import { computeResponseTimeMs, formatResponseTime } from "@/lib/response-time";
 import { DiscoverCreators } from "@/components/discover-creators";
 import { FavoritesOnlyToggle } from "@/components/favorites-only-toggle";
-import { SkeletonCardList } from "@/components/skeleton";
+import { SkeletonTileGrid } from "@/components/skeleton";
 
 export default async function DiscoverCreatorsPage() {
   const session = await auth();
@@ -91,7 +91,7 @@ export default async function DiscoverCreatorsPage() {
         </div>
         <FavoritesOnlyToggle />
       </div>
-      <Suspense fallback={<SkeletonCardList />}>
+      <Suspense fallback={<SkeletonTileGrid />}>
         <DiscoverCreators creators={creatorsWithRatings} />
       </Suspense>
     </div>

@@ -42,7 +42,7 @@ export function PlatformPicker({
           {entries.map((e) => (
             <div
               key={e.platform}
-              className="flex items-center justify-between gap-2 rounded-[14px] border border-neutral-300 px-3 py-2.5 dark:border-neutral-700"
+              className="flex items-center justify-between gap-2 rounded border border-neutral-300 px-3 py-2.5 dark:border-neutral-700"
             >
               <span className="flex items-center gap-2 text-sm min-w-0">
                 <PlatformIcon platform={e.platform} className="h-4 w-4 text-neutral-600 shrink-0 dark:text-neutral-400" />
@@ -85,7 +85,7 @@ export function PlatformPicker({
               aria-label="Follower count"
               value={count}
               onChange={(e) => setCount(e.target.value)}
-              className="rounded-[14px] border border-neutral-300 px-3 py-2.5 w-32 dark:border-neutral-700"
+              className="rounded border border-neutral-300 px-3 py-2.5 w-32 dark:border-neutral-700"
             />
           </div>
           <div className="flex gap-2">
@@ -95,7 +95,7 @@ export function PlatformPicker({
               aria-label="Profile URL"
               value={url}
               onChange={(e) => setUrl(e.target.value)}
-              className="rounded-[14px] border border-neutral-300 px-3 py-2.5 flex-1 min-w-0 dark:border-neutral-700"
+              className="rounded border border-neutral-300 px-3 py-2.5 flex-1 min-w-0 dark:border-neutral-700"
             />
             <button
               type="button"

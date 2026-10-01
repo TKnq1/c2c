@@ -26,7 +26,7 @@ export function TwoFactorSettings({ initialEnabled }: { initialEnabled: boolean 
     return (
       <div className="flex flex-col gap-3">
         <p className="text-sm font-medium text-ink">Two-factor authentication is now enabled.</p>
-        <div className="rounded-[14px] bg-fog p-3">
+        <div className="rounded bg-paper p-3">
           <p className="text-sm text-ink font-medium">Save your recovery codes</p>
           <p className="text-xs text-graphite mt-1">
             Each code works once, if you ever lose access to your authenticator app. They won&apos;t be shown
@@ -79,7 +79,7 @@ export function TwoFactorSettings({ initialEnabled }: { initialEnabled: boolean 
           name="password"
           type="password"
           required
-          className="rounded-[14px] border border-neutral-300 px-3 py-2.5 dark:border-neutral-700"
+          className="rounded border border-neutral-300 px-3 py-2.5 dark:border-neutral-700"
         />
         {disableState?.error && <p className="text-sm text-ink">{disableState.error}</p>}
         <div className="flex items-center gap-2">
@@ -125,7 +125,7 @@ export function TwoFactorSettings({ initialEnabled }: { initialEnabled: boolean 
             maxLength={6}
             required
             autoComplete="one-time-code"
-            className="rounded-[14px] border border-neutral-300 px-3 py-2.5 w-32 tracking-widest dark:border-neutral-700"
+            className="rounded border border-neutral-300 px-3 py-2.5 w-32 tracking-widest dark:border-neutral-700"
           />
         </div>
         {confirmState?.error && <p className="text-sm text-ink">{confirmState.error}</p>}

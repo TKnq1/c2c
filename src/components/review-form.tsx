@@ -24,7 +24,7 @@ export function ReviewForm({ interestId, initial }: Props) {
         e.preventDefault();
         formAction(new FormData(e.currentTarget));
       }}
-      className="mt-3 flex flex-col gap-2 rounded-[14px] bg-fog p-3 no-print"
+      className="mt-3 flex flex-col gap-2 rounded bg-paper p-3 no-print"
     >
       <span className="text-sm font-medium">{initial ? "Your review" : "Leave a review"}</span>
       <StarRatingInput name="rating" defaultValue={initial?.rating ?? 5} />
@@ -36,7 +36,7 @@ export function ReviewForm({ interestId, initial }: Props) {
         placeholder="Optional comment"
         aria-label="Comment"
         defaultValue={initial?.comment ?? ""}
-        className="resize-none rounded-[14px] border border-neutral-300 bg-background px-3 py-2 text-base outline-none focus:border-neutral-500 md:text-sm dark:border-neutral-700"
+        className="resize-none rounded border border-neutral-300 bg-background px-3 py-2 text-base outline-none focus:border-neutral-500 md:text-sm dark:border-neutral-700"
       />
       {state?.error && <p className="text-sm text-ink">{state.error}</p>}
       <button

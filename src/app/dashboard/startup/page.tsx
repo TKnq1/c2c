@@ -9,6 +9,7 @@ import { RequestsFilterBar } from "@/components/requests-filter-bar";
 import { BulkRequestsList } from "@/components/bulk-requests-list";
 import { EmptyState } from "@/components/empty-state";
 import { formatBudget } from "@/lib/format";
+import { photoUrlsByRequestId, requestPhotoIds } from "@/lib/request-photos";
 
 export default async function StartupDashboardPage(props: PageProps<"/dashboard/startup">) {
   const session = await auth();
@@ -25,13 +26,14 @@ export default async function StartupDashboardPage(props: PageProps<"/dashboard/
     prisma.startupProfile.findUniqueOrThrow({ where: { userId: session.user.id } }),
     prisma.request.findMany({
       where: { startup: { userId: session.user.id } },
-      include: { _count: { select: { interests: true } } },
+      include: { _count: { select: { interests: true } }, ...requestPhotoIds },
       omit: { imageUrl: true },
       orderBy: { createdAt: "desc" },
     }),
   ]);
 
   const hasAnyRequests = allRequests.length > 0;
+  const photosByRequestId = await photoUrlsByRequestId(allRequests);
   const requests = allRequests
     .filter((r) => (status === "OPEN" || status === "CLOSED" ? r.status === status : true))
     .sort((a, b) => {
@@ -82,6 +84,7 @@ export default async function StartupDashboardPage(props: PageProps<"/dashboard/
             budget: formatBudget(r.budgetMinCents, r.budgetMaxCents),
             status: r.status,
             interestCount: r._count.interests,
+            coverUrl: photosByRequestId.get(r.id)?.[0] ?? null,
           }))}
         />
       )}

@@ -67,7 +67,7 @@ export function MessagesList({ conversations }: { conversations: Conversation[] 
             aria-haspopup="true"
             aria-expanded={filterOpen}
             aria-label="Filter conversations"
-            className={`flex items-center gap-1.5 rounded-[14px] border px-3.5 py-2 text-sm font-medium transition ${
+            className={`flex items-center gap-1.5 rounded border px-3.5 py-2 text-sm font-medium transition ${
               activeFilterCount > 0
                 ? "border-ink bg-ink text-paper"
                 : "border-neutral-300 text-neutral-700 hover:border-neutral-400 dark:border-neutral-700 dark:text-neutral-300 dark:hover:border-neutral-600"
@@ -88,7 +88,7 @@ export function MessagesList({ conversations }: { conversations: Conversation[] 
               onAnimationEnd={filterPanel.onExitEnd}
               className={`${
                 filterPanel.closing ? "animate-dropdown-out pointer-events-none" : "animate-dropdown-in"
-              } absolute right-0 z-20 mt-1 min-w-40 rounded-[14px] border border-ink/10 bg-white py-1 dark:bg-neutral-900`}
+              } absolute right-0 z-20 mt-1 min-w-40 rounded border border-ink/10 bg-white py-1 dark:bg-neutral-900`}
             >
               <label className="flex items-center gap-2 px-3 py-2 text-sm text-neutral-700 whitespace-nowrap hover:bg-neutral-50 cursor-pointer dark:text-neutral-300 dark:hover:bg-neutral-800">
                 <input
@@ -111,15 +111,20 @@ export function MessagesList({ conversations }: { conversations: Conversation[] 
           action={{ label: "Clear filters", onClick: () => setParams({ q: "", unread: "" }) }}
         />
       ) : (
-        <div key={`${search}|${unread}`} className="discover-results-fade flex flex-col gap-2">
+        // One grey group, a hairline between conversations, like iOS Messages
+        // inside the app's grouped look.
+        <div
+          key={`${search}|${unread}`}
+          className="discover-results-fade divide-y divide-ink/10 overflow-hidden rounded bg-fog"
+        >
           {filtered.map((c) => (
             <Link
               key={c.interestId}
               href={`/dashboard/messages/${c.interestId}`}
               transitionTypes={["nav-forward"]}
-              className="rounded-[20px] border border-ink/10 p-4 flex gap-3 items-start hover:border-neutral-400 transition dark:hover:border-neutral-600"
+              className="flex items-start gap-3 px-4 py-3 transition hover:bg-ink/5"
             >
-              <Avatar src={c.other.avatarUrl} name={c.other.name} size={40} />
+              <Avatar src={c.other.avatarUrl} name={c.other.name} size={44} />
               <div className="flex-1 min-w-0">
                 <div className="flex items-start justify-between gap-2">
                   <p className={`font-medium truncate ${c.unreadCount > 0 ? "text-neutral-900 dark:text-neutral-100" : ""}`}>

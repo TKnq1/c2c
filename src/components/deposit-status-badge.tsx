@@ -7,12 +7,13 @@ const LABELS: Record<DepositStatus, string> = {
   FORFEITED: "Deposit kept",
 };
 // Status conveyed through fill weight, not color: outline (pending) →
-// stronger outline (active) → filled ink (done) → muted fog (closed).
+// stronger outline (active) → filled ink (done) → muted tint (closed),
+// ink at low alpha so it shows on white and on a grey panel.
 const STYLES: Record<DepositStatus, string> = {
   REQUESTED: "border border-ink/20 text-graphite",
   HELD: "border border-ink text-ink",
   RELEASED: "bg-ink text-paper",
-  FORFEITED: "bg-fog text-stone",
+  FORFEITED: "bg-ink/10 text-stone",
 };
 
 export function DepositStatusBadge({ status }: { status: DepositStatus }) {

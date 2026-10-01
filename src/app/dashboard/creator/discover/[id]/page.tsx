@@ -201,7 +201,7 @@ export default async function BrandProfileDetailPage({ params }: { params: Promi
               return (
                 <div
                   key={r.id}
-                  className="animate-stagger-fade-in rounded-[16px] border border-ink/10 p-4 flex flex-col gap-2"
+                  className="animate-stagger-fade-in rounded bg-fog p-4 flex flex-col gap-2"
                   style={{ animationDelay: `${i * 60}ms` }}
                 >
                   <div className="flex items-start justify-between gap-3">
@@ -227,7 +227,7 @@ export default async function BrandProfileDetailPage({ params }: { params: Promi
                   )}
                   <div className="flex flex-wrap gap-2 text-sm text-neutral-500 dark:text-neutral-400">
                     {r.platform && r.deliverables && (
-                      <span className="inline-flex items-center gap-1.5 rounded bg-fog px-3 py-1.5 text-neutral-700 dark:text-neutral-300">
+                      <span className="inline-flex items-center gap-1.5 rounded bg-paper px-3 py-1.5 text-neutral-700 dark:text-neutral-300">
                         <PlatformIcon platform={r.platform} className="h-3.5 w-3.5 shrink-0" />
                         {r.deliverables}
                       </span>
@@ -238,7 +238,7 @@ export default async function BrandProfileDetailPage({ params }: { params: Promi
                         Post by {formatPostBy(r.postBy)}
                       </span>
                     )}
-                    <span className="inline-flex items-center gap-1.5 rounded bg-fog px-3 py-1.5 text-neutral-700 dark:text-neutral-300">
+                    <span className="inline-flex items-center gap-1.5 rounded bg-paper px-3 py-1.5 text-neutral-700 dark:text-neutral-300">
                       <ReqNicheIcon className="h-3.5 w-3.5 shrink-0" />
                       {r.niche}
                     </span>

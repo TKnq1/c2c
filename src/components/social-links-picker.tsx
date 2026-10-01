@@ -40,7 +40,7 @@ export function SocialLinksPicker({
           {entries.map((e) => (
             <div
               key={e.platform}
-              className="flex items-center justify-between gap-3 rounded-[14px] border border-neutral-300 px-3 py-2.5 dark:border-neutral-700"
+              className="flex items-center justify-between gap-3 rounded border border-neutral-300 px-3 py-2.5 dark:border-neutral-700"
             >
               <span className="flex items-center gap-2 text-sm truncate">
                 <PlatformIcon platform={e.platform} className="h-4 w-4 text-neutral-600 shrink-0 dark:text-neutral-400" />
@@ -79,7 +79,7 @@ export function SocialLinksPicker({
             aria-label="Profile URL"
             value={url}
             onChange={(e) => setUrl(e.target.value)}
-            className="rounded-[14px] border border-neutral-300 px-3 py-2.5 flex-1 min-w-0 dark:border-neutral-700"
+            className="rounded border border-neutral-300 px-3 py-2.5 flex-1 min-w-0 dark:border-neutral-700"
           />
           <button
             type="button"

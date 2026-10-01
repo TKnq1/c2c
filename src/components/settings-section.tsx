@@ -1,6 +1,7 @@
-// One group on the Settings pages: a heading, an optional line under it,
-// and the controls in a card — the same card-per-group look as Payments.
-// `bare` skips the card for content that's already one (the plan card).
+// One group on the Settings pages, the way iOS Settings does it: a small
+// grey label, the controls together on a grey panel, and any explanation
+// as a footnote underneath. `bare` skips the panel for content that's
+// already one (the plan card).
 export function SettingsSection({
   id,
   title,
@@ -15,12 +16,10 @@ export function SettingsSection({
   children: React.ReactNode;
 }) {
   return (
-    <section id={id} className="flex scroll-mt-16 flex-col gap-3">
-      <div>
-        <h2 className="font-semibold">{title}</h2>
-        {description && <p className="mt-0.5 text-sm text-neutral-500 dark:text-neutral-400">{description}</p>}
-      </div>
-      {bare ? children : <div className="rounded-[20px] border border-ink/10 p-4">{children}</div>}
+    <section id={id} className="flex scroll-mt-16 flex-col gap-2">
+      <h2 className="px-1 text-footnote text-neutral-500 dark:text-neutral-400">{title}</h2>
+      {bare ? children : <div className="rounded bg-fog p-4">{children}</div>}
+      {description && <p className="px-1 text-footnote text-neutral-500 dark:text-neutral-400">{description}</p>}
     </section>
   );
 }

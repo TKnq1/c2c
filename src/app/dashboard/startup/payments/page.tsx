@@ -144,7 +144,7 @@ export default async function StartupPaymentsPage(props: PageProps<"/dashboard/s
         }
       />
 
-      <div className="flex items-center justify-between gap-3 rounded-[20px] bg-fog px-4 py-3 no-print">
+      <div className="flex items-center justify-between gap-3 rounded bg-fog px-4 py-3 no-print">
         <p className="text-sm text-neutral-700 dark:text-neutral-300">
           {startup.isPro
             ? `Pro plan: ${PRO_PLATFORM_FEE_RATE * 100}% fee per payment instead of ${PLATFORM_FEE_RATE * 100}%.`

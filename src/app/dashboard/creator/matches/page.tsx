@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { RequestCard } from "@/components/request-card";
 import { EmptyState } from "@/components/empty-state";
 import { formatBudget, formatPostBy } from "@/lib/format";
+import { photoUrlsByRequestId, requestPhotoIds } from "@/lib/request-photos";
 
 export default async function CreatorMatchesPage() {
   const session = await auth();
@@ -12,9 +13,10 @@ export default async function CreatorMatchesPage() {
 
   const interests = await prisma.interest.findMany({
     where: { creator: { userId: session.user.id } },
-    include: { request: { include: { startup: true }, omit: { imageUrl: true } } },
+    include: { request: { include: { startup: true, ...requestPhotoIds }, omit: { imageUrl: true } } },
     orderBy: { createdAt: "desc" },
   });
+  const photosByRequestId = await photoUrlsByRequestId(interests.map((i) => i.request));
 
   return (
     <div className="flex flex-col gap-6">
@@ -28,23 +30,20 @@ export default async function CreatorMatchesPage() {
           action={{ label: "Back to Feed", href: "/dashboard/creator" }}
         />
       ) : (
-        <div className="flex flex-col gap-4">
+        <div className="divide-y divide-ink/10 overflow-hidden rounded bg-fog">
           {interests.map((i) => (
             <RequestCard
               key={i.id}
               id={i.request.id}
               title={i.request.title}
-              description={i.request.description}
-              niche={i.request.niche}
-              languages={i.request.languages}
               minFollowers={i.request.minFollowers}
-              productCategory={i.request.productCategory}
               budget={formatBudget(i.request.budgetMinCents, i.request.budgetMaxCents)}
               platform={i.request.platform}
               deliverables={i.request.deliverables}
               postBy={i.request.postBy ? formatPostBy(i.request.postBy) : null}
               companyName={i.request.startup.companyName}
               companyAvatarUrl={i.request.startup.avatarUrl}
+              coverUrl={photosByRequestId.get(i.request.id)?.[0] ?? null}
               interestId={i.id}
               contactedByStartup={i.initiatedBy === "STARTUP"}
             />

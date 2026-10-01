@@ -78,7 +78,7 @@ export default async function RequestDetailPage({ params }: { params: Promise<{ 
             <div className="mt-4 flex gap-2 overflow-x-auto">
               {photos.map((url, i) => (
                 // eslint-disable-next-line @next/next/no-img-element
-                <img key={url} src={url} alt={`Photo ${i + 1}`} className="h-20 w-20 shrink-0 rounded-[14px] border border-ink/10 object-cover" />
+                <img key={url} src={url} alt={`Photo ${i + 1}`} className="h-20 w-20 shrink-0 rounded border border-ink/10 object-cover" />
               ))}
             </div>
           )}

@@ -6,11 +6,11 @@ export function Skeleton({ className = "" }: { className?: string }) {
   return <div className={`animate-pulse bg-neutral-200 dark:bg-neutral-700 ${rounding} ${className}`} />;
 }
 
-// A row shaped like the common "card with avatar + two text lines" pattern
-// used across Requests/Feed/Discover/Payments/Favorites.
+// A row shaped like the common "avatar + two text lines" panel used on
+// Payments.
 export function SkeletonCardRow() {
   return (
-    <div className="rounded-[20px] border border-ink/10 p-4 flex items-center gap-3">
+    <div className="rounded bg-fog p-4 flex items-center gap-3">
       <Skeleton className="h-10 w-10 rounded-full shrink-0" />
       <div className="flex-1 flex flex-col gap-2">
         <Skeleton className="h-4 w-1/3" />
@@ -24,7 +24,7 @@ export function SkeletonCardRow() {
 // money figures, then the row of three counts.
 export function SkeletonPaymentStats() {
   return (
-    <div className="rounded-[20px] border border-ink/10 p-4">
+    <div className="rounded bg-fog p-4">
       <div className="grid grid-cols-2 divide-x divide-ink/10">
         {[0, 1].map((i) => (
           <div key={i} className="flex flex-col gap-2 px-4 first:pl-0 last:pr-0">
@@ -51,6 +51,39 @@ export function SkeletonCardList({ count = 5 }: { count?: number }) {
     <div className="flex flex-col gap-3">
       {Array.from({ length: count }).map((_, i) => (
         <SkeletonCardRow key={i} />
+      ))}
+    </div>
+  );
+}
+
+// A list as one grey group, rows split by hairlines: Messages,
+// Notifications, Matches, a brand's requests.
+export function SkeletonGroupList({ count = 5 }: { count?: number }) {
+  return (
+    <div className="divide-y divide-ink/10 overflow-hidden rounded bg-fog">
+      {Array.from({ length: count }).map((_, i) => (
+        <div key={i} className="flex items-center gap-3 px-4 py-3">
+          <Skeleton className="h-10 w-10 rounded-full shrink-0" />
+          <div className="flex flex-1 flex-col gap-2">
+            <Skeleton className="h-4 w-1/3" />
+            <Skeleton className="h-3 w-2/3" />
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// Discover's photo grid: a 4:5 picture, then a name and a line under it.
+export function SkeletonTileGrid({ count = 6 }: { count?: number }) {
+  return (
+    <div className="grid grid-cols-2 gap-x-3 gap-y-5 sm:grid-cols-3">
+      {Array.from({ length: count }).map((_, i) => (
+        <div key={i} className="flex flex-col gap-2">
+          <Skeleton className="aspect-[4/5] w-full" />
+          <Skeleton className="h-4 w-2/3" />
+          <Skeleton className="h-3 w-1/2" />
+        </div>
       ))}
     </div>
   );

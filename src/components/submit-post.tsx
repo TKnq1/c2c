@@ -60,7 +60,7 @@ export function SubmitPostForm({
         defaultValue={defaultUrl}
         placeholder="https://www.tiktok.com/@you/video/…"
         aria-label="Link to your post"
-        className="rounded-[14px] border border-neutral-300 bg-transparent px-3 py-2.5 text-base outline-none focus:border-neutral-500 md:text-sm dark:border-neutral-700"
+        className="rounded border border-neutral-300 bg-transparent px-3 py-2.5 text-base outline-none focus:border-neutral-500 md:text-sm dark:border-neutral-700"
       />
       {error && <p className="text-sm text-ink">{error}</p>}
       <button

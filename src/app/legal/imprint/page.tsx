@@ -15,7 +15,7 @@ export default function ImprintPage() {
       <h1 className="sr-only">Imprint</h1>
       <p className="text-sm text-neutral-500 dark:text-neutral-400">Information according to § 5 DDG.</p>
 
-      <dl className="flex flex-col divide-y divide-ink/10 rounded-[20px] border border-ink/10 px-4">
+      <dl className="flex flex-col divide-y divide-ink/10 rounded bg-fog px-4">
         {ROWS.map((row) => (
           <div key={row.label} className="flex flex-col gap-0.5 py-3 text-sm">
             <dt className="text-neutral-500 dark:text-neutral-400">{row.label}</dt>

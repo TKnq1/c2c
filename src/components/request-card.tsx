@@ -3,24 +3,20 @@
 import Link from "next/link";
 import { expressInterestAction, withdrawInterestAction } from "@/lib/actions/requests";
 import { Avatar } from "@/components/avatar";
-import { PlatformIcon } from "@/components/platform-icons";
 import { ActionButton } from "@/components/action-button";
 import { useUndoableAction } from "@/lib/use-undoable-action";
 
 type Props = {
   id: string;
   title: string;
-  description: string;
-  niche: string;
-  languages: string[];
   minFollowers: number;
-  productCategory: string;
   budget: string | null;
   platform: string | null;
   deliverables: string | null;
   postBy: string | null;
   companyName: string;
   companyAvatarUrl: string | null;
+  coverUrl: string | null;
   interestId: string | null;
   // True when this brand reached out directly rather than the creator
   // applying — same underlying Interest row, but "Withdraw interest" would
@@ -31,17 +27,14 @@ type Props = {
 export function RequestCard({
   id,
   title,
-  description,
-  niche,
-  languages,
   minFollowers,
-  productCategory,
   budget,
   platform,
   deliverables,
   postBy,
   companyName,
   companyAvatarUrl,
+  coverUrl,
   interestId,
   contactedByStartup,
 }: Props) {
@@ -51,55 +44,41 @@ export function RequestCard({
 
   if (pending) return null;
 
+  const details = [
+    platform && deliverables ? deliverables : `Min. ${minFollowers.toLocaleString("en-US")} followers`,
+    postBy ? `Post by ${postBy}` : null,
+  ]
+    .filter(Boolean)
+    .join(" · ");
+
+  // A row in the Matches group: the request's cover photo, who and what,
+  // the budget, then the chat and the way out.
   return (
-    <div className="rounded-2xl border border-ink/10 p-5 flex flex-col gap-3">
-      <div className="flex items-start justify-between gap-4">
-        <div className="flex items-center gap-3">
-          <Avatar src={companyAvatarUrl} name={companyName} size={36} />
-          <div>
-            <p className="text-sm text-neutral-500 dark:text-neutral-400">{companyName}</p>
-            <h3 className="font-semibold text-lg">{title}</h3>
-          </div>
-        </div>
-        <span className="text-xs rounded bg-fog text-neutral-700 px-3 py-1 whitespace-nowrap dark:text-neutral-300">
-          {niche}
-        </span>
-      </div>
-      {budget && (
-        <p className="flex items-baseline gap-1.5">
-          <span className="font-bold">{budget}</span>
-          <span className="text-xs text-neutral-500 dark:text-neutral-400">budget</span>
-        </p>
-      )}
-      <p className="text-sm text-neutral-600 dark:text-neutral-400">{description}</p>
-      <div className="flex flex-wrap gap-2 text-xs text-neutral-500 dark:text-neutral-400">
-        {platform && deliverables ? (
-          <span className="inline-flex items-center gap-1.5 rounded border border-ink/10 px-2 py-1">
-            <PlatformIcon platform={platform} className="h-3 w-3" />
-            {deliverables}
-          </span>
+    <div className="flex gap-3 px-4 py-3">
+      <div className="relative aspect-[4/5] w-14 shrink-0 overflow-hidden rounded bg-paper">
+        {coverUrl ? (
+          // Served by our own image route; nothing for next/image to do.
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={coverUrl} alt="" loading="lazy" className="h-full w-full object-cover" />
         ) : (
-          <span className="rounded border border-ink/10 px-2 py-1">
-            Min. {minFollowers.toLocaleString("en-US")} followers
-          </span>
+          <div className="flex h-full items-center justify-center">
+            <Avatar src={companyAvatarUrl} name={companyName} size={32} />
+          </div>
         )}
-        {postBy && <span className="rounded border border-ink/10 px-2 py-1">Post by {postBy}</span>}
-        <span className="rounded border border-ink/10 px-2 py-1">{productCategory}</span>
-        {languages.map((l) => (
-          <span key={l} className="rounded border border-ink/10 px-2 py-1">
-            {l}
-          </span>
-        ))}
       </div>
-      {interestId ? (
-        <div className="flex flex-col gap-1.5 items-start">
-          {contactedByStartup && (
-            <p className="text-xs text-neutral-500 dark:text-neutral-400">{companyName} reached out to you.</p>
-          )}
-          <div className="flex items-center gap-2">
+      <div className="flex min-w-0 flex-1 flex-col gap-0.5">
+        <p className="truncate text-footnote text-neutral-500 dark:text-neutral-400">{companyName}</p>
+        <h3 className="line-clamp-2 font-bold leading-snug">{title}</h3>
+        <p className="truncate text-footnote text-neutral-500 dark:text-neutral-400">
+          {budget && <span className="font-bold text-ink">{budget}</span>}
+          {budget && details ? " · " : ""}
+          {details}
+        </p>
+        {interestId ? (
+          <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1">
             <Link
               href={`/dashboard/messages/${interestId}`}
-              className="mt-1 rounded bg-ink text-paper px-4 py-2 text-sm font-medium hover:bg-graphite transition self-start"
+              className="rounded-full bg-ink px-4 py-1.5 text-sm font-medium text-paper transition hover:bg-graphite"
             >
               Message
             </Link>
@@ -110,21 +89,24 @@ export function RequestCard({
                   ? trigger("Declined.", "Restored.")
                   : trigger("Interest withdrawn.", "Interest restored.")
               }
-              className="mt-1 rounded border border-neutral-300 text-neutral-600 px-4 py-2 text-sm font-medium hover:border-ink hover:bg-fog transition self-start dark:border-neutral-700 dark:text-neutral-400"
+              className="text-sm text-neutral-500 transition hover:text-ink dark:text-neutral-400"
             >
               {contactedByStartup ? "Decline" : "Withdraw interest"}
             </button>
+            {contactedByStartup && (
+              <p className="w-full text-footnote text-neutral-500 dark:text-neutral-400">{companyName} reached out to you.</p>
+            )}
           </div>
-        </div>
-      ) : (
-        <ActionButton
-          action={expressInterestAction.bind(null, id)}
-          successMessage="Interest sent."
-          className="mt-1 rounded bg-ink text-paper px-4 py-2 text-sm font-medium hover:bg-graphite transition self-start disabled:opacity-50"
-        >
-          I&apos;m interested
-        </ActionButton>
-      )}
+        ) : (
+          <ActionButton
+            action={expressInterestAction.bind(null, id)}
+            successMessage="Interest sent."
+            className="mt-2 self-start rounded-full bg-ink px-4 py-1.5 text-sm font-medium text-paper transition hover:bg-graphite disabled:opacity-50"
+          >
+            I&apos;m interested
+          </ActionButton>
+        )}
+      </div>
     </div>
   );
 }

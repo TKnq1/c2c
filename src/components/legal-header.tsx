@@ -47,7 +47,7 @@ export function LegalOtherDocs() {
   const pathname = usePathname();
   const docs = Object.entries(TITLES).filter(([href]) => href !== pathname);
   return (
-    <nav aria-label="Other legal pages" className="flex flex-col divide-y divide-ink/10 rounded-[20px] border border-ink/10 px-4">
+    <nav aria-label="Other legal pages" className="flex flex-col divide-y divide-ink/10 rounded bg-fog px-4">
       {docs.map(([href, label]) => (
         <Link key={href} href={href} className="flex items-center justify-between gap-3 py-3 text-sm font-medium">
           {label}

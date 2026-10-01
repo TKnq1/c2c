@@ -30,7 +30,7 @@ export function ChangePasswordForm() {
           name="currentPassword"
           type="password"
           required
-          className="rounded-[14px] border border-neutral-300 px-3 py-2.5 dark:border-neutral-700"
+          className="rounded border border-neutral-300 px-3 py-2.5 dark:border-neutral-700"
         />
       </div>
       <NewPasswordField key={state?.success ? "done" : "editing"} name="newPassword" label="New password" />

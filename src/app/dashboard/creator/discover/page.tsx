@@ -4,8 +4,9 @@ import type { Role } from "@prisma/client";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { computeResponseTimeMs, formatResponseTime } from "@/lib/response-time";
+import { photoUrlsByRequestId, requestPhotoIds } from "@/lib/request-photos";
 import { DiscoverBrands } from "@/components/discover-brands";
-import { SkeletonCardList } from "@/components/skeleton";
+import { SkeletonTileGrid } from "@/components/skeleton";
 
 export default async function DiscoverBrandsPage() {
   const session = await auth();
@@ -21,7 +22,7 @@ export default async function DiscoverBrandsPage() {
   // None of these four depend on each other's results (or on anything but
   // `brands`/`creator.id`, both already resolved above), so they run as one
   // round-trip instead of four sequential ones.
-  const [favorites, ratingGroups, interestsForResponseTime, releasedInterests] = await Promise.all([
+  const [favorites, ratingGroups, interestsForResponseTime, releasedInterests, brandRequests] = await Promise.all([
     prisma.favorite.findMany({
       where: { creatorId: creator.id, favoritedByRole: "CREATOR" },
       select: { startupId: true },
@@ -46,7 +47,19 @@ export default async function DiscoverBrandsPage() {
       where: { paymentStatus: "RELEASED", request: { startupId: { in: brands.map((b) => b.id) } } },
       select: { request: { select: { startupId: true } } },
     }),
+    // Each brand's tile shows a photo from its requests, newest first.
+    prisma.request.findMany({
+      where: { startupId: { in: brands.map((b) => b.id) } },
+      select: { id: true, startupId: true, ...requestPhotoIds },
+      orderBy: { createdAt: "desc" },
+    }),
   ]);
+  const photosByRequestId = await photoUrlsByRequestId(brandRequests);
+  const coverByStartupId = new Map<string, string>();
+  for (const r of brandRequests) {
+    const cover = photosByRequestId.get(r.id)?.[0];
+    if (cover && !coverByStartupId.has(r.startupId)) coverByStartupId.set(r.startupId, cover);
+  }
   const favoritedStartupIds = new Set(favorites.map((f) => f.startupId));
   const ratingByStartupId = new Map(
     ratingGroups.map((g) => [g.startupId, { average: g._avg.rating ?? 0, count: g._count._all }]),
@@ -66,6 +79,7 @@ export default async function DiscoverBrandsPage() {
     const responseTimeMs = computeResponseTimeMs(conversationsByStartupId.get(b.id) ?? [], "STARTUP");
     return {
       ...b,
+      coverUrl: coverByStartupId.get(b.id) ?? null,
       rating: ratingByStartupId.get(b.id) ?? { average: 0, count: 0 },
       completedCollabs: completedByStartupId.get(b.id) ?? 0,
       isFavorited: favoritedStartupIds.has(b.id),
@@ -81,7 +95,7 @@ export default async function DiscoverBrandsPage() {
           repeating it here as a page-level heading. The favorites-only
           toggle moved into DiscoverBrands' own search row, next to the
           search input, rather than sitting alone up here. */}
-      <Suspense fallback={<SkeletonCardList />}>
+      <Suspense fallback={<SkeletonTileGrid />}>
         <DiscoverBrands brands={brandsWithRatings} />
       </Suspense>
     </div>
