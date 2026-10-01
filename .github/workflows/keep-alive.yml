@@ -13,4 +13,4 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Ping health endpoint
-        run: curl -sf https://www.companytocreator.com/api/health
+        run: curl -sf https://www.comtor.app/api/health
