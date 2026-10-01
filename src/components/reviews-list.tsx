@@ -1,4 +1,5 @@
 import { Stars } from "@/components/stars";
+import { RelativeTime } from "@/components/relative-time";
 
 type ReviewEntry = { id: string; rating: number; comment: string | null; createdAt: Date };
 
@@ -13,7 +14,9 @@ export function ReviewsList({ reviews }: { reviews: ReviewEntry[] }) {
         <div key={r.id} className="rounded bg-fog p-3">
           <div className="flex items-center gap-2">
             <Stars rating={r.rating} />
-            <span className="text-xs text-neutral-500 dark:text-neutral-400">{r.createdAt.toLocaleDateString("en-US")}</span>
+            <span className="text-xs text-neutral-500 dark:text-neutral-400">
+              <RelativeTime ms={r.createdAt.getTime()} />
+            </span>
           </div>
           {r.comment && <p className="text-sm text-neutral-700 mt-1 dark:text-neutral-300">{r.comment}</p>}
         </div>

@@ -85,10 +85,12 @@ export function SettingsNav({ role }: { role: Role }) {
     <nav
       ref={navRef}
       aria-label="Settings sections"
-      // Flush under the header: <main> has pt-8, and a sticky element sticks
-      // inside its scroll container's padding — so it pulls up by exactly
-      // that (-mt-8) and sticks that much higher (-top-8).
-      className="sticky -top-8 z-10 -mx-6 -mt-8 flex items-center gap-1.5 overflow-x-auto border-b border-ink/10 bg-background px-6 py-2.5 text-sm scrollbar-hide md:mx-0 md:px-0"
+      // Flush under the header: <main>'s top padding is the header's
+      // height plus 2rem (on phones the header floats over <main>), and a
+      // sticky element sticks inside its scroll container's padding — so
+      // it pulls up by the 2rem (-mt-8) and sticks that much higher
+      // (-top-8). Frosted like the header, which it continues.
+      className="sticky -top-8 z-10 -mx-6 -mt-8 flex items-center gap-1.5 overflow-x-auto border-b border-ink/10 bg-background/80 px-6 py-2.5 text-sm backdrop-blur-xl backdrop-saturate-150 scrollbar-hide md:mx-0 md:px-0"
     >
       {groups.map((g) => (
         <a

@@ -6,6 +6,7 @@ import { sendMessageAction, type MessageActionState } from "@/lib/actions/messag
 import { useViewerTimeZone } from "@/lib/use-viewer-time-zone";
 import { dayKey, formatDayLabel, formatMessageTime } from "@/lib/format";
 import { toast } from "@/lib/toast";
+import { haptic } from "@/lib/haptics";
 import { ChatOfferCard, MakeOfferButton, type ChatOffer } from "@/components/chat-offer";
 
 export type ChatMessage = { id: string; body: string; createdAt: number; isMine: boolean; read: boolean };
@@ -284,6 +285,7 @@ export function ChatConversation({
   const send = () => {
     const body = draft.trim();
     if (!body) return;
+    haptic();
     setDraft("");
     setSendCount((count) => count + 1);
     startTransition(async () => {

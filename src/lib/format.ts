@@ -48,8 +48,35 @@ export function dayKey(ms: number, timeZone: string): string {
   return `${get("year")}-${get("month")}-${get("day")}`;
 }
 
+// Whole calendar days from `ms` to `now` on the viewer's clock.
+function calendarDaysBetween(ms: number, now: number, timeZone: string): number {
+  return Math.round((Date.parse(dayKey(now, timeZone)) - Date.parse(dayKey(ms, timeZone))) / 86_400_000);
+}
+
 function daysAgo(ms: number, timeZone: string): number {
-  return Math.round((Date.parse(dayKey(Date.now(), timeZone)) - Date.parse(dayKey(ms, timeZone))) / 86_400_000);
+  return calendarDaysBetween(ms, Date.now(), timeZone);
+}
+
+// How long ago something happened, the way a notification list says it:
+// "Just now", "5 min ago", "3 h ago", "Yesterday", the weekday within the
+// past week, then a date ("Sep 28", with the year once it's not this
+// year's). `now` is passed in rather than read here so a component can
+// hold it steady through hydration (see RelativeTime).
+export function formatRelativeTime(ms: number, now: number, timeZone: string): string {
+  const minutes = Math.floor((now - ms) / 60_000);
+  if (minutes < 1) return "Just now";
+  if (minutes < 60) return `${minutes} min ago`;
+  const days = calendarDaysBetween(ms, now, timeZone);
+  if (days <= 0) return `${Math.floor(minutes / 60)} h ago`;
+  if (days === 1) return "Yesterday";
+  if (days < 7) return new Date(ms).toLocaleDateString("en-US", { timeZone, weekday: "long" });
+  const sameYear = dayKey(ms, timeZone).slice(0, 4) === dayKey(now, timeZone).slice(0, 4);
+  return new Date(ms).toLocaleDateString("en-US", {
+    timeZone,
+    month: "short",
+    day: "numeric",
+    ...(sameYear ? {} : { year: "numeric" }),
+  });
 }
 
 export function formatMessageTime(ms: number, timeZone: string): string {

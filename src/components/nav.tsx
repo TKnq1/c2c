@@ -73,6 +73,9 @@ export function Nav() {
   const { isBlocked } = useNavigationBlocker();
   const [role, setRole] = useState<Role | null>(null);
   const [counts, setCounts] = useState<NavCounts>(ZERO_COUNTS);
+  // Bumped by a pull to refresh (see PullToRefresh), so the badges come
+  // along with the page.
+  const [countsVersion, setCountsVersion] = useState(0);
 
   const showNav = wantsNav(pathname);
 
@@ -124,6 +127,12 @@ export function Nav() {
   }, [showNav]);
 
   useEffect(() => {
+    const refetch = () => setCountsVersion((v) => v + 1);
+    window.addEventListener("nav-counts:refresh", refetch);
+    return () => window.removeEventListener("nav-counts:refresh", refetch);
+  }, []);
+
+  useEffect(() => {
     if (!showNav) return;
     let cancelled = false;
     fetch("/api/nav-counts")
@@ -135,7 +144,7 @@ export function Nav() {
     return () => {
       cancelled = true;
     };
-  }, [showNav, pathname]);
+  }, [showNav, pathname, countsVersion]);
 
   const onNavigate = (e: { preventDefault: () => void }) => {
     if (isBlocked && !window.confirm("You have unsaved changes. Leave without saving?")) {
@@ -188,8 +197,12 @@ export function Nav() {
 
   return (
     <>
+      {/* On phones it floats over <main>, which runs up under it (see
+          --header-h in globals.css), so the page scrolls on under the
+          frosted bar the way it does in an iOS app. From md up it's an
+          ordinary bar above the page. */}
       <header
-        className={`border-b border-ink/10 pt-[var(--safe-top)] no-print ${hideOnMobile ? "hidden md:block" : ""}`}
+        className={`app-header border-b border-ink/10 pt-[var(--safe-top)] no-print max-md:fixed max-md:inset-x-0 max-md:top-0 max-md:z-30 max-md:bg-background/80 max-md:backdrop-blur-xl max-md:backdrop-saturate-150 ${hideOnMobile ? "hidden md:block" : ""}`}
       >
         <div className="relative max-w-5xl mx-auto flex items-center justify-between px-6 py-3">
           <Link href={base} onNavigate={onNavigate} className="shrink-0">
@@ -240,10 +253,11 @@ export function Nav() {
       </header>
 
       {/* Bottom tab bar — mobile only. Every destination is one tap away,
-          app-style, instead of behind a hamburger drawer. */}
+          app-style, instead of behind a hamburger drawer. Frosted like the
+          header: the page scrolls on underneath it. */}
       <nav
         aria-label="Main"
-        className={`md:hidden fixed inset-x-0 bottom-0 z-40 rounded-t-[20px] border-t border-ink/10 bg-background pb-[var(--bar-bottom)] no-print ${
+        className={`app-tabbar md:hidden fixed inset-x-0 bottom-0 z-40 rounded-t-[20px] border-t border-ink/10 bg-background/80 pb-[var(--bar-bottom)] backdrop-blur-xl backdrop-saturate-150 no-print ${
           hideOnMobile ? "hidden" : ""
         }`}
       >

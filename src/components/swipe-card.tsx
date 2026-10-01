@@ -7,6 +7,7 @@ import { RatingSummary } from "@/components/stars";
 import { Dialog } from "@/components/dialog";
 import { PhotoStrip, RequestCardFace, RequestFacts, type CardRequest } from "@/components/request-card-face";
 import { playSound, prepareSounds } from "@/lib/sounds";
+import { haptic } from "@/lib/haptics";
 
 export type SwipeRequest = CardRequest & {
   id: string;
@@ -130,8 +131,10 @@ export const SwipeCard = forwardRef<SwipeCardHandle, {
     if (committedRef.current) return;
     committedRef.current = true;
     // Right in the gesture that let go of the card (pointerup or a button's
-    // click) — browsers only allow starting audio from inside one.
+    // click) — browsers only allow starting audio, and iOS a haptic tick,
+    // from inside one.
     playSound(direction === "right" ? "swipe-right" : "swipe-left");
+    haptic();
     const speed = Math.abs(velocityPxMs);
     let duration = EXIT_MS;
     if (speed > FLICK_VELOCITY) {
