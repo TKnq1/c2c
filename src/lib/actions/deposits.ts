@@ -168,7 +168,7 @@ export async function forfeitDepositAction(interestId: string) {
 
   await notify(
     interest.creator.userId,
-    `${startup.companyName} kept your ${formatCents(interest.depositCents!)} deposit for "${interest.request.title}" — they determined the content wasn't delivered`,
+    `${startup.companyName} kept your ${formatCents(interest.depositCents!)} deposit for "${interest.request.title}" because they determined the content wasn't delivered`,
     "/dashboard/creator/payments",
     "deposits",
   );

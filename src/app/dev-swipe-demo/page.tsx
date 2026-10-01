@@ -31,7 +31,7 @@ const MOCK_REQUESTS: SwipeRequest[] = [
     isBrandFavorited: false,
     title: "Skincare Launch Video",
     description:
-      "Looking for an authentic first-impressions video featuring our new vitamin C serum. Natural lighting, no heavy editing — just your honest take. We'll ship the full-size product plus two backups so you can reshoot if the light's bad that day.",
+      "Looking for an authentic first-impressions video featuring our new vitamin C serum. Natural lighting, no heavy editing, just your honest take. We'll ship the full-size product plus two backups so you can reshoot if the light's bad that day.",
     niche: "Beauty",
     languages: ["English"],
     minFollowers: 10000,
@@ -75,7 +75,7 @@ const MOCK_REQUESTS: SwipeRequest[] = [
     isBrandFavorited: false,
     title: "Unboxing Collab",
     description:
-      "Unbox our skincare gift set live or on Reels — we'll send the full set plus a bonus item for you to keep. No script, just your genuine first reaction.",
+      "Unbox our skincare gift set live or on Reels. We'll send the full set plus a bonus item for you to keep. No script, just your genuine first reaction.",
     niche: "Beauty",
     languages: ["English"],
     minFollowers: 8000,
@@ -97,7 +97,7 @@ const MOCK_REQUESTS: SwipeRequest[] = [
     isBrandFavorited: false,
     title: "Before/After Story Series",
     description:
-      "3-day story series showing your routine with our retinol serum. We provide the product, you provide the honesty — even a 'this broke me out' update is fine, we'd rather know.",
+      "3-day story series showing your routine with our retinol serum. We provide the product, you provide the honesty. Even a 'this broke me out' update is fine, we'd rather know.",
     niche: "Beauty",
     languages: ["English"],
     minFollowers: 12000,
@@ -119,7 +119,7 @@ const MOCK_REQUESTS: SwipeRequest[] = [
     isBrandFavorited: false,
     title: "Product Review Reel",
     description:
-      "60-second review reel of our new SPF moisturizer — what you liked, what you'd change, all good. We only ask that you mention SPF number and skin type on camera.",
+      "60-second review reel of our new SPF moisturizer: what you liked, what you'd change, all good. We only ask that you mention SPF number and skin type on camera.",
     niche: "Beauty",
     languages: ["English"],
     minFollowers: 20000,
@@ -208,7 +208,7 @@ export default function SwipeDemoPage() {
             <EmptyState
               icon={FiCheck}
               title="You're all caught up."
-              description="That's every simulated card — reload the page to try again."
+              description="That's every simulated card. Reload the page to try again."
               action={lastPassed ? { label: "Undo last pass", onClick: undoLastPass } : undefined}
             />
           </div>

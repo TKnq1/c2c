@@ -13,7 +13,7 @@ export function CopyProfileLink({ url }: { url: string }) {
       await navigator.clipboard.writeText(url);
       toast.success("Link copied.");
     } catch {
-      toast.error("Couldn't copy — your browser blocked clipboard access.");
+      toast.error("Couldn't copy. Your browser blocked clipboard access.");
     }
   }
 

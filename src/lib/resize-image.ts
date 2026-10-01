@@ -36,7 +36,7 @@ export function resizeImageFile(
     };
     img.onerror = () => {
       URL.revokeObjectURL(objectUrl);
-      reject(new Error("Couldn't read that image — try a JPEG or PNG."));
+      reject(new Error("Couldn't read that image. Try a JPEG or PNG."));
     };
     img.src = objectUrl;
   });

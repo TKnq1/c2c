@@ -41,7 +41,7 @@ export function RequestPhotosInput({ photos, onChange }: { photos: PhotoItem[]; 
     setError(null);
     const room = MAX_REQUEST_PHOTOS - photos.length;
     const picked = Array.from(files).slice(0, room);
-    if (files.length > room) setError(`A request can have ${MAX_REQUEST_PHOTOS} photos — the rest weren't added.`);
+    if (files.length > room) setError(`A request can have ${MAX_REQUEST_PHOTOS} photos, so the rest weren't added.`);
     setBusy(true);
     try {
       const added = await Promise.all(

@@ -115,7 +115,7 @@ export function RequestForm({ requestId, brand, initial }: Props) {
     const missing = !title.trim()
       ? "Give the request a title."
       : !description.trim()
-        ? "Add a description — what should creators show, say or avoid?"
+        ? "Add a description: what should creators show, say or avoid?"
         : !deliverables.trim()
           ? "Say what should be posted, e.g. 1 Reel + 2 Stories."
           : minCents === null
@@ -123,7 +123,7 @@ export function RequestForm({ requestId, brand, initial }: Props) {
             : null;
     const newPhotos = photos.filter((p) => p.kind === "new");
     const tooLarge = newPhotos.reduce((sum, p) => sum + p.file.size, 0) > MAX_UPLOAD_BYTES;
-    setClientError(missing ?? (tooLarge ? "The photos are too large together — remove one and try again." : null));
+    setClientError(missing ?? (tooLarge ? "The photos are too large together. Remove one and try again." : null));
     if (missing || tooLarge) return;
 
     const formData = new FormData(e.currentTarget);
@@ -141,7 +141,7 @@ export function RequestForm({ requestId, brand, initial }: Props) {
     <>
       <form onSubmit={handleSubmit} className="grid grid-cols-[minmax(0,1fr)] gap-8 md:grid-cols-[minmax(0,1fr)_300px] md:items-start">
         <div className="flex flex-col gap-8 md:col-start-1">
-          <Section title="Photos" hint="Up to 5 — the first one is the cover.">
+          <Section title="Photos" hint="Up to 5. The first one is the cover.">
             <RequestPhotosInput photos={photos} onChange={setPhotos} />
           </Section>
 

@@ -26,7 +26,7 @@ export function DeleteAccountForm() {
       <Dialog open={open} onClose={() => setOpen(false)} title="Delete your account?">
         <form action={formAction} className="flex flex-col gap-4">
           <p className="text-sm text-neutral-600 dark:text-neutral-400">
-            This permanently deletes your account and everything tied to it — profile, requests or interests,
+            This permanently deletes your account and everything tied to it: profile, requests or interests,
             messages, reviews, payment history. It can&apos;t be undone.
           </p>
           {/* text-base on phones: iOS zooms into any field under 16px on focus. */}

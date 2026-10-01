@@ -70,7 +70,7 @@ export function PushNotificationsSettings() {
       setSubscribed(false);
       toast.success("Push notifications disabled.");
     } catch {
-      setError("Couldn't turn push notifications off — try again.");
+      setError("Couldn't turn push notifications off. Try again.");
     } finally {
       setPending(false);
     }
@@ -78,7 +78,7 @@ export function PushNotificationsSettings() {
 
   if (!supported) {
     return (
-      <SettingsRow label="Push notifications" hint="Not supported in this browser — add comtor to your home screen to get them." />
+      <SettingsRow label="Push notifications" hint="Not supported in this browser. Add comtor to your home screen to get them." />
     );
   }
 

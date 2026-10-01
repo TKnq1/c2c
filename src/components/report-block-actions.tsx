@@ -182,7 +182,7 @@ function ReportForm({ otherUserId, onSent }: { otherUserId: string; onSent: () =
         return { error: errorMessage(err) };
       }
       if (result?.success) {
-        toast.success("Report sent — our team will take a look.");
+        toast.success("Report sent. Our team will take a look.");
         onSent();
       }
       return result;

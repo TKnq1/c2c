@@ -112,7 +112,7 @@ export function ChatOfferCard({
     case "ACCEPTED":
       eyebrow = "Offer accepted";
       if (isBrand) {
-        detail = `Pay through Stripe — it's held in escrow until ${other} posts and you approve it.`;
+        detail = `Pay through Stripe. It's held in escrow until ${other} posts and you approve it.`;
         actions = (
           <CompletePaymentButton interestId={interestId} label="Pay now" className={`${primaryButton} w-full`} />
         );
@@ -148,7 +148,7 @@ export function ChatOfferCard({
         eyebrow = "Under review";
         detail = (
           <>
-            {isBrand ? "You reported a problem" : `${other} reported a problem`} with the post — the payment is on hold
+            {isBrand ? "You reported a problem" : `${other} reported a problem`} with the post. The payment is on hold
             while we look into it.{viewPost}
           </>
         );
@@ -158,7 +158,7 @@ export function ChatOfferCard({
         if (isBrand) {
           detail = (
             <>
-              Check the post, then approve it or report a problem by <LocalDate ms={deadline} /> — after that
+              Check the post, then approve it or report a problem by <LocalDate ms={deadline} />. After that
               it&apos;s released automatically.{viewPost}
             </>
           );
@@ -168,7 +168,7 @@ export function ChatOfferCard({
         } else {
           detail = (
             <>
-              Waiting for {other} to approve it — otherwise it&apos;s released to you automatically on{" "}
+              Waiting for {other} to approve it. Otherwise it&apos;s released to you automatically on{" "}
               <LocalDate ms={deadline} />.{viewPost}
             </>
           );
@@ -178,7 +178,7 @@ export function ChatOfferCard({
         if (isBrand) {
           detail = `Released to ${other} once they post and you approve it.`;
         } else if (offer.payoutsReady) {
-          detail = `Post the content, then submit the link — you get ${payout ?? "paid"} once ${other} approves it.`;
+          detail = `Post the content, then submit the link. You get ${payout ?? "paid"} once ${other} approves it.`;
           actions = (
             <SubmitPostButton
               interestId={interestId}
@@ -279,7 +279,7 @@ export function OfferResponseButtons({ interestId, otherPartyName }: { interestI
       <Dialog open={counterOpen} onClose={() => setCounterOpen(false)} title="Counter-offer">
         <AmountForm
           action={counterOfferAction.bind(null, interestId)}
-          hint={`Propose a different amount — ${otherPartyName} can accept it, decline it, or counter again.`}
+          hint={`Propose a different amount. ${otherPartyName} can accept it, decline it, or counter again.`}
           submitLabel="Send counter-offer"
           successMessage="Counter-offer sent."
           onDone={() => setCounterOpen(false)}

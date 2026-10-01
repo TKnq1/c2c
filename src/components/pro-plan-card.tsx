@@ -17,7 +17,7 @@ export function ProPlanCard({ isPro, proSince }: { isPro: boolean; proSince: Dat
     setPending(true);
     setError(null);
     const result = await createProCheckoutSessionAction().catch(() => ({
-      error: "Couldn't reach the server — check your connection and try again.",
+      error: "Couldn't reach the server. Check your connection and try again.",
     }));
     if ("error" in result) {
       setError(result.error);
@@ -45,7 +45,7 @@ export function ProPlanCard({ isPro, proSince }: { isPro: boolean; proSince: Dat
         </p>
         <ConfirmActionButton
           action={cancelProAction}
-          successMessage="Pro cancelled — back to the standard rate."
+          successMessage="Pro cancelled. You're back on the standard rate."
           title="Cancel Pro?"
           description={`Your fee goes back to ${PLATFORM_FEE_RATE * 100}% right away. The rest of this billing period isn't refunded.`}
           confirmLabel="Cancel Pro"
@@ -75,7 +75,7 @@ export function ProPlanCard({ isPro, proSince }: { isPro: boolean; proSince: Dat
         disabled={pending}
         className="mt-1 w-full rounded-full bg-ink px-4 py-2.5 text-sm font-medium text-paper transition hover:bg-graphite disabled:opacity-50 sm:w-auto sm:self-start"
       >
-        {pending ? "Redirecting…" : `Go Pro — ${formatCents(PRO_SUBSCRIPTION_PRICE_CENTS)}/month`}
+        {pending ? "Redirecting…" : `Go Pro for ${formatCents(PRO_SUBSCRIPTION_PRICE_CENTS)}/month`}
       </button>
       {error && <p className="text-sm text-ink">{error}</p>}
     </div>

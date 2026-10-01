@@ -27,13 +27,13 @@ function readPhotos(formData: FormData): { tokens: PhotoToken[]; files: File[] }
   const files = formData.getAll("photos").filter((f): f is File => f instanceof File && f.size > 0);
   for (const file of files) {
     if (!REQUEST_PHOTO_TYPES.includes(file.type)) return { error: "Photos have to be JPEG, PNG or WebP images." };
-    if (file.size > MAX_PHOTO_BYTES) return { error: "One of the photos is too large — try a smaller one." };
+    if (file.size > MAX_PHOTO_BYTES) return { error: "One of the photos is too large. Try a smaller one." };
   }
   let raw: unknown;
   try {
     raw = JSON.parse(String(formData.get("photoOrder") ?? "[]"));
   } catch {
-    return { error: "Something went wrong with the photos — try adding them again." };
+    return { error: "Something went wrong with the photos. Try adding them again." };
   }
   if (!Array.isArray(raw) || raw.length > MAX_REQUEST_PHOTOS) {
     return { error: `Add at most ${MAX_REQUEST_PHOTOS} photos.` };
@@ -45,10 +45,10 @@ function readPhotos(formData: FormData): { tokens: PhotoToken[]; files: File[] }
     else if (typeof t === "string" && t.startsWith("existing:")) tokens.push({ kind: "existing", id: t.slice(9) });
     else if (typeof t === "string" && /^new:\d+$/.test(t)) {
       const index = Number(t.slice(4));
-      if (index >= files.length || usedFiles.has(index)) return { error: "Something went wrong with the photos — try adding them again." };
+      if (index >= files.length || usedFiles.has(index)) return { error: "Something went wrong with the photos. Try adding them again." };
       usedFiles.add(index);
       tokens.push({ kind: "new", index });
-    } else return { error: "Something went wrong with the photos — try adding them again." };
+    } else return { error: "Something went wrong with the photos. Try adding them again." };
   }
   return { tokens, files };
 }
@@ -107,7 +107,7 @@ export async function createRequestAction(_prevState: ActionState, formData: For
 
   const photos = readPhotos(formData);
   if ("error" in photos) return { error: photos.error };
-  if (photos.tokens.some((t) => t.kind !== "new")) return { error: "Something went wrong with the photos — try adding them again." };
+  if (photos.tokens.some((t) => t.kind !== "new")) return { error: "Something went wrong with the photos. Try adding them again." };
   const images = await Promise.all(
     photos.tokens.map(async (t, position) => {
       const file = photos.files[(t as { index: number }).index];
@@ -213,7 +213,7 @@ export async function updateRequestAction(
   const plan: ({ position: number } & ({ id: string } | { contentType: string; data: Uint8Array<ArrayBuffer> }))[] = [];
   for (const [position, t] of photos.tokens.entries()) {
     if (t.kind === "existing") {
-      if (!ownIds.has(t.id)) return { error: "Something went wrong with the photos — reload the page and try again." };
+      if (!ownIds.has(t.id)) return { error: "Something went wrong with the photos. Reload the page and try again." };
       plan.push({ position, id: t.id });
     } else if (t.kind === "legacy") {
       if (legacy) plan.push({ position, ...legacy });
@@ -429,10 +429,10 @@ export async function withdrawInterestAction(interestId: string) {
   const interest = await prisma.interest.findUnique({ where: { id: interestId } });
   if (!interest || interest.creatorId !== creator.id) throw new Error("This interest could not be found.");
   if (interest.paymentStatus !== null) {
-    throw new Error("Can't withdraw — a payment is already in progress for this collab.");
+    throw new Error("Can't withdraw: a payment is already in progress for this collab.");
   }
   if (interest.depositStatus !== null) {
-    throw new Error("Can't withdraw — a deposit is already in progress for this collab.");
+    throw new Error("Can't withdraw: a deposit is already in progress for this collab.");
   }
 
   await prisma.interest.delete({ where: { id: interestId } });
@@ -448,10 +448,10 @@ export async function rejectInterestAction(interestId: string) {
   const interest = await prisma.interest.findUnique({ where: { id: interestId }, include: { request: true } });
   if (!interest || interest.request.startupId !== startup.id) throw new Error("This interest could not be found.");
   if (interest.depositStatus !== null) {
-    throw new Error("Can't remove — a deposit is already in progress for this collab.");
+    throw new Error("Can't remove: a deposit is already in progress for this collab.");
   }
   if (interest.paymentStatus !== null) {
-    throw new Error("Can't remove — a payment is already in progress for this collab.");
+    throw new Error("Can't remove: a payment is already in progress for this collab.");
   }
 
   await prisma.interest.delete({ where: { id: interestId } });

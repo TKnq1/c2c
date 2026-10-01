@@ -14,7 +14,7 @@ const REDACTED = /^(Minified React error #441\b|An error occurred in the Server 
 // page being out of date (the other side already answered the offer, the
 // payment was already refunded), which a refresh fixes.
 export function errorMessage(err: unknown): string {
-  if (err instanceof TypeError) return "Couldn't reach the server — check your connection and try again.";
+  if (err instanceof TypeError) return "Couldn't reach the server. Check your connection and try again.";
   if (err instanceof Error && !REDACTED.test(err.message)) return err.message;
-  return "Something went wrong — refresh the page and try again.";
+  return "Something went wrong. Refresh the page and try again.";
 }

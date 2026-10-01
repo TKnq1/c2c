@@ -94,7 +94,7 @@ export function EditProfileForm({
       <div className="flex flex-col gap-1">
         <span className="text-sm font-medium">Platforms &amp; followers</span>
         <p className="text-xs text-neutral-500 dark:text-neutral-400">
-          The link is optional — add it so brands can check out your profile directly.
+          The link is optional. Add it so brands can check out your profile directly.
         </p>
         <PlatformPicker name="platforms" initial={platforms} />
       </div>

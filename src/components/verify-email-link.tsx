@@ -19,7 +19,7 @@ export function VerifyEmailLink() {
 
   return (
     <p className="text-sm text-neutral-700 dark:text-neutral-300">
-      Verification email sent — check your inbox and click the link there.
+      Verification email sent. Check your inbox and click the link there.
     </p>
   );
 }

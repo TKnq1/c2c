@@ -12,7 +12,7 @@ const FAQS: { question: string; answer: string }[] = [
   {
     question: "How does matching work?",
     answer:
-      "Brands post a request with a niche, a minimum follower count, and a product category. Creators see requests that match their own niche and where at least one of their platforms clears the follower threshold. No manual approval — if it matches, it shows up in the feed.",
+      "Brands post a request with a niche, a minimum follower count, and a product category. Creators see requests that match their own niche and where at least one of their platforms clears the follower threshold. No manual approval: if it matches, it shows up in the feed.",
   },
   {
     question: "How do I reach out?",
@@ -22,22 +22,22 @@ const FAQS: { question: string; answer: string }[] = [
   {
     question: "How do payments work?",
     answer:
-      `A brand pays a creator through the platform, not directly. The payment is held in escrow until the creator posts the content and submits the link. The brand then has ${RELEASE_REVIEW_DAYS} days to approve it — which releases it right away — or to report a problem; if the brand doesn't respond, it's released automatically. The platform keeps a ${PLATFORM_FEE_RATE * 100}% fee out of every payment by default. Brands doing regular volume can subscribe to Pro for ${formatCents(PRO_SUBSCRIPTION_PRICE_CENTS)}/month to drop that to ${PRO_PLATFORM_FEE_RATE * 100}%.`,
+      `A brand pays a creator through the platform, not directly. The payment is held in escrow until the creator posts the content and submits the link. The brand then has ${RELEASE_REVIEW_DAYS} days to approve it, which releases it right away, or to report a problem. If the brand doesn't respond, it's released automatically. The platform keeps a ${PLATFORM_FEE_RATE * 100}% fee out of every payment by default. Brands doing regular volume can subscribe to Pro for ${formatCents(PRO_SUBSCRIPTION_PRICE_CENTS)}/month to drop that to ${PRO_PLATFORM_FEE_RATE * 100}%.`,
   },
   {
     question: "What's the Pro plan?",
     answer:
-      `An optional monthly subscription for brands (${formatCents(PRO_SUBSCRIPTION_PRICE_CENTS)}/month) that lowers the platform fee from ${PLATFORM_FEE_RATE * 100}% to ${PRO_PLATFORM_FEE_RATE * 100}% on every offer. It pays for itself once you're sending roughly ${formatCents(Math.round(PRO_SUBSCRIPTION_PRICE_CENTS / (PLATFORM_FEE_RATE - PRO_PLATFORM_FEE_RATE)))}/month or more in offers. Billed monthly through Stripe — manage or cancel it from Settings.`,
+      `An optional monthly subscription for brands (${formatCents(PRO_SUBSCRIPTION_PRICE_CENTS)}/month) that lowers the platform fee from ${PLATFORM_FEE_RATE * 100}% to ${PRO_PLATFORM_FEE_RATE * 100}% on every offer. It pays for itself once you're sending roughly ${formatCents(Math.round(PRO_SUBSCRIPTION_PRICE_CENTS / (PLATFORM_FEE_RATE - PRO_PLATFORM_FEE_RATE)))}/month or more in offers. Billed monthly through Stripe. Manage or cancel it from Settings.`,
   },
   {
     question: "What if the creator never posts?",
     answer:
-      `A brand can cancel a payment and get a full refund any time before the creator submits their post. If a post is submitted but something's wrong — it's missing, taken down, or not what was agreed — the brand can report a problem within the ${RELEASE_REVIEW_DAYS} days. The payment then stays on hold while we look into it, and we either release it to the creator or refund the brand. Once released, a payment can't be reversed — reviews from both sides help everyone judge who's reliable before paying.`,
+      `A brand can cancel a payment and get a full refund any time before the creator submits their post. If a post is submitted but something's wrong (it's missing, taken down, or not what was agreed), the brand can report a problem within the ${RELEASE_REVIEW_DAYS} days. The payment then stays on hold while we look into it, and we either release it to the creator or refund the brand. Once released, a payment can't be reversed. Reviews from both sides help everyone judge who's reliable before paying.`,
   },
   {
     question: "Is this real money?",
     answer:
-      "Yes — collab payments and the Pro subscription both run through Stripe, and real money moves between real bank accounts.",
+      "Yes. Collab payments and the Pro subscription both run through Stripe, and real money moves between real bank accounts.",
   },
   {
     question: "How are follower counts verified?",

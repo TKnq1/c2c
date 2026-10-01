@@ -9,7 +9,7 @@ export function ForgotPasswordForm() {
   if (state?.success) {
     return (
       <p className="text-sm text-neutral-700 dark:text-neutral-300">
-        If that email has an account, we&apos;ve sent a reset link — check your inbox.
+        If that email has an account, we&apos;ve sent a reset link. Check your inbox.
       </p>
     );
   }

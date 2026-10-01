@@ -15,14 +15,14 @@ const SECTIONS: { title: string; body: string[] }[] = [
   {
     title: "Your account",
     body: [
-      "Your email address, a hashed password (never stored in plain text), whether you're a brand or a creator, whether your email is verified and — if you turn on two-factor authentication — the secret used to check your codes. We need this to run your account (Art. 6(1)(b) GDPR).",
+      "Your email address, a hashed password (never stored in plain text), whether you're a brand or a creator, whether your email is verified and, if you turn on two-factor authentication, the secret used to check your codes. We need this to run your account (Art. 6(1)(b) GDPR).",
     ],
   },
   {
     title: "Profiles and requests",
     body: [
       "What you enter on your profile: for brands, company name, logo, website, niche, description and social links; for creators, display name, picture, niche, bio, language, and platforms with follower counts and links. A brand's requests include a title, description, photos, budget, platform and content, post-by date and product details.",
-      "Profiles and requests are shown to other users — that's how matching works — and stored on our servers (Art. 6(1)(b) GDPR).",
+      "Profiles and requests are shown to other users (that's how matching works) and stored on our servers (Art. 6(1)(b) GDPR).",
     ],
   },
   {
@@ -34,7 +34,7 @@ const SECTIONS: { title: string; body: string[] }[] = [
   {
     title: "Security and logs",
     body: [
-      "Each login records the time, whether it succeeded, your IP address and your browser — so you can see your recent logins in Settings, and so we can stop abuse such as password guessing. When you use comtor, our hosting provider also processes technical data (IP address, time, the page requested, browser) to deliver it and keep it secure. Both rest on our legitimate interest in a secure service (Art. 6(1)(f) GDPR).",
+      "Each login records the time, whether it succeeded, your IP address and your browser, so you can see your recent logins in Settings and so we can stop abuse such as password guessing. When you use comtor, our hosting provider also processes technical data (IP address, time, the page requested, browser) to deliver it and keep it secure. Both rest on our legitimate interest in a secure service (Art. 6(1)(f) GDPR).",
     ],
   },
   {
@@ -48,7 +48,7 @@ const SECTIONS: { title: string; body: string[] }[] = [
     title: "Service providers",
     body: [
       "These providers process data on our behalf and according to our instructions (Art. 28 GDPR): Vercel Inc., USA, which hosts the website and app; Neon Inc., USA, whose database we use, hosted in Frankfurt, Germany; and Resend Inc., USA, which delivers account emails.",
-      "Payments, payouts and the identity checks required for payouts are handled by Stripe. For some of this processing, Stripe Payments Europe, Ltd. (Ireland) is responsible itself — see Stripe's privacy policy.",
+      "Payments, payouts and the identity checks required for payouts are handled by Stripe. For some of this processing, Stripe Payments Europe, Ltd. (Ireland) is responsible itself. See Stripe's privacy policy.",
       "Where data reaches the USA, the transfer is based on the EU–U.S. Data Privacy Framework or on the EU Standard Contractual Clauses.",
     ],
   },
@@ -61,14 +61,14 @@ const SECTIONS: { title: string; body: string[] }[] = [
   {
     title: "Your rights",
     body: [
-      "You can ask for access to your data (Art. 15 GDPR), have it corrected (Art. 16), deleted (Art. 17) or restricted (Art. 18), and get it in a portable format (Art. 20) — the export in Settings gives you a copy at any time. You can object to processing based on legitimate interest (Art. 21) and withdraw any consent for the future (Art. 7(3)). Just write to info@comtor.app.",
-      "You also have the right to complain to a data protection authority — for us, that's the Berlin Commissioner for Data Protection and Freedom of Information.",
+      "You can ask for access to your data (Art. 15 GDPR), have it corrected (Art. 16), deleted (Art. 17) or restricted (Art. 18), and get it in a portable format (Art. 20). The export in Settings gives you a copy at any time. You can object to processing based on legitimate interest (Art. 21) and withdraw any consent for the future (Art. 7(3)). Just write to info@comtor.app.",
+      "You also have the right to complain to a data protection authority. For us, that's the Berlin Commissioner for Data Protection and Freedom of Information.",
     ],
   },
   {
     title: "No automated decisions",
     body: [
-      "Which requests a creator sees is decided by simple rules — niche and follower count — not by automated decision-making with legal or similarly significant effects (Art. 22 GDPR).",
+      "Which requests a creator sees is decided by simple rules (niche and follower count), not by automated decision-making with legal or similarly significant effects (Art. 22 GDPR).",
     ],
   },
   {

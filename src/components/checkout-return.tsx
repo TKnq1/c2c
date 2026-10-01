@@ -21,8 +21,8 @@ export function CheckoutReturn({ status, waiting }: { status: string | undefined
   useEffect(() => {
     if (toasted.current || (status !== "success" && status !== "cancelled")) return;
     toasted.current = true;
-    if (status === "success") toast.success("Payment complete — it's held in escrow until the creator posts.");
-    else toast.info("Payment cancelled — nothing was charged.");
+    if (status === "success") toast.success("Payment complete. It's held in escrow until the creator posts.");
+    else toast.info("Payment cancelled. Nothing was charged.");
   }, [status]);
 
   const polling = waiting && !gaveUp;

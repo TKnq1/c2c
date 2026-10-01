@@ -25,7 +25,7 @@ export function RequestDepositButton({
       <Dialog open={open} onClose={() => setOpen(false)} title="Request a deposit">
         <AmountForm
           action={requestDepositAction.bind(null, interestId)}
-          hint="A refundable deposit the creator pays before you ship product. You return it in full once the post is live — or keep it if they never deliver. No platform fee."
+          hint="A refundable deposit the creator pays before you ship product. You return it in full once the post is live, or keep it if they never deliver. No platform fee."
           submitLabel="Request deposit"
           pendingLabel="Requesting…"
           successMessage="Deposit requested."

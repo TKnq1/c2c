@@ -15,7 +15,7 @@ const SECTIONS: { title: string; body: string[] }[] = [
   {
     title: "The service",
     body: [
-      "comtor connects brands with content creators for paid collaborations. Brands post requests — what they want made, on which platform, for what budget and by when. Creators who match can express interest, agree a price with the brand in the chat, and get paid through comtor. comtor isn't a party to the collaboration itself.",
+      "comtor connects brands with content creators for paid collaborations. Brands post requests: what they want made, on which platform, for what budget and by when. Creators who match can express interest, agree a price with the brand in the chat, and get paid through comtor. comtor isn't a party to the collaboration itself.",
     ],
   },
   {
@@ -27,7 +27,7 @@ const SECTIONS: { title: string; body: string[] }[] = [
   {
     title: "Fees",
     body: [
-      `We charge a ${PLATFORM_FEE_RATE * 100}% platform fee on every payment made through comtor. Brands can subscribe to Pro for ${formatCents(PRO_SUBSCRIPTION_PRICE_CENTS)}/month, which lowers it to ${PRO_PLATFORM_FEE_RATE * 100}%. There are no other listing or membership fees — the fee only applies when a collaboration is paid for, plus Pro if you choose it.`,
+      `We charge a ${PLATFORM_FEE_RATE * 100}% platform fee on every payment made through comtor. Brands can subscribe to Pro for ${formatCents(PRO_SUBSCRIPTION_PRICE_CENTS)}/month, which lowers it to ${PRO_PLATFORM_FEE_RATE * 100}%. There are no other listing or membership fees. The fee only applies when a collaboration is paid for, plus Pro if you choose it.`,
     ],
   },
   {
@@ -40,7 +40,7 @@ const SECTIONS: { title: string; body: string[] }[] = [
   {
     title: "Requests and posts",
     body: [
-      "Brands are responsible for their requests — that the details are accurate, and that they have the rights to the photos they upload. Creators are responsible for their posts and must label them as advertising wherever the law requires it (in Germany, for example, as “Werbung” or “Anzeige”).",
+      "Brands are responsible for their requests: that the details are accurate, and that they have the rights to the photos they upload. Creators are responsible for their posts and must label them as advertising wherever the law requires it (in Germany, for example, as “Werbung” or “Anzeige”).",
     ],
   },
   {
@@ -52,7 +52,7 @@ const SECTIONS: { title: string; body: string[] }[] = [
   {
     title: "Content ownership",
     body: [
-      "Content created in a collaboration is governed by whatever the brand and creator agree between themselves — comtor isn't a party to that agreement and holds no rights to the content.",
+      "Content created in a collaboration is governed by whatever the brand and creator agree between themselves. comtor isn't a party to that agreement and holds no rights to the content.",
     ],
   },
   {
@@ -79,5 +79,5 @@ const SECTIONS: { title: string; body: string[] }[] = [
 ];
 
 export default function TermsPage() {
-  return <LegalDocument title="Terms of Service" updated="September 30, 2026" sections={SECTIONS} />;
+  return <LegalDocument title="Terms of Service" updated="October 1, 2026" sections={SECTIONS} />;
 }

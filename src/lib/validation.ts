@@ -200,7 +200,7 @@ export const submitPostSchema = z.object({
     .string()
     .trim()
     .min(1, "Paste the link to your post.")
-    .url("That doesn't look like a link — paste the full address of your post.")
+    .url("That doesn't look like a link. Paste the full address of your post.")
     .refine((url) => /^https?:\/\//i.test(url), "Use the full link, starting with https://"),
 });
 

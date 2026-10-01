@@ -139,7 +139,7 @@ export function MessagesList({ conversations }: { conversations: Conversation[] 
                   </div>
                 </div>
                 <p className={`text-sm mt-1 truncate ${c.unreadCount > 0 ? "text-neutral-900 font-medium dark:text-neutral-100" : "text-neutral-500 dark:text-neutral-400"}`}>
-                  {c.lastMessage ? `${c.lastMessage.isMine ? "You: " : ""}${c.lastMessage.body}` : "No messages yet — say hi"}
+                  {c.lastMessage ? `${c.lastMessage.isMine ? "You: " : ""}${c.lastMessage.body}` : "No messages yet. Say hi!"}
                 </p>
               </div>
             </Link>

@@ -99,7 +99,7 @@ export function InterestedCreatorRow({
           onClick={() => trigger("Creator removed.", "Creator restored.")}
           className="text-xs text-neutral-400 hover:text-ink transition mt-2 dark:text-neutral-500"
         >
-          Not a fit — remove
+          Not a fit? Remove
         </button>
       </div>
     </div>

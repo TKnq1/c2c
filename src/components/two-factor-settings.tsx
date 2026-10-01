@@ -56,7 +56,7 @@ export function TwoFactorSettings({ initialEnabled }: { initialEnabled: boolean 
       return (
         <div className="flex items-center justify-between gap-3">
           <p className="text-sm text-neutral-700 dark:text-neutral-300">
-            <span className="text-ink font-medium">Enabled</span> — an authenticator app is required at
+            <span className="text-ink font-medium">Enabled</span>. An authenticator app is required at
             login.
           </p>
           <button

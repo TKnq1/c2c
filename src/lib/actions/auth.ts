@@ -202,7 +202,7 @@ export async function requestPasswordResetAction(
     await sendEmail({
       to: user.email,
       subject: "Reset your comtor password",
-      html: `<p>Someone requested a password reset for this account.</p><p><a href="${SITE_URL}/reset-password/${token}">Reset your password</a> — this link expires in 1 hour.</p><p>If this wasn't you, you can ignore this email.</p>`,
+      html: `<p>Someone requested a password reset for this account.</p><p><a href="${SITE_URL}/reset-password/${token}">Reset your password</a>. This link expires in 1 hour.</p><p>If this wasn't you, you can ignore this email.</p>`,
     });
   }
 
@@ -247,7 +247,7 @@ export async function generateEmailVerificationAction(): Promise<GenerateVerific
   await sendEmail({
     to: session.user.email!,
     subject: "Verify your comtor email",
-    html: `<p><a href="${SITE_URL}/verify-email/${token}">Verify your email</a> — this link expires in 24 hours.</p>`,
+    html: `<p><a href="${SITE_URL}/verify-email/${token}">Verify your email</a>. This link expires in 24 hours.</p>`,
   });
 
   return { sent: true };

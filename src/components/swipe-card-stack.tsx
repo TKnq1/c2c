@@ -44,7 +44,7 @@ export function SwipeCardStack({ requests }: { requests: SwipeRequest[] }) {
     try {
       if (favorited) {
         await favoriteStartupAction(card.startupId);
-        toast.success(`${card.companyName} saved — find it under Favorites on Discover.`);
+        toast.success(`${card.companyName} saved. Find it under Favorites on Discover.`);
       } else {
         await unfavoriteStartupAction(card.startupId);
         toast.success(`Removed ${card.companyName} from favorites.`);
@@ -110,7 +110,7 @@ export function SwipeCardStack({ requests }: { requests: SwipeRequest[] }) {
       <EmptyState
         icon={FiCheck}
         title="You're all caught up."
-        description="No more new requests to review right now — check back later."
+        description="No more new requests to review right now. Check back later."
         action={
           lastPassed
             ? { label: "Undo last pass", onClick: undoLastPass }

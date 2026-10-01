@@ -15,7 +15,7 @@ const COPY: Record<SignupRole, { headline: string; body: string }> = {
   },
   CREATOR: {
     headline: "Find brand collabs that fit you. Get paid for what you post.",
-    body: `comtor matches you with brands by niche and reach, then holds every payment safely in escrow — released to you once the brand approves your post, or automatically after ${RELEASE_REVIEW_DAYS} days.`,
+    body: `comtor matches you with brands by niche and reach, then holds every payment safely in escrow. It's released to you once the brand approves your post, or automatically after ${RELEASE_REVIEW_DAYS} days.`,
   },
 };
 

@@ -10,8 +10,8 @@ import { PLATFORM_FEE_RATE, PRO_PLATFORM_FEE_RATE, RELEASE_REVIEW_DAYS } from "@
 export type SignupRole = Extract<Role, "STARTUP" | "CREATOR">;
 
 const FEE_NOTE: Record<SignupRole, string> = {
-  STARTUP: `You pay exactly what you offer, held in escrow until the work is live and you've approved it — we take ${PLATFORM_FEE_RATE * 100}% from the creator's payout, ${PRO_PLATFORM_FEE_RATE * 100}% with Pro.`,
-  CREATOR: `Keep ${100 - PLATFORM_FEE_RATE * 100}% of every deal, ${100 - PRO_PLATFORM_FEE_RATE * 100}% when the brand's on Pro — paid out once the brand approves your post, or automatically after ${RELEASE_REVIEW_DAYS} days.`,
+  STARTUP: `You pay exactly what you offer, held in escrow until the work is live and you've approved it. We take ${PLATFORM_FEE_RATE * 100}% from the creator's payout, ${PRO_PLATFORM_FEE_RATE * 100}% with Pro.`,
+  CREATOR: `Keep ${100 - PLATFORM_FEE_RATE * 100}% of every deal, ${100 - PRO_PLATFORM_FEE_RATE * 100}% when the brand's on Pro. Paid out once the brand approves your post, or automatically after ${RELEASE_REVIEW_DAYS} days.`,
 };
 
 type Props = {
