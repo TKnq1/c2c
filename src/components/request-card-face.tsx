@@ -74,8 +74,10 @@ export function RequestCardFace({ request, photoIndex = 0 }: { request: CardRequ
         </div>
       )}
 
+      {/* White in both themes (it sits on the photo), so its text is a
+          fixed dark too — text-ink would turn white with it in dark mode. */}
       {budget && (
-        <p className="absolute top-6 left-4 flex items-baseline gap-1 rounded-full bg-white/90 px-3 py-1.5 text-ink shadow-md">
+        <p className="absolute top-6 left-4 flex items-baseline gap-1 rounded-full bg-white/90 px-3 py-1.5 text-neutral-900 shadow-md">
           <span className="text-base font-black">{budget}</span>
           <span className="text-xs font-semibold text-neutral-500">budget</span>
         </p>
