@@ -32,6 +32,12 @@ const SECTIONS: { title: string; body: string[] }[] = [
     ],
   },
   {
+    title: "Waitlist",
+    body: [
+      "If you leave your email address on our homepage to hear when the iOS and Android apps are out, we store it together with whether you picked brand or creator, and use it for that one email only (Art. 6(1)(a) GDPR). Once the apps are out and we've told you, the address is deleted. You can withdraw your consent at any time by writing to info@comtor.app, and we'll delete it straight away.",
+    ],
+  },
+  {
     title: "Security and logs",
     body: [
       "Each login records the time, whether it succeeded, your IP address and your browser, so you can see your recent logins in Settings and so we can stop abuse such as password guessing. When you use comtor, our hosting provider also processes technical data (IP address, time, the page requested, browser) to deliver it and keep it secure. Both rest on our legitimate interest in a secure service (Art. 6(1)(f) GDPR).",
@@ -40,7 +46,7 @@ const SECTIONS: { title: string; body: string[] }[] = [
   {
     title: "Cookies, local storage and notifications",
     body: [
-      "We use one strictly necessary cookie that keeps you logged in. Your appearance and sound settings and whether you've dismissed the install hint are saved in your browser's local storage and never sent to us. There are no analytics or advertising cookies.",
+      "We use one strictly necessary cookie that keeps you logged in. Your appearance and sound settings, whether you've dismissed the install hint and whether you picked brand or creator on our homepage are saved in your browser's local storage and never sent to us. There are no analytics or advertising cookies.",
       "Push notifications are only sent if you turn them on (Art. 6(1)(a) GDPR). They're delivered by your browser's push service (from Apple, Google or Mozilla, depending on your browser), and you can turn them off at any time in Settings or in your browser. Emails about your account, such as verification and password resets, are sent through Resend.",
     ],
   },

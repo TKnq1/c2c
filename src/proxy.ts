@@ -60,6 +60,13 @@ export default auth((req) => {
     }
   }
 
+  // The landing page is for people who aren't in yet: anyone logged in goes
+  // straight on to their dashboard, the way / always took them before. The
+  // page itself stays static that way.
+  if (pathname === "/" && req.auth) {
+    return NextResponse.redirect(new URL("/dashboard", req.url));
+  }
+
   const isAdminPath = pathname.startsWith("/admin");
   const isOnboardingPath = pathname.startsWith("/onboarding");
   if (!pathname.startsWith("/dashboard") && !isAdminPath && !isOnboardingPath) return;

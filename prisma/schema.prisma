@@ -128,6 +128,15 @@ model SignupAttempt {
   @@index([ipAddress, createdAt])
 }
 
+// People who left their email on the landing page to hear when the iOS and
+// Android apps are out. role is what they picked there, if anything.
+model WaitlistEntry {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  role      Role?
+  createdAt DateTime @default(now())
+}
+
 model PasswordResetToken {
   id        String    @id @default(cuid())
   userId    String
