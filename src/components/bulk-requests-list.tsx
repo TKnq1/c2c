@@ -88,7 +88,7 @@ export function BulkRequestsList({ requests }: { requests: RequestEntry[] }) {
                   checked={selected.has(r.id)}
                   onChange={() => toggle(r.id)}
                   aria-label={`Select ${r.title}`}
-                  className="h-4 w-4 shrink-0 appearance-none rounded border border-neutral-300 bg-white checked:border-neutral-900 checked:bg-neutral-900 transition dark:border-neutral-600 dark:checked:border-white dark:checked:bg-white"
+                  className="h-4 w-4 shrink-0 appearance-none rounded border border-neutral-300 bg-white checked:border-neutral-900 checked:bg-neutral-900 transition dark:border-neutral-600 dark:bg-neutral-800 dark:checked:border-white dark:checked:bg-white"
                 />
               </div>
             )}

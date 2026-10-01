@@ -104,7 +104,7 @@ export function SettingsNav({ role }: { role: Role }) {
             document.getElementById(g.id)?.scrollIntoView({ behavior: "smooth", block: "start" });
           }}
           className={`shrink-0 whitespace-nowrap rounded-full px-3.5 py-1.5 font-medium transition ${
-            g.id === active ? "bg-ink text-paper" : "text-neutral-500 hover:text-ink dark:text-neutral-400 dark:hover:text-paper"
+            g.id === active ? "bg-ink text-paper" : "text-neutral-500 hover:text-ink dark:text-neutral-400"
           }`}
         >
           {g.label}

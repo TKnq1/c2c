@@ -585,6 +585,30 @@ async function main() {
     data: { startupId: startup1.id, creatorId: creator3User.creatorProfile!.id, favoritedByRole: "CREATOR" },
   });
 
+  // Interests above are created "now" while their messages and payment
+  // steps are backdated, which put "Conversation started" after them in
+  // the chat timeline. Start each conversation just before its first event.
+  const interests = await prisma.interest.findMany({
+    include: { messages: { select: { createdAt: true }, orderBy: { createdAt: "asc" }, take: 1 } },
+  });
+  for (const i of interests) {
+    const events = [
+      i.messages[0]?.createdAt,
+      i.offeredAt,
+      i.paidAt,
+      i.proofSubmittedAt,
+      i.disputedAt,
+      i.releasedAt,
+      i.refundedAt,
+      i.depositRequestedAt,
+      i.depositPaidAt,
+    ].filter((d): d is Date => d instanceof Date);
+    const first = Math.min(...events.map((d) => d.getTime()));
+    if (events.length > 0 && first < i.createdAt.getTime()) {
+      await prisma.interest.update({ where: { id: i.id }, data: { createdAt: new Date(first - 5 * 60 * 1000) } });
+    }
+  }
+
   console.log("Seed complete. All accounts use password: password123");
 }
 
