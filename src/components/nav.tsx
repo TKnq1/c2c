@@ -298,7 +298,7 @@ export function Nav() {
                 prefetch={false}
                 aria-current={isActive ? "page" : undefined}
                 aria-label={l.label}
-                className={`flex flex-1 items-center justify-center pt-3 pb-2 transition ${
+                className={`flex flex-1 items-center justify-center pt-3 pb-1.5 transition ${
                   isActive ? "text-ink" : "text-neutral-400 dark:text-neutral-500"
                 }`}
               >

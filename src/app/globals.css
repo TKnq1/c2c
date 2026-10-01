@@ -47,8 +47,11 @@
   /* Padding under the bars that sit on the bottom edge (the tab bar, the
      chat composer). They only have to clear the home indicator itself, not
      all 34px iOS reserves around it: the full inset left a band of empty
-     space under them in the installed app. 8px where there's no inset. */
-  --bar-bottom: max(calc(var(--safe-bottom) - 14px), 8px);
+     space under them in the installed app. On an iPhone that's 14px, which
+     with the tab icons' own 6px puts them 20px off the bottom edge, just
+     clear of the indicator (which ends 13px up). 8px where there's no
+     inset. */
+  --bar-bottom: max(calc(var(--safe-bottom) - 20px), 8px);
   /* The header's height on phones, where it floats over the page (see
      Nav): 38px logo + 2 × 12px padding + 1px border, under the notch. */
   --header-h: calc(var(--safe-top) + 63px);
