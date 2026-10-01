@@ -5,13 +5,12 @@ import { DeletedAccountToast } from "@/components/deleted-account-toast";
 import { Logo } from "@/components/logo";
 import { ImprintLink } from "@/components/imprint-link";
 import { WelcomeLogoPreload } from "@/components/welcome-overlay";
-import { AuthShell } from "@/components/auth-shell";
 
 export const metadata: Metadata = { title: "Log in" };
 
 export default function LoginPage() {
   return (
-    <AuthShell>
+    <main className="flex-1 flex items-center justify-center px-6 py-16">
       <DeletedAccountToast />
       <WelcomeLogoPreload />
       <div className="w-full max-w-sm flex flex-col gap-6">
@@ -36,6 +35,6 @@ export default function LoginPage() {
         </p>
       </div>
       <ImprintLink />
-    </AuthShell>
+    </main>
   );
 }

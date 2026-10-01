@@ -3,7 +3,6 @@ import { prisma } from "@/lib/prisma";
 import { ResetPasswordForm } from "@/components/reset-password-form";
 import { Logo } from "@/components/logo";
 import { ImprintLink } from "@/components/imprint-link";
-import { AuthShell } from "@/components/auth-shell";
 
 export default async function ResetPasswordPage({ params }: { params: Promise<{ token: string }> }) {
   const { token } = await params;
@@ -12,7 +11,7 @@ export default async function ResetPasswordPage({ params }: { params: Promise<{ 
   const isValid = !!resetToken && !resetToken.usedAt && resetToken.expiresAt > new Date();
 
   return (
-    <AuthShell>
+    <main className="flex-1 flex items-center justify-center px-6 py-16">
       <div className="w-full max-w-sm flex flex-col gap-6">
         <div className="flex justify-center">
           <Logo large />
@@ -32,6 +31,6 @@ export default async function ResetPasswordPage({ params }: { params: Promise<{ 
         )}
       </div>
       <ImprintLink />
-    </AuthShell>
+    </main>
   );
 }
