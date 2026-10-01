@@ -56,7 +56,7 @@ export function MessagesList({ conversations, compact = false }: { conversations
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex flex-wrap items-center gap-3">
+      <div className="flex flex-wrap items-stretch gap-3">
         <SearchInput
           value={search}
           onChange={(e) => setParam("q", e.target.value)}
@@ -64,14 +64,14 @@ export function MessagesList({ conversations, compact = false }: { conversations
           aria-label="Search conversations"
           wrapperClassName="flex-1 min-w-48"
         />
-        <div ref={filterRef} className="relative shrink-0">
+        <div ref={filterRef} className="relative flex shrink-0">
           <button
             type="button"
             onClick={() => setFilterOpen((v) => !v)}
             aria-haspopup="true"
             aria-expanded={filterOpen}
             aria-label="Filter conversations"
-            className={`flex items-center gap-1.5 rounded border px-3.5 py-2 text-sm font-medium transition ${
+            className={`flex h-full items-center gap-1.5 rounded-full border px-3.5 py-2 text-sm font-medium transition ${
               activeFilterCount > 0
                 ? "border-ink bg-ink text-paper"
                 : "border-neutral-300 text-neutral-700 hover:border-neutral-400 dark:border-neutral-700 dark:text-neutral-300 dark:hover:border-neutral-600"
@@ -92,7 +92,7 @@ export function MessagesList({ conversations, compact = false }: { conversations
               onAnimationEnd={filterPanel.onExitEnd}
               className={`${
                 filterPanel.closing ? "animate-dropdown-out pointer-events-none" : "animate-dropdown-in"
-              } absolute right-0 z-20 mt-1 min-w-40 rounded border border-ink/10 bg-white py-1 dark:bg-neutral-900`}
+              } absolute right-0 top-full z-20 mt-1 min-w-40 rounded border border-ink/10 bg-white py-1 dark:bg-neutral-900`}
             >
               <label className="flex items-center gap-2 px-3 py-2 text-sm text-neutral-700 whitespace-nowrap hover:bg-neutral-50 cursor-pointer dark:text-neutral-300 dark:hover:bg-neutral-800">
                 <input

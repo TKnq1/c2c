@@ -183,9 +183,24 @@ function CardChips({ request, light, className = "" }: { request: CardRequest; l
   );
 }
 
+export type RequestFactFields = Pick<
+  CardRequest,
+  | "budgetMinCents"
+  | "budgetMaxCents"
+  | "platform"
+  | "deliverables"
+  | "postBy"
+  | "productIncluded"
+  | "productCategory"
+  | "niche"
+  | "languages"
+  | "minFollowers"
+>;
+
 // The facts under the description in the details sheet — every field, in
-// the same order the brand filled them in.
-export function RequestFacts({ request }: { request: CardRequest }) {
+// the same order the brand filled them in. Also the brand's own request
+// page, which is why it only needs the request, not the brand.
+export function RequestFacts({ request }: { request: RequestFactFields }) {
   const budget = formatBudget(request.budgetMinCents, request.budgetMaxCents);
   const rows: [string, React.ReactNode][] = [];
   if (budget) rows.push(["Budget", <span key="b" className="font-bold">{budget}</span>]);

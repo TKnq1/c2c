@@ -16,6 +16,8 @@ type Props = {
   postBy: string | null;
   companyName: string;
   companyAvatarUrl: string | null;
+  // The brand's profile, linked from its name.
+  brandHref: string;
   coverUrl: string | null;
   interestId: string | null;
   // True when this brand reached out directly rather than the creator
@@ -34,6 +36,7 @@ export function RequestCard({
   postBy,
   companyName,
   companyAvatarUrl,
+  brandHref,
   coverUrl,
   interestId,
   contactedByStartup,
@@ -51,31 +54,40 @@ export function RequestCard({
     .filter(Boolean)
     .join(" · ");
 
-  // A row in the Matches group: the request's cover photo, who and what,
-  // the budget, then the chat and the way out.
+  // A row in the Matches group: the request's cover photo (or, without one,
+  // the brand's logo), who and what, the budget, then the chat and the way
+  // out, which sit on the right from md up instead of under the text.
   return (
-    <div className="flex gap-3 px-4 py-3">
-      <div className="relative aspect-[4/5] w-14 shrink-0 overflow-hidden rounded bg-paper">
-        {coverUrl ? (
-          // Served by our own image route; nothing for next/image to do.
-          // eslint-disable-next-line @next/next/no-img-element
+    <div className="flex items-start gap-3 px-4 py-3 md:items-center md:gap-4">
+      {coverUrl ? (
+        <div className="relative aspect-[4/5] w-14 shrink-0 overflow-hidden rounded bg-paper">
+          {/* Served by our own image route; nothing for next/image to do. */}
+          {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={coverUrl} alt="" loading="lazy" className="h-full w-full object-cover" />
-        ) : (
-          <div className="flex h-full items-center justify-center">
-            <Avatar src={companyAvatarUrl} name={companyName} size={32} />
-          </div>
-        )}
-      </div>
-      <div className="flex min-w-0 flex-1 flex-col gap-0.5">
-        <p className="truncate text-footnote text-neutral-500 dark:text-neutral-400">{companyName}</p>
-        <h3 className="line-clamp-2 font-bold leading-snug">{title}</h3>
-        <p className="truncate text-footnote text-neutral-500 dark:text-neutral-400">
-          {budget && <span className="font-bold text-ink">{budget}</span>}
-          {budget && details ? " · " : ""}
-          {details}
-        </p>
+        </div>
+      ) : (
+        <Avatar src={companyAvatarUrl} name={companyName} size={56} />
+      )}
+      <div className="flex min-w-0 flex-1 flex-col gap-0.5 md:flex-row md:items-center md:gap-6">
+        <div className="flex min-w-0 flex-1 flex-col gap-0.5">
+          <Link
+            href={brandHref}
+            className="self-start truncate text-footnote text-neutral-500 transition hover:text-ink hover:underline dark:text-neutral-400"
+          >
+            {companyName}
+          </Link>
+          <h3 className="line-clamp-2 font-bold leading-snug">{title}</h3>
+          <p className="truncate text-footnote text-neutral-500 dark:text-neutral-400">
+            {budget && <span className="font-bold text-ink">{budget}</span>}
+            {budget && details ? " · " : ""}
+            {details}
+          </p>
+          {contactedByStartup && (
+            <p className="text-footnote text-neutral-500 dark:text-neutral-400">{companyName} reached out to you.</p>
+          )}
+        </div>
         {interestId ? (
-          <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1">
+          <div className="mt-2 flex shrink-0 flex-wrap items-center gap-x-4 gap-y-1 md:mt-0 md:flex-row-reverse">
             <Link
               href={`/dashboard/messages/${interestId}`}
               className="rounded-full bg-ink px-4 py-1.5 text-sm font-medium text-paper transition hover:bg-graphite"
@@ -93,15 +105,12 @@ export function RequestCard({
             >
               {contactedByStartup ? "Decline" : "Withdraw interest"}
             </button>
-            {contactedByStartup && (
-              <p className="w-full text-footnote text-neutral-500 dark:text-neutral-400">{companyName} reached out to you.</p>
-            )}
           </div>
         ) : (
           <ActionButton
             action={expressInterestAction.bind(null, id)}
             successMessage="Interest sent."
-            className="mt-2 self-start rounded-full bg-ink px-4 py-1.5 text-sm font-medium text-paper transition hover:bg-graphite disabled:opacity-50"
+            className="mt-2 self-start rounded-full bg-ink px-4 py-1.5 text-sm font-medium text-paper transition hover:bg-graphite disabled:opacity-50 md:mt-0 md:self-center"
           >
             I&apos;m interested
           </ActionButton>

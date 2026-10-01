@@ -58,7 +58,7 @@ function DisplayNameStep({ onDone }: { onDone: () => void }) {
       <button
         type="submit"
         disabled={pending}
-        className="rounded bg-ink text-paper px-4 py-2 font-medium hover:bg-graphite transition disabled:opacity-50"
+        className="rounded-full bg-ink text-paper px-4 py-2 font-medium hover:bg-graphite transition disabled:opacity-50"
       >
         {pending ? "Saving…" : "Continue"}
       </button>
@@ -96,14 +96,14 @@ function NicheStep({ onBack, onDone }: { onBack: () => void; onDone: () => void 
         <button
           type="button"
           onClick={onBack}
-          className="rounded border border-neutral-300 text-neutral-600 px-4 py-2 font-medium hover:border-ink transition dark:border-neutral-700 dark:text-neutral-400"
+          className="rounded-full border border-neutral-300 text-neutral-600 px-4 py-2 font-medium hover:border-ink transition dark:border-neutral-700 dark:text-neutral-400"
         >
           Back
         </button>
         <button
           type="submit"
           disabled={pending}
-          className="flex-1 rounded bg-ink text-paper px-4 py-2 font-medium hover:bg-graphite transition disabled:opacity-50"
+          className="flex-1 rounded-full bg-ink text-paper px-4 py-2 font-medium hover:bg-graphite transition disabled:opacity-50"
         >
           {pending ? "Saving…" : "Continue"}
         </button>
@@ -129,14 +129,14 @@ function PlatformsStep({ onBack }: { onBack: () => void }) {
         <button
           type="button"
           onClick={onBack}
-          className="rounded border border-neutral-300 text-neutral-600 px-4 py-2 font-medium hover:border-ink transition dark:border-neutral-700 dark:text-neutral-400"
+          className="rounded-full border border-neutral-300 text-neutral-600 px-4 py-2 font-medium hover:border-ink transition dark:border-neutral-700 dark:text-neutral-400"
         >
           Back
         </button>
         <button
           type="submit"
           disabled={pending}
-          className="flex-1 rounded bg-ink text-paper px-4 py-2 font-medium hover:bg-graphite transition disabled:opacity-50"
+          className="flex-1 rounded-full bg-ink text-paper px-4 py-2 font-medium hover:bg-graphite transition disabled:opacity-50"
         >
           {pending ? "Finishing…" : "Finish"}
         </button>

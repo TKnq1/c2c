@@ -15,7 +15,7 @@ export default function NotFound() {
         </div>
         <Link
           href="/dashboard"
-          className="rounded bg-ink text-paper px-5 py-2.5 text-sm font-medium hover:bg-graphite transition"
+          className="rounded-full bg-ink text-paper px-5 py-2.5 text-sm font-medium hover:bg-graphite transition"
         >
           Back to dashboard
         </Link>

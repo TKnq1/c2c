@@ -9,6 +9,7 @@ import { getMutualBlockedUserIds } from "@/lib/moderation";
 import { CreatorFeed } from "@/components/creator-feed";
 import { SkeletonCardList } from "@/components/skeleton";
 import { EmptyState } from "@/components/empty-state";
+import { PageTitle } from "@/components/page-title";
 
 export default async function CreatorFeedPage() {
   const session = await auth();
@@ -54,6 +55,7 @@ export default async function CreatorFeedPage() {
 
   return (
     <div className="flex flex-col gap-6">
+      <PageTitle>Feed</PageTitle>
       {requests.length === 0 ? (
         <EmptyState
           icon={FiSearch}

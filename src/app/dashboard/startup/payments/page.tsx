@@ -29,6 +29,7 @@ import {
   RELEASE_REVIEW_DAYS,
   RELEASE_REVIEW_MS,
 } from "@/lib/constants";
+import { PageTitle } from "@/components/page-title";
 
 const primaryButton =
   "rounded-full bg-ink px-4 py-2.5 text-sm font-medium text-paper transition hover:bg-graphite disabled:opacity-50";
@@ -121,6 +122,7 @@ export default async function StartupPaymentsPage(props: PageProps<"/dashboard/s
 
   return (
     <div className="flex flex-col gap-8">
+      <PageTitle>Payments</PageTitle>
       <CheckoutReturn status={checkout} waiting={confirmingId !== null} />
       <PaymentStats
         stats={[

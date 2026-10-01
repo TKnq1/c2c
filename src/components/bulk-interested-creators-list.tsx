@@ -99,7 +99,7 @@ export function BulkInterestedCreatorsList({
             <button
               type="submit"
               disabled={sending}
-              className="rounded bg-ink text-paper px-4 py-2 text-sm font-medium hover:bg-graphite transition disabled:opacity-50 shrink-0 whitespace-nowrap"
+              className="rounded-full bg-ink text-paper px-4 py-2 text-sm font-medium hover:bg-graphite transition disabled:opacity-50 shrink-0 whitespace-nowrap"
             >
               {sending ? "Sending…" : `Send offer to ${selected.size}`}
             </button>

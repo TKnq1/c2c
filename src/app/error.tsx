@@ -31,13 +31,13 @@ export default function ErrorPage({
         <div className="flex items-center gap-3">
           <button
             onClick={() => retry()}
-            className="rounded bg-ink text-paper px-5 py-2.5 text-sm font-medium hover:bg-graphite transition"
+            className="rounded-full bg-ink text-paper px-5 py-2.5 text-sm font-medium hover:bg-graphite transition"
           >
             Try again
           </button>
           <Link
             href="/dashboard"
-            className="rounded border border-neutral-300 px-5 py-2.5 text-sm font-medium hover:bg-neutral-50 transition dark:border-neutral-700 dark:hover:bg-neutral-800/50"
+            className="rounded-full border border-neutral-300 px-5 py-2.5 text-sm font-medium hover:bg-neutral-50 transition dark:border-neutral-700 dark:hover:bg-neutral-800/50"
           >
             Back to dashboard
           </Link>

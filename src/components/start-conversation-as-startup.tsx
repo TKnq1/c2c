@@ -9,7 +9,7 @@ type Props = {
 };
 
 const buttonClassName =
-  "rounded bg-ink text-paper px-4 py-2 text-sm font-medium hover:bg-graphite transition";
+  "rounded-full bg-ink text-paper px-4 py-2 text-sm font-medium hover:bg-graphite transition";
 
 export function StartConversationAsStartup({ creatorId, existingInterestId, openRequests }: Props) {
   if (existingInterestId) {
