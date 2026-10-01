@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { createRequestSchema, sendOfferSchema } from "@/lib/validation";
+import { createRequestSchema, onboardingPlatformsSchema, sendOfferSchema } from "@/lib/validation";
 
 // sendOfferSchema's `amount` field is the euro string straight out of a
 // payment form (see PayCreatorForm/OfferForm) — this is the boundary where
@@ -119,5 +119,22 @@ describe("createRequestSchema", () => {
     const { productIncluded, ...rest } = valid;
     void productIncluded;
     expect(createRequestSchema.parse(rest).productIncluded).toBe(false);
+  });
+});
+
+describe("onboardingPlatformsSchema", () => {
+  const parse = (platforms: unknown) => onboardingPlatformsSchema.safeParse({ platforms: JSON.stringify(platforms) });
+
+  it("takes platforms with followers and a profile link", () => {
+    expect(parse([{ platform: "TikTok", followerCount: 1200, url: "https://tiktok.com/@lea" }]).success).toBe(true);
+  });
+
+  it("requires a profile link for every platform", () => {
+    expect(parse([{ platform: "TikTok", followerCount: 1200 }]).success).toBe(false);
+    expect(parse([{ platform: "TikTok", followerCount: 1200, url: "  " }]).success).toBe(false);
+  });
+
+  it("rejects a link that isn't a URL", () => {
+    expect(parse([{ platform: "TikTok", followerCount: 1200, url: "tiktok lea" }]).success).toBe(false);
   });
 });

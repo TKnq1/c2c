@@ -6,10 +6,11 @@ import { PlatformIcon } from "@/components/platform-icons";
 
 export type PlatformDraft = { platform: string; followers: string; url: string };
 
-// Onboarding's platform input: tap a platform's chip to add it, then fill in
-// its followers (and optionally a link) in the row that appears. Posts the
-// same JSON as PlatformPicker; rows without a follower count are left out
-// (the step's Continue stays disabled until every row has one).
+// A creator's platforms (onboarding and settings): tap a platform's chip to
+// add it, then fill in its followers and the link to the profile there in
+// the row that appears. Both are required — the link is what a brand opens
+// from the profile — so the inputs carry `required` and the form won't
+// submit with one missing. Posts the rows as JSON in one hidden field.
 export function PlatformChips({
   name,
   value,
@@ -20,9 +21,7 @@ export function PlatformChips({
   onChange: (entries: PlatformDraft[]) => void;
 }) {
   const selected = new Set(value.map((e) => e.platform));
-  const serialized = value
-    .filter((e) => e.followers !== "")
-    .map((e) => ({ platform: e.platform, followerCount: Number(e.followers), ...(e.url.trim() ? { url: e.url.trim() } : {}) }));
+  const serialized = value.map((e) => ({ platform: e.platform, followerCount: Number(e.followers), url: e.url.trim() }));
 
   const toggle = (platform: string) =>
     onChange(selected.has(platform) ? value.filter((e) => e.platform !== platform) : [...value, { platform, followers: "", url: "" }]);
@@ -54,7 +53,7 @@ export function PlatformChips({
       </div>
 
       {value.map((e) => (
-        <div key={e.platform} className="animate-stagger-fade-in flex flex-col gap-2 rounded bg-fog p-3">
+        <div key={e.platform} className="animate-stagger-fade-in flex flex-col gap-2 rounded border border-ink/10 p-3">
           <div className="flex items-center gap-2">
             <PlatformIcon platform={e.platform} className="h-4 w-4 shrink-0" />
             <span className="flex-1 text-sm font-medium">{e.platform}</span>
@@ -81,7 +80,8 @@ export function PlatformChips({
             />
             <input
               type="url"
-              placeholder="Profile link (optional)"
+              required
+              placeholder="Link to your profile"
               aria-label={`${e.platform} profile link`}
               value={e.url}
               onChange={(ev) => update(e.platform, { url: ev.target.value })}

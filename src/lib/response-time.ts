@@ -46,3 +46,14 @@ export function formatResponseTime(ms: number | null): string | null {
   if (ms < 3 * DAY) return "Usually responds within a few days";
   return "Response time varies";
 }
+
+/** The same buckets, short enough for a stat tile ("Replies in …"). */
+export function formatResponseTimeShort(ms: number | null): string | null {
+  if (ms === null) return null;
+  if (ms < 30 * MINUTE) return "Minutes";
+  if (ms < HOUR) return "< 1 hour";
+  if (ms < 6 * HOUR) return "Hours";
+  if (ms < DAY) return "< 1 day";
+  if (ms < 3 * DAY) return "Days";
+  return "Varies";
+}

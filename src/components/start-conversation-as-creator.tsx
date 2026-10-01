@@ -1,3 +1,6 @@
+"use client";
+
+import { useState } from "react";
 import Link from "next/link";
 import { IoChatbubble } from "react-icons/io5";
 import { startConversationAsCreatorAction } from "@/lib/actions/requests";
@@ -7,47 +10,41 @@ type Props = {
   matchingRequests: { id: string; title: string }[];
 };
 
-// Full-width on phones, like a profile's own Follow button (Instagram etc.); its own width from md up. Sits
-// on its own row under the header instead of competing for space with the
-// favorite star up there. Same chat-bubble glyph as the Messages tab in
-// the bottom nav (see TAB_ICONS in nav.tsx).
-const wideButtonClassName =
-  "flex w-full items-center justify-center gap-2 rounded-full bg-ink px-4 py-3 md:w-auto md:self-start md:px-8 text-sm font-medium text-paper transition hover:bg-graphite disabled:opacity-40 disabled:hover:bg-ink";
+// The Message button on a brand's profile, next to the favorite star. Same
+// chat-bubble glyph as the Messages tab (see TAB_ICONS in nav.tsx).
+const BUTTON =
+  "flex flex-1 items-center justify-center gap-2 rounded-full bg-ink px-4 py-2.5 text-sm font-medium text-paper transition hover:bg-graphite disabled:opacity-40 disabled:hover:bg-ink";
 
 export function StartConversationAsCreator({ existingInterestId, matchingRequests }: Props) {
+  const [pending, setPending] = useState(false);
+
   if (existingInterestId) {
     return (
-      <Link href={`/dashboard/messages/${existingInterestId}`} className={wideButtonClassName}>
-        <IoChatbubble className="h-4 w-4" />
+      <Link href={`/dashboard/messages/${existingInterestId}`} className={BUTTON}>
+        <IoChatbubble className="h-4 w-4" aria-hidden />
         Message
       </Link>
     );
   }
 
-  // Always visible now, not hidden when there's nothing to message about —
-  // dimmed and disabled instead, with the reason underneath, so the action
-  // reads as "not available yet" rather than silently missing.
+  // Shown dimmed rather than left out, so it reads as "not available yet";
+  // the page says why underneath.
   if (matchingRequests.length === 0) {
     return (
-      <div className="flex flex-col items-center gap-1.5 md:items-start">
-        <button type="button" disabled aria-label="You don't match any of their open requests yet" className={wideButtonClassName}>
-          <IoChatbubble className="h-4 w-4" />
-          Message
-        </button>
-        <p className="text-xs text-neutral-500 dark:text-neutral-400">You don&apos;t match their requirements yet.</p>
-      </div>
+      <button type="button" disabled className={BUTTON}>
+        <IoChatbubble className="h-4 w-4" aria-hidden />
+        Message
+      </button>
     );
   }
 
-  // Defaults to the first match when there's more than one — the others
-  // stay reachable via their own small button on the matching card in
-  // Open Requests (see the detail page), rather than asking which one
-  // first here.
+  // About the first match; the others can be messaged about from their own
+  // sheet under Open requests (see BrandRequestList).
   return (
-    <form action={startConversationAsCreatorAction}>
+    <form action={startConversationAsCreatorAction} onSubmit={() => setPending(true)} className="flex flex-1">
       <input type="hidden" name="requestId" value={matchingRequests[0].id} />
-      <button type="submit" className={wideButtonClassName}>
-        <IoChatbubble className="h-4 w-4" />
+      <button type="submit" disabled={pending} className={BUTTON}>
+        <IoChatbubble className="h-4 w-4" aria-hidden />
         Message
       </button>
     </form>
