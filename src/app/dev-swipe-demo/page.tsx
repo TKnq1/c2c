@@ -5,7 +5,6 @@ import { FiCheck, FiHeart, FiRotateCcw, FiX } from "react-icons/fi";
 import { IoStar, IoStarOutline } from "react-icons/io5";
 import { SwipeCard, type SwipeCardHandle, type SwipeRequest } from "@/components/swipe-card";
 import { EmptyState } from "@/components/empty-state";
-import { vibrate } from "@/lib/haptics";
 
 // Throwaway preview route — the real Nav shell, fake creator + fake
 // requests, no login and nothing persisted. Nav itself is rendered
@@ -165,7 +164,6 @@ export default function SwipeDemoPage() {
   const [justRestoredId, setJustRestoredId] = useState<string | null>(null);
 
   function handleSwipe(id: string, direction: "left" | "right") {
-    vibrate();
     if (direction === "left") {
       setLastPassed(stack.find((r) => r.id === id) ?? null);
     } else {

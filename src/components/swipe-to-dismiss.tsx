@@ -2,6 +2,7 @@
 
 import { useRef, useState } from "react";
 import { FiTrash2 } from "react-icons/fi";
+import { haptic } from "@/lib/haptics";
 
 const THRESHOLD = 72;
 const MAX_DRAG = 96;
@@ -31,7 +32,10 @@ export function SwipeToDismiss({ children, onDismiss }: { children: React.ReactN
     if (startRef.current === null) return;
     startRef.current = null;
     setDragging(false);
-    if (dragX < -THRESHOLD) onDismiss();
+    if (dragX < -THRESHOLD) {
+      haptic();
+      onDismiss();
+    }
     setDragX(0);
   }
 

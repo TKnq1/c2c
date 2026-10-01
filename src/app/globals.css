@@ -49,6 +49,9 @@
      all 34px iOS reserves around it: the full inset left a band of empty
      space under them in the installed app. 8px where there's no inset. */
   --bar-bottom: max(calc(var(--safe-bottom) - 14px), 8px);
+  /* The header's height on phones, where it floats over the page (see
+     Nav): 38px logo + 2 × 12px padding + 1px border, under the notch. */
+  --header-h: calc(var(--safe-top) + 63px);
 }
 
 @theme inline {
@@ -278,6 +281,12 @@ body.dashboard-shell {
    scrolling areas inside it bounce. */
 html:has(body.dashboard-shell) {
   overscroll-behavior: none;
+}
+
+/* The chat fills <main> exactly, so there's no room above it for the
+   verify-email and install notices; every other page still shows them. */
+main:has(.chat-thread) > .dashboard-banners {
+  display: none;
 }
 
 /* On phones the chat thread runs edge to edge — the nav bars are hidden
@@ -550,6 +559,43 @@ dialog[data-state="closing"]::backdrop {
 }
 
 :root:active-view-transition-type(nav-forward, nav-back)::view-transition-new(root) {
+  animation: 210ms ease-out 150ms both fade-in;
+}
+
+/* The header and tab bar get transition layers of their own, which sit
+   above the page's: the page runs on under them, so its sliding snapshot
+   would otherwise be drawn over them. Where they're there before and after
+   they simply stay put (only the live new one shows, no ghost of the old
+   title under it). Into or out of a chat thread on a phone, where both are
+   hidden, they fade with the rest of the page. */
+.app-header {
+  view-transition-name: app-header;
+}
+
+.app-tabbar {
+  view-transition-name: app-tabbar;
+}
+
+::view-transition-group(app-header),
+::view-transition-group(app-tabbar),
+::view-transition-new(app-header),
+::view-transition-new(app-tabbar) {
+  animation: none;
+}
+
+::view-transition-old(app-header),
+::view-transition-old(app-tabbar) {
+  animation: none;
+  opacity: 0;
+}
+
+::view-transition-old(app-header):only-child,
+::view-transition-old(app-tabbar):only-child {
+  animation: 150ms ease-in both fade-in reverse;
+}
+
+::view-transition-new(app-header):only-child,
+::view-transition-new(app-tabbar):only-child {
   animation: 210ms ease-out 150ms both fade-in;
 }
 

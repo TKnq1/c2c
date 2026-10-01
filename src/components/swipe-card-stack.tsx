@@ -9,7 +9,6 @@ import { expressInterestAction, passRequestAction, undoPassAction } from "@/lib/
 import { favoriteStartupAction, unfavoriteStartupAction } from "@/lib/actions/favorites";
 import { toast } from "@/lib/toast";
 import { errorMessage } from "@/lib/error-message";
-import { vibrate } from "@/lib/haptics";
 
 const VISIBLE_DEPTH = 3;
 
@@ -69,7 +68,6 @@ export function SwipeCardStack({ requests }: { requests: SwipeRequest[] }) {
   const [restored, setRestored] = useState<{ id: string; from: "left" | "right" } | null>(null);
 
   async function handleSwipe(id: string, direction: "left" | "right") {
-    vibrate();
     const card = stack.find((r) => r.id === id);
     setStack((prev) => prev.filter((r) => r.id !== id));
     if (direction === "left") {

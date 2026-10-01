@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { FiX } from "react-icons/fi";
 import { SwipeToDismiss } from "@/components/swipe-to-dismiss";
+import { RelativeTime } from "@/components/relative-time";
 import { useUndoableAction } from "@/lib/use-undoable-action";
 import { deleteNotificationAction } from "@/lib/actions/notifications";
 
@@ -47,7 +48,7 @@ export function NotificationRow({ notification: n }: { notification: Notificatio
         </button>
       </div>
       <p className="text-xs text-neutral-500 mt-1 dark:text-neutral-400">
-        {new Date(n.createdAt).toLocaleString("en-US")}
+        <RelativeTime ms={Date.parse(n.createdAt)} />
       </p>
     </div>
   );

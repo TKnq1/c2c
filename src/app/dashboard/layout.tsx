@@ -7,6 +7,7 @@ import { UnreadTitleBadge } from "@/components/unread-title-badge";
 import { WelcomeOverlay } from "@/components/welcome-overlay";
 import { EmailVerificationGate } from "@/components/email-verification-gate";
 import { InstallPrompt } from "@/components/install-prompt";
+import { PullToRefresh } from "@/components/pull-to-refresh";
 import { getUnreadCount } from "@/lib/notifications";
 import { getUnreadMessageCount } from "@/lib/messages";
 import { getPendingPaymentActionCount } from "@/lib/payments";
@@ -62,17 +63,25 @@ export default async function DashboardLayout({ children }: { children: React.Re
       <Suspense fallback={null}>
         <UnreadTitleBadge countsPromise={countsPromise} />
       </Suspense>
-      <Suspense fallback={null}>
-        <EmailVerificationGate emailVerifiedPromise={emailVerifiedPromise} />
-      </Suspense>
-      <InstallPrompt />
-      {/* Extra bottom padding on mobile clears the fixed bottom tab bar
-          (see Nav) — back to the normal amount from md up, where nav is a
-          plain header instead. */}
+      <PullToRefresh />
+      {/* On phones <main> runs the full height of the screen, under the
+          floating header and tab bar (see Nav): the top padding clears the
+          header (--header-h, also what scroll-padding keeps anchors and
+          focused fields clear of), the bottom one the tab bar. From md up
+          the header is an ordinary bar above it. */}
       <main
         id="main-content"
-        className="flex-1 min-h-0 overflow-y-auto max-w-5xl w-full mx-auto px-6 pt-8 pb-24 md:pb-8"
+        className="flex-1 min-h-0 overflow-y-auto max-w-5xl w-full mx-auto px-6 pt-[calc(var(--header-h)+2rem)] pb-24 max-md:scroll-pt-[var(--header-h)] md:pt-8 md:pb-8"
       >
+        {/* Inside <main>, right under the header, so they scroll away with
+            the page instead of sitting between the header and a page that
+            scrolls under it. Gone when neither has anything to say. */}
+        <div className="dashboard-banners -mx-6 -mt-8 mb-8 empty:hidden">
+          <Suspense fallback={null}>
+            <EmailVerificationGate emailVerifiedPromise={emailVerifiedPromise} />
+          </Suspense>
+          <InstallPrompt />
+        </div>
         {children}
       </main>
     </div>

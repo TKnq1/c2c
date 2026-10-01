@@ -4,6 +4,7 @@ import { useRef, useState } from "react";
 import { FiStar } from "react-icons/fi";
 import { FaStar } from "react-icons/fa";
 import { toast } from "@/lib/toast";
+import { haptic } from "@/lib/haptics";
 import { errorMessage } from "@/lib/error-message";
 
 export function FavoriteButton({
@@ -44,6 +45,7 @@ export function FavoriteButton({
     // toggle has no meaningful failure mode a user needs to see mid-click,
     // so optimistic-then-revert reads as instant instead of laggy.
     const next = !favorited;
+    haptic();
     setFavorited(next);
     onToggle?.(id, next);
     pendingRef.current = true;

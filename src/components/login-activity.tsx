@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { parseUserAgent } from "@/lib/user-agent";
-import { LocalDate } from "@/components/local-date";
+import { RelativeTime } from "@/components/relative-time";
 import { SettingsRow } from "@/components/settings-section";
 
 export async function LoginActivity({ userId }: { userId: string }) {
@@ -14,8 +14,8 @@ export async function LoginActivity({ userId }: { userId: string }) {
     return <p className="text-sm text-neutral-500 dark:text-neutral-400">No login history yet.</p>;
   }
 
-  // Times in the viewer's own zone — formatted on the server they came out
-  // in UTC, an hour or two off for anyone in Germany.
+  // "3 h ago", worked out in the viewer's own zone: formatted on the server
+  // a sign-in came out in UTC, an hour or two off for anyone in Germany.
   return (
     <>
       {attempts.map((a) => (
@@ -24,7 +24,7 @@ export async function LoginActivity({ userId }: { userId: string }) {
           label={parseUserAgent(a.userAgent)}
           hint={
             <>
-              <LocalDate ms={a.createdAt.getTime()} withTime />
+              <RelativeTime ms={a.createdAt.getTime()} />
               {a.ipAddress ? ` · ${a.ipAddress}` : ""}
             </>
           }
