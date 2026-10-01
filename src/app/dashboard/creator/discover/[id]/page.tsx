@@ -33,7 +33,7 @@ export default async function BrandProfileDetailPage({ params }: { params: Promi
   const [startup, creator, reviews, conversations, completedCollabs, blockedUserIds, openRequests] =
     await Promise.all([
       prisma.startupProfile.findUnique({
-        where: { id },
+        where: { id, user: { suspendedAt: null } },
         include: { socialLinks: true },
       }),
       prisma.creatorProfile.findUniqueOrThrow({

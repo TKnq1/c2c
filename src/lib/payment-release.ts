@@ -22,7 +22,7 @@ function revalidatePaymentPaths(requestId: string) {
   revalidatePath(`/dashboard/startup/requests/${requestId}`);
   revalidatePath("/dashboard/startup/payments");
   revalidatePath("/dashboard/creator/payments");
-  revalidatePath("/admin");
+  revalidatePath("/admin", "layout");
 }
 
 export async function releaseHeldPayment(interestId: string, trigger: ReleaseTrigger): Promise<MoneyMoveResult> {

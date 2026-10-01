@@ -79,6 +79,7 @@ async function notifyMatchingCreators(
       niche: request.niche,
       platforms: { some: { followerCount: { gte: request.minFollowers } } },
       userId: { notIn: blockedUserIds },
+      user: { suspendedAt: null },
     },
     select: { userId: true },
   });

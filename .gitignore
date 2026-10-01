@@ -44,3 +44,6 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# capacitor (written on every cap sync, see scripts/write-app-config.mjs)
+/capacitor/www/app-config.js

@@ -9,7 +9,17 @@ import { PLATFORM_FEE_RATE, PRO_PLATFORM_FEE_RATE, PRO_SUBSCRIPTION_PRICE_CENTS 
 
 // The contents of the Plan card on brand Settings (the card itself is the
 // section's, see SettingsSection).
-export function ProPlanCard({ isPro, proSince }: { isPro: boolean; proSince: Date | null }) {
+export function ProPlanCard({
+  isPro,
+  proSince,
+  canPurchase,
+}: {
+  isPro: boolean;
+  proSince: Date | null;
+  // False in the store apps (see canSellProSubscription): shows the current
+  // plan without any upgrade offer.
+  canPurchase: boolean;
+}) {
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -54,6 +64,20 @@ export function ProPlanCard({ isPro, proSince }: { isPro: boolean; proSince: Dat
         >
           Cancel Pro
         </ConfirmActionButton>
+      </div>
+    );
+  }
+
+  if (!canPurchase) {
+    return (
+      <div className="flex flex-col gap-2">
+        <div className="flex items-center justify-between gap-2">
+          <p className="font-medium">Standard plan</p>
+          <span className="text-xs text-neutral-500 dark:text-neutral-400">{PLATFORM_FEE_RATE * 100}% per payment</span>
+        </div>
+        <p className="text-sm text-neutral-600 dark:text-neutral-400">
+          A {PLATFORM_FEE_RATE * 100}% platform fee is included in every payment you send.
+        </p>
       </div>
     );
   }

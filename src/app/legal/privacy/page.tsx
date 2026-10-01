@@ -16,6 +16,7 @@ const SECTIONS: { title: string; body: string[] }[] = [
     title: "Your account",
     body: [
       "Your email address, a hashed password (never stored in plain text), whether you're a brand or a creator, whether your email is verified and, if you turn on two-factor authentication, the secret used to check your codes. We need this to run your account (Art. 6(1)(b) GDPR).",
+      "If we suspend an account for breaking our terms, we store when and why, so the decision can be reviewed later (Art. 6(1)(f) GDPR).",
     ],
   },
   {
@@ -41,13 +42,13 @@ const SECTIONS: { title: string; body: string[] }[] = [
     title: "Cookies, local storage and notifications",
     body: [
       "We use one strictly necessary cookie that keeps you logged in. Your appearance and sound settings and whether you've dismissed the install hint are saved in your browser's local storage and never sent to us. There are no analytics or advertising cookies.",
-      "Push notifications are only sent if you turn them on (Art. 6(1)(a) GDPR). They're delivered by your browser's push service (from Apple, Google or Mozilla, depending on your browser), and you can turn them off at any time in Settings or in your browser. Emails about your account, such as verification and password resets, are sent through Resend.",
+      "Push notifications are only sent if you turn them on (Art. 6(1)(a) GDPR). In a browser they're delivered by its push service (from Apple, Google or Mozilla, depending on your browser). In the comtor app for iPhone or Android we store a token for your device and send them through Apple Push Notification service or Google's Firebase Cloud Messaging. You can turn them off at any time in Settings, in your browser or in your phone's settings. Emails about your account, such as verification and password resets, are sent through Resend.",
     ],
   },
   {
     title: "Service providers",
     body: [
-      "These providers process data on our behalf and according to our instructions (Art. 28 GDPR): Vercel Inc., USA, which hosts the website and app; Neon Inc., USA, whose database we use, hosted in Frankfurt, Germany; and Resend Inc., USA, which delivers account emails.",
+      "These providers process data on our behalf and according to our instructions (Art. 28 GDPR): Vercel Inc., USA, which hosts the website and app; Neon Inc., USA, whose database we use, hosted in Frankfurt, Germany; Resend Inc., USA, which delivers account emails; and Google Ireland Limited, which delivers push notifications to the Android app through Firebase Cloud Messaging.",
       "Payments, payouts and the identity checks required for payouts are handled by Stripe. For some of this processing, Stripe Payments Europe, Ltd. (Ireland) is responsible itself. See Stripe's privacy policy.",
       "Where data reaches the USA, the transfer is based on the EU–U.S. Data Privacy Framework or on the EU Standard Contractual Clauses.",
     ],

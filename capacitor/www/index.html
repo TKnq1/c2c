@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>comtor</title>
+    <style>
+      :root { --bg: #ffffff; --fg: #070707; --muted: #797979; color-scheme: light; }
+      @media (prefers-color-scheme: dark) {
+        :root { --bg: #1e1e1e; --fg: #ffffff; --muted: #a2a2a9; color-scheme: dark; }
+      }
+      body { margin: 0; min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 24px; box-sizing: border-box; background: var(--bg); color: var(--fg); font-family: system-ui, -apple-system, sans-serif; text-align: center; }
+      h1 { font-size: 22px; margin: 0 0 8px; }
+      p { margin: 0; color: var(--muted); font-size: 15px; line-height: 1.4; }
+      button { margin-top: 20px; padding: 10px 22px; border: 0; border-radius: 999px; background: var(--fg); color: var(--bg); font-size: 15px; font-weight: 600; }
+    </style>
+    <!-- Written by scripts/write-app-config.mjs on every cap sync. -->
+    <script src="app-config.js"></script>
+  </head>
+  <body>
+    <main>
+      <h1>You're offline</h1>
+      <p>comtor needs an internet connection. Check your connection and try again.</p>
+      <button type="button" id="retry">Try again</button>
+    </main>
+    <script>
+      // This page is local to the app, so reloading it would only show it
+      // again. Try the live site instead.
+      document.getElementById("retry").addEventListener("click", function () {
+        if (window.COMTOR_SERVER_URL) window.location.href = window.COMTOR_SERVER_URL;
+        else window.location.reload();
+      });
+    </script>
+  </body>
+</html>

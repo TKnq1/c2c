@@ -4,9 +4,9 @@ MVP prototype: brands post collab requests (niche, minimum follower count, produ
 category), creators see matching requests in their feed and reach out with one click
 ("I'm interested") for direct contact. Monetized via commission: brands pay creators
 through the platform, funds are held in escrow until the creator marks the work as
-posted, and the platform keeps a 10% fee (3% for brands on the optional $49/month Pro
-plan) — no real payment is processed, it's a simulated escrow and a simulated
-subscription.
+posted, and the platform keeps a 10% fee (3% for brands on the optional €49/month Pro
+plan). Payments run through Stripe: Checkout for brand payments, Connect for creator
+payouts, Billing for the Pro subscription.
 
 ## Setup
 

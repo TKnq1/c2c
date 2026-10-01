@@ -18,6 +18,7 @@ import { ProPlanCard } from "@/components/pro-plan-card";
 import { LegalLinks } from "@/components/legal-links";
 import { AppearanceSettings } from "@/components/appearance-settings";
 import { OnboardingChecklist } from "@/components/onboarding-checklist";
+import { canSellProSubscription } from "@/lib/native-app-server";
 
 export default async function StartupSettingsPage() {
   const session = await auth();
@@ -75,7 +76,12 @@ export default async function StartupSettingsPage() {
       </SettingsSection>
 
       <SettingsSection id="plan" title="Plan">
-        <ProPlanCard key={String(startup.isPro)} isPro={startup.isPro} proSince={startup.proSince} />
+        <ProPlanCard
+          key={String(startup.isPro)}
+          isPro={startup.isPro}
+          proSince={startup.proSince}
+          canPurchase={await canSellProSubscription()}
+        />
       </SettingsSection>
 
       <SettingsSection id="appearance" title="Appearance">
