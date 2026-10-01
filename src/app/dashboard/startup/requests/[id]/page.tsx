@@ -61,10 +61,7 @@ export default async function RequestDetailPage({ params }: { params: Promise<{ 
         </Link>
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="min-w-0">
-            <p className="text-sm text-neutral-500 dark:text-neutral-400">
-              {request.niche} · {request.productCategory}
-            </p>
-            <h1 className="mt-1 flex flex-wrap items-center gap-3 font-display text-title-1 font-bold text-balance">
+            <h1 className="flex flex-wrap items-center gap-3 font-display text-title-1 font-bold text-balance">
               {request.title}
               <span
                 className={`rounded-full px-2.5 py-1 text-xs font-medium ${

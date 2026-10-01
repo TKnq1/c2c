@@ -45,13 +45,14 @@ export default async function StartupDashboardPage(props: PageProps<"/dashboard/
   return (
     <div className="flex flex-col gap-6">
       <div className="flex items-center justify-between gap-4">
-        <div className="flex items-center gap-3">
+        <div className="flex min-w-0 items-center gap-3">
           <Avatar src={startup.avatarUrl} name={startup.companyName} size={48} />
-          <h1 className="font-display text-title-1 font-bold">{startup.companyName}</h1>
+          <h1 className="truncate font-display text-title-1 font-bold">{startup.companyName}</h1>
         </div>
+        {/* From md up the sidebar has its own New request button. */}
         <Link
           href="/dashboard/startup/new"
-          className="rounded-full bg-ink text-paper px-4 py-2 text-sm font-medium hover:bg-graphite transition whitespace-nowrap"
+          className="rounded-full bg-ink text-paper px-4 py-2 text-sm font-medium hover:bg-graphite transition whitespace-nowrap md:hidden"
         >
           + New request
         </Link>

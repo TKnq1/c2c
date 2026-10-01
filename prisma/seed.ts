@@ -493,6 +493,8 @@ async function main() {
     data: {
       requestId: glowFirstRequest.id,
       creatorId: creator1User.creatorProfile!.id,
+      // Started before the deposit below, so the chat's timeline reads in order.
+      createdAt: threeDaysAgo,
       // Mia already paid her deposit for the sample serum set — demonstrates
       // the brand's release/forfeit decision on first load.
       depositCents: 2_000, // $20.00
@@ -507,6 +509,7 @@ async function main() {
       interestId: glowMiaInterest.id,
       senderRole: "STARTUP",
       body: "Hi Mia! Loved your morning routine reel — would love to chat about our new serum launch.",
+      createdAt: new Date(threeDaysAgo.getTime() + oneHour),
     },
   });
 

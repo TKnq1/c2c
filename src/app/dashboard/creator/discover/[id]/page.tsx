@@ -15,7 +15,7 @@ import { ReviewsList } from "@/components/reviews-list";
 import { FavoriteButton } from "@/components/favorite-button";
 import { favoriteStartupAction, unfavoriteStartupAction } from "@/lib/actions/favorites";
 import { StartConversationAsCreator } from "@/components/start-conversation-as-creator";
-import { FloatingBackButton } from "@/components/floating-back-button";
+import { BackButton } from "@/components/back-button";
 import { DEFAULT_NICHE_ICON, NICHE_ICONS } from "@/lib/niche-icons";
 
 export default async function BrandProfileDetailPage({ params }: { params: Promise<{ id: string }> }) {
@@ -88,9 +88,9 @@ export default async function BrandProfileDetailPage({ params }: { params: Promi
 
   return (
     <div className="flex flex-col gap-8">
-      <FloatingBackButton />
-      <div className="flex flex-wrap items-start justify-between gap-4">
-        <div className="flex items-center gap-4">
+      <BackButton fallbackHref="/dashboard/creator/discover" />
+      <div className="flex items-start justify-between gap-4">
+        <div className="flex min-w-0 items-center gap-4">
           <Avatar src={startup.avatarUrl} name={startup.companyName} size={64} />
           <div>
             <h1 className="font-display text-title-1 font-bold">{startup.companyName}</h1>
@@ -104,16 +104,16 @@ export default async function BrandProfileDetailPage({ params }: { params: Promi
               {reviews.length > 0 && <RatingSummary average={average} count={reviews.length} />}
             </div>
             {(responseTimeLabel || !!completedCollabs) && (
-              <p className="text-xs text-neutral-500 flex items-center gap-1 mt-1.5 dark:text-neutral-400">
+              <p className="mt-1.5 flex flex-wrap items-center gap-x-1 gap-y-0.5 text-xs text-neutral-500 dark:text-neutral-400">
                 {responseTimeLabel && (
-                  <span className="flex items-center gap-1">
+                  <span className="flex items-center gap-1 whitespace-nowrap">
                     <FiClock className="h-3.5 w-3.5" /> {responseTimeLabel}
                   </span>
                 )}
-                {responseTimeLabel && !!completedCollabs && <span>·</span>}
+                {responseTimeLabel && !!completedCollabs && <span aria-hidden>·</span>}
                 {!!completedCollabs && (
-                  <span>
-                    collab{completedCollabs === 1 ? "" : "s"} completed: {formatFollowers(completedCollabs)}
+                  <span className="whitespace-nowrap">
+                    {completedCollabs.toLocaleString("en-US")} collab{completedCollabs === 1 ? "" : "s"} completed
                   </span>
                 )}
               </p>
@@ -244,7 +244,7 @@ export default async function BrandProfileDetailPage({ params }: { params: Promi
                     </span>
                     <span className="inline-flex items-center gap-1.5 rounded border border-ink/10 px-2.5 py-1.5">
                       <IoPeopleOutline className="h-3.5 w-3.5 shrink-0" />
-                      Min. {formatFollowers(r.minFollowers)} followers
+                      {formatFollowers(r.minFollowers)} followers
                     </span>
                     <span className="inline-flex items-center gap-1.5 rounded border border-ink/10 px-2.5 py-1.5">
                       <IoCubeOutline className="h-3.5 w-3.5 shrink-0" />

@@ -36,7 +36,7 @@ export function InstallPrompt() {
       });
     }
 
-    // Same pre-paint idiom as EmailVerificationBanner — a returning visitor
+    // Runs before paint so a returning visitor
     // who already dismissed this, or who's already running the installed
     // app (the PWA or a store app), never sees it flash on screen first.
     if (isStandalone() || Capacitor.isNativePlatform()) return;

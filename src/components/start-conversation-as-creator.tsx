@@ -7,12 +7,12 @@ type Props = {
   matchingRequests: { id: string; title: string }[];
 };
 
-// Full-width, like a profile's own Follow button (Instagram etc.) — sits
+// Full-width on phones, like a profile's own Follow button (Instagram etc.); its own width from md up. Sits
 // on its own row under the header instead of competing for space with the
 // favorite star up there. Same chat-bubble glyph as the Messages tab in
 // the bottom nav (see TAB_ICONS in nav.tsx).
 const wideButtonClassName =
-  "flex w-full items-center justify-center gap-2 rounded-full bg-ink px-4 py-3 text-sm font-medium text-paper transition hover:bg-graphite disabled:opacity-40 disabled:hover:bg-ink";
+  "flex w-full items-center justify-center gap-2 rounded-full bg-ink px-4 py-3 md:w-auto md:self-start md:px-8 text-sm font-medium text-paper transition hover:bg-graphite disabled:opacity-40 disabled:hover:bg-ink";
 
 export function StartConversationAsCreator({ existingInterestId, matchingRequests }: Props) {
   if (existingInterestId) {
@@ -29,7 +29,7 @@ export function StartConversationAsCreator({ existingInterestId, matchingRequest
   // reads as "not available yet" rather than silently missing.
   if (matchingRequests.length === 0) {
     return (
-      <div className="flex flex-col items-center gap-1.5">
+      <div className="flex flex-col items-center gap-1.5 md:items-start">
         <button type="button" disabled aria-label="You don't match any of their open requests yet" className={wideButtonClassName}>
           <IoChatbubble className="h-4 w-4" />
           Message
