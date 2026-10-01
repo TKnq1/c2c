@@ -20,6 +20,7 @@ import { Dialog } from "@/components/dialog";
 import { LocalDate } from "@/components/local-date";
 import { PaymentApprovalButtons } from "@/components/payment-approval";
 import { SubmitPostButton } from "@/components/submit-post";
+import { Spinner } from "@/components/spinner";
 import { formatCents } from "@/lib/format";
 import { RELEASE_REVIEW_MS } from "@/lib/constants";
 
@@ -47,6 +48,9 @@ const secondaryButton =
   "flex-1 rounded-full border border-neutral-300 px-4 py-2 text-sm font-medium transition hover:border-neutral-400 disabled:opacity-50 dark:border-neutral-700";
 const quietButton =
   "text-xs text-neutral-500 transition hover:text-ink disabled:opacity-50 dark:text-neutral-400";
+// Accept stays solid while it works; the spinner inside says it's busy.
+const acceptButton =
+  "flex-1 rounded-full bg-ink px-4 py-2 text-sm font-medium text-paper transition hover:bg-graphite disabled:cursor-wait";
 const pillButton =
   "inline-flex items-center gap-1.5 rounded-full border border-neutral-300 px-3.5 py-1.5 text-sm font-medium transition hover:border-neutral-400 dark:border-neutral-700";
 
@@ -113,7 +117,18 @@ export function ChatOfferCard({
           <CompletePaymentButton interestId={interestId} label="Pay now" className={`${primaryButton} w-full`} />
         );
       } else {
-        detail = `Waiting for ${other} to pay.`;
+        detail = `${other} pays next. It's held in escrow until you post.`;
+        // Live updates (ChatLiveUpdates) swap this for the paid card once the
+        // payment lands.
+        actions = (
+          <p
+            role="status"
+            className="mt-3 flex items-center justify-center gap-2 rounded-full bg-fog px-4 py-2 text-sm font-medium text-neutral-500 dark:text-neutral-400"
+          >
+            <Spinner />
+            Waiting for payment
+          </p>
+        );
       }
       break;
 
@@ -232,7 +247,15 @@ export function OfferResponseButtons({ interestId, otherPartyName }: { interestI
           action={acceptOfferAction.bind(null, interestId)}
           successMessage="Offer accepted."
           onSuccess={() => router.refresh()}
-          className={primaryButton}
+          className={acceptButton}
+          pendingChildren={
+            // Same width as the label, so the button doesn't jump.
+            <span className="relative inline-flex items-center justify-center">
+              <span className="invisible">Accept</span>
+              <Spinner className="absolute h-4 w-4" />
+              <span className="sr-only">Accepting…</span>
+            </span>
+          }
         >
           Accept
         </ActionButton>
