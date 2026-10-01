@@ -23,9 +23,7 @@ export default async function MessagesLayout({ children }: { children: React.Rea
     <div className="group flex flex-col gap-6 has-[.chat-thread]:h-full lg:h-full">
       {/* Above the inbox from md, and above both columns on desktop; a
           thread on a tablet has its own header instead. */}
-      <div className="md:group-has-[.chat-thread]:max-lg:sr-only">
-        <PageTitle>Messages</PageTitle>
-      </div>
+      <PageTitle className="md:group-has-[.chat-thread]:max-lg:sr-only">Messages</PageTitle>
       <div className="min-h-0 flex-1 lg:grid lg:grid-cols-[minmax(0,20rem)_minmax(0,1fr)] lg:gap-6">
         <aside aria-label="Conversations" className="hidden min-h-0 overflow-y-auto lg:block">
           {conversations.length > 0 && (
