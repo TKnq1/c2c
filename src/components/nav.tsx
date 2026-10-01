@@ -26,6 +26,8 @@ import {
   IoShieldCheckmarkOutline,
 } from "react-icons/io5";
 import { Logo } from "@/components/logo";
+import { SidebarProfile } from "@/components/sidebar-profile";
+import type { Me } from "@/app/api/me/route";
 import { useNavigationBlocker } from "@/lib/navigation-blocker";
 import { isTextField, resetPageScroll } from "@/lib/keyboard";
 
@@ -95,6 +97,7 @@ export function Nav() {
   const { isBlocked } = useNavigationBlocker();
   const [role, setRole] = useState<Role | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [me, setMe] = useState<Me | null>(null);
   const [counts, setCounts] = useState<NavCounts>(ZERO_COUNTS);
   // Bumped by a pull to refresh (see PullToRefresh), so the badges come
   // along with the page.
@@ -144,6 +147,22 @@ export function Nav() {
         if (cancelled) return;
         setRole(data?.user?.role ?? null);
         setIsAdmin(data?.user?.isAdmin === true);
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, [showNav]);
+
+  // Name and photo for the sidebar's account button; once per mount, since
+  // Nav itself never remounts (see above).
+  useEffect(() => {
+    if (!showNav) return;
+    let cancelled = false;
+    fetch("/api/me")
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (!cancelled && data) setMe(data);
       })
       .catch(() => {});
     return () => {
@@ -248,6 +267,7 @@ export function Nav() {
       <Sidebar
         role={role}
         isAdmin={isAdmin}
+        me={me}
         base={base}
         pathname={pathname}
         links={links}
@@ -320,6 +340,7 @@ export function Nav() {
 function Sidebar({
   role,
   isAdmin,
+  me,
   base,
   pathname,
   links,
@@ -328,6 +349,7 @@ function Sidebar({
 }: {
   role: Role;
   isAdmin: boolean;
+  me: Me | null;
   base: string;
   pathname: string;
   links: NavLink[];
@@ -344,8 +366,7 @@ function Sidebar({
     ...rest,
     { href: "/dashboard/notifications", label: "Notifications", badge: unreadCount },
   ];
-  const footer: NavLink[] = [...(isAdmin ? [{ href: "/admin", label: "Admin", badge: 0 }] : []), settings];
-  const activeHref = activeHrefFor([...main, ...footer], pathname);
+  const activeHref = activeHrefFor([...main, settings], pathname);
 
   return (
     <aside className="app-sidebar fixed inset-y-0 left-0 z-30 hidden w-[var(--sidebar-w)] flex-col border-r border-ink/10 bg-background px-3 pb-5 pt-[calc(var(--safe-top)+20px)] no-print md:flex">
@@ -373,11 +394,15 @@ function Sidebar({
         </Link>
       )}
 
-      <nav aria-label="Account" className="mt-auto flex flex-col gap-1">
-        {footer.map((l) => (
-          <SidebarLink key={l.href} link={l} active={l.href === activeHref} onNavigate={onNavigate} />
-        ))}
-      </nav>
+      <div className="mt-auto">
+        <SidebarProfile
+          me={me}
+          isAdmin={isAdmin}
+          settingsHref={settings.href}
+          active={activeHref === settings.href}
+          onNavigate={onNavigate}
+        />
+      </div>
     </aside>
   );
 }

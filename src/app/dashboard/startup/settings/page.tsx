@@ -47,7 +47,9 @@ export default async function StartupSettingsPage() {
   ]);
 
   return (
-    <div className="flex flex-col gap-8">
+    // A centered reading-width column from md, like a document, instead of
+    // fields stretched across the whole screen.
+    <div className="flex flex-col gap-8 md:mx-auto md:w-full md:max-w-2xl">
       <PageTitle>Settings</PageTitle>
       <SettingsNav role="STARTUP" />
 
@@ -149,7 +151,7 @@ export default async function StartupSettingsPage() {
 
       <LegalLinks />
 
-      <LogoutButton className="w-full rounded-full border border-neutral-300 px-4 py-2.5 text-sm font-medium text-neutral-700 transition hover:border-ink dark:border-neutral-700 dark:text-neutral-300" />
+      <LogoutButton className="w-full rounded-full border border-neutral-300 px-4 py-2.5 md:w-auto md:self-start md:px-6 text-sm font-medium text-neutral-700 transition hover:border-ink dark:border-neutral-700 dark:text-neutral-300" />
     </div>
   );
 }

@@ -3,12 +3,13 @@ import Link from "next/link";
 import { ForgotPasswordForm } from "@/components/forgot-password-form";
 import { Logo } from "@/components/logo";
 import { ImprintLink } from "@/components/imprint-link";
+import { AuthShell } from "@/components/auth-shell";
 
 export const metadata: Metadata = { title: "Reset your password" };
 
 export default function ForgotPasswordPage() {
   return (
-    <main className="flex-1 flex items-center justify-center px-6 py-16">
+    <AuthShell>
       <div className="w-full max-w-sm flex flex-col gap-6">
         <div className="flex justify-center">
           <Logo large />
@@ -25,6 +26,6 @@ export default function ForgotPasswordPage() {
         </p>
       </div>
       <ImprintLink />
-    </main>
+    </AuthShell>
   );
 }
