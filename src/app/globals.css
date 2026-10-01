@@ -277,6 +277,21 @@ body.dashboard-shell {
   overflow: hidden;
 }
 
+/* The desktop sidebar (see Nav): icons only on tablets, icons and labels
+   from lg. The page moves over by its width. */
+@media (min-width: 768px) {
+  body.dashboard-shell {
+    --sidebar-w: 76px;
+    padding-left: var(--sidebar-w);
+  }
+}
+
+@media (min-width: 1024px) {
+  body.dashboard-shell {
+    --sidebar-w: 248px;
+  }
+}
+
 /* No rubber-band bounce of the whole screen on iOS either — only the
    scrolling areas inside it bounce. */
 html:has(body.dashboard-shell) {
@@ -576,15 +591,22 @@ dialog[data-state="closing"]::backdrop {
   view-transition-name: app-tabbar;
 }
 
+.app-sidebar {
+  view-transition-name: app-sidebar;
+}
+
 ::view-transition-group(app-header),
 ::view-transition-group(app-tabbar),
+::view-transition-group(app-sidebar),
 ::view-transition-new(app-header),
-::view-transition-new(app-tabbar) {
+::view-transition-new(app-tabbar),
+::view-transition-new(app-sidebar) {
   animation: none;
 }
 
 ::view-transition-old(app-header),
-::view-transition-old(app-tabbar) {
+::view-transition-old(app-tabbar),
+::view-transition-old(app-sidebar) {
   animation: none;
   opacity: 0;
 }

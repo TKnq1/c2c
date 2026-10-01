@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { FiMessageSquare } from "react-icons/fi";
 import { IoFilterOutline } from "react-icons/io5";
 import { useUrlState } from "@/lib/use-url-state";
@@ -21,7 +22,10 @@ type Conversation = {
   unreadCount: number;
 };
 
-export function MessagesList({ conversations }: { conversations: Conversation[] }) {
+// `compact` is the desktop column next to an open thread (see
+// messages/layout.tsx): narrower, and the open conversation is marked.
+export function MessagesList({ conversations, compact = false }: { conversations: Conversation[]; compact?: boolean }) {
+  const pathname = usePathname();
   const [{ q: search, unread }, setParam, setParams] = useUrlState(["q", "unread"]);
   const [filterOpen, setFilterOpen] = useState(false);
   const filterPanel = useExitAnimation(filterOpen);
@@ -56,7 +60,7 @@ export function MessagesList({ conversations }: { conversations: Conversation[] 
         <SearchInput
           value={search}
           onChange={(e) => setParam("q", e.target.value)}
-          placeholder="Search name or request…"
+          placeholder={compact ? "Search…" : "Search name or request…"}
           aria-label="Search conversations"
           wrapperClassName="flex-1 min-w-48"
         />
@@ -117,38 +121,43 @@ export function MessagesList({ conversations }: { conversations: Conversation[] 
           key={`${search}|${unread}`}
           className="discover-results-fade divide-y divide-ink/10 overflow-hidden rounded bg-fog"
         >
-          {filtered.map((c) => (
-            <Link
-              key={c.interestId}
-              href={`/dashboard/messages/${c.interestId}`}
-              transitionTypes={["nav-forward"]}
-              className="flex items-start gap-3 px-4 py-3 transition hover:bg-ink/5"
-            >
-              <Avatar src={c.other.avatarUrl} name={c.other.name} size={44} />
-              <div className="flex-1 min-w-0">
-                <div className="flex items-start justify-between gap-2">
-                  <p className={`font-medium truncate ${c.unreadCount > 0 ? "text-neutral-900 dark:text-neutral-100" : ""}`}>
-                    {c.other.name}
-                  </p>
-                  <div className="flex flex-col items-end gap-1 shrink-0">
-                    {c.lastMessage && (
-                      <p className="text-xs text-neutral-500 whitespace-nowrap dark:text-neutral-400">
-                        {formatMessageTimestamp(c.lastMessage.createdAt, timeZone)}
-                      </p>
-                    )}
-                    {c.unreadCount > 0 && (
-                      <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-ink px-1 text-[11px] font-medium text-paper">
-                        {c.unreadCount > 9 ? "9+" : c.unreadCount}
-                      </span>
-                    )}
+          {filtered.map((c) => {
+            const href = `/dashboard/messages/${c.interestId}`;
+            const open = compact && pathname === href;
+            return (
+              <Link
+                key={c.interestId}
+                href={href}
+                transitionTypes={compact ? undefined : ["nav-forward"]}
+                aria-current={open ? "page" : undefined}
+                className={`flex items-start gap-3 px-4 py-3 transition ${open ? "bg-ink/10" : "hover:bg-ink/5"}`}
+              >
+                <Avatar src={c.other.avatarUrl} name={c.other.name} size={44} />
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-start justify-between gap-2">
+                    <p className={`font-medium truncate ${c.unreadCount > 0 ? "text-neutral-900 dark:text-neutral-100" : ""}`}>
+                      {c.other.name}
+                    </p>
+                    <div className="flex flex-col items-end gap-1 shrink-0">
+                      {c.lastMessage && (
+                        <p className="text-xs text-neutral-500 whitespace-nowrap dark:text-neutral-400">
+                          {formatMessageTimestamp(c.lastMessage.createdAt, timeZone)}
+                        </p>
+                      )}
+                      {c.unreadCount > 0 && (
+                        <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-ink px-1 text-[11px] font-medium text-paper">
+                          {c.unreadCount > 9 ? "9+" : c.unreadCount}
+                        </span>
+                      )}
+                    </div>
                   </div>
+                  <p className={`text-sm mt-1 truncate ${c.unreadCount > 0 ? "text-neutral-900 font-medium dark:text-neutral-100" : "text-neutral-500 dark:text-neutral-400"}`}>
+                    {c.lastMessage ? `${c.lastMessage.isMine ? "You: " : ""}${c.lastMessage.body}` : "No messages yet. Say hi!"}
+                  </p>
                 </div>
-                <p className={`text-sm mt-1 truncate ${c.unreadCount > 0 ? "text-neutral-900 font-medium dark:text-neutral-100" : "text-neutral-500 dark:text-neutral-400"}`}>
-                  {c.lastMessage ? `${c.lastMessage.isMine ? "You: " : ""}${c.lastMessage.body}` : "No messages yet. Say hi!"}
-                </p>
-              </div>
-            </Link>
-          ))}
+              </Link>
+            );
+          })}
         </div>
       )}
     </div>
