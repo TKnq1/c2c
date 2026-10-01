@@ -6,6 +6,7 @@ import { Avatar } from "@/components/avatar";
 import { RatingSummary } from "@/components/stars";
 import { Dialog } from "@/components/dialog";
 import { PhotoStrip, RequestCardFace, RequestFacts, type CardRequest } from "@/components/request-card-face";
+import { playSound, prepareSounds } from "@/lib/sounds";
 
 export type SwipeRequest = CardRequest & {
   id: string;
@@ -128,6 +129,9 @@ export const SwipeCard = forwardRef<SwipeCardHandle, {
   function commitSwipe(direction: "left" | "right", velocityPxMs = 0) {
     if (committedRef.current) return;
     committedRef.current = true;
+    // Right in the gesture that let go of the card (pointerup or a button's
+    // click) — browsers only allow starting audio from inside one.
+    playSound(direction === "right" ? "swipe-right" : "swipe-left");
     const speed = Math.abs(velocityPxMs);
     let duration = EXIT_MS;
     if (speed > FLICK_VELOCITY) {
@@ -153,6 +157,7 @@ export const SwipeCard = forwardRef<SwipeCardHandle, {
 
   function handlePointerDown(e: React.PointerEvent) {
     if (!isTop || exiting) return;
+    prepareSounds();
     (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
     startRef.current = { x: e.clientX, y: e.clientY };
     movedRef.current = false;

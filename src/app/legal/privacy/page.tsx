@@ -40,7 +40,7 @@ const SECTIONS: { title: string; body: string[] }[] = [
   {
     title: "Cookies, local storage and notifications",
     body: [
-      "We use one strictly necessary cookie that keeps you logged in. Your appearance setting (light or dark) and whether you've dismissed the install hint are saved in your browser's local storage and never sent to us. There are no analytics or advertising cookies.",
+      "We use one strictly necessary cookie that keeps you logged in. Your appearance and sound settings and whether you've dismissed the install hint are saved in your browser's local storage and never sent to us. There are no analytics or advertising cookies.",
       "Push notifications are only sent if you turn them on (Art. 6(1)(a) GDPR). They're delivered by your browser's push service (from Apple, Google or Mozilla, depending on your browser), and you can turn them off at any time in Settings or in your browser. Emails about your account, such as verification and password resets, are sent through Resend.",
     ],
   },
@@ -81,7 +81,7 @@ export default function PrivacyPage() {
   return (
     <LegalDocument
       title="Privacy Policy"
-      updated="September 30, 2026"
+      updated="October 1, 2026"
       intro="What personal data comtor processes, why, and what rights you have."
       sections={SECTIONS}
     />
