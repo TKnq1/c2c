@@ -1,56 +1,29 @@
 "use client";
 
-import { useLayoutEffect, useState } from "react";
-import Link from "next/link";
-import { FiX } from "react-icons/fi";
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { toast } from "@/lib/toast";
 
-const DISMISS_KEY = "email-verification-banner-dismissed";
+const SHOWN_KEY = "email-verification-toast-shown";
 
+// Pops up once per browser session as a toast, like every other notice,
+// instead of a strip pinned above each page.
 export function EmailVerificationBanner() {
-  const [dismissed, setDismissed] = useState(false);
+  const router = useRouter();
 
-  useLayoutEffect(() => {
-    // Runs before paint so a returning visitor who already dismissed this
-    // never sees it flash on screen first (same idiom as ThemeToggle's
-    // pre-paint safety net).
-    let wasDismissed = false;
+  useEffect(() => {
     try {
-      wasDismissed = sessionStorage.getItem(DISMISS_KEY) === "1";
+      if (sessionStorage.getItem(SHOWN_KEY) === "1") return;
+      // Set before showing so StrictMode's double effect can't fire it twice.
+      sessionStorage.setItem(SHOWN_KEY, "1");
     } catch {
-      // Storage unavailable (private mode etc.) — just show the banner.
+      // Storage unavailable (private mode etc.) — show it on this mount anyway.
     }
-    if (wasDismissed) queueMicrotask(() => setDismissed(true));
-  }, []);
+    toast.info("Your email isn't verified.", {
+      action: { label: "Verify now", onClick: () => router.push("/dashboard/verify-email") },
+      durationMs: 10000,
+    });
+  }, [router]);
 
-  function dismiss() {
-    try {
-      sessionStorage.setItem(DISMISS_KEY, "1");
-    } catch {
-      // Ignore — worst case it reappears on the next page.
-    }
-    setDismissed(true);
-  }
-
-  if (dismissed) return null;
-
-  return (
-    <div className="bg-fog border-b border-ink/10 px-6 py-2 text-sm text-ink no-print">
-      <div className="max-w-5xl mx-auto flex items-center justify-center gap-3">
-        <p className="text-center">
-          Your email isn&apos;t verified.{" "}
-          <Link href="/dashboard/verify-email" prefetch={false} className="underline font-medium">
-            Verify now
-          </Link>
-        </p>
-        <button
-          type="button"
-          onClick={dismiss}
-          aria-label="Dismiss"
-          className="shrink-0 text-stone hover:text-ink transition"
-        >
-          <FiX className="h-4 w-4" />
-        </button>
-      </div>
-    </div>
-  );
+  return null;
 }

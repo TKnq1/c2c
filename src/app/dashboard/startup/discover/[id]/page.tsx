@@ -13,6 +13,7 @@ import { favoriteCreatorAction, unfavoriteCreatorAction } from "@/lib/actions/fa
 import { ReportBlockActions } from "@/components/report-block-actions";
 import { StartConversationAsStartup } from "@/components/start-conversation-as-startup";
 import { formatFollowers } from "@/lib/format";
+import { BackButton } from "@/components/back-button";
 
 export default async function CreatorProfileDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -72,6 +73,7 @@ export default async function CreatorProfileDetailPage({ params }: { params: Pro
 
   return (
     <div className="flex flex-col gap-8">
+      <BackButton fallbackHref="/dashboard/startup/discover" />
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div className="flex items-center gap-4">
           <Avatar src={creator.avatarUrl} name={creator.displayName} size={64} />
@@ -89,16 +91,16 @@ export default async function CreatorProfileDetailPage({ params }: { params: Pro
               <RatingSummary average={average} count={reviews.length} />
             </div>
             {(responseTimeLabel || !!completedCollabs) && (
-              <p className="text-xs text-neutral-500 flex items-center gap-1 mt-1.5 dark:text-neutral-400">
+              <p className="mt-1.5 flex flex-wrap items-center gap-x-1 gap-y-0.5 text-xs text-neutral-500 dark:text-neutral-400">
                 {responseTimeLabel && (
-                  <span className="flex items-center gap-1">
+                  <span className="flex items-center gap-1 whitespace-nowrap">
                     <FiClock className="h-3.5 w-3.5" /> {responseTimeLabel}
                   </span>
                 )}
-                {responseTimeLabel && !!completedCollabs && <span>·</span>}
+                {responseTimeLabel && !!completedCollabs && <span aria-hidden>·</span>}
                 {!!completedCollabs && (
-                  <span>
-                    collab{completedCollabs === 1 ? "" : "s"} completed: {formatFollowers(completedCollabs)}
+                  <span className="whitespace-nowrap">
+                    {completedCollabs.toLocaleString("en-US")} collab{completedCollabs === 1 ? "" : "s"} completed
                   </span>
                 )}
               </p>

@@ -181,7 +181,8 @@ export default async function AdminOverviewPage() {
                       {u.startupProfile?.companyName ?? u.creatorProfile?.displayName ?? u.email}
                     </span>
                     <span className="block truncate text-footnote text-neutral-500 dark:text-neutral-400">
-                      {u.email} · <LocalDate ms={u.createdAt.getTime()} />
+                      {(u.startupProfile || u.creatorProfile) && <>{u.email} · </>}
+                      <LocalDate ms={u.createdAt.getTime()} />
                     </span>
                   </span>
                   <RoleBadge role={u.role} isAdmin={u.isAdmin} suspended={!!u.suspendedAt} />
