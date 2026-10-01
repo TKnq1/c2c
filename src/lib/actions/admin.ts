@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { auth } from "@/lib/auth";
+import { hasAdminAccess } from "@/lib/admin-access";
 import { prisma } from "@/lib/prisma";
 
 // Same shape ConfirmActionButton expects: an error message, or nothing.
@@ -10,7 +11,7 @@ export type AdminActionResult = { error?: string };
 
 async function requireAdmin() {
   const session = await auth();
-  if (!session || session.user.role !== "ADMIN") return null;
+  if (!session || !hasAdminAccess(session.user)) return null;
   return session;
 }
 
@@ -34,7 +35,7 @@ export async function suspendUserAction(userId: string, reason: string): Promise
 
   const user = await prisma.user.findUnique({ where: { id: userId }, include: { startupProfile: true } });
   if (!user) return { error: "This account no longer exists." };
-  if (user.role === "ADMIN") return { error: "Admin accounts can't be suspended here." };
+  if (hasAdminAccess(user)) return { error: "Admin accounts can't be suspended here." };
   if (user.suspendedAt) return { error: "This account is already suspended." };
 
   await prisma.$transaction([

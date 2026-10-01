@@ -27,6 +27,11 @@ model User {
   suspendedAt     DateTime?
   suspendedReason String?
 
+  // Access to /admin on top of the account's own role, so one email can be
+  // a brand or creator and an admin at the same time. role ADMIN still
+  // means an admin-only account (no profile, lands on /admin).
+  isAdmin Boolean @default(false)
+
   // Per-category notification preferences (in-app + push) — default to on
   // so existing behavior doesn't change until someone opts out.
   notifyNewRequests Boolean @default(true)

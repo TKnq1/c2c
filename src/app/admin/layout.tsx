@@ -25,6 +25,11 @@ export default async function AdminLayout({ children }: { children: React.ReactN
           </Link>
           <div className="flex items-center gap-3">
             <span className="hidden text-sm text-neutral-500 sm:inline dark:text-neutral-400">{session.user.email}</span>
+            {session.user.role !== "ADMIN" && (
+              <Link href="/dashboard" className="text-sm underline">
+                Back to app
+              </Link>
+            )}
             <LogoutButton />
           </div>
         </div>

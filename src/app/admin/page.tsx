@@ -184,7 +184,7 @@ export default async function AdminOverviewPage() {
                       {u.email} · <LocalDate ms={u.createdAt.getTime()} />
                     </span>
                   </span>
-                  <RoleBadge role={u.role} suspended={!!u.suspendedAt} />
+                  <RoleBadge role={u.role} isAdmin={u.isAdmin} suspended={!!u.suspendedAt} />
                 </Link>
               </li>
             ))}

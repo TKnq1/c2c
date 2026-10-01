@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { FiArrowLeft } from "react-icons/fi";
 import { prisma } from "@/lib/prisma";
 import { requireAdminSession } from "@/lib/admin-session";
+import { hasAdminAccess } from "@/lib/admin-access";
 import { formatCents } from "@/lib/format";
 import { parseUserAgent } from "@/lib/user-agent";
 import { unsuspendUserAction } from "@/lib/actions/admin";
@@ -79,7 +80,7 @@ export default async function AdminUserPage(props: PageProps<"/admin/users/[id]"
 
   const name = brand?.companyName ?? creator?.displayName ?? user.email;
   const openReports = user.reportsReceived.filter((r) => r.status === "OPEN").length;
-  const canSuspend = user.role !== "ADMIN" && user.id !== session.user.id;
+  const canSuspend = !hasAdminAccess(user) && user.id !== session.user.id;
 
   return (
     <div className="flex flex-col gap-8">
@@ -97,7 +98,7 @@ export default async function AdminUserPage(props: PageProps<"/admin/users/[id]"
             <h1 className="truncate font-display text-title-2 font-bold">{name}</h1>
             <p className="truncate text-sm text-neutral-500 dark:text-neutral-400">{user.email}</p>
             <div className="mt-2 flex flex-wrap items-center gap-2">
-              <RoleBadge role={user.role} />
+              <RoleBadge role={user.role} isAdmin={user.isAdmin} />
               {brand?.isPro && <span className="rounded-full bg-ink px-2.5 py-1 text-xs font-medium text-paper">Pro</span>}
               <span className="text-footnote text-neutral-500 dark:text-neutral-400">
                 Joined <LocalDate ms={user.createdAt.getTime()} /> · {user.emailVerified ? "Email verified" : "Email not verified"}
