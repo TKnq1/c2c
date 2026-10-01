@@ -92,7 +92,7 @@ export default async function AdminUsersPage(props: PageProps<"/admin/users">) {
               <li key={u.id} className="border-ink/10 [&+&]:border-t">
                 <Link
                   href={`/admin/users/${u.id}`}
-                  className="grid grid-cols-[1fr_auto] items-center gap-x-4 gap-y-1 px-4 py-3 transition hover:bg-ink/5 md:grid-cols-[minmax(0,1fr)_8rem_7rem_auto]"
+                  className="grid grid-cols-[1fr_auto] items-center gap-x-4 gap-y-1 px-4 py-3 transition hover:bg-ink/5 md:grid-cols-[minmax(0,1fr)_8rem_7rem_11rem]"
                 >
                   <span className="min-w-0">
                     <span className="block truncate text-sm font-medium">
