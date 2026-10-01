@@ -7,16 +7,23 @@ import type { Role } from "@prisma/client";
 import type { IconType } from "react-icons";
 import { FiBell, FiHeart } from "react-icons/fi";
 import {
+  IoAdd,
   IoCard,
   IoCardOutline,
   IoChatbubble,
   IoChatbubbleOutline,
+  IoHeart,
+  IoHeartOutline,
   IoHome,
   IoHomeOutline,
+  IoNotifications,
+  IoNotificationsOutline,
   IoSearch,
   IoSearchOutline,
   IoSettings,
   IoSettingsOutline,
+  IoShieldCheckmark,
+  IoShieldCheckmarkOutline,
 } from "react-icons/io5";
 import { Logo } from "@/components/logo";
 import { useNavigationBlocker } from "@/lib/navigation-blocker";
@@ -29,7 +36,22 @@ const TAB_ICONS: Record<string, { outline: IconType; filled: IconType }> = {
   Messages: { outline: IoChatbubbleOutline, filled: IoChatbubble },
   Payments: { outline: IoCardOutline, filled: IoCard },
   Settings: { outline: IoSettingsOutline, filled: IoSettings },
+  Matches: { outline: IoHeartOutline, filled: IoHeart },
+  Notifications: { outline: IoNotificationsOutline, filled: IoNotifications },
+  Admin: { outline: IoShieldCheckmarkOutline, filled: IoShieldCheckmark },
 };
+
+type NavLink = { href: string; label: string; badge: number };
+
+// Longest href wins so e.g. /dashboard/startup/discover/xyz matches
+// "Discover" rather than falling through to the more general "Requests"
+// (/dashboard/startup), which still needs to catch routes like
+// /dashboard/startup/requests/[id] and /dashboard/startup/new.
+function activeHrefFor(links: NavLink[], pathname: string) {
+  return [...links]
+    .sort((a, b) => b.href.length - a.href.length)
+    .find((l) => pathname === l.href || pathname.startsWith(`${l.href}/`))?.href;
+}
 
 export type NavCounts = { unreadCount: number; unreadMessages: number; pendingPayments: number };
 
@@ -72,6 +94,7 @@ export function Nav() {
   const pathname = usePathname();
   const { isBlocked } = useNavigationBlocker();
   const [role, setRole] = useState<Role | null>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
   const [counts, setCounts] = useState<NavCounts>(ZERO_COUNTS);
   // Bumped by a pull to refresh (see PullToRefresh), so the badges come
   // along with the page.
@@ -118,7 +141,9 @@ export function Nav() {
     fetch("/api/auth/session")
       .then((res) => res.json())
       .then((data) => {
-        if (!cancelled) setRole(data?.user?.role ?? null);
+        if (cancelled) return;
+        setRole(data?.user?.role ?? null);
+        setIsAdmin(data?.user?.isAdmin === true);
       })
       .catch(() => {});
     return () => {
@@ -157,7 +182,7 @@ export function Nav() {
   const { unreadCount, unreadMessages, pendingPayments } = counts;
   const base = role === "STARTUP" ? "/dashboard/startup" : "/dashboard/creator";
 
-  const links =
+  const links: NavLink[] =
     role === "STARTUP"
       ? [
           { href: "/dashboard/startup", label: "Requests", badge: 0 },
@@ -174,13 +199,7 @@ export function Nav() {
           { href: "/dashboard/creator/settings", label: "Settings", badge: 0 },
         ];
 
-  // Longest href wins so e.g. /dashboard/startup/discover/xyz matches
-  // "Discover" rather than falling through to the more general "Requests"
-  // (/dashboard/startup), which still needs to catch routes like
-  // /dashboard/startup/requests/[id] and /dashboard/startup/new.
-  const activeHref = [...links]
-    .sort((a, b) => b.href.length - a.href.length)
-    .find((l) => pathname === l.href || pathname.startsWith(`${l.href}/`))?.href;
+  const activeHref = activeHrefFor(links, pathname);
 
   // Hidden on mobile while a chat thread is open — that view already fights
   // for vertical space, and the nav isn't reachable from there anyway (the
@@ -197,12 +216,12 @@ export function Nav() {
 
   return (
     <>
-      {/* On phones it floats over <main>, which runs up under it (see
+      {/* Phones only: it floats over <main>, which runs up under it (see
           --header-h in globals.css), so the page scrolls on under the
-          frosted bar the way it does in an iOS app. From md up it's an
-          ordinary bar above the page. */}
+          frosted bar the way it does in an iOS app. From md up the
+          sidebar below takes its place. */}
       <header
-        className={`app-header border-b border-ink/10 pt-[var(--safe-top)] no-print max-md:fixed max-md:inset-x-0 max-md:top-0 max-md:z-30 max-md:bg-background/80 max-md:backdrop-blur-xl max-md:backdrop-saturate-150 ${hideOnMobile ? "hidden md:block" : ""}`}
+        className={`app-header fixed inset-x-0 top-0 z-30 border-b border-ink/10 bg-background/80 pt-[var(--safe-top)] backdrop-blur-xl backdrop-saturate-150 no-print md:hidden ${hideOnMobile ? "hidden" : ""}`}
       >
         <div className="relative max-w-5xl mx-auto flex items-center justify-between px-6 py-3">
           <Link href={base} onNavigate={onNavigate} className="shrink-0">
@@ -214,43 +233,27 @@ export function Nav() {
             // it's dead-center regardless of how wide the logo or the
             // icons on the other side are, instead of drifting off-center
             // the way it would inside the same flex row as either side.
-            <span className="absolute left-1/2 -translate-x-1/2 whitespace-nowrap font-display text-headline font-bold md:hidden">
+            <span className="absolute left-1/2 -translate-x-1/2 whitespace-nowrap font-display text-headline font-bold">
               {pageTitle}
             </span>
           )}
 
-          <nav aria-label="Main" className="hidden md:flex items-center gap-5 text-sm text-graphite">
-            {links.map((l) => (
-              <Link
-                key={l.href}
-                href={l.href}
-                onNavigate={onNavigate}
-                // Every one of these sits in the viewport on every dashboard
-                // page, so default (viewport-triggered) prefetch was firing
-                // all of them at once on every render — each one a full
-                // server render with its own DB queries, not a free/static
-                // fetch. These are deliberate destinations someone clicks,
-                // not hover targets worth prefetching speculatively.
-                prefetch={false}
-                aria-current={l.href === activeHref ? "page" : undefined}
-                className={`flex items-center gap-1.5 transition hover:text-ink ${
-                  l.href === activeHref ? "text-ink" : ""
-                }`}
-              >
-                {l.label}
-                {l.badge > 0 && <NavBadge count={l.badge} />}
-              </Link>
-            ))}
-            {showMatchesLink && <MatchesLink onNavigate={onNavigate} />}
-            <NotificationsLink unreadCount={unreadCount} onNavigate={onNavigate} />
-          </nav>
-
-          <div className="flex items-center gap-4 md:hidden">
+          <div className="flex items-center gap-4">
             {showMatchesLink && <MatchesLink onNavigate={onNavigate} />}
             <NotificationsLink unreadCount={unreadCount} onNavigate={onNavigate} />
           </div>
         </div>
       </header>
+
+      <Sidebar
+        role={role}
+        isAdmin={isAdmin}
+        base={base}
+        pathname={pathname}
+        links={links}
+        unreadCount={unreadCount}
+        onNavigate={onNavigate}
+      />
 
       {/* Bottom tab bar — mobile only. Every destination is one tap away,
           app-style, instead of behind a hamburger drawer. Frosted like the
@@ -309,11 +312,121 @@ export function Nav() {
   );
 }
 
-function NavBadge({ count }: { count: number }) {
+// Desktop navigation, from md up: a fixed column on the left, icons only on
+// tablets and icons with labels from lg (its width is --sidebar-w, which
+// also offsets the page, see globals.css). The same destinations and icons
+// as the phone tab bar, plus the ones the phone header carries (matches,
+// notifications) and, for brands, the main action.
+function Sidebar({
+  role,
+  isAdmin,
+  base,
+  pathname,
+  links,
+  unreadCount,
+  onNavigate,
+}: {
+  role: Role;
+  isAdmin: boolean;
+  base: string;
+  pathname: string;
+  links: NavLink[];
+  unreadCount: number;
+  onNavigate: (e: { preventDefault: () => void }) => void;
+}) {
+  const [home, discover, ...rest] = links.filter((l) => l.label !== "Settings");
+  const settings = links.find((l) => l.label === "Settings")!;
+  const main: NavLink[] = [
+    home,
+    discover,
+    // Right after Discover, where the matching happens.
+    ...(role === "CREATOR" ? [{ href: "/dashboard/creator/matches", label: "Matches", badge: 0 }] : []),
+    ...rest,
+    { href: "/dashboard/notifications", label: "Notifications", badge: unreadCount },
+  ];
+  const footer: NavLink[] = [...(isAdmin ? [{ href: "/admin", label: "Admin", badge: 0 }] : []), settings];
+  const activeHref = activeHrefFor([...main, ...footer], pathname);
+
   return (
-    <span className="flex h-4 min-w-4 items-center justify-center rounded-full border border-background bg-ink px-1 text-[10px] font-medium text-paper">
-      {count > 9 ? "9+" : count}
-    </span>
+    <aside className="app-sidebar fixed inset-y-0 left-0 z-30 hidden w-[var(--sidebar-w)] flex-col border-r border-ink/10 bg-background px-3 pb-5 pt-[calc(var(--safe-top)+20px)] no-print md:flex">
+      <Link href={base} onNavigate={onNavigate} className="mb-6 flex h-10 shrink-0 items-center justify-center lg:justify-start lg:px-3">
+        <Logo />
+      </Link>
+
+      <nav aria-label="Main" className="flex flex-col gap-1">
+        {main.map((l) => (
+          <SidebarLink key={l.href} link={l} active={l.href === activeHref} onNavigate={onNavigate} />
+        ))}
+      </nav>
+
+      {role === "STARTUP" && (
+        <Link
+          href="/dashboard/startup/new"
+          onNavigate={onNavigate}
+          prefetch={false}
+          aria-label="New request"
+          title="New request"
+          className="mt-5 flex h-11 shrink-0 items-center justify-center gap-2 rounded-full bg-ink text-sm font-medium text-paper transition hover:bg-graphite lg:px-4"
+        >
+          <IoAdd className="h-5 w-5" aria-hidden />
+          <span className="hidden lg:inline">New request</span>
+        </Link>
+      )}
+
+      <nav aria-label="Account" className="mt-auto flex flex-col gap-1">
+        {footer.map((l) => (
+          <SidebarLink key={l.href} link={l} active={l.href === activeHref} onNavigate={onNavigate} />
+        ))}
+      </nav>
+    </aside>
+  );
+}
+
+function SidebarLink({
+  link,
+  active,
+  onNavigate,
+}: {
+  link: NavLink;
+  active: boolean;
+  onNavigate: (e: { preventDefault: () => void }) => void;
+}) {
+  const icons = TAB_ICONS[link.label] ?? { outline: IoSearchOutline, filled: IoSearch };
+  const Icon = active ? icons.filled : icons.outline;
+  const badge = link.badge > 9 ? "9+" : String(link.badge);
+
+  return (
+    <Link
+      href={link.href}
+      onNavigate={onNavigate}
+      // Every one of these sits on screen on every dashboard page, so
+      // viewport-triggered prefetch would fire a full server render for each
+      // of them on every page. They're deliberate destinations, not hover
+      // targets worth prefetching speculatively.
+      prefetch={false}
+      aria-current={active ? "page" : undefined}
+      // Icons only on tablets: the label shows as a tooltip there.
+      title={link.label}
+      className={`flex h-11 items-center justify-center gap-3.5 rounded-full px-3 text-[15px] transition lg:justify-start ${
+        active ? "bg-fog font-semibold text-ink" : "text-graphite hover:bg-fog hover:text-ink"
+      }`}
+    >
+      <span className="relative flex h-6 w-6 shrink-0 items-center justify-center">
+        <Icon className="h-6 w-6" aria-hidden />
+        {link.badge > 0 && (
+          <span className="absolute -right-2 -top-1.5 flex h-4 min-w-4 items-center justify-center rounded-full border border-background bg-ink px-0.5 text-[9px] font-semibold text-paper lg:hidden">
+            {badge}
+          </span>
+        )}
+      </span>
+      <span className="hidden flex-1 lg:inline">{link.label}</span>
+      {link.badge > 0 && (
+        <span className="hidden h-5 min-w-5 items-center justify-center rounded-full bg-ink px-1.5 text-[11px] font-semibold text-paper lg:flex">
+          {badge}
+        </span>
+      )}
+      {link.badge > 0 && <span className="sr-only">({link.badge} new)</span>}
+    </Link>
   );
 }
 

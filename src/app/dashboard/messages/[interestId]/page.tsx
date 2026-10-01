@@ -118,7 +118,8 @@ export default async function MessageThreadPage({ params }: { params: Promise<{ 
           href="/dashboard/messages"
           transitionTypes={["nav-back"]}
           aria-label="Back to messages"
-          className="-ml-1 flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-ink transition hover:bg-fog md:ml-0"
+          // Desktop has the list right next to the thread, no way back needed.
+          className="-ml-1 flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-ink transition hover:bg-fog md:ml-0 lg:hidden"
         >
           <IoChevronBack className="h-6 w-6" />
         </Link>
