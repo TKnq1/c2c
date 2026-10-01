@@ -108,9 +108,11 @@ export function SettingsNav({ role }: { role: Role }) {
           {g.label}
         </a>
       ))}
+      {/* Sticky insets count from inside the bar's px-6, so -right-6 is
+          what puts the fade on the screen's edge rather than 24px in. */}
       <div
         aria-hidden="true"
-        className={`pointer-events-none sticky right-0 -ml-8 w-8 shrink-0 self-stretch bg-gradient-to-l from-background to-transparent transition-opacity md:hidden ${atEnd ? "opacity-0" : ""}`}
+        className={`pointer-events-none sticky -right-6 -ml-8 w-8 shrink-0 self-stretch bg-gradient-to-l from-background to-transparent transition-opacity md:hidden ${atEnd ? "opacity-0" : ""}`}
       />
     </nav>
   );

@@ -671,19 +671,16 @@ dialog[data-state="closing"]::backdrop {
   animation: toast-out 180ms ease-in forwards;
 }
 
+/* One move from start to rest. The overshoot comes from the easing (see
+   WelcomeOverlay), not from extra keyframes: an overshooting curve applied
+   to each of several keyframe segments restarted at every one of them, and
+   the logo visibly caught at each turn. */
 @keyframes logo-pop {
-  0% {
+  from {
     opacity: 0;
-    transform: translateY(6px) scale(0.9);
+    transform: translateY(12px) scale(0.9);
   }
-  50% {
-    opacity: 1;
-    transform: translateY(-14px) scale(1.05);
-  }
-  75% {
-    transform: translateY(4px) scale(0.98);
-  }
-  100% {
+  to {
     opacity: 1;
     transform: translateY(0) scale(1);
   }
