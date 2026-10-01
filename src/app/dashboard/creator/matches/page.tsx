@@ -43,6 +43,7 @@ export default async function CreatorMatchesPage() {
               postBy={i.request.postBy ? formatPostBy(i.request.postBy) : null}
               companyName={i.request.startup.companyName}
               companyAvatarUrl={i.request.startup.avatarUrl}
+              brandHref={`/dashboard/creator/discover/${i.request.startup.id}`}
               coverUrl={photosByRequestId.get(i.request.id)?.[0] ?? null}
               interestId={i.id}
               contactedByStartup={i.initiatedBy === "STARTUP"}
