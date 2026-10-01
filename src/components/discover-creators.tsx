@@ -130,7 +130,7 @@ export function DiscoverCreators({ creators }: { creators: CreatorEntry[] }) {
           onChange={(e) => setParam("minFollowers", e.target.value)}
           placeholder="Min. followers"
           aria-label="Minimum followers"
-          className="rounded-lg border border-neutral-300 px-3 py-2 w-36 dark:border-neutral-700"
+          className="rounded border border-neutral-300 px-3 py-2.5 w-36 dark:border-neutral-700"
         />
         <Select
           value={sort}
@@ -165,7 +165,7 @@ export function DiscoverCreators({ creators }: { creators: CreatorEntry[] }) {
             }}
           />
         ) : (
-          <div className="grid sm:grid-cols-2 gap-4">
+          <div className="grid grid-cols-2 gap-x-3 gap-y-5 sm:grid-cols-3">
             {filtered.map((c) => (
               <CreatorCard
                 key={c.id}
@@ -173,12 +173,10 @@ export function DiscoverCreators({ creators }: { creators: CreatorEntry[] }) {
                 displayName={c.displayName}
                 avatarUrl={c.avatarUrl}
                 niche={c.niche}
-                contentLanguage={c.contentLanguage}
                 platforms={c.platforms}
                 rating={c.rating}
                 isFavorited={favoritedIds.has(c.id)}
                 createdAt={c.createdAt}
-                responseTimeLabel={c.responseTimeLabel}
                 onFavoriteToggle={handleFavoriteToggle}
               />
             ))}

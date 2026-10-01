@@ -44,13 +44,13 @@ export function NewPasswordField({ name, label = "Password" }: { name: string; l
         minLength={8}
         value={password}
         onChange={(e) => setPassword(e.target.value)}
-        className="rounded-lg border border-neutral-300 px-3 py-2 dark:border-neutral-700"
+        className="rounded border border-neutral-300 px-3 py-2.5 dark:border-neutral-700"
       />
       {password.length > 0 && (
         <div className="flex items-center gap-2 mt-0.5">
           <div className="flex-1 flex gap-1">
             {Array.from({ length: 5 }).map((_, i) => (
-              <div key={i} className={`h-1.5 flex-1 rounded ${i < strength.score ? "bg-ink" : "bg-fog"}`} />
+              <div key={i} className={`h-1.5 flex-1 rounded-full ${i < strength.score ? "bg-ink" : "bg-fog"}`} />
             ))}
           </div>
           <span className="text-xs text-stone shrink-0">{strength.label}</span>
@@ -67,7 +67,7 @@ export function NewPasswordField({ name, label = "Password" }: { name: string; l
         required
         value={confirm}
         onChange={(e) => setConfirm(e.target.value)}
-        className={`rounded border px-3 py-2 ${showMatch && !matches ? "border-ink" : "border-neutral-300 dark:border-neutral-700"}`}
+        className={`rounded border px-3 py-2.5 ${showMatch && !matches ? "border-ink" : "border-neutral-300 dark:border-neutral-700"}`}
       />
       {showMatch && (
         <p className={`text-xs ${matches ? "text-stone" : "text-ink font-medium"}`}>

@@ -40,7 +40,7 @@ function buildConnectInstance(): StripeConnectInstance {
 export function ConnectStripeButton({
   isOnboarded,
   label = isOnboarded ? "Update payout details" : "Connect Stripe to receive payouts",
-  embedClassName = "rounded-[20px] border border-ink/10 p-4",
+  embedClassName = "rounded bg-paper p-4",
 }: {
   isOnboarded: boolean;
   label?: string;

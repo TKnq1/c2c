@@ -2,44 +2,47 @@
 
 import { useLayoutEffect, useState } from "react";
 import { getPreferredTheme, setTheme } from "@/lib/theme";
+import { playSound, setSoundsEnabled, soundsEnabled } from "@/lib/sounds";
+import { SettingsRow } from "@/components/settings-section";
+import { Switch } from "@/components/switch";
 
-// A live switch, not a form field with a Save button like the rest of this
-// page (see NotificationPreferences) — dark mode should apply the instant
-// you flip it, the same way it always has from the nav icon this replaces.
+// Live switches, not form fields with a Save button — dark mode should
+// apply the instant you flip it, the same way it always has from the nav
+// icon this replaced; sounds likewise.
 export function AppearanceSettings() {
   const [dark, setDark] = useState(false);
+  const [sounds, setSounds] = useState(true);
 
   useLayoutEffect(() => {
     // Deferred a tick to avoid a synchronous setState-in-effect — still
     // resolves before paint in practice, so there's no visible flash of the
     // switch starting in the wrong position.
-    queueMicrotask(() => setDark(getPreferredTheme() === "dark"));
+    queueMicrotask(() => {
+      setDark(getPreferredTheme() === "dark");
+      setSounds(soundsEnabled());
+    });
   }, []);
 
-  const toggle = () => {
-    const next = dark ? "light" : "dark";
-    setTheme(next);
-    setDark(next === "dark");
+  const toggleDark = (next: boolean) => {
+    setTheme(next ? "dark" : "light");
+    setDark(next);
+  };
+
+  const toggleSounds = (next: boolean) => {
+    setSoundsEnabled(next);
+    setSounds(next);
+    // Turning them on plays one, so you hear what you just switched on.
+    if (next) playSound("swipe-right");
   };
 
   return (
-    <div className="flex items-center justify-between gap-4">
-      <div>
-        <p className="text-sm font-medium">Dark mode</p>
-        <p className="text-sm text-neutral-500 dark:text-neutral-400">Applies immediately on this device.</p>
-      </div>
-      <button
-        type="button"
-        role="switch"
-        aria-checked={dark}
-        aria-label="Dark mode"
-        onClick={toggle}
-        className={`relative h-6 w-11 shrink-0 rounded-full transition-colors ${dark ? "bg-ink" : "bg-neutral-300 dark:bg-neutral-700"}`}
-      >
-        <span
-          className={`absolute top-0.5 left-0.5 h-5 w-5 rounded-full bg-paper transition-transform ${dark ? "translate-x-5" : "translate-x-0"}`}
-        />
-      </button>
-    </div>
+    <>
+      <SettingsRow label="Dark mode" hint="Applies immediately on this device.">
+        <Switch checked={dark} onChange={toggleDark} label="Dark mode" />
+      </SettingsRow>
+      <SettingsRow label="Sounds" hint="A soft sound when you swipe in the Feed.">
+        <Switch checked={sounds} onChange={toggleSounds} label="Sounds" />
+      </SettingsRow>
+    </>
   );
 }

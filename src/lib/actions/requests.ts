@@ -8,31 +8,62 @@ import { createRequestSchema } from "@/lib/validation";
 import { getCreatorFeed } from "@/lib/visibility";
 import { getMutualBlockedUserIds } from "@/lib/moderation";
 import { notify } from "@/lib/notifications";
-import { fileToDataUrl } from "@/lib/file-upload";
+import { MAX_REQUEST_PHOTOS, REQUEST_PHOTO_TYPES } from "@/lib/request-photo-types";
 
 export type ActionState = { error?: string } | undefined;
 
-// The client resizes/compresses before submitting (see RequestImageUpload),
-// so a legitimate upload lands well under this — same ceiling-not-target
-// reasoning as MAX_AVATAR_BYTES in profile.ts, just roomier since this is a
-// larger reference image (1024px), not a small avatar.
-const MAX_REQUEST_IMAGE_BYTES = 2 * 1024 * 1024;
+// The client resizes and re-encodes every photo before submitting (see
+// RequestPhotosInput), so a real upload lands far under this — it's a
+// ceiling, not a target. Five of them still fit Vercel's 4.5 MB body limit.
+const MAX_PHOTO_BYTES = 900 * 1024;
 
-async function processRequestImageUpload(formData: FormData): Promise<{ imageUrl?: string | null; error?: string }> {
-  const imageFile = formData.get("image");
-  if (imageFile instanceof File && imageFile.size > 0) {
-    if (!imageFile.type.startsWith("image/")) {
-      return { error: "The image must be an image file." };
-    }
-    if (imageFile.size > MAX_REQUEST_IMAGE_BYTES) {
-      return { error: "The image must be under 4MB." };
-    }
-    return { imageUrl: await fileToDataUrl(imageFile) };
+type PhotoToken = { kind: "new"; index: number } | { kind: "existing"; id: string } | { kind: "legacy" };
+
+// The form posts its photos as `photoOrder` — a JSON list, in display
+// order (cover first), of "new:<n>" (the n-th file in `photos`),
+// "existing:<id>" (a RequestImage this request already has) or "legacy"
+// (the one image an older request keeps in imageUrl).
+function readPhotos(formData: FormData): { tokens: PhotoToken[]; files: File[] } | { error: string } {
+  const files = formData.getAll("photos").filter((f): f is File => f instanceof File && f.size > 0);
+  for (const file of files) {
+    if (!REQUEST_PHOTO_TYPES.includes(file.type)) return { error: "Photos have to be JPEG, PNG or WebP images." };
+    if (file.size > MAX_PHOTO_BYTES) return { error: "One of the photos is too large. Try a smaller one." };
   }
-  if (formData.get("imageRemove") === "1") {
-    return { imageUrl: null };
+  let raw: unknown;
+  try {
+    raw = JSON.parse(String(formData.get("photoOrder") ?? "[]"));
+  } catch {
+    return { error: "Something went wrong with the photos. Try adding them again." };
   }
-  return {};
+  if (!Array.isArray(raw) || raw.length > MAX_REQUEST_PHOTOS) {
+    return { error: `Add at most ${MAX_REQUEST_PHOTOS} photos.` };
+  }
+  const tokens: PhotoToken[] = [];
+  const usedFiles = new Set<number>();
+  for (const t of raw) {
+    if (t === "legacy") tokens.push({ kind: "legacy" });
+    else if (typeof t === "string" && t.startsWith("existing:")) tokens.push({ kind: "existing", id: t.slice(9) });
+    else if (typeof t === "string" && /^new:\d+$/.test(t)) {
+      const index = Number(t.slice(4));
+      if (index >= files.length || usedFiles.has(index)) return { error: "Something went wrong with the photos. Try adding them again." };
+      usedFiles.add(index);
+      tokens.push({ kind: "new", index });
+    } else return { error: "Something went wrong with the photos. Try adding them again." };
+  }
+  return { tokens, files };
+}
+
+// The legacy imageUrl's bytes, for turning it into a proper photo.
+function legacyPhoto(imageUrl: string | null) {
+  const match = imageUrl?.match(/^data:([^;,]+);base64,([\s\S]*)$/);
+  if (!match || !REQUEST_PHOTO_TYPES.includes(match[1])) return null;
+  return { contentType: match[1], data: new Uint8Array(Buffer.from(match[2], "base64")) };
+}
+
+// The validated form fields, as the Request columns they're stored in.
+function requestFields(data: ReturnType<typeof createRequestSchema.parse>) {
+  const { budgetMin, budgetMax, ...rest } = data;
+  return { ...rest, budgetMinCents: budgetMin, budgetMaxCents: budgetMax ?? budgetMin };
 }
 
 // Shared by createRequestAction and duplicateRequestAction — a duplicate is
@@ -71,16 +102,24 @@ export async function createRequestAction(_prevState: ActionState, formData: For
 
   const parsed = createRequestSchema.safeParse(Object.fromEntries(formData));
   if (!parsed.success) {
-    return { error: "Please fill in all fields correctly." };
+    return { error: parsed.error.issues[0]?.message ?? "Please fill in all fields correctly." };
   }
 
-  const image = await processRequestImageUpload(formData);
-  if (image.error) return { error: image.error };
+  const photos = readPhotos(formData);
+  if ("error" in photos) return { error: photos.error };
+  if (photos.tokens.some((t) => t.kind !== "new")) return { error: "Something went wrong with the photos. Try adding them again." };
+  const images = await Promise.all(
+    photos.tokens.map(async (t, position) => {
+      const file = photos.files[(t as { index: number }).index];
+      return { position, contentType: file.type, data: new Uint8Array(await file.arrayBuffer()) };
+    }),
+  );
 
   const startup = await prisma.startupProfile.findUniqueOrThrow({ where: { userId: session.user.id } });
 
   const request = await prisma.request.create({
-    data: { ...parsed.data, imageUrl: image.imageUrl, startupId: startup.id },
+    data: { ...requestFields(parsed.data), startupId: startup.id, images: { create: images } },
+    select: { niche: true, minFollowers: true, title: true },
   });
 
   // Let creators whose niche and follower count already qualify know right
@@ -99,8 +138,17 @@ export async function duplicateRequestAction(requestId: string) {
   if (!session || session.user.role !== "STARTUP") throw new Error("Not authorized.");
 
   const startup = await prisma.startupProfile.findUniqueOrThrow({ where: { userId: session.user.id } });
-  const source = await prisma.request.findUnique({ where: { id: requestId } });
+  const source = await prisma.request.findUnique({
+    where: { id: requestId },
+    include: { images: { orderBy: { position: "asc" } } },
+  });
   if (!source || source.startupId !== startup.id) throw new Error("This request could not be found.");
+
+  // A post-by date that's already gone would go live on the copy as-is —
+  // leave it flexible instead; Edit is right after anyway.
+  const now = new Date();
+  const today = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate());
+  const postBy = source.postBy && source.postBy.getTime() >= today ? source.postBy : null;
 
   const duplicate = await prisma.request.create({
     data: {
@@ -111,6 +159,16 @@ export async function duplicateRequestAction(requestId: string) {
       languages: source.languages,
       minFollowers: source.minFollowers,
       productCategory: source.productCategory,
+      budgetMinCents: source.budgetMinCents,
+      budgetMaxCents: source.budgetMaxCents,
+      platform: source.platform,
+      deliverables: source.deliverables,
+      postBy,
+      productIncluded: source.productIncluded,
+      imageUrl: source.images.length === 0 ? source.imageUrl : null,
+      images: {
+        create: source.images.map((i) => ({ position: i.position, contentType: i.contentType, data: i.data })),
+      },
     },
   });
 
@@ -132,19 +190,49 @@ export async function updateRequestAction(
 
   const parsed = createRequestSchema.safeParse(Object.fromEntries(formData));
   if (!parsed.success) {
-    return { error: "Please fill in all fields correctly." };
+    return { error: parsed.error.issues[0]?.message ?? "Please fill in all fields correctly." };
   }
 
-  const image = await processRequestImageUpload(formData);
-  if (image.error) return { error: image.error };
+  const photos = readPhotos(formData);
+  if ("error" in photos) return { error: photos.error };
 
   const startup = await prisma.startupProfile.findUniqueOrThrow({ where: { userId: session.user.id } });
-  const request = await prisma.request.findUnique({ where: { id: requestId } });
+  const request = await prisma.request.findUnique({
+    where: { id: requestId },
+    select: { startupId: true, imageUrl: true, images: { select: { id: true } } },
+  });
   if (!request || request.startupId !== startup.id) {
     return { error: "This request could not be found." };
   }
 
-  await prisma.request.update({ where: { id: requestId }, data: { ...parsed.data, ...image } });
+  // Everything the new photo order needs, read before the transaction so
+  // it stays short: new files' bytes, and which existing ids are really
+  // this request's.
+  const ownIds = new Set(request.images.map((i) => i.id));
+  const legacy = legacyPhoto(request.imageUrl);
+  const plan: ({ position: number } & ({ id: string } | { contentType: string; data: Uint8Array<ArrayBuffer> }))[] = [];
+  for (const [position, t] of photos.tokens.entries()) {
+    if (t.kind === "existing") {
+      if (!ownIds.has(t.id)) return { error: "Something went wrong with the photos. Reload the page and try again." };
+      plan.push({ position, id: t.id });
+    } else if (t.kind === "legacy") {
+      if (legacy) plan.push({ position, ...legacy });
+    } else {
+      const file = photos.files[t.index];
+      plan.push({ position, contentType: file.type, data: new Uint8Array(await file.arrayBuffer()) });
+    }
+  }
+  const keptIds = plan.flatMap((p) => ("id" in p ? [p.id] : []));
+
+  await prisma.$transaction(async (tx) => {
+    // Whatever the legacy image was, it's either a proper photo now or gone.
+    await tx.request.update({ where: { id: requestId }, data: { ...requestFields(parsed.data), imageUrl: null } });
+    await tx.requestImage.deleteMany({ where: { requestId, id: { notIn: keptIds } } });
+    for (const p of plan) {
+      if ("id" in p) await tx.requestImage.update({ where: { id: p.id }, data: { position: p.position } });
+      else await tx.requestImage.create({ data: { requestId, position: p.position, contentType: p.contentType, data: p.data } });
+    }
+  });
 
   revalidatePath(`/dashboard/startup/requests/${requestId}`);
   revalidatePath("/dashboard/startup");
@@ -341,10 +429,10 @@ export async function withdrawInterestAction(interestId: string) {
   const interest = await prisma.interest.findUnique({ where: { id: interestId } });
   if (!interest || interest.creatorId !== creator.id) throw new Error("This interest could not be found.");
   if (interest.paymentStatus !== null) {
-    throw new Error("Can't withdraw — a payment is already in progress for this collab.");
+    throw new Error("Can't withdraw: a payment is already in progress for this collab.");
   }
   if (interest.depositStatus !== null) {
-    throw new Error("Can't withdraw — a deposit is already in progress for this collab.");
+    throw new Error("Can't withdraw: a deposit is already in progress for this collab.");
   }
 
   await prisma.interest.delete({ where: { id: interestId } });
@@ -360,10 +448,10 @@ export async function rejectInterestAction(interestId: string) {
   const interest = await prisma.interest.findUnique({ where: { id: interestId }, include: { request: true } });
   if (!interest || interest.request.startupId !== startup.id) throw new Error("This interest could not be found.");
   if (interest.depositStatus !== null) {
-    throw new Error("Can't remove — a deposit is already in progress for this collab.");
+    throw new Error("Can't remove: a deposit is already in progress for this collab.");
   }
   if (interest.paymentStatus !== null) {
-    throw new Error("Can't remove — a payment is already in progress for this collab.");
+    throw new Error("Can't remove: a payment is already in progress for this collab.");
   }
 
   await prisma.interest.delete({ where: { id: interestId } });

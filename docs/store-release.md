@@ -14,7 +14,7 @@ permissions, `capacitor.config.ts`) need a new build.
    (see README) — reviewers and real users will create data there.
 3. **Review accounts.** On production, create one brand and one creator account
    with realistic sample data and **2FA off**. Both stores ask for them.
-4. **App ID.** `appId` in `capacitor.config.ts` is `com.c2cmarketplace.app`.
+4. **App ID.** `appId` in `capacitor.config.ts` is `app.comtor`.
    Change it now if you want a different one — it can't change after the first
    upload. Update `PRODUCT_BUNDLE_IDENTIFIER` in Xcode and `applicationId` in
    `android/app/build.gradle` to match.
@@ -66,7 +66,7 @@ to use; tokens live in the `NativePushToken` table.
    - Brand-to-creator payments pay for real-world services (content creation
      and posting) between users, processed with Stripe.
    - The Pro subscription is not sold in the iOS app (it's hidden when the
-     user agent contains `C2CApp/ios`, see `lib/native-app.ts`).
+     user agent contains `ComtorApp/ios`, see `lib/native-app.ts`).
    - Users can report and block other users, and delete their account in
      Settings → Danger zone.
 

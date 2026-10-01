@@ -107,7 +107,7 @@ export function ReportBlockActions({
           onAnimationEnd={menu.onExitEnd}
           className={`${
             menu.closing ? "animate-dropdown-out pointer-events-none" : "animate-dropdown-in"
-          } absolute right-0 z-20 mt-1 min-w-40 rounded-[14px] border border-ink/10 bg-white py-1 dark:bg-neutral-900`}
+          } absolute right-0 z-20 mt-1 min-w-40 rounded border border-ink/10 bg-white py-1 dark:bg-neutral-900`}
         >
           <button
             type="button"
@@ -182,7 +182,7 @@ function ReportForm({ otherUserId, onSent }: { otherUserId: string; onSent: () =
         return { error: errorMessage(err) };
       }
       if (result?.success) {
-        toast.success("Report sent — our team will take a look.");
+        toast.success("Report sent. Our team will take a look.");
         onSent();
       }
       return result;
@@ -199,7 +199,7 @@ function ReportForm({ otherUserId, onSent }: { otherUserId: string; onSent: () =
         required
         defaultValue=""
         aria-label="Reason for report"
-        className="rounded-[14px] border border-neutral-300 bg-white px-3 py-2.5 text-base md:text-sm dark:border-neutral-700 dark:bg-neutral-900"
+        className="rounded border border-neutral-300 bg-white px-3 py-2.5 text-base md:text-sm dark:border-neutral-700 dark:bg-neutral-900"
       >
         <option value="" disabled>
           Reason
@@ -216,7 +216,7 @@ function ReportForm({ otherUserId, onSent }: { otherUserId: string; onSent: () =
         maxLength={500}
         placeholder="Optional details"
         aria-label="Details"
-        className="resize-none rounded-[14px] border border-neutral-300 px-3 py-2.5 text-base md:text-sm dark:border-neutral-700"
+        className="resize-none rounded border border-neutral-300 px-3 py-2.5 text-base md:text-sm dark:border-neutral-700"
       />
       {state?.error && <p className="text-sm text-ink">{state.error}</p>}
       <button

@@ -85,7 +85,7 @@ export default async function AdminOverviewPage() {
       <div>
         <h1 className="font-display text-title-1 font-bold">Admin overview</h1>
         <p className="text-sm text-neutral-600 mt-1 dark:text-neutral-400">
-          Platform-wide snapshot — mostly read-only, aside from settling payment disputes and resolving reports below.
+          Platform-wide snapshot. Mostly read-only, aside from settling payment disputes and resolving reports below.
         </p>
       </div>
 
@@ -124,7 +124,7 @@ export default async function AdminOverviewPage() {
         <p className="text-sm text-neutral-500 dark:text-neutral-400">Total payment volume</p>
         <p className="font-display text-title-1 font-bold mt-1">{formatCents(totalVolumeCents)}</p>
         <p className="text-xs text-neutral-500 mt-1 dark:text-neutral-400">
-          Across {volumeCount} non-refunded payments — real escrow via Stripe.
+          Across {volumeCount} non-refunded payments, real escrow via Stripe.
         </p>
       </div>
 

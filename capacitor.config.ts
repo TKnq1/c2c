@@ -7,8 +7,8 @@ import type { CapacitorConfig } from "@capacitor/cli";
 const serverUrl = process.env.CAP_SERVER_URL ?? "http://localhost:3000";
 
 const config: CapacitorConfig = {
-  appId: "com.c2cmarketplace.app",
-  appName: "C2C",
+  appId: "app.comtor",
+  appName: "comtor",
   // Only shown if the server can't be reached at all — the WebView loads
   // serverUrl, not this folder.
   webDir: "capacitor/www",
@@ -19,11 +19,11 @@ const config: CapacitorConfig = {
   // Lets the server tell the store apps apart from a browser (see
   // lib/native-app.ts) — e.g. to hide the Pro plan purchase on iOS.
   ios: {
-    appendUserAgent: "C2CApp/ios",
+    appendUserAgent: "ComtorApp/ios",
     contentInset: "never",
   },
   android: {
-    appendUserAgent: "C2CApp/android",
+    appendUserAgent: "ComtorApp/android",
   },
   plugins: {
     PushNotifications: {

@@ -3,6 +3,7 @@ import type { Metadata, Viewport } from "next";
 import { Lato } from "next/font/google";
 import { Nav } from "@/components/nav";
 import { NativePushBridge } from "@/components/native-push-bridge";
+import { InAppNavigationMarker } from "@/lib/in-app-navigation";
 import { PageTransition } from "@/components/page-transition";
 import { Toaster } from "@/components/toaster";
 import { TopLoadingBar } from "@/components/top-loading-bar";
@@ -20,17 +21,17 @@ const lato = Lato({
   weight: ["400", "700", "900"],
 });
 
-const SITE_NAME = "C2C – Brand-Creator Marketplace";
+const SITE_NAME = "comtor – Brand-Creator Marketplace";
 const SITE_DESCRIPTION = "Brands find matching content creators for collaborations.";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
-  title: { default: SITE_NAME, template: `%s · C2C` },
+  title: { default: SITE_NAME, template: `%s · comtor` },
   description: SITE_DESCRIPTION,
   openGraph: {
     title: SITE_NAME,
     description: SITE_DESCRIPTION,
-    siteName: "C2C",
+    siteName: "comtor",
     locale: "en_US",
     type: "website",
   },
@@ -42,7 +43,7 @@ export const metadata: Metadata = {
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
-    title: "C2C",
+    title: "comtor",
     // No media query — one universal fallback rather than the full
     // per-device matrix (see apple-splash/route.tsx for why).
     startupImage: "/apple-splash",
@@ -70,7 +71,7 @@ export const viewport: Viewport = {
 const ORGANIZATION_JSON_LD = {
   "@context": "https://schema.org",
   "@type": "Organization",
-  name: "C2C",
+  name: "comtor",
   url: SITE_URL,
   logo: `${SITE_URL}/logo.png`,
   description: SITE_DESCRIPTION,
@@ -118,6 +119,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
               which was taking Nav down with it since it used to live inside
               dashboard/layout.tsx, further down that same tree. */}
           <Nav />
+          <InAppNavigationMarker />
           <PageTransition>{children}</PageTransition>
           <Toaster />
           <NativePushBridge />

@@ -41,7 +41,7 @@ export function SubmitPostForm({
             result = { error: errorMessage(err) };
           }
           if (result?.success) {
-            toast.success(`Post submitted — ${brandName} has ${RELEASE_REVIEW_DAYS} days to approve it.`);
+            toast.success(`Post submitted. ${brandName} has ${RELEASE_REVIEW_DAYS} days to approve it.`);
             onDone?.();
             router.refresh();
           } else {
@@ -60,7 +60,7 @@ export function SubmitPostForm({
         defaultValue={defaultUrl}
         placeholder="https://www.tiktok.com/@you/video/…"
         aria-label="Link to your post"
-        className="rounded-[14px] border border-neutral-300 bg-transparent px-3 py-2.5 text-base outline-none focus:border-neutral-500 md:text-sm dark:border-neutral-700"
+        className="rounded border border-neutral-300 bg-transparent px-3 py-2.5 text-base outline-none focus:border-neutral-500 md:text-sm dark:border-neutral-700"
       />
       {error && <p className="text-sm text-ink">{error}</p>}
       <button
@@ -99,7 +99,7 @@ export function SubmitPostButton({
         <p className="text-sm text-neutral-600 dark:text-neutral-400">
           {defaultUrl
             ? `${brandName} gets a fresh ${RELEASE_REVIEW_DAYS} days to check the new link.`
-            : `Paste the link to your live post. ${brandName} has ${RELEASE_REVIEW_DAYS} days to approve it or report a problem — if they don't respond, the payment is released to you automatically.`}
+            : `Paste the link to your live post. ${brandName} has ${RELEASE_REVIEW_DAYS} days to approve it or report a problem. If they don't respond, the payment is released to you automatically.`}
         </p>
         <SubmitPostForm
           interestId={interestId}

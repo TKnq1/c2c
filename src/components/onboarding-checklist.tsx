@@ -13,7 +13,7 @@ export function OnboardingChecklist({ items }: { items: Item[] }) {
   const doneCount = items.filter((i) => i.done).length;
 
   return (
-    <div className="rounded-2xl border border-ink/10 p-4 flex flex-col gap-3">
+    <div className="flex flex-col gap-3 rounded bg-fog p-4">
       <p className="text-sm font-medium">
         Finish setting up your account ({doneCount}/{items.length})
       </p>
@@ -21,13 +21,13 @@ export function OnboardingChecklist({ items }: { items: Item[] }) {
         {items.map((item) => (
           <Link key={item.label} href={item.href} prefetch={false} className="flex items-center gap-2 text-sm hover:underline">
             <span
-              className={`flex h-4 w-4 shrink-0 items-center justify-center rounded border ${
+              className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full border ${
                 item.done ? "bg-ink border-ink text-paper" : "border-neutral-300 dark:border-neutral-700"
               }`}
             >
               {item.done && <FiCheck className="h-3 w-3" />}
             </span>
-            <span className={item.done ? "text-neutral-400 line-through" : "text-neutral-700"}>{item.label}</span>
+            <span className={item.done ? "text-neutral-400 line-through" : "text-neutral-700 dark:text-neutral-300"}>{item.label}</span>
           </Link>
         ))}
       </div>

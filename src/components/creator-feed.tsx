@@ -2,21 +2,9 @@
 
 import { useMemo } from "react";
 import { SwipeCardStack } from "@/components/swipe-card-stack";
+import type { SwipeRequest } from "@/components/swipe-card";
 
-type RequestEntry = {
-  id: string;
-  startupId: string;
-  isBrandFavorited: boolean;
-  title: string;
-  description: string;
-  niche: string;
-  languages: string[];
-  minFollowers: number;
-  productCategory: string;
-  companyName: string;
-  companyAvatarUrl: string | null;
-  rating: { average: number; count: number };
-  imageUrl: string | null;
+type RequestEntry = SwipeRequest & {
   interestId: string | null;
   contactedByStartup: boolean;
 };

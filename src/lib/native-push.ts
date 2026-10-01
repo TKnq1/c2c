@@ -55,7 +55,7 @@ const apnsTeamId = process.env.APNS_TEAM_ID;
 // The .p8 file's contents; literal "\n" sequences (how most env UIs store
 // multi-line values) are turned back into newlines.
 const apnsPrivateKey = process.env.APNS_PRIVATE_KEY?.replace(/\\n/g, "\n");
-const apnsBundleId = process.env.APNS_BUNDLE_ID ?? "com.c2cmarketplace.app";
+const apnsBundleId = process.env.APNS_BUNDLE_ID ?? "app.comtor";
 // Development builds from Xcode get sandbox tokens; TestFlight and App Store
 // builds get production tokens. The two don't mix.
 const apnsHost =

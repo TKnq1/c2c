@@ -35,14 +35,14 @@ export function PaymentSection({
   children: React.ReactNode;
 }) {
   return (
-    <section className={`flex flex-col gap-3 ${className}`}>
-      <div className="flex items-center justify-between gap-3">
+    <section className={`flex flex-col gap-2 ${className}`}>
+      <div className="flex items-center justify-between gap-3 px-1">
         <div className="min-w-0">
-          <h2 className="font-semibold">
+          <h2 className="text-footnote text-neutral-500 dark:text-neutral-400">
             {title}
-            {count !== undefined && <span className="ml-1.5 font-normal text-neutral-500">{count}</span>}
+            {count !== undefined && <span className="ml-1.5 tabular-nums">{count}</span>}
           </h2>
-          {description && <p className="mt-0.5 text-sm text-neutral-500 dark:text-neutral-400">{description}</p>}
+          {description && <p className="mt-0.5 text-footnote text-neutral-500 dark:text-neutral-400">{description}</p>}
         </div>
         {action}
       </div>
@@ -81,7 +81,7 @@ export function PaymentRow({
   children?: React.ReactNode;
 }) {
   return (
-    <div className="rounded-[20px] border border-ink/10 p-4">
+    <div className="rounded bg-fog p-4">
       <div className="flex items-center gap-3">
         <Avatar src={avatarUrl} name={name} size={40} />
         <div className="min-w-0 flex-1">
@@ -129,7 +129,7 @@ export function PaymentStats({
   footnote?: React.ReactNode;
 }) {
   return (
-    <div className="rounded-[20px] border border-ink/10 p-4 no-print">
+    <div className="rounded bg-fog p-4 no-print">
       <div className="grid grid-cols-2 divide-x divide-ink/10">
         {stats.map((s) => (
           <div key={s.label} className="min-w-0 px-4 first:pl-0 last:pr-0">

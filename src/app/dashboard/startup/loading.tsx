@@ -1,4 +1,4 @@
-import { Skeleton, SkeletonCardList } from "@/components/skeleton";
+import { Skeleton, SkeletonGroupList } from "@/components/skeleton";
 
 export default function Loading() {
   return (
@@ -10,7 +10,7 @@ export default function Loading() {
         </div>
         <Skeleton className="h-9 w-32 rounded" />
       </div>
-      <SkeletonCardList count={5} />
+      <SkeletonGroupList count={5} />
     </div>
   );
 }

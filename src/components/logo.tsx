@@ -19,7 +19,7 @@ export function Logo({ large = false }: { large?: boolean }) {
   return (
     <Image
       src="/logo.png"
-      alt="C2C"
+      alt="comtor"
       width={size}
       height={size}
       priority

@@ -30,7 +30,7 @@ export function PaymentApprovalButtons({
           action={approvePaymentAction.bind(null, interestId)}
           successMessage={`Payment released to ${creatorName}.`}
           title="Approve and release?"
-          description={`${creatorName} gets ${payoutLabel} right away. Only approve if the post is live and matches what you agreed — this can't be undone.`}
+          description={`${creatorName} gets ${payoutLabel} right away. Only approve if the post is live and matches what you agreed. This can't be undone.`}
           confirmLabel="Approve & release"
           pendingLabel="Releasing…"
           className="w-full rounded-full bg-ink px-4 py-2.5 text-sm font-medium text-paper transition hover:bg-graphite sm:w-auto sm:self-start"
@@ -81,7 +81,7 @@ function ReportProblemForm({
             result = { error: errorMessage(err) };
           }
           if (result?.success) {
-            toast.success("Problem reported — the payment is on hold while we look into it.");
+            toast.success("Problem reported. The payment is on hold while we look into it.");
             onDone();
             router.refresh();
           } else {
@@ -92,7 +92,7 @@ function ReportProblemForm({
       className="flex flex-col gap-3"
     >
       <p className="text-sm text-neutral-600 dark:text-neutral-400">
-        The payment stays on hold — nothing goes to {creatorName} — while we look at the post and talk to you both.
+        The payment stays on hold (nothing goes to {creatorName}) while we look at the post and talk to you both.
         Then we either release it or refund you.
       </p>
       {/* text-base on phones: iOS zooms into any field under 16px on focus. */}
@@ -104,7 +104,7 @@ function ReportProblemForm({
         autoFocus
         placeholder="What's wrong? E.g. the post was taken down, or it's not what we agreed on."
         aria-label="What's wrong with the post"
-        className="resize-none rounded-[14px] border border-neutral-300 bg-transparent px-3 py-2.5 text-base outline-none focus:border-neutral-500 md:text-sm dark:border-neutral-700"
+        className="resize-none rounded border border-neutral-300 bg-transparent px-3 py-2.5 text-base outline-none focus:border-neutral-500 md:text-sm dark:border-neutral-700"
       />
       {error && <p className="text-sm text-ink">{error}</p>}
       <button

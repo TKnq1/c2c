@@ -9,7 +9,7 @@ export function ForgotPasswordForm() {
   if (state?.success) {
     return (
       <p className="text-sm text-neutral-700 dark:text-neutral-300">
-        If that email has an account, we&apos;ve sent a reset link — check your inbox.
+        If that email has an account, we&apos;ve sent a reset link. Check your inbox.
       </p>
     );
   }
@@ -25,7 +25,7 @@ export function ForgotPasswordForm() {
           name="email"
           type="email"
           required
-          className="rounded-lg border border-neutral-300 px-3 py-2 dark:border-neutral-700"
+          className="rounded border border-neutral-300 px-3 py-2.5 dark:border-neutral-700"
         />
       </div>
       {state?.error && <p className="text-sm text-ink">{state.error}</p>}

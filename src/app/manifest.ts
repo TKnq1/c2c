@@ -2,8 +2,8 @@ import type { MetadataRoute } from "next";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "C2C – Brand-Creator Marketplace",
-    short_name: "C2C",
+    name: "comtor – Brand-Creator Marketplace",
+    short_name: "comtor",
     description: "Brands find matching content creators for collaborations.",
     start_url: "/login",
     display: "standalone",

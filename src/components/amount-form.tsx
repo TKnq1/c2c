@@ -62,7 +62,7 @@ export function AmountForm({
     >
       <p className="text-sm text-neutral-600 dark:text-neutral-400">{hint}</p>
       {/* text-base on phones: iOS zooms into any field under 16px on focus. */}
-      <label className="flex items-center gap-2 rounded-[14px] border border-neutral-300 px-3 focus-within:border-neutral-500 dark:border-neutral-700">
+      <label className="flex items-center gap-2 rounded border border-neutral-300 px-3 focus-within:border-neutral-500 dark:border-neutral-700">
         <span className="text-neutral-500">€</span>
         <input
           name="amount"

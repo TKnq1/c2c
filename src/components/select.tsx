@@ -7,7 +7,7 @@ export function Select({ className = "", wrapperClassName = "", ...props }: Prop
     <div className={`relative ${wrapperClassName}`}>
       <select
         {...props}
-        className={`w-full appearance-none rounded-lg border border-neutral-300 bg-white text-neutral-900 pl-3 pr-9 py-2 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-100 ${className}`}
+        className={`w-full appearance-none rounded border border-neutral-300 bg-transparent text-neutral-900 pl-3 pr-9 py-2.5 dark:border-neutral-700 dark:text-neutral-100 ${className}`}
       />
       <svg
         className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-neutral-500 dark:text-neutral-400"

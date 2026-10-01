@@ -60,12 +60,12 @@ export async function notify(userId: string, message: string, link: string | und
       where: { id: existing.id },
       data: { message: digestedMessage, link: digest.link, count, createdAt: new Date() },
     });
-    await sendPushToUser(userId, { title: "C2C", body: digestedMessage, url: digest.link });
+    await sendPushToUser(userId, { title: "comtor", body: digestedMessage, url: digest.link });
     return;
   }
 
   await prisma.notification.create({ data: { userId, message, link, category } });
-  await sendPushToUser(userId, { title: "C2C", body: message, url: link });
+  await sendPushToUser(userId, { title: "comtor", body: message, url: link });
 }
 
 export async function getUnreadCount(userId: string) {

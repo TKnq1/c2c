@@ -1,10 +1,10 @@
 apply plugin: 'com.android.application'
 
 android {
-    namespace = "com.c2cmarketplace.app"
+    namespace = "app.comtor"
     compileSdk = rootProject.ext.compileSdkVersion
     defaultConfig {
-        applicationId "com.c2cmarketplace.app"
+        applicationId "app.comtor"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1

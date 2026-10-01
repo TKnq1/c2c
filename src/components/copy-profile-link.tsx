@@ -13,7 +13,7 @@ export function CopyProfileLink({ url }: { url: string }) {
       await navigator.clipboard.writeText(url);
       toast.success("Link copied.");
     } catch {
-      toast.error("Couldn't copy — your browser blocked clipboard access.");
+      toast.error("Couldn't copy. Your browser blocked clipboard access.");
     }
   }
 
@@ -22,13 +22,13 @@ export function CopyProfileLink({ url }: { url: string }) {
       <button
         type="button"
         onClick={copy}
-        className="self-start flex items-center gap-2 rounded border border-neutral-300 px-4 py-2 text-sm font-medium hover:bg-neutral-50 transition dark:border-neutral-700 dark:hover:bg-neutral-800/50"
+        className="flex items-center gap-2 self-start rounded-full border border-neutral-300 px-4 py-2 text-sm font-medium transition hover:border-neutral-400 dark:border-neutral-700"
       >
         <FiLink className="h-4 w-4" />
         Copy profile link
       </button>
       <p className="text-xs text-neutral-500 dark:text-neutral-400">
-        Only opens correctly for someone already signed in on C2C.
+        Only opens correctly for someone already signed in on comtor.
       </p>
     </div>
   );

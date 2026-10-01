@@ -18,7 +18,7 @@ export function TextareaWithCounter({ maxLength, defaultValue = "", className, .
         maxLength={maxLength}
         value={value}
         onChange={(e) => setValue(e.target.value)}
-        className={className}
+        className={`resize-none ${className ?? ""}`}
       />
       <span className={`text-xs self-end ${remaining <= maxLength * 0.1 ? "text-ink" : "text-neutral-400 dark:text-neutral-500"}`}>
         {value.length}/{maxLength}

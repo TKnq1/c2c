@@ -25,14 +25,13 @@ export function NotificationRow({ notification: n }: { notification: Notificatio
     trigger("Notification removed.", "Notification restored.");
   }
 
+  // A row in the Notifications group: unread ones get a dot and bold text
+  // instead of a box of their own.
   const content = (
-    <div
-      className={`rounded-2xl border p-3 text-sm transition ${
-        n.read ? "border-ink/10" : "border-neutral-300 bg-neutral-50 dark:border-neutral-700 dark:bg-neutral-800/50"
-      } ${n.link ? "hover:border-neutral-400" : ""}`}
-    >
+    <div className={`bg-fog px-4 py-3 text-sm transition ${n.link ? "hover:bg-ink/5" : ""}`}>
       <div className="flex items-start justify-between gap-2">
-        <p className="text-neutral-800 dark:text-neutral-200">{n.message}</p>
+        {!n.read && <span aria-label="Unread" className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-ink" />}
+        <p className={`min-w-0 flex-1 ${n.read ? "text-neutral-700 dark:text-neutral-300" : "font-bold text-ink"}`}>{n.message}</p>
         <button
           type="button"
           onClick={(e) => {

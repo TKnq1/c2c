@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='utf-8'?>
 <resources>
-    <string name="app_name">C2C</string>
-    <string name="title_activity_main">C2C</string>
-    <string name="package_name">com.c2cmarketplace.app</string>
-    <string name="custom_url_scheme">com.c2cmarketplace.app</string>
+    <string name="app_name">comtor</string>
+    <string name="title_activity_main">comtor</string>
+    <string name="package_name">app.comtor</string>
+    <string name="custom_url_scheme">app.comtor</string>
 </resources>

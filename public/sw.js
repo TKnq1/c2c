@@ -21,7 +21,7 @@ self.addEventListener("fetch", (event) => {
 });
 
 self.addEventListener("push", (event) => {
-  let data = { title: "C2C", body: "" };
+  let data = { title: "comtor", body: "" };
   try {
     if (event.data) data = event.data.json();
   } catch {
@@ -29,7 +29,7 @@ self.addEventListener("push", (event) => {
   }
 
   event.waitUntil(
-    self.registration.showNotification(data.title || "C2C", {
+    self.registration.showNotification(data.title || "comtor", {
       body: data.body || "",
       icon: "/apple-icon",
       data: { url: data.url || "/dashboard" },

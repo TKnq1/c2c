@@ -54,7 +54,7 @@ export async function releaseHeldPayment(interestId: string, trigger: ReleaseTri
     where: { id: interestId, ...claimWhere },
     data: { paymentStatus: "RELEASED", releasedAt: new Date() },
   });
-  if (claimed.count === 0) return { error: "This payment can't be released right now — refresh the page." };
+  if (claimed.count === 0) return { error: "This payment can't be released right now. Refresh the page." };
 
   // Transfer-math fee retention, not application_fee_amount (that's only
   // for destination/direct charges) — transferring payoutCents rather than
@@ -86,8 +86,8 @@ export async function releaseHeldPayment(interestId: string, trigger: ReleaseTri
   const brand = interest.request.startup.companyName;
   const payout = formatCents(interest.payoutCents!);
   const creatorMessage = {
-    approved: `${brand} approved your post for "${title}" — ${payout} is on its way to you`,
-    auto: `Your ${payout} for "${title}" was released — ${brand} didn't report a problem within ${RELEASE_REVIEW_DAYS} days`,
+    approved: `${brand} approved your post for "${title}". ${payout} is on its way to you.`,
+    auto: `Your ${payout} for "${title}" was released. ${brand} didn't report a problem within ${RELEASE_REVIEW_DAYS} days.`,
     admin: `We reviewed the problem reported on "${title}" and released your ${payout}`,
   }[trigger];
   await notify(creator.userId, creatorMessage, "/dashboard/creator/payments", "payments");
@@ -96,7 +96,7 @@ export async function releaseHeldPayment(interestId: string, trigger: ReleaseTri
     await notify(
       interest.request.startup.userId,
       trigger === "auto"
-        ? `Your ${formatCents(interest.amountCents!)} for "${title}" was released to ${creator.displayName} — no problem was reported within ${RELEASE_REVIEW_DAYS} days`
+        ? `Your ${formatCents(interest.amountCents!)} for "${title}" was released to ${creator.displayName}. No problem was reported within ${RELEASE_REVIEW_DAYS} days.`
         : `We reviewed the problem you reported on "${title}" and released the payment to ${creator.displayName}`,
       "/dashboard/startup/payments",
       "payments",
@@ -115,7 +115,7 @@ export async function refundHeldPayment(interestId: string, trigger: RefundTrigg
   if (!interest || interest.paymentStatus !== "HELD") return { error: "This payment isn't held anymore." };
   if (trigger === "brand" && interest.proofSubmittedAt) {
     return {
-      error: `${interest.creator.displayName} already submitted their post — report a problem instead, and we'll look into it.`,
+      error: `${interest.creator.displayName} already submitted their post. Report a problem instead, and we'll look into it.`,
     };
   }
 
@@ -126,7 +126,7 @@ export async function refundHeldPayment(interestId: string, trigger: RefundTrigg
     where: { id: interestId, paymentStatus: "HELD", ...(trigger === "brand" ? { proofSubmittedAt: null } : {}) },
     data: { paymentStatus: "REFUNDED", refundedAt: new Date() },
   });
-  if (claimed.count === 0) return { error: "This payment can't be refunded right now — refresh the page." };
+  if (claimed.count === 0) return { error: "This payment can't be refunded right now. Refresh the page." };
 
   // Nothing was ever transferred out at HELD (separate charges and
   // transfers — the transfer only happens on release), so a plain refund

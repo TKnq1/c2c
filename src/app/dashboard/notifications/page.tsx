@@ -22,7 +22,7 @@ export default async function NotificationsPage() {
       {notifications.length === 0 ? (
         <EmptyState icon={FiBell} title="No notifications yet." />
       ) : (
-        <div className="flex flex-col gap-2">
+        <div className="divide-y divide-ink/10 overflow-hidden rounded bg-fog">
           {notifications.map((n) => (
             <NotificationRow
               key={n.id}

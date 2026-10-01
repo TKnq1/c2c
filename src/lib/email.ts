@@ -4,7 +4,7 @@ import { Resend } from "resend";
 // own address until a domain is verified — fine for now, but real users
 // signing up with other addresses won't receive mail until FROM_EMAIL
 // points at a verified domain (see README).
-const FROM_EMAIL = process.env.EMAIL_FROM ?? "C2C <onboarding@resend.dev>";
+const FROM_EMAIL = process.env.EMAIL_FROM ?? "comtor <onboarding@resend.dev>";
 
 export async function sendEmail({ to, subject, html }: { to: string; subject: string; html: string }) {
   // Constructed here, not at module scope — the Resend constructor throws

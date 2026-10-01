@@ -1,45 +1,118 @@
+"use client";
+
+import { useEffect, useRef, useState } from "react";
 import type { Role } from "@prisma/client";
 
-const BASE_SECTIONS = [
-  { id: "profile", label: "Profile" },
-  { id: "appearance", label: "Appearance" },
-  { id: "password", label: "Password" },
-  { id: "two-factor", label: "2FA" },
-  { id: "logins", label: "Logins" },
-  { id: "push", label: "Notifications" },
-  { id: "data", label: "Data" },
-  { id: "danger", label: "Danger zone" },
-];
+// The Settings page's jump bar. Sections are grouped so it stays short —
+// Security covers password, 2FA and recent logins; Account covers data
+// export, deletion and the legal pages. Each group jumps to its first
+// section.
+type Group = { id: string; label: string; sections: string[] };
 
-// Plan/billing only applies to brands — creators don't pay a platform fee,
-// so there's nothing for them to subscribe out of.
-const PLAN_SECTION = { id: "plan", label: "Plan" };
-// Payouts only applies to creators — brands pay out, they don't receive.
-const PAYOUTS_SECTION = { id: "payouts", label: "Payouts" };
+function groupsFor(role: Role): Group[] {
+  return [
+    { id: "profile", label: "Profile", sections: ["profile"] },
+    // Plan/billing only applies to brands; payouts only to creators —
+    // brands pay out, they don't receive.
+    role === "STARTUP"
+      ? { id: "plan", label: "Plan", sections: ["plan"] }
+      : { id: "payouts", label: "Payouts", sections: ["payouts"] },
+    { id: "appearance", label: "Appearance", sections: ["appearance"] },
+    { id: "password", label: "Security", sections: ["password", "two-factor", "logins"] },
+    { id: "push", label: "Notifications", sections: ["push"] },
+    { id: "data", label: "Account", sections: ["data", "danger", "legal"] },
+  ];
+}
 
 export function SettingsNav({ role }: { role: Role }) {
-  const sections =
-    role === "STARTUP"
-      ? [BASE_SECTIONS[0], PLAN_SECTION, ...BASE_SECTIONS.slice(1)]
-      : [BASE_SECTIONS[0], PAYOUTS_SECTION, ...BASE_SECTIONS.slice(1)];
+  const groups = groupsFor(role);
+  const [active, setActive] = useState(groups[0].id);
+  // Whether the bar is scrolled all the way right — the fade that hints at
+  // more chips goes away once there aren't any.
+  const [atEnd, setAtEnd] = useState(false);
+  const navRef = useRef<HTMLElement>(null);
+
+  useEffect(() => {
+    const nav = navRef.current;
+    if (!nav) return;
+    const check = () => setAtEnd(nav.scrollLeft + nav.clientWidth >= nav.scrollWidth - 2);
+    check();
+    nav.addEventListener("scroll", check, { passive: true });
+    window.addEventListener("resize", check);
+    return () => {
+      nav.removeEventListener("scroll", check);
+      window.removeEventListener("resize", check);
+    };
+  }, []);
+
+  // Follows the scroll: the current group is the last one whose section
+  // heading has passed under the bar. On dashboard pages <main> is the
+  // scroll container, not the window (see dashboard-shell in globals.css).
+  useEffect(() => {
+    const nav = navRef.current;
+    if (!nav) return;
+    const scroller = nav.closest("main");
+    const sections = groupsFor(role).flatMap((g) =>
+      g.sections.flatMap((id) => {
+        const el = document.getElementById(id);
+        return el ? [{ group: g.id, el }] : [];
+      }),
+    );
+    const update = () => {
+      const line = nav.getBoundingClientRect().bottom + 24;
+      let current = sections[0]?.group ?? "profile";
+      for (const s of sections) if (s.el.getBoundingClientRect().top <= line) current = s.group;
+      // At the very end the last group counts even if its heading never
+      // makes it up to the bar.
+      if (scroller && scroller.scrollTop + scroller.clientHeight >= scroller.scrollHeight - 2) current = sections.at(-1)?.group ?? current;
+      setActive(current);
+    };
+    update();
+    const target: HTMLElement | Window = scroller ?? window;
+    target.addEventListener("scroll", update, { passive: true });
+    return () => target.removeEventListener("scroll", update);
+  }, [role]);
+
+  // Keeps the current chip in view as the bar scrolls sideways on phones.
+  useEffect(() => {
+    const nav = navRef.current;
+    const chip = nav?.querySelector<HTMLElement>(`[data-group="${active}"]`);
+    if (!nav || !chip) return;
+    nav.scrollTo({ left: chip.offsetLeft - (nav.clientWidth - chip.offsetWidth) / 2, behavior: "smooth" });
+  }, [active]);
 
   return (
     <nav
+      ref={navRef}
       aria-label="Settings sections"
-      className="sticky top-0 z-10 bg-background px-2 py-2 border-b border-ink/10 flex items-center gap-4 overflow-x-auto scrollbar-hide text-sm text-neutral-500 dark:text-neutral-400"
+      // Flush under the header: <main> has pt-8, and a sticky element sticks
+      // inside its scroll container's padding — so it pulls up by exactly
+      // that (-mt-8) and sticks that much higher (-top-8).
+      className="sticky -top-8 z-10 -mx-6 -mt-8 flex items-center gap-1.5 overflow-x-auto border-b border-ink/10 bg-background px-6 py-2.5 text-sm scrollbar-hide md:mx-0 md:px-0"
     >
-      {sections.map((s) => (
+      {groups.map((g) => (
         <a
-          key={s.id}
-          href={`#${s.id}`}
-          className="shrink-0 whitespace-nowrap hover:text-neutral-900 transition dark:hover:text-neutral-100"
+          key={g.id}
+          href={`#${g.id}`}
+          data-group={g.id}
+          aria-current={g.id === active ? "true" : undefined}
+          onClick={(e) => {
+            e.preventDefault();
+            setActive(g.id);
+            document.getElementById(g.id)?.scrollIntoView({ behavior: "smooth", block: "start" });
+          }}
+          className={`shrink-0 whitespace-nowrap rounded-full px-3.5 py-1.5 font-medium transition ${
+            g.id === active ? "bg-ink text-paper" : "text-neutral-500 hover:text-ink dark:text-neutral-400 dark:hover:text-paper"
+          }`}
         >
-          {s.label}
+          {g.label}
         </a>
       ))}
+      {/* Sticky insets count from inside the bar's px-6, so -right-6 is
+          what puts the fade on the screen's edge rather than 24px in. */}
       <div
         aria-hidden="true"
-        className="pointer-events-none sticky right-0 -ml-8 w-8 shrink-0 self-stretch bg-gradient-to-l from-background to-transparent md:hidden"
+        className={`pointer-events-none sticky -right-6 -ml-8 w-8 shrink-0 self-stretch bg-gradient-to-l from-background to-transparent transition-opacity md:hidden ${atEnd ? "opacity-0" : ""}`}
       />
     </nav>
   );

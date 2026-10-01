@@ -97,14 +97,70 @@ const languagesField = z
   .transform((val) => val.split(",").filter(Boolean))
   .pipe(z.array(languageEnum).min(1, "Select at least one language"));
 
-export const createRequestSchema = z.object({
-  title: z.string().min(1).max(120),
-  description: z.string().min(1).max(2000),
-  niche: nicheEnum,
-  languages: languagesField,
-  minFollowers: z.coerce.number().int().min(0),
-  productCategory: productCategoryEnum,
-});
+// Euros the way a brand types them ("250", "250.50", "250,50"), as cents.
+const euros = z
+  .string()
+  .trim()
+  .regex(/^\d{1,6}([.,]\d{1,2})?$/, "Enter the budget in euros, e.g. 250.")
+  .transform((val) => Math.round(parseFloat(val.replace(",", ".")) * 100))
+  .pipe(z.number().int().min(100, "The budget has to be at least 1 €.").max(10_000_000, "The budget can be at most 100.000 €."));
+
+// A date input's "YYYY-MM-DD" as midnight UTC, or null when left empty
+// (flexible). Yesterday still passes so a brand a timezone behind UTC isn't
+// told their today is in the past.
+const postByField = z
+  .string()
+  .trim()
+  .transform((val, ctx) => {
+    if (!val) return null;
+    const date = new Date(`${val}T00:00:00Z`);
+    const now = new Date();
+    const yesterday = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() - 1);
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(val) || Number.isNaN(date.getTime())) {
+      ctx.addIssue({ code: "custom", message: "Pick a valid post-by date." });
+      return z.NEVER;
+    }
+    if (date.getTime() < yesterday) {
+      ctx.addIssue({ code: "custom", message: "The post-by date can't be in the past." });
+      return z.NEVER;
+    }
+    if (date.getTime() > yesterday + 400 * 24 * 60 * 60 * 1000) {
+      ctx.addIssue({ code: "custom", message: "Pick a post-by date within the next year." });
+      return z.NEVER;
+    }
+    return date;
+  });
+
+export const createRequestSchema = z
+  .object({
+    title: z.string().trim().min(1, "Give the request a title.").max(120, "Keep the title under 120 characters."),
+    description: z.string().trim().min(1, "Describe what you're looking for.").max(2000, "Keep the description under 2000 characters."),
+    niche: nicheEnum,
+    languages: languagesField,
+    minFollowers: z.coerce.number().int().min(0),
+    productCategory: productCategoryEnum,
+    platform: z.enum([...PLATFORMS], { error: "Choose where it gets posted." }),
+    deliverables: z
+      .string()
+      .trim()
+      .min(1, "Say what should be posted, e.g. 1 Reel + 2 Stories.")
+      .max(80, "Keep what should be posted under 80 characters."),
+    budgetMin: euros,
+    // Empty means a fixed price: the same as budgetMin.
+    budgetMax: z
+      .string()
+      .trim()
+      .pipe(z.union([z.literal("").transform(() => null), euros])),
+    postBy: postByField,
+    productIncluded: z
+      .string()
+      .optional()
+      .transform((val) => val === "true"),
+  })
+  .refine((d) => d.budgetMax === null || d.budgetMax >= d.budgetMin, {
+    error: "The top of the budget range can't be below the bottom.",
+    path: ["budgetMax"],
+  });
 
 export const updateCreatorProfileSchema = z.object({
   displayName: z.string().min(1).max(120),
@@ -144,7 +200,7 @@ export const submitPostSchema = z.object({
     .string()
     .trim()
     .min(1, "Paste the link to your post.")
-    .url("That doesn't look like a link — paste the full address of your post.")
+    .url("That doesn't look like a link. Paste the full address of your post.")
     .refine((url) => /^https?:\/\//i.test(url), "Use the full link, starting with https://"),
 });
 

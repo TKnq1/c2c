@@ -24,7 +24,7 @@ export function CompletePaymentButton({
     // A dropped connection rejects rather than returning { error } — without
     // this the button would sit on "Redirecting…" forever.
     const result = await createCheckoutSessionAction(interestId).catch(() => ({
-      error: "Couldn't reach the server — check your connection and try again.",
+      error: "Couldn't reach the server. Check your connection and try again.",
     }));
     if ("error" in result) {
       setError(result.error);

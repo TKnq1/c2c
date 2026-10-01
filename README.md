@@ -1,4 +1,4 @@
-# C2C — Brand-Creator Marketplace
+# comtor — Brand-Creator Marketplace
 
 MVP prototype: brands post collab requests (niche, minimum follower count, product
 category), creators see matching requests in their feed and reach out with one click
@@ -82,5 +82,5 @@ file wouldn't have survived between requests there.
 
 Password reset and email verification send real emails via Resend. Set `RESEND_API_KEY`
 and, once a domain is verified in the Resend dashboard, `EMAIL_FROM` (e.g.
-`"C2C <noreply@yourdomain.com>"`) — without a verified domain, Resend's shared sender
+`"comtor <noreply@yourdomain.com>"`) — without a verified domain, Resend's shared sender
 can only deliver to the Resend account's own address, not real users.

@@ -30,7 +30,7 @@ export function CollabStatus({
   if (paymentStage === null && depositStatus === null) {
     return (
       <Link href={paymentsHref} className="text-xs text-neutral-500 hover:underline mt-2 inline-block dark:text-neutral-400">
-        No offer sent yet — send one
+        No offer sent yet. Send one
       </Link>
     );
   }
@@ -48,7 +48,7 @@ export function CollabStatus({
         <div className="flex items-center gap-2 text-xs">
           <PaymentStatusBadge status={paymentStage} />
           <span className="text-neutral-500 dark:text-neutral-400">
-            {paymentStage === "OFFERED" && `${amount} offered — awaiting response`}
+            {paymentStage === "OFFERED" && `${amount} offered, awaiting response`}
             {paymentStage === "ACCEPTED" && (
               <>
                 {amount} accepted · {actionLink("Pay to hold it in escrow")}
@@ -58,7 +58,7 @@ export function CollabStatus({
               `${amount} paid · ${payoutCents !== null ? formatCents(payoutCents) : ""} to creator once they post and you approve`}
             {paymentStage === "SUBMITTED" && (
               <>
-                {amount} paid · post submitted — {actionLink("approve it")}
+                {amount} paid · post submitted · {actionLink("Approve it")}
               </>
             )}
             {paymentStage === "DISPUTED" && `${amount} paid · on hold while we review the problem you reported`}

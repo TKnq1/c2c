@@ -1,4 +1,4 @@
-package com.c2cmarketplace.app;
+package app.comtor;
 
 import com.getcapacitor.BridgeActivity;
 

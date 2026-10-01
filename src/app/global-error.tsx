@@ -35,7 +35,7 @@ export default function GlobalError({ error }: { error: Error & { digest?: strin
       >
         <h1 style={{ fontSize: "1.25rem", fontWeight: 600, margin: 0 }}>Something went wrong</h1>
         <p style={{ color: "#797979", margin: 0, maxWidth: 320, lineHeight: 1.5 }}>
-          C2C hit an unexpected error. Reloading usually fixes it.
+          comtor hit an unexpected error. Reloading usually fixes it.
         </p>
         <button
           type="button"

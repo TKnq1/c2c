@@ -68,7 +68,7 @@ export function BulkInterestedCreatorsList({
       {selected.size > 0 && (
         <form
           action={handleBulkOffer}
-          className="no-print flex flex-col gap-2 rounded-2xl border border-neutral-300 bg-neutral-50 px-4 py-3 dark:border-neutral-700 dark:bg-neutral-800/50"
+          className="no-print flex flex-col gap-2 rounded bg-ink/10 px-4 py-3"
         >
           <div className="flex items-center gap-3">
             <p className="text-sm font-medium flex-1">{selected.size} selected</p>
@@ -94,7 +94,7 @@ export function BulkInterestedCreatorsList({
               placeholder="250.00"
               aria-label="Offer amount in euros"
               required
-              className="rounded-lg border border-neutral-300 px-3 py-2 w-32 dark:border-neutral-700"
+              className="rounded border border-neutral-300 bg-paper px-3 py-2.5 w-32 dark:border-neutral-700"
             />
             <button
               type="submit"
@@ -119,7 +119,7 @@ export function BulkInterestedCreatorsList({
         </button>
       )}
 
-      <div className="flex flex-col gap-3">
+      <div className="divide-y divide-ink/10 overflow-hidden rounded bg-fog">
         {interests.map((i) => (
           <InterestedCreatorRow
             key={i.id}

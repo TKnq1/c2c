@@ -147,10 +147,10 @@ export default async function StartupPaymentsPage(props: PageProps<"/dashboard/s
         }
       />
 
-      <div className="flex items-center justify-between gap-3 rounded-[20px] bg-fog px-4 py-3 no-print">
+      <div className="flex items-center justify-between gap-3 rounded bg-fog px-4 py-3 no-print">
         <p className="text-sm text-neutral-700 dark:text-neutral-300">
           {startup.isPro
-            ? `Pro plan — ${PRO_PLATFORM_FEE_RATE * 100}% fee per payment instead of ${PLATFORM_FEE_RATE * 100}%.`
+            ? `Pro plan: ${PRO_PLATFORM_FEE_RATE * 100}% fee per payment instead of ${PLATFORM_FEE_RATE * 100}%.`
             : showProOffer
               ? `${PLATFORM_FEE_RATE * 100}% fee per payment. Pro lowers it to ${PRO_PLATFORM_FEE_RATE * 100}% for ${formatCents(PRO_SUBSCRIPTION_PRICE_CENTS)}/month.`
               : `${PLATFORM_FEE_RATE * 100}% fee per payment.`}
@@ -199,7 +199,7 @@ export default async function StartupPaymentsPage(props: PageProps<"/dashboard/s
                       Check the post
                     </a>
                     , then approve it or report a problem by{" "}
-                    <LocalDate ms={p.proofSubmittedAt!.getTime() + RELEASE_REVIEW_MS} /> — after that it&apos;s released
+                    <LocalDate ms={p.proofSubmittedAt!.getTime() + RELEASE_REVIEW_MS} />. After that it&apos;s released
                     to them automatically.
                   </>
                 }
@@ -238,8 +238,8 @@ export default async function StartupPaymentsPage(props: PageProps<"/dashboard/s
                 amount={formatCents(i.amountCents!)}
                 detail={
                   mine
-                    ? `Waiting for ${creator} — they'd get ${formatCents(i.payoutCents!)} after the ${feePercentOf(i)}% fee.`
-                    : `${creator} countered — they'd get ${formatCents(i.payoutCents!)} after the ${feePercentOf(i)}% fee.`
+                    ? `Waiting for ${creator}. They'd get ${formatCents(i.payoutCents!)} after the ${feePercentOf(i)}% fee.`
+                    : `${creator} countered. They'd get ${formatCents(i.payoutCents!)} after the ${feePercentOf(i)}% fee.`
                 }
               >
                 {mine ? (
@@ -275,8 +275,8 @@ export default async function StartupPaymentsPage(props: PageProps<"/dashboard/s
               amount={formatCents(i.amountCents!)}
               detail={
                 i.id === confirmingId
-                  ? "Payment received — confirming with Stripe. This takes a few seconds."
-                  : `Accepted — it's held in escrow until ${i.creator.displayName} posts and you approve it. They get ${formatCents(i.payoutCents!)} after the ${feePercentOf(i)}% fee.`
+                  ? "Payment received. Confirming with Stripe, this takes a few seconds."
+                  : `Accepted. It's held in escrow until ${i.creator.displayName} posts and you approve it. They get ${formatCents(i.payoutCents!)} after the ${feePercentOf(i)}% fee.`
               }
             >
               {i.id !== confirmingId && (
@@ -359,12 +359,12 @@ export default async function StartupPaymentsPage(props: PageProps<"/dashboard/s
                 detail={
                   <>
                     {stage === "HELD" &&
-                      `Held until ${creator} posts and submits the link — then you have ${RELEASE_REVIEW_DAYS} days to approve it. They get ${formatCents(p.payoutCents!)} after the ${feePercentOf(p)}% fee.`}
+                      `Held until ${creator} posts and submits the link. Then you have ${RELEASE_REVIEW_DAYS} days to approve it. They get ${formatCents(p.payoutCents!)} after the ${feePercentOf(p)}% fee.`}
                     {stage === "DISPUTED" &&
-                      `You reported a problem: “${p.disputeReason}” The payment is on hold while we look into it — we'll get back to you both.`}
+                      `You reported a problem: “${p.disputeReason}” The payment is on hold while we look into it, and we'll get back to you both.`}
                     {stage === "RELEASED" &&
                       `${creator} received ${formatCents(p.payoutCents!)} after the ${feePercentOf(p)}% fee (${formatCents(p.platformFeeCents!)}).`}
-                    {stage === "REFUNDED" && "Cancelled — the full amount was refunded to you."}
+                    {stage === "REFUNDED" && "Cancelled. The full amount was refunded to you."}
                     {(stage === "DISPUTED" || stage === "RELEASED") && p.proofUrl && (
                       <>
                         {" "}
@@ -403,7 +403,7 @@ export default async function StartupPaymentsPage(props: PageProps<"/dashboard/s
                       action={refundPaymentAction.bind(null, p.id)}
                       successMessage="Payment refunded."
                       title="Cancel and refund?"
-                      description={`${formatCents(p.amountCents!)} goes back to you and ${creator} won't be paid for this collab. Only do this if they never delivered — it can't be undone.`}
+                      description={`${formatCents(p.amountCents!)} goes back to you and ${creator} won't be paid for this collab. Only do this if they never delivered. It can't be undone.`}
                       confirmLabel={`Refund ${formatCents(p.amountCents!)}`}
                       pendingLabel="Refunding…"
                       className={quietButton}
@@ -429,7 +429,7 @@ export default async function StartupPaymentsPage(props: PageProps<"/dashboard/s
         <PaymentSection
           title="Deposits"
           count={deposits.length}
-          description="Refundable, no fee — return it once the post is live, or keep it if the creator never delivers."
+          description="Refundable, no fee. Return it once the post is live, or keep it if the creator never delivers."
         >
           {deposits.map((d) => {
             const creator = d.creator.displayName;
@@ -446,9 +446,9 @@ export default async function StartupPaymentsPage(props: PageProps<"/dashboard/s
                 detail={
                   <>
                     {d.depositStatus === "REQUESTED" && `Waiting for ${creator} to pay it.`}
-                    {d.depositStatus === "HELD" && `Held — return it once ${creator}'s post is live.`}
+                    {d.depositStatus === "HELD" && `Held. Return it once ${creator}'s post is live.`}
                     {d.depositStatus === "RELEASED" && `Returned to ${creator}.`}
-                    {d.depositStatus === "FORFEITED" && `Kept — ${creator} didn't deliver.`}
+                    {d.depositStatus === "FORFEITED" && `Kept because ${creator} didn't deliver.`}
                   </>
                 }
                 meta={
@@ -486,7 +486,7 @@ export default async function StartupPaymentsPage(props: PageProps<"/dashboard/s
                       action={forfeitDepositAction.bind(null, d.id)}
                       successMessage="Deposit kept."
                       title="Keep the deposit?"
-                      description={`${creator} won't get their ${formatCents(d.depositCents!)} back. Only do this if they never delivered — it can't be undone.`}
+                      description={`${creator} won't get their ${formatCents(d.depositCents!)} back. Only do this if they never delivered. It can't be undone.`}
                       confirmLabel={`Keep ${formatCents(d.depositCents!)}`}
                       pendingLabel="Keeping…"
                       className={quietButton}

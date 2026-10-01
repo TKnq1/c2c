@@ -12,6 +12,7 @@ export function FavoriteButton({
   favoriteAction,
   unfavoriteAction,
   onToggle,
+  variant = "default",
 }: {
   id: string;
   initialFavorited: boolean;
@@ -22,6 +23,8 @@ export function FavoriteButton({
   // stay in sync with what the star already shows, instead of only updating
   // once revalidatePath's background refetch eventually lands.
   onToggle?: (id: string, favorited: boolean) => void;
+  // "overlay" sits on a photo (Discover's tiles): smaller, on a light disc.
+  variant?: "default" | "overlay";
 }) {
   const [favorited, setFavorited] = useState(initialFavorited);
   // Not component state on purpose — this only guards against a double-fire
@@ -68,9 +71,17 @@ export function FavoriteButton({
       aria-pressed={favorited}
       aria-label={favorited ? "Remove from favorites" : "Save to favorites"}
       title={favorited ? "Remove from favorites" : "Save to favorites"}
-      className={`rounded-full border p-3 -m-1 transition shrink-0 ${
-        favorited ? "border-ink bg-ink text-paper" : "border-neutral-300 text-neutral-400 hover:text-ink hover:border-ink dark:border-neutral-700 dark:text-neutral-500"
-      }`}
+      className={
+        variant === "overlay"
+          ? `flex h-8 w-8 shrink-0 items-center justify-center rounded-full shadow-sm transition ${
+              favorited ? "bg-ink text-paper" : "bg-paper/90 text-ink hover:bg-paper"
+            }`
+          : `rounded-full border p-3 -m-1 transition shrink-0 ${
+              favorited
+                ? "border-ink bg-ink text-paper"
+                : "border-neutral-300 text-neutral-400 hover:text-ink hover:border-ink dark:border-neutral-700 dark:text-neutral-500"
+            }`
+      }
     >
       {favorited ? <FaStar className="h-4 w-4" /> : <FiStar className="h-4 w-4" />}
     </button>

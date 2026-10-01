@@ -92,7 +92,7 @@ export async function POST(req: Request) {
       // their payments page, same as if they'd never started checkout.
       await notify(
         interest.request.startup.userId,
-        `Your payment for "${interest.request.title}" failed — try again from Payments`,
+        `Your payment for "${interest.request.title}" failed. Try again from Payments.`,
         "/dashboard/startup/payments",
         "payments",
       );

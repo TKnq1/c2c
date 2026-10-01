@@ -53,6 +53,9 @@ function getPageTitle(pathname: string) {
   if (pathname === "/dashboard/creator/discover") return "Discover";
   if (pathname === "/dashboard/messages") return "Messages";
   if (pathname === "/dashboard/creator/payments" || pathname === "/dashboard/startup/payments") return "Payments";
+  if (pathname === "/dashboard/startup/new") return "New request";
+  if (/^\/dashboard\/startup\/requests\/[^/]+\/edit$/.test(pathname)) return "Edit request";
+  if (pathname === "/dashboard/creator/settings" || pathname === "/dashboard/startup/settings") return "Settings";
   return null;
 }
 
@@ -240,7 +243,7 @@ export function Nav() {
           app-style, instead of behind a hamburger drawer. */}
       <nav
         aria-label="Main"
-        className={`md:hidden fixed inset-x-0 bottom-0 z-40 rounded-t-[20px] border-t border-ink/10 bg-background pb-[max(var(--safe-bottom),8px)] no-print ${
+        className={`md:hidden fixed inset-x-0 bottom-0 z-40 rounded-t-[20px] border-t border-ink/10 bg-background pb-[var(--bar-bottom)] no-print ${
           hideOnMobile ? "hidden" : ""
         }`}
       >

@@ -5,7 +5,7 @@ export default function Loading() {
   return (
     <div className="flex flex-col gap-8">
       <SkeletonPaymentStats />
-      <Skeleton className="h-12 rounded-[20px]" />
+      <Skeleton className="h-12 rounded" />
       <SkeletonCardList count={3} />
     </div>
   );

@@ -52,7 +52,7 @@ function DisplayNameStep({ onDone }: { onDone: () => void }) {
         required
         autoFocus
         placeholder="Display name"
-        className="rounded-lg border border-neutral-300 px-3 py-2 dark:border-neutral-700"
+        className="rounded border border-neutral-300 px-3 py-2.5 dark:border-neutral-700"
       />
       {state?.error && <p className="text-sm text-ink">{state.error}</p>}
       <button

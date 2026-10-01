@@ -16,9 +16,9 @@ import { vibrate } from "@/lib/haptics";
 // points at the real, auth-gated route (expected to bounce to /login from
 // here).
 
-// Inline SVG data URIs — real requests store an uploaded photo the same
-// way (see RequestImageUpload/processRequestImageUpload), but the CSP's
-// img-src only allows 'self'/data:/blob:, not an external placeholder host.
+// Inline SVG data URIs — real photos come from /api/request-images, but
+// that needs a session, and the CSP's img-src only allows
+// 'self'/data:/blob:, not an external placeholder host.
 function mockImage(bg: string, label: string) {
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="800" height="450"><rect width="800" height="450" fill="${bg}"/><text x="400" y="225" font-family="sans-serif" font-size="28" fill="#ffffff" text-anchor="middle" opacity="0.85">${label}</text></svg>`;
   return `data:image/svg+xml,${encodeURIComponent(svg)}`;
@@ -31,7 +31,7 @@ const MOCK_REQUESTS: SwipeRequest[] = [
     isBrandFavorited: false,
     title: "Skincare Launch Video",
     description:
-      "Looking for an authentic first-impressions video featuring our new vitamin C serum. Natural lighting, no heavy editing — just your honest take. We'll ship the full-size product plus two backups so you can reshoot if the light's bad that day.",
+      "Looking for an authentic first-impressions video featuring our new vitamin C serum. Natural lighting, no heavy editing, just your honest take. We'll ship the full-size product plus two backups so you can reshoot if the light's bad that day.",
     niche: "Beauty",
     languages: ["English"],
     minFollowers: 10000,
@@ -39,7 +39,13 @@ const MOCK_REQUESTS: SwipeRequest[] = [
     companyName: "Glow Beauty Co.",
     companyAvatarUrl: null,
     rating: { average: 4.8, count: 23 },
-    imageUrl: mockImage("#e8b4a8", "Vitamin C Serum"),
+    photos: [mockImage("#e8b4a8", "Vitamin C Serum"), mockImage("#d99d8f", "Serum texture"), mockImage("#f0c9bd", "Serum flat lay")],
+    budgetMinCents: 20000,
+    budgetMaxCents: 40000,
+    platform: "Instagram",
+    deliverables: "1 Reel + 2 Stories",
+    postBy: "2026-10-15",
+    productIncluded: true,
   },
   {
     id: "2",
@@ -55,7 +61,13 @@ const MOCK_REQUESTS: SwipeRequest[] = [
     companyName: "Lumen Cosmetics",
     companyAvatarUrl: null,
     rating: { average: 4.2, count: 8 },
-    imageUrl: mockImage("#c9a0dc", "Eyeshadow Palette"),
+    photos: [mockImage("#c9a0dc", "Eyeshadow Palette")],
+    budgetMinCents: 15000,
+    budgetMaxCents: 15000,
+    platform: "TikTok",
+    deliverables: "1 Video",
+    postBy: null,
+    productIncluded: true,
   },
   {
     id: "3",
@@ -63,7 +75,7 @@ const MOCK_REQUESTS: SwipeRequest[] = [
     isBrandFavorited: false,
     title: "Unboxing Collab",
     description:
-      "Unbox our skincare gift set live or on Reels — we'll send the full set plus a bonus item for you to keep. No script, just your genuine first reaction.",
+      "Unbox our skincare gift set live or on Reels. We'll send the full set plus a bonus item for you to keep. No script, just your genuine first reaction.",
     niche: "Beauty",
     languages: ["English"],
     minFollowers: 8000,
@@ -71,7 +83,13 @@ const MOCK_REQUESTS: SwipeRequest[] = [
     companyName: "Petal & Co.",
     companyAvatarUrl: null,
     rating: { average: 0, count: 0 },
-    imageUrl: null,
+    photos: [],
+    budgetMinCents: 10000,
+    budgetMaxCents: 25000,
+    platform: "Instagram",
+    deliverables: "1 Reel",
+    postBy: null,
+    productIncluded: true,
   },
   {
     id: "4",
@@ -79,7 +97,7 @@ const MOCK_REQUESTS: SwipeRequest[] = [
     isBrandFavorited: false,
     title: "Before/After Story Series",
     description:
-      "3-day story series showing your routine with our retinol serum. We provide the product, you provide the honesty — even a 'this broke me out' update is fine, we'd rather know.",
+      "3-day story series showing your routine with our retinol serum. We provide the product, you provide the honesty. Even a 'this broke me out' update is fine, we'd rather know.",
     niche: "Beauty",
     languages: ["English"],
     minFollowers: 12000,
@@ -87,7 +105,13 @@ const MOCK_REQUESTS: SwipeRequest[] = [
     companyName: "Dermly",
     companyAvatarUrl: null,
     rating: { average: 3.6, count: 5 },
-    imageUrl: null,
+    photos: [],
+    budgetMinCents: null,
+    budgetMaxCents: null,
+    platform: null,
+    deliverables: null,
+    postBy: null,
+    productIncluded: false,
   },
   {
     id: "5",
@@ -95,7 +119,7 @@ const MOCK_REQUESTS: SwipeRequest[] = [
     isBrandFavorited: false,
     title: "Product Review Reel",
     description:
-      "60-second review reel of our new SPF moisturizer — what you liked, what you'd change, all good. We only ask that you mention SPF number and skin type on camera.",
+      "60-second review reel of our new SPF moisturizer: what you liked, what you'd change, all good. We only ask that you mention SPF number and skin type on camera.",
     niche: "Beauty",
     languages: ["English"],
     minFollowers: 20000,
@@ -103,7 +127,13 @@ const MOCK_REQUESTS: SwipeRequest[] = [
     companyName: "Sunlit Skin",
     companyAvatarUrl: null,
     rating: { average: 5, count: 41 },
-    imageUrl: mockImage("#f5c26b", "SPF Moisturizer"),
+    photos: [mockImage("#f5c26b", "SPF Moisturizer")],
+    budgetMinCents: 30000,
+    budgetMaxCents: 50000,
+    platform: "YouTube",
+    deliverables: "1 Short",
+    postBy: "2026-11-01",
+    productIncluded: false,
   },
 ];
 
@@ -178,7 +208,7 @@ export default function SwipeDemoPage() {
             <EmptyState
               icon={FiCheck}
               title="You're all caught up."
-              description="That's every simulated card — reload the page to try again."
+              description="That's every simulated card. Reload the page to try again."
               action={lastPassed ? { label: "Undo last pass", onClick: undoLastPass } : undefined}
             />
           </div>

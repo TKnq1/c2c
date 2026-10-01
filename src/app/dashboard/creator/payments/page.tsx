@@ -87,19 +87,19 @@ export default async function CreatorPaymentsPage() {
       />
 
       {creator.stripeOnboarded ? (
-        <div className="flex items-center justify-between gap-3 rounded-[20px] bg-fog px-4 py-3 no-print">
+        <div className="flex items-center justify-between gap-3 rounded bg-fog px-4 py-3 no-print">
           <p className="flex min-w-0 items-center gap-2 text-sm text-neutral-700 dark:text-neutral-300">
             <IoCheckmarkCircle className="h-5 w-5 shrink-0 text-ink" />
-            Payouts connected — released payments go to your bank account.
+            Payouts connected. Released payments go to your bank account.
           </p>
           <Link href="/dashboard/creator/settings#payouts" className="shrink-0 text-sm font-medium underline">
             Manage
           </Link>
         </div>
       ) : (
-        <div className="rounded-[20px] border border-ink/10 p-4 no-print">
+        <div className="rounded bg-fog p-4 no-print">
           <div className="flex items-start gap-3">
-            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-fog">
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-paper">
               <IoWalletOutline className="h-5 w-5" />
             </span>
             {/* A Stripe account without the flag means setup was started
@@ -117,7 +117,7 @@ export default async function CreatorPaymentsPage() {
               <div className="min-w-0">
                 <p className="font-medium">Set up payouts</p>
                 <p className="mt-0.5 text-sm text-neutral-600 dark:text-neutral-400">
-                  Connect Stripe so a brand&apos;s payment can reach your bank account — you&apos;ll need it before
+                  Connect Stripe so a brand&apos;s payment can reach your bank account. You&apos;ll need it before
                   you can submit a post for payment.
                 </p>
               </div>
@@ -159,7 +159,7 @@ export default async function CreatorPaymentsPage() {
                 detail={
                   theirs
                     ? `You'd get ${formatCents(o.payoutCents!)} after the platform fee, held in escrow until you post.`
-                    : `Your counter-offer — waiting for ${brand} to respond.`
+                    : `Your counter-offer is waiting for ${brand} to respond.`
                 }
               >
                 {theirs ? (
@@ -192,7 +192,7 @@ export default async function CreatorPaymentsPage() {
               headerAction={<ChatLink interestId={i.id} name={i.request.startup.companyName} />}
               badge={<PaymentStatusBadge status="ACCEPTED" />}
               amount={formatCents(i.amountCents!)}
-              detail={`Accepted — ${i.request.startup.companyName} pays next, and it's held in escrow until you post. You'll get ${formatCents(i.payoutCents!)} after the platform fee.`}
+              detail={`Accepted. ${i.request.startup.companyName} pays next, and it's held in escrow until you post. You'll get ${formatCents(i.payoutCents!)} after the platform fee.`}
             />
           ))}
         </PaymentSection>
@@ -234,8 +234,8 @@ export default async function CreatorPaymentsPage() {
                   <>
                     {stage === "HELD" &&
                       (creator.stripeOnboarded
-                        ? `Post the content, then submit the link below. ${brand} has ${RELEASE_REVIEW_DAYS} days to approve it — if they don't respond, your ${payout} (after the platform fee) is released automatically.`
-                        : `Your ${payout} (after the platform fee) is waiting — set up payouts above, then submit the link to your post.`)}
+                        ? `Post the content, then submit the link below. ${brand} has ${RELEASE_REVIEW_DAYS} days to approve it. If they don't respond, your ${payout} (after the platform fee) is released automatically.`
+                        : `Your ${payout} (after the platform fee) is waiting. Set up payouts above, then submit the link to your post.`)}
                     {stage === "SUBMITTED" && (
                       <>
                         Waiting for {brand} to approve your post. If they don&apos;t respond by{" "}
@@ -244,7 +244,7 @@ export default async function CreatorPaymentsPage() {
                       </>
                     )}
                     {stage === "DISPUTED" &&
-                      `${brand} reported a problem with the post: “${p.disputeReason}” The payment is on hold while we look into it — we'll get back to you both.`}
+                      `${brand} reported a problem with the post: “${p.disputeReason}” The payment is on hold while we look into it, and we'll get back to you both.`}
                     {stage === "RELEASED" && `You received ${payout} after the platform fee.`}
                     {/* A release moves the money to the creator's Stripe
                         balance, not their bank yet — for the first week,
@@ -253,7 +253,7 @@ export default async function CreatorPaymentsPage() {
                     {stage === "RELEASED" &&
                       p.releasedAt &&
                       isWithinLastWeek(p.releasedAt.getTime()) &&
-                      " Stripe sends it on to your bank, usually within a few business days — the first payout can take a little longer."}
+                      " Stripe sends it on to your bank, usually within a few business days. The first payout can take a little longer."}
                     {stage === "REFUNDED" && `${brand} cancelled this collab and got a full refund.`}
                     {stage !== "HELD" && stage !== "REFUNDED" && p.proofUrl && (
                       <>
@@ -315,7 +315,7 @@ export default async function CreatorPaymentsPage() {
         <PaymentSection
           title="Deposits"
           count={deposits.length}
-          description="Refundable, no fee — you get the full amount back once the brand confirms your post."
+          description="Refundable, no fee. You get the full amount back once the brand confirms your post."
         >
           {deposits.map((d) => {
             const brand = d.request.startup.companyName;
@@ -333,7 +333,7 @@ export default async function CreatorPaymentsPage() {
                     {d.depositStatus === "REQUESTED" && `${brand} asks for a refundable deposit before shipping product.`}
                     {d.depositStatus === "HELD" && `Held until ${brand} confirms your post, then returned to you in full.`}
                     {d.depositStatus === "RELEASED" && "Returned to you in full."}
-                    {d.depositStatus === "FORFEITED" && `${brand} kept it — they said the content wasn't delivered.`}
+                    {d.depositStatus === "FORFEITED" && `${brand} kept it. They said the content wasn't delivered.`}
                   </>
                 }
                 meta={

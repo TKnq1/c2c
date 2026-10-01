@@ -57,12 +57,12 @@ export function AvatarUpload({
           className="h-16 w-16 rounded-full object-cover border border-neutral-300 bg-white dark:border-neutral-700"
         />
       ) : (
-        <div className="h-16 w-16 rounded-full bg-fog border border-neutral-300 flex items-center justify-center text-neutral-400 text-xs text-center px-1 dark:border-neutral-700 dark:text-neutral-500">
+        <div className="h-16 w-16 rounded-full bg-paper border border-neutral-300 flex items-center justify-center text-neutral-400 text-xs text-center px-1 dark:border-neutral-700 dark:text-neutral-500">
           {emptyLabel}
         </div>
       )}
       <div className="flex flex-col items-start gap-1.5">
-        <label className="rounded-lg border border-neutral-300 px-3 py-2 text-sm font-medium hover:bg-neutral-50 transition cursor-pointer dark:border-neutral-700 dark:hover:bg-neutral-800/50">
+        <label className="rounded-full border border-neutral-300 px-4 py-2 text-sm font-medium hover:border-neutral-400 transition cursor-pointer dark:border-neutral-700 dark:hover:bg-neutral-800/50">
           Choose image
           <input
             ref={inputRef}

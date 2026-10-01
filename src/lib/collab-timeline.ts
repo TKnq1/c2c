@@ -49,7 +49,7 @@ export function buildCollabTimeline(interest: TimelineInterest): TimelineEvent[]
     });
   }
   if (interest.paidAt) {
-    events.push({ at: interest.paidAt, label: `Offer accepted — ${formatCents(interest.amountCents!)} held in escrow` });
+    events.push({ at: interest.paidAt, label: `Offer accepted: ${formatCents(interest.amountCents!)} held in escrow` });
   }
   // Only the latest submission — a corrected link overwrites the time.
   if (interest.proofSubmittedAt) {
@@ -60,17 +60,17 @@ export function buildCollabTimeline(interest: TimelineInterest): TimelineEvent[]
     });
   }
   if (interest.disputedAt) {
-    events.push({ at: interest.disputedAt, label: `${startupName} reported a problem — payment on hold` });
+    events.push({ at: interest.disputedAt, label: `${startupName} reported a problem: payment on hold` });
   }
   if (interest.releasedAt) {
     events.push({
       at: interest.releasedAt,
-      label: `Payment released — ${creatorName} received ${formatCents(interest.payoutCents!)}`,
+      label: `Payment released: ${creatorName} received ${formatCents(interest.payoutCents!)}`,
       href: interest.proofUrl ?? undefined,
     });
   }
   if (interest.refundedAt) {
-    events.push({ at: interest.refundedAt, label: `Payment refunded — ${formatCents(interest.amountCents!)} returned to ${startupName}` });
+    events.push({ at: interest.refundedAt, label: `Payment refunded: ${formatCents(interest.amountCents!)} returned to ${startupName}` });
   }
 
   if (interest.depositRequestedAt) {

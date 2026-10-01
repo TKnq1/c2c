@@ -44,7 +44,7 @@ export function MultiSelect({ label, options, selected, onChange, wrapperClassNa
         aria-haspopup="listbox"
         aria-expanded={open}
         aria-label={label}
-        className="w-full appearance-none rounded-[14px] border border-neutral-300 bg-white text-neutral-900 pl-3 pr-9 py-2 text-left truncate dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-100"
+        className="w-full appearance-none rounded border border-neutral-300 bg-white text-neutral-900 pl-3 pr-9 py-2 text-left truncate dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-100"
       >
         {buttonLabel}
       </button>
@@ -70,7 +70,7 @@ export function MultiSelect({ label, options, selected, onChange, wrapperClassNa
           onAnimationEnd={panel.onExitEnd}
           className={`${
             panel.closing ? "animate-dropdown-out pointer-events-none" : "animate-dropdown-in"
-          } absolute z-20 mt-1 min-w-48 max-h-96 overflow-y-auto rounded-[14px] border border-ink/10 bg-white py-1 dark:bg-neutral-900`}
+          } absolute z-20 mt-1 min-w-48 max-h-96 overflow-y-auto rounded border border-ink/10 bg-white py-1 dark:bg-neutral-900`}
         >
           {options.map((o) => (
             <label

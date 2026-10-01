@@ -10,6 +10,8 @@ import { paymentStage } from "@/components/payment-status-badge";
 import { EmptyState } from "@/components/empty-state";
 import { closeRequestAction, reopenRequestAction, duplicateRequestAction } from "@/lib/actions/requests";
 import { PLATFORM_FEE_RATE, PRO_PLATFORM_FEE_RATE } from "@/lib/constants";
+import { formatBudget, formatPostBy } from "@/lib/format";
+import { photoUrlsByRequestId, requestPhotoIds } from "@/lib/request-photos";
 
 export default async function RequestDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -22,7 +24,9 @@ export default async function RequestDetailPage({ params }: { params: Promise<{ 
     prisma.startupProfile.findUniqueOrThrow({ where: { userId: session.user.id } }),
     prisma.request.findUnique({
       where: { id },
+      omit: { imageUrl: true },
       include: {
+        ...requestPhotoIds,
         interests: {
           include: {
             creator: { include: { user: true, platforms: true } },
@@ -35,6 +39,14 @@ export default async function RequestDetailPage({ params }: { params: Promise<{ 
   ]);
 
   if (!request || request.startupId !== startup.id) notFound();
+  const photos = (await photoUrlsByRequestId([request])).get(request.id) ?? [];
+  const budget = formatBudget(request.budgetMinCents, request.budgetMaxCents);
+  // The deal at a glance, the way creators see it on the card.
+  const deal = [
+    request.platform && request.deliverables ? `${request.platform} · ${request.deliverables}` : null,
+    request.postBy ? `Post by ${formatPostBy(request.postBy)}` : null,
+    request.productIncluded ? "Product included" : null,
+  ].filter(Boolean);
 
   // Both a creator applying and this startup reaching out directly create
   // the same Interest row — split them back apart so "interested" only
@@ -58,8 +70,18 @@ export default async function RequestDetailPage({ params }: { params: Promise<{ 
             )}
           </h1>
           <p className="text-sm text-neutral-600 mt-1 dark:text-neutral-400">
+            {budget && <span className="font-semibold text-neutral-900 dark:text-neutral-100">{budget} budget · </span>}
             Min. {request.minFollowers.toLocaleString("en-US")} followers
           </p>
+          {deal.length > 0 && <p className="text-sm text-neutral-600 mt-1 dark:text-neutral-400">{deal.join(" · ")}</p>}
+          {photos.length > 0 && (
+            <div className="mt-4 flex gap-2 overflow-x-auto">
+              {photos.map((url, i) => (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img key={url} src={url} alt={`Photo ${i + 1}`} className="h-20 w-20 shrink-0 rounded border border-ink/10 object-cover" />
+              ))}
+            </div>
+          )}
           <p className="text-neutral-700 whitespace-pre-wrap mt-4 dark:text-neutral-300">{request.description}</p>
         </div>
         <div className="flex flex-col gap-2 shrink-0">

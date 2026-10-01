@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { isOnboardingComplete } from "@/lib/onboarding";
 import { Logo } from "@/components/logo";
+import { WelcomeLogoPreload } from "@/components/welcome-overlay";
 import { BrandOnboarding } from "@/components/brand-onboarding";
 import { CreatorOnboarding } from "@/components/creator-onboarding";
 
@@ -17,6 +18,7 @@ export default async function OnboardingPage() {
 
   return (
     <main className="flex-1 flex flex-col items-center justify-center gap-10 px-6 py-16">
+      <WelcomeLogoPreload />
       <Logo />
       {session.user.role === "STARTUP" ? <BrandOnboarding /> : <CreatorOnboarding />}
     </main>

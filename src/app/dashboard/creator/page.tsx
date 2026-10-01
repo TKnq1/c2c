@@ -4,6 +4,7 @@ import { FiSearch } from "react-icons/fi";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { getCreatorFeed } from "@/lib/visibility";
+import { photoUrlsByRequestId } from "@/lib/request-photos";
 import { getMutualBlockedUserIds } from "@/lib/moderation";
 import { CreatorFeed } from "@/components/creator-feed";
 import { SkeletonCardList } from "@/components/skeleton";
@@ -28,7 +29,7 @@ export default async function CreatorFeedPage() {
   const passedRequestIds = new Set(creator.passes.map((p) => p.requestId));
 
   const startupIds = requests.map((r) => r.startup.id);
-  const [ratingGroups, favorites] = await Promise.all([
+  const [ratingGroups, favorites, photos] = await Promise.all([
     // Same "brand reputation, from other creators' reviews" rating shown on
     // Discover — a creator deciding whether to swipe right benefits from
     // the same trust signal, not just once they're already on a profile.
@@ -44,6 +45,7 @@ export default async function CreatorFeedPage() {
       where: { creatorId: creator.id, favoritedByRole: "CREATOR", startupId: { in: startupIds } },
       select: { startupId: true },
     }),
+    photoUrlsByRequestId(requests),
   ]);
   const ratingByStartupId = new Map(
     ratingGroups.map((g) => [g.startupId, { average: g._avg.rating ?? 0, count: g._count._all }]),
@@ -79,7 +81,13 @@ export default async function CreatorFeedPage() {
                   companyName: r.startup.companyName,
                   companyAvatarUrl: r.startup.avatarUrl,
                   rating: ratingByStartupId.get(r.startup.id) ?? { average: 0, count: 0 },
-                  imageUrl: r.imageUrl,
+                  photos: photos.get(r.id) ?? [],
+                  budgetMinCents: r.budgetMinCents,
+                  budgetMaxCents: r.budgetMaxCents,
+                  platform: r.platform,
+                  deliverables: r.deliverables,
+                  postBy: r.postBy ? r.postBy.toISOString().slice(0, 10) : null,
+                  productIncluded: r.productIncluded,
                   interestId: interest?.id ?? null,
                   contactedByStartup: interest?.initiatedBy === "STARTUP",
                 };

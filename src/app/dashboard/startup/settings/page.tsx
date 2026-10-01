@@ -13,6 +13,7 @@ import { PushNotificationsSettings } from "@/components/push-notifications-setti
 import { NotificationPreferences } from "@/components/notification-preferences";
 import { DeleteAccountForm } from "@/components/delete-account-form";
 import { SettingsNav } from "@/components/settings-nav";
+import { SettingsRow, SettingsSection } from "@/components/settings-section";
 import { ProPlanCard } from "@/components/pro-plan-card";
 import { LegalLinks } from "@/components/legal-links";
 import { AppearanceSettings } from "@/components/appearance-settings";
@@ -45,7 +46,6 @@ export default async function StartupSettingsPage() {
 
   return (
     <div className="flex flex-col gap-8">
-      <h1 className="font-display text-title-1 font-bold">Settings</h1>
       <SettingsNav role="STARTUP" />
 
       <OnboardingChecklist
@@ -56,8 +56,7 @@ export default async function StartupSettingsPage() {
         ]}
       />
 
-      <div id="profile" className="scroll-mt-16">
-        <h2 className="text-title-3 font-semibold mb-4">Profile</h2>
+      <SettingsSection id="profile" title="Profile" description="What creators see when they look at your brand.">
         <EditBrandProfileForm
           companyName={startup.companyName}
           avatarUrl={startup.avatarUrl}
@@ -71,18 +70,12 @@ export default async function StartupSettingsPage() {
           // non-nullable today so it can't hit the same validation failure.
           socialLinks={startup.socialLinks.map((s) => ({ platform: s.platform, url: s.url }))}
         />
-        <div className="mt-4">
+        <div className="mt-4 border-t border-ink/10 pt-4">
           <CopyProfileLink url={`${SITE_URL}/dashboard/creator/discover/${startup.id}`} />
         </div>
-      </div>
+      </SettingsSection>
 
-      <div id="appearance" className="border-t border-ink/10 pt-6 scroll-mt-16">
-        <h2 className="text-title-3 font-semibold mb-4">Appearance</h2>
-        <AppearanceSettings />
-      </div>
-
-      <div id="plan" className="border-t border-ink/10 pt-6 scroll-mt-16">
-        <h2 className="text-title-3 font-semibold mb-4">Plan</h2>
+      <SettingsSection id="plan" title="Plan">
         <ProPlanCard
           key={String(startup.isPro)}
           isPro={startup.isPro}
@@ -92,25 +85,25 @@ export default async function StartupSettingsPage() {
           // doesn't sell Pro at all (Stripe Checkout stays on the web).
           canPurchase={(await getNativePlatform()) !== "ios"}
         />
-      </div>
+      </SettingsSection>
 
-      <div id="password" className="border-t border-ink/10 pt-6 scroll-mt-16">
-        <h2 className="text-title-3 font-semibold mb-4">Password</h2>
+      <SettingsSection id="appearance" title="Appearance">
+        <AppearanceSettings />
+      </SettingsSection>
+
+      <SettingsSection id="password" title="Password">
         <ChangePasswordForm />
-      </div>
+      </SettingsSection>
 
-      <div id="two-factor" className="border-t border-ink/10 pt-6 scroll-mt-16">
-        <h2 className="text-title-3 font-semibold mb-2">Two-factor authentication</h2>
+      <SettingsSection id="two-factor" title="Two-factor authentication">
         <TwoFactorSettings initialEnabled={user.totpEnabled} />
-      </div>
+      </SettingsSection>
 
-      <div id="logins" className="border-t border-ink/10 pt-6 scroll-mt-16">
-        <h2 className="text-title-3 font-semibold mb-2">Recent logins</h2>
+      <SettingsSection id="logins" title="Recent logins">
         <LoginActivity userId={session.user.id} />
-      </div>
+      </SettingsSection>
 
-      <div id="push" className="border-t border-ink/10 pt-6 scroll-mt-16">
-        <h2 className="text-title-3 font-semibold mb-2">Notifications</h2>
+      <SettingsSection id="push" title="Notifications">
         <PushNotificationsSettings />
         <NotificationPreferences
           role="STARTUP"
@@ -123,28 +116,27 @@ export default async function StartupSettingsPage() {
             notifyNewCreators: user.notifyNewCreators,
           }}
         />
-      </div>
 
-      <div id="data" className="border-t border-ink/10 pt-6 scroll-mt-16">
-        <h2 className="text-title-3 font-semibold mb-2">Your data</h2>
-        <a
-          href="/api/account/export"
-          className="text-sm text-neutral-600 underline hover:text-neutral-900 transition dark:text-neutral-400 dark:hover:text-neutral-100"
-        >
-          Export my data (JSON)
-        </a>
-      </div>
+      </SettingsSection>
 
-      <div id="danger" className="border-t border-ink/10 pt-6 scroll-mt-16">
-        <h2 className="text-title-3 font-semibold mb-2 text-ink">Danger zone</h2>
+      <SettingsSection id="data" title="Your data">
+        <SettingsRow label="Export my data" hint="Everything in your account, as a JSON file.">
+          <a
+            href="/api/account/export"
+            className="shrink-0 rounded-full border border-neutral-300 px-4 py-2 text-sm font-medium transition hover:border-neutral-400 dark:border-neutral-700"
+          >
+            Export
+          </a>
+        </SettingsRow>
+      </SettingsSection>
+
+      <SettingsSection id="danger" title="Danger zone">
         <DeleteAccountForm />
-      </div>
+      </SettingsSection>
 
       <LegalLinks />
 
-      <div className="border-t border-ink/10 pt-6">
-        <LogoutButton />
-      </div>
+      <LogoutButton className="w-full rounded-full border border-neutral-300 px-4 py-2.5 text-sm font-medium text-neutral-700 transition hover:border-ink dark:border-neutral-700 dark:text-neutral-300" />
     </div>
   );
 }

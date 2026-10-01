@@ -261,8 +261,8 @@ export async function acceptOfferAction(interestId: string) {
   const startupUserId = interest.request.startup.userId;
   const message =
     role === "STARTUP"
-      ? `${actorName(interest, role)} accepted your offer of ${formatCents(interest.amountCents!)} for "${interest.request.title}" — waiting on the brand to complete payment`
-      : `${actorName(interest, role)} accepted your offer of ${formatCents(interest.amountCents!)} for "${interest.request.title}" — head to Payments to pay and hold it in escrow`;
+      ? `${actorName(interest, role)} accepted your offer of ${formatCents(interest.amountCents!)} for "${interest.request.title}". Waiting on the brand to complete payment.`
+      : `${actorName(interest, role)} accepted your offer of ${formatCents(interest.amountCents!)} for "${interest.request.title}". Head to Payments to pay and hold it in escrow.`;
   await notify(otherPartyUserId(interest, role), message, paymentsHref(role), "payments");
   // The brand always needs a nudge to actually pay, even when they were the
   // one who clicked accept just now (they already know in that case, but
@@ -270,7 +270,7 @@ export async function acceptOfferAction(interestId: string) {
   if (role === "CREATOR") {
     await notify(
       startupUserId,
-      `Accepted — pay ${formatCents(interest.amountCents!)} for "${interest.request.title}" to hold it in escrow`,
+      `Accepted: pay ${formatCents(interest.amountCents!)} for "${interest.request.title}" to hold it in escrow`,
       "/dashboard/startup/payments",
       "payments",
     );
@@ -315,7 +315,7 @@ export async function createCheckoutSessionAction(interestId: string): Promise<{
     // requires_payment_method, which falls through to a new session.
     const intent = existing.payment_intent;
     if (existing.payment_status === "paid" || (typeof intent === "object" && intent?.status === "processing")) {
-      return { error: "This payment is already going through — it'll show as held in escrow shortly." };
+      return { error: "This payment is already going through. It'll show as held in escrow shortly." };
     }
   }
 
@@ -409,12 +409,12 @@ export async function submitPostAction(
     return { error: "This payment isn't held anymore." };
   }
   if (interest.disputedAt) {
-    return { error: "A problem was reported on this collab — we're looking into it, so the link can't change right now." };
+    return { error: "A problem was reported on this collab. We're looking into it, so the link can't change right now." };
   }
   // Checked now rather than only at release: approval pays out on the spot,
   // and a brand shouldn't be approving into an account that can't receive it.
   if (!creator.stripeOnboarded || !creator.stripeAccountId) {
-    return { error: "Set up payouts first — the money needs somewhere to go once it's approved." };
+    return { error: "Set up payouts first. The money needs somewhere to go once it's approved." };
   }
 
   const resubmitted = interest.proofSubmittedAt !== null;
@@ -426,8 +426,8 @@ export async function submitPostAction(
   await notify(
     interest.request.startup.userId,
     resubmitted
-      ? `${creator.displayName} updated the link to their post for "${interest.request.title}" — you have ${RELEASE_REVIEW_DAYS} days to approve it or report a problem`
-      : `${creator.displayName} posted the content for "${interest.request.title}" — approve the payment or report a problem within ${RELEASE_REVIEW_DAYS} days`,
+      ? `${creator.displayName} updated the link to their post for "${interest.request.title}". You have ${RELEASE_REVIEW_DAYS} days to approve it or report a problem.`
+      : `${creator.displayName} posted the content for "${interest.request.title}". Approve the payment or report a problem within ${RELEASE_REVIEW_DAYS} days.`,
     "/dashboard/startup/payments",
     "payments",
   );
@@ -457,7 +457,7 @@ export async function approvePaymentAction(interestId: string): Promise<MoneyMov
   if (interest.paymentStatus !== "HELD" || !interest.proofSubmittedAt) {
     return { error: "There's no submitted post to approve on this payment." };
   }
-  if (interest.disputedAt) return { error: "You reported a problem on this payment — we'll settle it from here." };
+  if (interest.disputedAt) return { error: "You reported a problem on this payment. We'll settle it from here." };
 
   return releaseHeldPayment(interestId, "approved");
 }
@@ -480,7 +480,7 @@ export async function reportProblemAction(
 
   const interest = await loadBrandHeldPayment(interestId, session.user.id);
   if (!interest) return { error: "This payment could not be found." };
-  if (interest.disputedAt) return { error: "You already reported a problem — we're looking into it." };
+  if (interest.disputedAt) return { error: "You already reported a problem. We're looking into it." };
 
   // Claimed like a release, so a report and the daily job (or a double
   // tap) can't both win: whichever updates the still-open payment first.
@@ -489,14 +489,14 @@ export async function reportProblemAction(
     data: { disputedAt: new Date(), disputeReason: parsed.data.reason },
   });
   if (claimed.count === 0) {
-    return { error: "This payment can't be put on hold anymore — it may have just been released. Refresh the page." };
+    return { error: "This payment can't be put on hold anymore. It may have just been released, so refresh the page." };
   }
 
   const brand = interest.request.startup.companyName;
   const title = interest.request.title;
   await notify(
     interest.creator.userId,
-    `${brand} reported a problem with your post for "${title}" — the payment is on hold while we look into it`,
+    `${brand} reported a problem with your post for "${title}". The payment is on hold while we look into it.`,
     "/dashboard/creator/payments",
     "payments",
   );

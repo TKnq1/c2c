@@ -11,11 +11,11 @@ import { RELEASE_REVIEW_DAYS } from "@/lib/constants";
 const COPY: Record<SignupRole, { headline: string; body: string }> = {
   STARTUP: {
     headline: "Find the right creator. Pay only when the work is live.",
-    body: "C2C matches brands with creators by niche and reach, then holds every payment in escrow until the collab is posted and you've approved it.",
+    body: "comtor matches brands with creators by niche and reach, then holds every payment in escrow until the collab is posted and you've approved it.",
   },
   CREATOR: {
     headline: "Find brand collabs that fit you. Get paid for what you post.",
-    body: `C2C matches you with brands by niche and reach, then holds every payment safely in escrow — released to you once the brand approves your post, or automatically after ${RELEASE_REVIEW_DAYS} days.`,
+    body: `comtor matches you with brands by niche and reach, then holds every payment safely in escrow. It's released to you once the brand approves your post, or automatically after ${RELEASE_REVIEW_DAYS} days.`,
   },
 };
 

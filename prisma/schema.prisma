@@ -324,9 +324,9 @@ model Request {
   startup         StartupProfile @relation(fields: [startupId], references: [id], onDelete: Cascade)
   title           String
   description     String
-  // Optional reference image (data URI, same storage approach as avatars —
-  // see AvatarUpload/RequestImageUpload) so a creator can see what the
-  // brand wants at a glance while swiping, not just read about it.
+  // The single reference image from before requests had photos (a data
+  // URI). Photos live in RequestImage now; this is only still read for
+  // requests that never got any (see src/lib/request-photos.ts).
   imageUrl        String?
   niche           String
   // A creator matches if any one of these overlaps their content language —
@@ -334,14 +334,40 @@ model Request {
   languages       String[]       @default(["English"])
   minFollowers    Int            @default(0)
   productCategory String
+  // What the brand pays, as a range in cents (equal for a fixed price).
+  // Nullable only because older requests have none — the form requires it.
+  budgetMinCents  Int?
+  budgetMaxCents  Int?
+  // Where it's posted and what, e.g. Instagram / "1 Reel + 2 Stories".
+  platform        String?
+  deliverables    String?
+  // The day it should be live by; null means flexible.
+  postBy          DateTime?      @db.Date
+  productIncluded Boolean        @default(false)
   status          RequestStatus  @default(OPEN)
   createdAt       DateTime       @default(now())
 
+  images    RequestImage[]
   interests Interest[]
   passes    RequestPass[]
 
   @@index([startupId, createdAt])
   @@index([niche])
+}
+
+// A request's photos, in order — the first one is the cover on the card.
+// Stored as bytes (there's no object storage yet) and served by
+// /api/request-images/[id], so lists only ever carry the ids.
+model RequestImage {
+  id          String   @id @default(cuid())
+  requestId   String
+  request     Request  @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  position    Int
+  contentType String
+  data        Bytes
+  createdAt   DateTime @default(now())
+
+  @@index([requestId, position])
 }
 
 enum PaymentStatus {

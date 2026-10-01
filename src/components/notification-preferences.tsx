@@ -1,9 +1,12 @@
 "use client";
 
-import { useActionState } from "react";
+import { useState, useTransition } from "react";
 import type { Role } from "@prisma/client";
-import { updateNotificationPreferencesAction } from "@/lib/actions/notification-preferences";
-import { useActionToast } from "@/lib/use-action-toast";
+import { updateNotificationPreferencesAction, type ActionState } from "@/lib/actions/notification-preferences";
+import { SettingsRow } from "@/components/settings-section";
+import { Switch } from "@/components/switch";
+import { toast } from "@/lib/toast";
+import { errorMessage } from "@/lib/error-message";
 import { DEPOSITS_ENABLED } from "@/lib/constants";
 
 type Preferences = {
@@ -15,9 +18,13 @@ type Preferences = {
   notifyDeposits: boolean;
 };
 
+// One switch per kind of notification, saved the moment it's flipped — no
+// Save button to forget. Every save sends all six settings, including the
+// ones this role never sees (and deposits while they're switched off): the
+// action writes each field, so leaving any out would quietly turn it off.
 export function NotificationPreferences({ role, preferences }: { role: Role; preferences: Preferences }) {
-  const [state, formAction, pending] = useActionState(updateNotificationPreferencesAction, undefined);
-  useActionToast(state, "Notification preferences saved.");
+  const [values, setValues] = useState(preferences);
+  const [pending, startTransition] = useTransition();
 
   const items: { key: keyof Preferences; label: string }[] = [];
   if (role === "CREATOR") items.push({ key: "notifyNewRequests", label: "New matching requests" });
@@ -27,32 +34,38 @@ export function NotificationPreferences({ role, preferences }: { role: Role; pre
   items.push({ key: "notifyPayments", label: "Payments" });
   if (DEPOSITS_ENABLED) items.push({ key: "notifyDeposits", label: "Deposits" });
 
+  const toggle = (key: keyof Preferences, next: boolean) => {
+    const previous = values;
+    const updated = { ...values, [key]: next };
+    setValues(updated);
+    const formData = new FormData();
+    for (const [k, on] of Object.entries(updated)) if (on) formData.set(k, "on");
+    startTransition(async () => {
+      let result: ActionState;
+      try {
+        result = await updateNotificationPreferencesAction(undefined, formData);
+      } catch (err) {
+        result = { error: errorMessage(err) };
+      }
+      if (result?.error) {
+        setValues(previous);
+        toast.error(result.error);
+      }
+    });
+  };
+
   return (
-    <form action={formAction} className="flex flex-col gap-2 mt-4">
-      <p className="text-sm font-medium">Notify me about</p>
-      {/* Carries the current setting through while deposits are switched
-          off — the save action reads every field, so leaving this out
-          would quietly turn deposit notifications off for anyone who saves. */}
-      {!DEPOSITS_ENABLED && preferences.notifyDeposits && <input type="hidden" name="notifyDeposits" value="on" />}
+    <>
       {items.map((item) => (
-        <label key={item.key} className="flex items-center gap-2 text-sm text-neutral-700 dark:text-neutral-300">
-          <input
-            type="checkbox"
-            name={item.key}
-            defaultChecked={preferences[item.key]}
-            className="h-4 w-4 shrink-0 appearance-none rounded border border-neutral-300 bg-white checked:border-neutral-900 checked:bg-neutral-900 transition dark:border-neutral-600 dark:bg-neutral-800 dark:checked:border-white dark:checked:bg-white"
+        <SettingsRow key={item.key} label={item.label}>
+          <Switch
+            checked={values[item.key]}
+            onChange={(next) => toggle(item.key, next)}
+            disabled={pending}
+            label={item.label}
           />
-          {item.label}
-        </label>
+        </SettingsRow>
       ))}
-      <button
-        type="submit"
-        disabled={pending}
-        className="mt-2 rounded border border-neutral-300 px-4 py-2 text-sm font-medium hover:bg-neutral-50 transition disabled:opacity-50 self-start dark:border-neutral-700 dark:hover:bg-neutral-800/50"
-      >
-        {pending ? "Saving…" : "Save"}
-      </button>
-      {state?.error && <p className="text-sm text-ink">{state.error}</p>}
-    </form>
+    </>
   );
 }

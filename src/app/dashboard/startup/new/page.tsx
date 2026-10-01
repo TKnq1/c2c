@@ -1,15 +1,24 @@
 import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
+import { brandRating } from "@/lib/request-photos";
 import { RequestForm } from "@/components/request-form";
 
 export default async function NewRequestPage() {
   const session = await auth();
   if (!session || session.user.role !== "STARTUP") redirect("/login");
 
+  const startup = await prisma.startupProfile.findUniqueOrThrow({
+    where: { userId: session.user.id },
+    select: { id: true, companyName: true, avatarUrl: true },
+  });
+  const rating = await brandRating(startup.id);
+
   return (
+    // The header shows the title (see getPageTitle in nav.tsx).
     <div className="flex flex-col gap-6">
-      <h1 className="font-display text-title-1 font-bold">New request</h1>
-      <RequestForm />
+      <h1 className="sr-only">New request</h1>
+      <RequestForm brand={{ companyName: startup.companyName, avatarUrl: startup.avatarUrl, rating }} />
     </div>
   );
 }
