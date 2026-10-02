@@ -18,6 +18,7 @@ import {
   SIGNUP_RATE_LIMIT_MESSAGE,
 } from "@/lib/login-security";
 import { sendEmail } from "@/lib/email";
+import { passwordResetEmail, verificationEmail } from "@/lib/email-templates";
 import { SITE_URL } from "@/lib/site";
 import {
   loginSchema,
@@ -208,11 +209,7 @@ export async function requestPasswordResetAction(
       data: { userId: user.id, token, expiresAt: new Date(Date.now() + 60 * 60 * 1000) },
     });
 
-    await sendEmail({
-      to: user.email,
-      subject: "Reset your comtor password",
-      html: `<p>Someone requested a password reset for this account.</p><p><a href="${SITE_URL}/reset-password/${token}">Reset your password</a>. This link expires in 1 hour.</p><p>If this wasn't you, you can ignore this email.</p>`,
-    });
+    await sendEmail({ to: user.email, ...passwordResetEmail(`${SITE_URL}/reset-password/${token}`) });
   }
 
   return { success: true };
@@ -257,11 +254,7 @@ export async function generateEmailVerificationAction(): Promise<GenerateVerific
     data: { userId: session.user.id, token, expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000) },
   });
 
-  await sendEmail({
-    to: session.user.email!,
-    subject: "Verify your comtor email",
-    html: `<p><a href="${SITE_URL}/verify-email/${token}">Verify your email</a>. This link expires in 24 hours.</p>`,
-  });
+  await sendEmail({ to: session.user.email!, ...verificationEmail(`${SITE_URL}/verify-email/${token}`) });
 
   return { sent: true };
 }

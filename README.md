@@ -81,6 +81,8 @@ file wouldn't have survived between requests there.
    assigned `*.vercel.app` URL first.
 
 Password reset and email verification send real emails via Resend. Set `RESEND_API_KEY`
-and, once a domain is verified in the Resend dashboard, `EMAIL_FROM` (e.g.
-`"comtor <noreply@yourdomain.com>"`) — without a verified domain, Resend's shared sender
-can only deliver to the Resend account's own address, not real users.
+and, in production, `EMAIL_FROM` to a sender on the domain verified in Resend
+(`comtor <no-reply@comtor.app>`). Without it, Resend's shared sender only delivers to the
+Resend account's own address, which is the safe default for local dev. The emails are built
+in `src/lib/email-templates.ts`; `/dev-emails/verify` and `/dev-emails/reset` preview them
+locally.

@@ -29,6 +29,8 @@ const GATE_INFRA_PREFIXES = [
   "/sitemap.xml",
   "/logo.png",
   "/sw.js",
+  // The icon and fonts the emails load (src/lib/email-templates.ts).
+  "/email/",
 ];
 
 // Cheap, JWT-only redirect layer for UX routing. This is NOT the security

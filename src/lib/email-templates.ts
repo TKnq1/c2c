@@ -1,0 +1,192 @@
+import { SITE_URL } from "@/lib/site";
+
+// The app's emails, in the app's own look: the app icon, a heavy Lato
+// headline ending in a full stop like the landing page's, one ink pill
+// button, the fallback link on a fog panel like the app's cards.
+//
+// Built the way email has to be: layout tables and inline styles. Gmail
+// drops <style> in some of its apps and Outlook on Windows renders with
+// Word, so everything that matters is inline and the style blocks only add
+// what can fail quietly: Lato (Apple Mail; everyone else gets their system
+// font), narrower margins on phones and dark mode (Apple Mail; Gmail and
+// Outlook darken on their own). One block each, because a client that
+// chokes on one rule throws out its whole block. /dev-emails/verify and
+// /dev-emails/reset show them locally.
+
+export type Email = { subject: string; html: string; text: string };
+
+type Content = {
+  subject: string;
+  // The grey line an inbox shows after the subject.
+  preview: string;
+  heading: string;
+  body: string;
+  action: { label: string; url: string };
+  // Under the button: how long the link works, what to do if this wasn't you.
+  note: string;
+};
+
+export function verificationEmail(url: string): Email {
+  return render({
+    subject: "Verify your comtor email",
+    preview: "Confirm it's your address. The link works for 24 hours.",
+    heading: "Verify your email.",
+    body: "Confirm that this address belongs to your comtor account.",
+    action: { label: "Verify email", url },
+    note: "The link works for 24 hours. Didn't sign up for comtor? Then you can ignore this email.",
+  });
+}
+
+export function passwordResetEmail(url: string): Email {
+  return render({
+    subject: "Reset your comtor password",
+    preview: "Choose a new password. The link works for 1 hour.",
+    heading: "Reset your password.",
+    body: "Someone asked to reset your comtor password. If that was you, choose a new one.",
+    action: { label: "Choose a new password", url },
+    note: "The link works once, for 1 hour. A new password logs you out everywhere. Didn't ask for this? Then ignore this email and your password stays the same.",
+  });
+}
+
+// The app's tokens (globals.css) and Tailwind's neutral greys it uses for
+// secondary text, light first, then dark.
+const INK = "#070707";
+const TEXT = "#404040";
+const MUTED = "#737373";
+const FOG = "#f2f2f2";
+const LINE = "#e5e5e5";
+const DARK = { paper: "#1e1e1e", fog: "#2d2d2d", text: "#d4d4d4", muted: "#a3a3a3" };
+
+const FONT = "Lato, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif";
+
+// Served from public/email, next to the icon (Lato is SIL OFL, see the
+// licence there). Only clients that support web fonts fetch them.
+const FONT_FACES = (
+  [
+    [400, "Regular"],
+    [700, "Bold"],
+    [900, "Black"],
+  ] as const
+)
+  .map(
+    ([weight, file]) =>
+      `@font-face { font-family: Lato; font-style: normal; font-weight: ${weight}; src: url(${SITE_URL}/email/fonts/Lato-${file}.ttf) format("truetype"); }`,
+  )
+  .join("\n");
+
+// Keeps inboxes from padding the preview line out with the start of the
+// body ("Verify your email. Confirm that…").
+const PREVIEW_FILLER = "&#847;&zwnj;&nbsp;".repeat(90);
+
+function escapeHtml(value: string) {
+  return value
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#39;");
+}
+
+function render(c: Content): Email {
+  const url = escapeHtml(c.action.url);
+  const imprint = `${SITE_URL}/legal/imprint`;
+  const privacy = `${SITE_URL}/legal/privacy`;
+
+  const html = `<!doctype html>
+<html lang="en" xmlns:o="urn:schemas-microsoft-com:office:office">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="x-apple-disable-message-reformatting">
+<meta name="format-detection" content="telephone=no, date=no, address=no, email=no, url=no">
+<meta name="color-scheme" content="light dark">
+<meta name="supported-color-schemes" content="light dark">
+<title>${escapeHtml(c.subject)}</title>
+<!--[if mso]><noscript><xml><o:OfficeDocumentSettings><o:PixelsPerInch>96</o:PixelsPerInch></o:OfficeDocumentSettings></xml></noscript><![endif]-->
+<style>
+${FONT_FACES}
+</style>
+<style>
+@media (max-width: 600px) {
+  .px { padding-left: 24px !important; padding-right: 24px !important; }
+  .h1 { font-size: 28px !important; }
+}
+</style>
+<style>
+@media (prefers-color-scheme: dark) {
+  .bg { background-color: ${DARK.paper} !important; }
+  .ink { color: #ffffff !important; }
+  .text { color: ${DARK.text} !important; }
+  .muted { color: ${DARK.muted} !important; }
+  .panel { background-color: ${DARK.fog} !important; }
+  .line { border-color: ${DARK.fog} !important; }
+  .btn { background-color: #ffffff !important; }
+  .btn a { color: ${INK} !important; }
+}
+</style>
+<!--[if mso]><style>h1, p, a, td { font-family: Arial, Helvetica, sans-serif !important; }</style><![endif]-->
+</head>
+<body class="bg" style="margin:0;padding:0;background-color:#ffffff;-webkit-text-size-adjust:100%;">
+<div style="display:none;max-height:0;max-width:0;overflow:hidden;opacity:0;mso-hide:all;">${escapeHtml(c.preview)}${PREVIEW_FILLER}</div>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" class="bg" style="background-color:#ffffff;">
+<tr><td align="center">
+<!--[if mso]><table role="presentation" width="520" align="center" cellpadding="0" cellspacing="0" border="0"><tr><td><![endif]-->
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:520px;">
+<tr><td class="px" style="padding:48px 32px 0;">
+<img src="${SITE_URL}/email/icon.png" width="44" height="44" alt="comtor" style="display:block;width:44px;height:44px;border:0;">
+</td></tr>
+<tr><td class="px" style="padding:32px 32px 0;">
+<h1 class="ink h1" style="margin:0;font-family:${FONT};font-size:30px;line-height:1.1;font-weight:900;letter-spacing:-0.02em;color:${INK};">${escapeHtml(c.heading)}</h1>
+</td></tr>
+<tr><td class="px" style="padding:14px 32px 0;">
+<p class="text" style="margin:0;font-family:${FONT};font-size:16px;line-height:1.55;color:${TEXT};">${escapeHtml(c.body)}</p>
+</td></tr>
+<tr><td class="px" style="padding:28px 32px 0;">
+<table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
+<td class="btn" style="border-radius:999px;background-color:${INK};mso-padding-alt:14px 28px;">
+<a href="${url}" target="_blank" style="display:inline-block;padding:14px 28px;font-family:${FONT};font-size:16px;line-height:20px;font-weight:700;color:#ffffff;text-decoration:none;border-radius:999px;">${escapeHtml(c.action.label)}</a>
+</td>
+</tr></table>
+</td></tr>
+<tr><td class="px" style="padding:24px 32px 0;">
+<p class="muted" style="margin:0;font-family:${FONT};font-size:14px;line-height:1.55;color:${MUTED};">${escapeHtml(c.note)}</p>
+</td></tr>
+<tr><td class="px" style="padding:24px 32px 0;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr>
+<td class="panel" style="padding:14px 16px;border-radius:4px;background-color:${FOG};">
+<p class="muted" style="margin:0 0 6px;font-family:${FONT};font-size:13px;line-height:1.45;color:${MUTED};">Button not working? Paste this link into your browser:</p>
+<p style="margin:0;font-family:${FONT};font-size:13px;line-height:1.45;word-break:break-all;"><a class="ink" href="${url}" target="_blank" style="color:${INK};text-decoration:underline;">${url}</a></p>
+</td>
+</tr></table>
+</td></tr>
+<tr><td class="px" style="padding:40px 32px 48px;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr>
+<td class="line" style="padding-top:20px;border-top:1px solid ${LINE};">
+<p class="muted" style="margin:0;font-family:${FONT};font-size:12px;line-height:1.6;color:${MUTED};"><strong class="ink" style="font-weight:900;color:${INK};">comtor</strong> · Brands meet the right creators.<br><a class="muted" href="${imprint}" target="_blank" style="color:${MUTED};text-decoration:underline;">Imprint</a> · <a class="muted" href="${privacy}" target="_blank" style="color:${MUTED};text-decoration:underline;">Privacy</a></p>
+</td>
+</tr></table>
+</td></tr>
+</table>
+<!--[if mso]></td></tr></table><![endif]-->
+</td></tr>
+</table>
+</body>
+</html>`;
+
+  const text = [
+    c.heading,
+    "",
+    c.body,
+    "",
+    `${c.action.label}: ${c.action.url}`,
+    "",
+    c.note,
+    "",
+    "-- ",
+    "comtor · Brands meet the right creators.",
+    `Imprint: ${imprint}`,
+    `Privacy: ${privacy}`,
+  ].join("\n");
+
+  return { subject: c.subject, html, text };
+}
