@@ -1,35 +1,10 @@
-import { ImageResponse } from "next/og";
-import { readFile } from "node:fs/promises";
-import { join } from "node:path";
+import { OG_ALT, ogImage } from "@/lib/og-images";
 
-export const alt = "comtor – Brand-Creator Marketplace";
+// Share preview for the landing page, and the default every route inherits unless it has its own (see login, signup, faq, legal…).
+export const alt = OG_ALT.product;
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
-export default async function Image() {
-  const logoData = await readFile(join(process.cwd(), "public", "logo.png"));
-  const logoSrc = `data:image/png;base64,${logoData.toString("base64")}`;
-
-  return new ImageResponse(
-    (
-      <div
-        style={{
-          width: "100%",
-          height: "100%",
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          justifyContent: "center",
-          background: "#ffffff",
-          gap: 32,
-        }}
-      >
-        <img src={logoSrc} width={280} height={280} alt="" />
-        <div style={{ fontSize: 32, color: "#525252", fontFamily: "Arial, Helvetica, sans-serif" }}>
-          Brands find matching content creators for collaborations.
-        </div>
-      </div>
-    ),
-    { ...size },
-  );
+export default function Image() {
+  return ogImage("product");
 }
