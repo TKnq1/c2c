@@ -74,7 +74,7 @@ export default async function CreatorPaymentsPage() {
     payments.length === 0 && pendingOffers.length === 0 && awaitingPayment.length === 0 && deposits.length === 0;
 
   return (
-    <div className="flex flex-col gap-8">
+    <div className="page-wide flex flex-col gap-8">
       <PageTitle>Payments</PageTitle>
       <PaymentStats
         stats={[

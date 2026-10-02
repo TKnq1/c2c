@@ -5,6 +5,7 @@ import { expressInterestAction, withdrawInterestAction } from "@/lib/actions/req
 import { Avatar } from "@/components/avatar";
 import { ActionButton } from "@/components/action-button";
 import { useUndoableAction } from "@/lib/use-undoable-action";
+import { LocalDate } from "@/components/local-date";
 
 type Props = {
   id: string;
@@ -24,6 +25,13 @@ type Props = {
   // applying — same underlying Interest row, but "Withdraw interest" would
   // be a lie if the creator never expressed any.
   contactedByStartup: boolean;
+  // Matches' work list: where the collab stands, the agreed (or offered)
+  // amount and when it started, as columns from md. Withdrawing only makes
+  // sense before any money is involved.
+  stage?: { label: string; emphasis: boolean };
+  amount?: string | null;
+  matchedAt?: number;
+  canWithdraw?: boolean;
 };
 
 export function RequestCard({
@@ -40,6 +48,10 @@ export function RequestCard({
   coverUrl,
   interestId,
   contactedByStartup,
+  stage,
+  amount,
+  matchedAt,
+  canWithdraw = true,
 }: Props) {
   const { pending, trigger } = useUndoableAction(async () => {
     await withdrawInterestAction(interestId!);
@@ -85,26 +97,62 @@ export function RequestCard({
           {contactedByStartup && (
             <p className="text-footnote text-neutral-500 dark:text-neutral-400">{companyName} reached out to you.</p>
           )}
+          {stage && (
+            <span
+              className={`mt-1 inline-flex self-start rounded-full px-2.5 py-0.5 text-xs font-medium md:hidden ${
+                stage.emphasis ? "bg-ink text-paper" : "border border-ink/15"
+              }`}
+            >
+              {stage.label}
+            </span>
+          )}
         </div>
+        {stage && (
+          <div className="hidden w-64 shrink-0 items-center gap-4 text-sm md:flex">
+            <span
+              className={`w-32 shrink-0 truncate rounded-full px-2.5 py-0.5 text-center text-xs font-medium ${
+                stage.emphasis ? "bg-ink text-paper" : "border border-ink/15"
+              }`}
+            >
+              {stage.label}
+            </span>
+            <span className="flex flex-1 flex-col items-end">
+              <span className="font-semibold tabular-nums">{amount ?? "–"}</span>
+              {matchedAt !== undefined && (
+                <span className="text-footnote text-neutral-500 dark:text-neutral-400">
+                  <LocalDate ms={matchedAt} />
+                </span>
+              )}
+            </span>
+          </div>
+        )}
         {interestId ? (
-          <div className="mt-2 flex shrink-0 flex-wrap items-center gap-x-4 gap-y-1 md:mt-0 md:flex-row-reverse">
+          <div
+            className={`mt-2 flex shrink-0 flex-wrap items-center gap-x-4 gap-y-1 md:mt-0 md:flex-row-reverse ${
+              // A fixed width in the work list, so the stage and amount
+              // columns line up whether or not a row can be withdrawn.
+              stage ? "md:w-60" : ""
+            }`}
+          >
             <Link
               href={`/dashboard/messages/${interestId}`}
               className="rounded-full bg-ink px-4 py-1.5 text-sm font-medium text-paper transition hover:bg-graphite"
             >
               Message
             </Link>
-            <button
-              type="button"
-              onClick={() =>
-                contactedByStartup
-                  ? trigger("Declined.", "Restored.")
-                  : trigger("Interest withdrawn.", "Interest restored.")
-              }
-              className="text-sm text-neutral-500 transition hover:text-ink dark:text-neutral-400"
-            >
-              {contactedByStartup ? "Decline" : "Withdraw interest"}
-            </button>
+            {canWithdraw && (
+              <button
+                type="button"
+                onClick={() =>
+                  contactedByStartup
+                    ? trigger("Declined.", "Restored.")
+                    : trigger("Interest withdrawn.", "Interest restored.")
+                }
+                className="text-sm text-neutral-500 transition hover:text-ink dark:text-neutral-400"
+              >
+                {contactedByStartup ? "Decline" : "Withdraw interest"}
+              </button>
+            )}
           </div>
         ) : (
           <ActionButton

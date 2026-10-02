@@ -20,6 +20,7 @@ export function ChatLink({ interestId, name }: { interestId: string; name: strin
 // A titled group on the Payments pages — "Offers", "Payments", "Deposits" —
 // with an optional count and something on the right (e.g. Export).
 export function PaymentSection({
+  id,
   title,
   count,
   description,
@@ -27,6 +28,8 @@ export function PaymentSection({
   className = "",
   children,
 }: {
+  // Anchor for links straight to this group (e.g. the brand home's tiles).
+  id?: string;
   title: string;
   count?: number;
   description?: string;
@@ -35,7 +38,7 @@ export function PaymentSection({
   children: React.ReactNode;
 }) {
   return (
-    <section className={`flex flex-col gap-2 ${className}`}>
+    <section id={id} className={`flex scroll-mt-6 flex-col gap-2 ${className}`}>
       <div className="flex items-center justify-between gap-3 px-1">
         <div className="min-w-0">
           <h2 className="text-footnote text-neutral-500 dark:text-neutral-400">

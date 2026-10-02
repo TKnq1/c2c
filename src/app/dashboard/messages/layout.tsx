@@ -20,7 +20,7 @@ export default async function MessagesLayout({ children }: { children: React.Rea
     // Full height only where something needs it (an open thread, or the two
     // columns on desktop): a fixed height around the scrolling inbox on a
     // phone would let its last rows run under the tab bar.
-    <div className="group flex flex-col gap-6 has-[.chat-thread]:h-full lg:h-full">
+    <div className="page-wide group flex flex-col gap-6 has-[.chat-thread]:h-full lg:h-full">
       {/* Above the inbox from md, and above both columns on desktop; a
           thread on a tablet has its own header instead. */}
       <PageTitle className="md:group-has-[.chat-thread]:max-lg:sr-only">Messages</PageTitle>

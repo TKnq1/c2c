@@ -26,6 +26,9 @@ import {
   IoShieldCheckmarkOutline,
 } from "react-icons/io5";
 import { Logo } from "@/components/logo";
+import { SidebarTooltip } from "@/components/sidebar-tooltip";
+import { NotificationsPanelButton } from "@/components/notifications-panel";
+import { CommandPalette, OPEN_COMMAND_PALETTE } from "@/components/command-palette";
 import { SidebarProfile } from "@/components/sidebar-profile";
 import type { Me } from "@/app/api/me/route";
 import { useNavigationBlocker } from "@/lib/navigation-blocker";
@@ -235,6 +238,7 @@ export function Nav() {
 
   return (
     <>
+      {role !== "ADMIN" && <CommandPalette role={role} />}
       {/* Phones only: it floats over <main>, which runs up under it (see
           --header-h in globals.css), so the page scrolls on under the
           frosted bar the way it does in an iOS app. From md up the
@@ -374,10 +378,33 @@ function Sidebar({
         <Logo />
       </Link>
 
+      <button
+        type="button"
+        onClick={() => window.dispatchEvent(new Event(OPEN_COMMAND_PALETTE))}
+        aria-label="Search (⌘K)"
+        className="group relative mb-4 flex h-10 shrink-0 items-center justify-center gap-3 rounded border border-ink/10 px-3 text-sm text-neutral-500 transition hover:border-ink/30 hover:text-ink lg:justify-start dark:text-neutral-400"
+      >
+        <IoSearch className="h-5 w-5 shrink-0" aria-hidden />
+        <span className="hidden flex-1 text-left lg:inline">Search</span>
+        <kbd className="hidden rounded border border-ink/15 px-1.5 text-[11px] lg:inline">⌘K</kbd>
+        <SidebarTooltip label="Search  ⌘K" />
+      </button>
+
       <nav aria-label="Main" className="flex flex-col gap-1">
-        {main.map((l) => (
-          <SidebarLink key={l.href} link={l} active={l.href === activeHref} onNavigate={onNavigate} />
-        ))}
+        {main.map((l) =>
+          l.label === "Notifications" ? (
+            // Opens the latest ones in a panel instead of leaving the page.
+            <NotificationsPanelButton
+              key={l.href}
+              unreadCount={l.badge}
+              icon={TAB_ICONS.Notifications.outline}
+              activeIcon={TAB_ICONS.Notifications.filled}
+              active={l.href === activeHref}
+            />
+          ) : (
+            <SidebarLink key={l.href} link={l} active={l.href === activeHref} onNavigate={onNavigate} />
+          ),
+        )}
       </nav>
 
       {role === "STARTUP" && (
@@ -386,11 +413,11 @@ function Sidebar({
           onNavigate={onNavigate}
           prefetch={false}
           aria-label="New request"
-          title="New request"
-          className="mt-5 flex h-11 shrink-0 items-center justify-center gap-2 rounded-full bg-ink text-sm font-medium text-paper transition hover:bg-graphite lg:px-4"
+          className="group relative mt-5 flex h-11 shrink-0 items-center justify-center gap-2 rounded-full bg-ink text-sm font-medium text-paper transition hover:bg-graphite lg:px-4"
         >
           <IoAdd className="h-5 w-5" aria-hidden />
           <span className="hidden lg:inline">New request</span>
+          <SidebarTooltip label="New request" />
         </Link>
       )}
 
@@ -430,9 +457,9 @@ function SidebarLink({
       // targets worth prefetching speculatively.
       prefetch={false}
       aria-current={active ? "page" : undefined}
-      // Icons only on tablets: the label shows as a tooltip there.
-      title={link.label}
-      className={`flex h-11 items-center justify-center gap-3.5 rounded px-3 text-[15px] transition lg:justify-start ${
+      // The written-out label is display:none on tablets, so the name comes from here.
+      aria-label={link.badge > 0 ? `${link.label} (${link.badge} new)` : link.label}
+      className={`group relative flex h-11 items-center justify-center gap-3.5 rounded px-3 text-[15px] transition lg:justify-start ${
         active ? "bg-fog font-semibold text-ink" : "text-graphite hover:bg-fog hover:text-ink"
       }`}
     >
@@ -450,7 +477,7 @@ function SidebarLink({
           {badge}
         </span>
       )}
-      {link.badge > 0 && <span className="sr-only">({link.badge} new)</span>}
+      <SidebarTooltip label={link.label} />
     </Link>
   );
 }

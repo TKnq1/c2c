@@ -121,7 +121,7 @@ export default async function StartupPaymentsPage(props: PageProps<"/dashboard/s
   const showProOffer = !startup.isPro && (await canSellProSubscription());
 
   return (
-    <div className="flex flex-col gap-8">
+    <div className="page-wide flex flex-col gap-8">
       <PageTitle>Payments</PageTitle>
       <CheckoutReturn status={checkout} waiting={confirmingId !== null} />
       <PaymentStats
@@ -181,7 +181,7 @@ export default async function StartupPaymentsPage(props: PageProps<"/dashboard/s
       )}
 
       {toApprove.length > 0 && (
-        <PaymentSection title="To approve" count={toApprove.length} className="no-print">
+        <PaymentSection id="to-approve" title="To approve" count={toApprove.length} className="no-print">
           {toApprove.map((p) => {
             const creator = p.creator.displayName;
             return (
@@ -224,7 +224,7 @@ export default async function StartupPaymentsPage(props: PageProps<"/dashboard/s
       )}
 
       {pendingOffers.length > 0 && (
-        <PaymentSection title="Offers" count={pendingOffers.length} className="no-print">
+        <PaymentSection id="offers" title="Offers" count={pendingOffers.length} className="no-print">
           {pendingOffers.map((i) => {
             const creator = i.creator.displayName;
             const mine = i.offerRole === "STARTUP";
@@ -264,7 +264,7 @@ export default async function StartupPaymentsPage(props: PageProps<"/dashboard/s
       )}
 
       {awaitingPayment.length > 0 && (
-        <PaymentSection title="To pay" count={awaitingPayment.length} className="no-print">
+        <PaymentSection id="to-pay" title="To pay" count={awaitingPayment.length} className="no-print">
           {awaitingPayment.map((i) => (
             <PaymentRow
               key={i.id}
@@ -295,7 +295,7 @@ export default async function StartupPaymentsPage(props: PageProps<"/dashboard/s
       )}
 
       {interested.length > 0 && (
-        <PaymentSection title="Interested creators" count={interested.length} className="no-print">
+        <PaymentSection id="interested" title="Interested creators" count={interested.length} className="no-print">
           {interested.map((i) => (
             <PaymentRow
               key={i.id}
