@@ -107,3 +107,50 @@ export async function sendTestEmailAction(): Promise<{ error?: string; to?: stri
   const result = await sendEmail({ to, ...testEmail(SITE_URL) });
   return result.ok ? { to, id: result.id } : { error: result.error };
 }
+
+// Deletes an account with everything that belongs to it (profile, requests,
+// interests, messages, reviews, notifications: all cascade, the same as an
+// account's own "Delete account"). For test accounts and clean-ups. It
+// refuses what shouldn't go this way: yourself, other admins, and any
+// account with a Stripe connection or a payment through Stripe, since those
+// leave money or a subscription behind in Stripe that this wouldn't touch.
+export async function deleteUserAction(userId: string): Promise<AdminActionResult> {
+  const session = await requireAdmin();
+  if (!session) return { error: "Not authorized." };
+  if (userId === session.user.id) return { error: "You can't delete your own account here." };
+
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    include: { startupProfile: true, creatorProfile: true },
+  });
+  if (!user) return { error: "This account no longer exists." };
+  if (hasAdminAccess(user)) return { error: "Admin accounts can't be deleted here." };
+
+  const stripePayments = await prisma.interest.count({
+    where: {
+      AND: [
+        { OR: [{ creator: { userId } }, { request: { startup: { userId } } }] },
+        {
+          OR: [
+            { stripeCheckoutSessionId: { not: null } },
+            { stripeChargeId: { not: null } },
+            { stripeTransferId: { not: null } },
+            { stripeRefundId: { not: null } },
+          ],
+        },
+      ],
+    },
+  });
+  const stripeLinked =
+    !!user.startupProfile?.stripeCustomerId ||
+    !!user.startupProfile?.stripeSubscriptionId ||
+    !!user.creatorProfile?.stripeAccountId ||
+    stripePayments > 0;
+  if (stripeLinked) {
+    return { error: "This account is connected to Stripe or has payments through it. Deleting it here would leave those behind in Stripe." };
+  }
+
+  await prisma.user.delete({ where: { id: userId } });
+  revalidateAdmin();
+  return {};
+}
