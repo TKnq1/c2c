@@ -2,8 +2,9 @@
 
 import { chooseLandingRole } from "@/components/landing/landing-role";
 
-// For whoever tapped the wrong side on the way in (on phones the page only
-// shows the side they picked). Back to the top, where the other side starts.
+// For whoever reaches the end on the other side's page, the nav's switch
+// long since scrolled past their attention. Back to the top, where the
+// other side starts.
 export function SwitchSideLink() {
   function switchTo(role: "creator" | "brand") {
     chooseLandingRole(role);

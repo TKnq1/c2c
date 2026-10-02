@@ -10,11 +10,6 @@ html:not([data-landing-role="brand"]) [data-for="brand"] {
   display: none !important;
 }
 
-/* The phone chooser only shows until a side is picked. */
-html[data-landing-role] .lp-gate {
-  display: none;
-}
-
 /* Switching sides: what comes in settles into place. An animation starts
    over whenever an element comes back from display: none. */
 [data-for] {
@@ -224,35 +219,6 @@ html[data-lp-js] .lp-reveal:not(.is-in) .lp-pop {
   }
 }
 
-/* The phone chooser: tiles come up one after the other; picking one
-   swells it while the rest of the screen lets go. */
-.lp-gate-tile {
-  transition:
-    transform 700ms cubic-bezier(0.16, 1, 0.3, 1),
-    opacity 400ms ease;
-}
-
-.lp-gate.is-leaving .lp-gate-tile:not(.is-chosen),
-.lp-gate.is-leaving .lp-gate-head {
-  opacity: 0;
-  transform: scale(0.94);
-}
-
-.lp-gate.is-leaving .lp-gate-tile.is-chosen {
-  transform: scale(1.04);
-}
-
-.lp-gate.is-leaving {
-  animation: lp-gate-out 600ms ease 300ms both;
-}
-
-@keyframes lp-gate-out {
-  to {
-    opacity: 0;
-    visibility: hidden;
-  }
-}
-
 /* The offer in the "paid before you post" card plays out on a loop:
    accepted, then paying, then paid. */
 .lp-cycle > * {
@@ -336,8 +302,7 @@ html[data-lp-js] .lp-reveal:not(.is-in) .lp-pop {
 
   .lp-reveal,
   .lp-rise-in,
-  .lp-pop,
-  .lp-gate-tile {
+  .lp-pop {
     transition: none !important;
   }
 
@@ -365,13 +330,6 @@ html[data-landing-role="brand"] .lp-toggle-thumb {
 html:not([data-landing-role="brand"]) .lp-toggle [data-value="creator"],
 html[data-landing-role="brand"] .lp-toggle [data-value="brand"] {
   color: var(--paper);
-}
-
-/* Nothing scrolls behind the phone chooser while it's up. */
-@media (max-width: 767.98px) {
-  html:not([data-landing-role]) body:has(.lp-gate) {
-    overflow: hidden;
-  }
 }
 
 /* Without scripts nothing counts up, so the number just stands there. */

@@ -4,7 +4,7 @@ export const LANDING_ROLE_KEY = "landing-role";
 
 // Runs inline before the page paints (see app/page.tsx). ?for=brands or a
 // choice made on an earlier visit picks the side straight away, so nobody
-// sees the other side flash by and the phone chooser doesn't come back.
+// sees the other side flash by. Creators by default.
 // Which side shows is then pure CSS on html[data-landing-role] (see
 // landing.css), the server's HTML holding both. data-lp-js marks that
 // scripts run, so content may wait offscreen to be revealed.
