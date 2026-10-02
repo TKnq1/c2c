@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { FiArrowDown } from "react-icons/fi";
+import Link from "next/link";
 import { BrandBuilder } from "@/components/landing/brand-builder";
 import { CreatorDeck } from "@/components/landing/creator-deck";
 import { PhotoBackdrop } from "@/components/landing/photo-backdrop";
@@ -70,15 +70,27 @@ export function Hero() {
           approved the post.
         </p>
 
-        {/* Phones have no room for it in the nav. */}
-        <a
-          href="#get-the-app"
-          className="lp-rise mt-6 inline-flex items-center gap-1.5 rounded-full border border-ink/15 bg-paper/60 px-4 py-2 text-sm font-semibold backdrop-blur sm:hidden"
-          style={delay(330)}
-        >
-          Coming soon · Get notified
-          <FiArrowDown className="h-4 w-4" />
-        </a>
+        {/* Phones: the nav has Log in where Get the app is on bigger
+            screens, so the button sits here, with a word on the web app. */}
+        <div className="lp-rise mt-7 flex flex-col items-center gap-2.5 sm:hidden" style={delay(330)}>
+          <a
+            href="#get-the-app"
+            className="rounded-full bg-ink px-5 py-2.5 text-sm font-semibold text-paper transition hover:bg-graphite"
+          >
+            Get the app
+          </a>
+          <p className="text-footnote text-neutral-700 dark:text-neutral-300">
+            Already live on the web:{" "}
+            <Link href="/login" className="font-semibold underline underline-offset-2">
+              log in
+            </Link>{" "}
+            or{" "}
+            <Link href="/signup" className="font-semibold underline underline-offset-2">
+              sign up
+            </Link>
+            .
+          </p>
+        </div>
 
         <div className="mt-10 flex w-full justify-center sm:mt-12 md:mt-16">
           <div data-for="creator" className="lp-phone-in" style={delay(350)}>

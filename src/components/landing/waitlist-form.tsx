@@ -27,6 +27,9 @@ export function WaitlistForm() {
 
   return (
     <form action={action} className="mx-auto mt-8 w-full max-w-md text-left">
+      <p className="mb-3 text-center text-sm font-medium text-neutral-700 dark:text-neutral-300">
+        Want the app? Get an email the day it&apos;s out.
+      </p>
       <input type="hidden" name="role" value={role ?? ""} />
       {/* For bots only: off screen and out of the tab order. */}
       <input type="text" name="website" tabIndex={-1} autoComplete="off" aria-hidden="true" className="absolute -left-[9999px] h-px w-px opacity-0" />
