@@ -9,11 +9,16 @@ export function parseFeedScope(value: string | string[] | undefined): FeedScope 
   return value === "all" ? "all" : "forYou";
 }
 
-export type FeedCreator = { niches: string[]; platforms: { followerCount: number }[] };
+export type FeedCreator = {
+  niches: string[];
+  contentLanguage: string | null;
+  platforms: { followerCount: number }[];
+};
 
 // What a creator's feed shows: open requests whose follower threshold ANY of
-// their platforms clears. The scope decides the niche — "all" drops that one
-// condition and nothing else.
+// their platforms clears and that are made in the creator's content language.
+// The scope decides the niche — "all" drops that one condition and nothing
+// else.
 export function creatorFeedWhere(
   creator: FeedCreator,
   blockedUserIds: string[],
@@ -22,6 +27,10 @@ export function creatorFeedWhere(
   const maxFollowers = creator.platforms.reduce((max, p) => Math.max(max, p.followerCount), 0);
   return {
     ...(scope === "forYou" && { niche: { in: creator.niches } }),
+    // A request lists the languages it's made in; the creator's has to be
+    // one of them. Onboarding doesn't ask for a language, so a creator who
+    // hasn't set one yet isn't filtered by it.
+    ...(creator.contentLanguage && { languages: { has: creator.contentLanguage } }),
     minFollowers: { lte: maxFollowers },
     status: "OPEN",
     // A suspended brand's requests are closed on suspension; this also

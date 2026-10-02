@@ -283,6 +283,11 @@ model CreatorProfile {
   // onboarding wizard's niche step. The Feed's "For you" shows requests in
   // these; "All" ignores them.
   niches          String[] @default([])
+  // Deprecated: the first of `niches`, only still written (see
+  // creatorNicheColumns) so the release before the multi-niche one keeps
+  // working on this schema while a deploy rolls out. Nothing reads it; a
+  // later migration drops it.
+  niche           String   @default("")
   bio             String?
   contentLanguage String?
   createdAt       DateTime @default(now())

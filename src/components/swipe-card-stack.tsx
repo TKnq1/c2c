@@ -7,10 +7,11 @@ import { SwipeCard, type SwipeCardHandle, type SwipeRequest } from "@/components
 import { EmptyState } from "@/components/empty-state";
 import { RequestDetailsPanel } from "@/components/request-details-panel";
 import { isTextField } from "@/lib/keyboard";
-import { expressInterestAction, passRequestAction, undoPassAction } from "@/lib/actions/requests";
+import { passRequestAction, swipeInterestedAction, undoPassAction } from "@/lib/actions/requests";
 import { favoriteStartupAction, unfavoriteStartupAction } from "@/lib/actions/favorites";
 import { toast } from "@/lib/toast";
 import { errorMessage } from "@/lib/error-message";
+import { createOrderedSaves } from "@/lib/ordered-saves";
 
 const VISIBLE_DEPTH = 3;
 
@@ -30,9 +31,10 @@ export function SwipeCardStack({
   // interest in Your matches is for instead.
   const [lastPassed, setLastPassed] = useState<SwipeRequest | null>(null);
   // Saving a pass is fire-and-forget, so an undo right after could reach the
-  // server first and then get overwritten by the pass landing late — undo
-  // waits for that request's pending save before deleting it.
-  const pendingPassesRef = useRef(new Map<string, Promise<void>>());
+  // server before the pass does, and a second pass of the same card before
+  // the undo — each card's saves go out one after the other, in the order
+  // they happened.
+  const [saveForRequest] = useState(createOrderedSaves);
   // The star saves the brand behind the request (the same Favorite row as
   // Discover's star), so it's keyed by brand: every card from that brand
   // shows it starred at once.
@@ -84,11 +86,17 @@ export function SwipeCardStack({
       if (card) setLastPassed(card);
       // Failure just means the request shows up again on a later visit —
       // not worth interrupting the swiping over.
-      pendingPassesRef.current.set(id, passRequestAction(id).catch(() => {}));
+      saveForRequest(id, () => passRequestAction(id));
     } else {
       setLastPassed(null);
       try {
-        await expressInterestAction(id);
+        const result = await swipeInterestedAction(id);
+        if (result?.unavailable) {
+          // Closed, blocked or out of reach since the page loaded: putting the
+          // card back would only fail the same way again.
+          toast.error("That request isn't available any more.");
+          return;
+        }
         toast.success("Interest sent.");
       } catch (err) {
         // Nothing was sent, so the card comes back rather than silently
@@ -108,9 +116,7 @@ export function SwipeCardStack({
     setRestored({ id, from: "left" });
     setStack((prev) => [lastPassed, ...prev]);
     setLastPassed(null);
-    const pending = pendingPassesRef.current.get(id) ?? Promise.resolve();
-    pendingPassesRef.current.delete(id);
-    pending.then(() => undoPassAction(id)).catch(() => {});
+    saveForRequest(id, () => undoPassAction(id));
   }
 
   const visible = stack.slice(0, VISIBLE_DEPTH);

@@ -3,6 +3,7 @@ import { creatorFeedWhere, parseFeedScope } from "@/lib/feed-scope";
 
 const creator = {
   niches: ["Beauty", "Fitness"],
+  contentLanguage: "German" as string | null,
   platforms: [{ followerCount: 3_000 }, { followerCount: 12_000 }],
 };
 
@@ -39,6 +40,19 @@ describe("creatorFeedWhere", () => {
       const where = creatorFeedWhere(creator, ["blocked-user"], scope);
       expect(where.status).toBe("OPEN");
       expect(where.startup).toEqual({ userId: { notIn: ["blocked-user"] }, user: { suspendedAt: null } });
+    }
+  });
+
+  it("only shows requests made in the creator's content language, in both", () => {
+    for (const scope of ["forYou", "all"] as const) {
+      expect(creatorFeedWhere(creator, [], scope).languages).toEqual({ has: "German" });
+    }
+  });
+
+  it("doesn't filter by language until the creator has set one", () => {
+    const unset = { ...creator, contentLanguage: null };
+    for (const scope of ["forYou", "all"] as const) {
+      expect(creatorFeedWhere(unset, [], scope)).not.toHaveProperty("languages");
     }
   });
 

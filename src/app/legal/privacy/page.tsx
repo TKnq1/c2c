@@ -76,7 +76,7 @@ const SECTIONS: { title: string; body: string[] }[] = [
   {
     title: "No automated decisions",
     body: [
-      "Which requests a creator sees is decided by simple rules (niche and follower count), not by automated decision-making with legal or similarly significant effects (Art. 22 GDPR).",
+      "Which requests a creator sees is decided by simple rules (niche, content language and follower count), not by automated decision-making with legal or similarly significant effects (Art. 22 GDPR).",
     ],
   },
   {

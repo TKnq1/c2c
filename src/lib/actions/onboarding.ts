@@ -4,6 +4,7 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { notify } from "@/lib/notifications";
 import { processAvatarUpload } from "@/lib/avatar-upload";
+import { creatorNicheColumns } from "@/lib/creator-niches";
 import {
   onboardingCompanyNameSchema,
   onboardingDisplayNameSchema,
@@ -92,7 +93,7 @@ export async function saveNichesAction(
 
   await prisma.creatorProfile.update({
     where: { userId: session.user.id },
-    data: { niches: parsed.data.niches },
+    data: creatorNicheColumns(parsed.data.niches),
   });
 
   return { success: true };
