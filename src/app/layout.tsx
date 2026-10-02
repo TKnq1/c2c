@@ -41,6 +41,8 @@ export const metadata: Metadata = {
     title: SITE_NAME,
     description: SITE_DESCRIPTION,
   },
+  // Google Search Console ownership check for the site's domain.
+  verification: { google: "phXZ3gI5wDzbgcuHAxcyl_QNIH8Gw9lKXY7Gz-LH43k" },
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
