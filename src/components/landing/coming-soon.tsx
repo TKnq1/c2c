@@ -1,6 +1,6 @@
-import Link from "next/link";
 import { FiArrowRight } from "react-icons/fi";
 import { PhotoBackdrop } from "@/components/landing/photo-backdrop";
+import { SignupLink } from "@/components/landing/signup-link";
 import { Reveal } from "@/components/landing/reveal";
 import { WaitlistForm } from "@/components/landing/waitlist-form";
 
@@ -26,13 +26,10 @@ export function ComingSoon() {
         <p className="mx-auto mt-5 max-w-[34ch] text-[19px] leading-snug text-neutral-700 md:text-[22px] dark:text-neutral-300">
           The apps are on their way. The web app is ready now, right in your browser.
         </p>
-        <Link
-          href="/signup"
-          className="mt-7 inline-flex items-center gap-2 rounded-full bg-ink px-6 py-3.5 font-semibold text-paper transition hover:bg-graphite"
-        >
+        <SignupLink className="mt-7 inline-flex items-center gap-2 rounded-full bg-ink px-6 py-3.5 font-semibold text-paper transition hover:bg-graphite">
           Start in your browser
           <FiArrowRight className="h-4 w-4" />
-        </Link>
+        </SignupLink>
         <div className="mt-9 flex flex-wrap items-center justify-center gap-x-4 gap-y-3" aria-label="Soon on the App Store and Google Play">
           {/* eslint-disable-next-line @next/next/no-img-element -- Apple's own SVG, shown as is */}
           <img src="/badges/download-on-the-app-store.svg" alt="Download on the App Store" width={144} height={48} className="h-12 w-auto" />
