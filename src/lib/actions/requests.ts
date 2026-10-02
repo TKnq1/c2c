@@ -68,34 +68,40 @@ function requestFields(data: ReturnType<typeof createRequestSchema.parse>) {
 
 // Shared by createRequestAction and duplicateRequestAction — a duplicate is
 // a genuinely new, open request, so it should reach matching creators too.
+// By now the request exists, so nothing in here may fail the action: an error
+// would send the brand back to post it again, and it would be there twice.
 async function notifyMatchingCreators(
   request: { niche: string; languages: string[]; minFollowers: number; title: string },
   startup: { companyName: string },
   viewerUserId: string,
 ) {
-  const blockedUserIds = await getMutualBlockedUserIds(viewerUserId);
-  const matchingCreators = await prisma.creatorProfile.findMany({
-    where: {
-      niches: { has: request.niche },
-      // Same rule as the Feed: the creator's content language has to be one
-      // of the request's, if they've set one.
-      OR: [{ contentLanguage: null }, { contentLanguage: { in: request.languages } }],
-      platforms: { some: { followerCount: { gte: request.minFollowers } } },
-      userId: { notIn: blockedUserIds },
-      user: { suspendedAt: null },
-    },
-    select: { userId: true },
-  });
-  await Promise.all(
-    matchingCreators.map((c) =>
-      notify(
-        c.userId,
-        `New ${request.niche} request from ${startup.companyName}: "${request.title}"`,
-        "/dashboard/creator",
-        "newRequests",
+  try {
+    const blockedUserIds = await getMutualBlockedUserIds(viewerUserId);
+    const matchingCreators = await prisma.creatorProfile.findMany({
+      where: {
+        niches: { has: request.niche },
+        // Same rule as the Feed: the creator's content language has to be one
+        // of the request's, if they've set one.
+        OR: [{ contentLanguage: null }, { contentLanguage: { in: request.languages } }],
+        platforms: { some: { followerCount: { gte: request.minFollowers } } },
+        userId: { notIn: blockedUserIds },
+        user: { suspendedAt: null },
+      },
+      select: { userId: true },
+    });
+    await Promise.all(
+      matchingCreators.map((c) =>
+        notify(
+          c.userId,
+          `New ${request.niche} request from ${startup.companyName}: "${request.title}"`,
+          "/dashboard/creator",
+          "newRequests",
+        ),
       ),
-    ),
-  );
+    );
+  } catch (err) {
+    console.error(`Notifying creators about the new request "${request.title}" failed:`, err);
+  }
 }
 
 export async function createRequestAction(_prevState: ActionState, formData: FormData): Promise<ActionState> {

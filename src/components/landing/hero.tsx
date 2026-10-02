@@ -5,6 +5,7 @@ import Link from "next/link";
 import { BrandBuilder } from "@/components/landing/brand-builder";
 import { CreatorDeck } from "@/components/landing/creator-deck";
 import { PhotoBackdrop } from "@/components/landing/photo-backdrop";
+import { SignupLink } from "@/components/landing/signup-link";
 import { FIRST_PHOTO, type PhotoKey } from "@/components/landing/landing-data";
 
 const delay = (ms: number) => ({ "--lp-delay": `${ms}ms` }) as React.CSSProperties;
@@ -85,9 +86,7 @@ export function Hero() {
               log in
             </Link>{" "}
             or{" "}
-            <Link href="/signup" className="font-semibold underline underline-offset-2">
-              sign up
-            </Link>
+            <SignupLink className="font-semibold underline underline-offset-2">sign up</SignupLink>
             .
           </p>
         </div>

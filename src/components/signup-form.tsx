@@ -1,13 +1,13 @@
 "use client";
 
 import { useActionState, useState } from "react";
-import type { Role } from "@prisma/client";
 import { signupAction } from "@/lib/actions/auth";
 import { NewPasswordField } from "@/components/new-password-field";
 import { PLATFORM_FEE_RATE, PRO_PLATFORM_FEE_RATE, RELEASE_REVIEW_DAYS } from "@/lib/constants";
 
-// Only the two self-serve signup roles — admins aren't created through this form.
-export type SignupRole = Extract<Role, "STARTUP" | "CREATOR">;
+import type { SignupRole } from "@/lib/signup-role";
+
+export type { SignupRole };
 
 const FEE_NOTE: Record<SignupRole, string> = {
   STARTUP: `You pay exactly what you offer, held in escrow until the work is live and you've approved it. We take ${PLATFORM_FEE_RATE * 100}% from the creator's payout, ${PRO_PLATFORM_FEE_RATE * 100}% with Pro.`,
@@ -16,17 +16,22 @@ const FEE_NOTE: Record<SignupRole, string> = {
 
 type Props = {
   // Uncontrolled by default (own toggle, own state) — the standalone
-  // /signup page uses it this way. The homepage passes both so the same
-  // Brand/Creator choice also drives what's shown on its left column.
+  // /signup page uses it this way, starting from the side the visitor came
+  // from (initialRole). The homepage passes role and onRoleChange so the
+  // same Brand/Creator choice also drives what's shown on its left column.
   role?: SignupRole;
   onRoleChange?: (role: SignupRole) => void;
+  initialRole?: SignupRole | null;
 };
 
 // Just email/password/role — company name, or display name/niche/platforms,
 // are collected right after by the /onboarding wizard, one field at a time,
 // so the bar to actually creating an account stays low.
-export function SignupForm({ role: controlledRole, onRoleChange }: Props = {}) {
-  const [internalRole, setInternalRole] = useState<SignupRole>("STARTUP");
+export function SignupForm({ role: controlledRole, onRoleChange, initialRole = null }: Props = {}) {
+  // Nothing is preselected without a side to start from: an account's role
+  // can't be changed afterwards, and a guess (it used to be Brand) turned
+  // creators who only typed an email and a password into brands.
+  const [internalRole, setInternalRole] = useState<SignupRole | null>(initialRole);
   const role = controlledRole ?? internalRole;
   const setRole = onRoleChange ?? setInternalRole;
   const [state, formAction, pending] = useActionState(signupAction, undefined);
@@ -36,6 +41,7 @@ export function SignupForm({ role: controlledRole, onRoleChange }: Props = {}) {
       <div className="grid grid-cols-2 gap-1 rounded bg-fog p-1">
         <button
           type="button"
+          aria-pressed={role === "STARTUP"}
           onClick={() => setRole("STARTUP")}
           className={`rounded py-2 text-sm font-medium transition ${
             role === "STARTUP" ? "bg-white text-neutral-900 dark:bg-neutral-900 dark:text-neutral-100" : "text-neutral-500 dark:text-neutral-400"
@@ -45,6 +51,7 @@ export function SignupForm({ role: controlledRole, onRoleChange }: Props = {}) {
         </button>
         <button
           type="button"
+          aria-pressed={role === "CREATOR"}
           onClick={() => setRole("CREATOR")}
           className={`rounded py-2 text-sm font-medium transition ${
             role === "CREATOR" ? "bg-white text-neutral-900 dark:bg-neutral-900 dark:text-neutral-100" : "text-neutral-500 dark:text-neutral-400"
@@ -53,8 +60,10 @@ export function SignupForm({ role: controlledRole, onRoleChange }: Props = {}) {
           I&apos;m a Creator
         </button>
       </div>
-      <input type="hidden" name="role" value={role} />
-      <p className="text-xs text-neutral-400 dark:text-neutral-500">{FEE_NOTE[role]}</p>
+      <input type="hidden" name="role" value={role ?? ""} />
+      <p className="text-xs text-neutral-400 dark:text-neutral-500">
+        {role ? FEE_NOTE[role] : "Choose the one that fits you. It can't be changed after you sign up."}
+      </p>
 
       <div className="flex flex-col gap-1">
         <label htmlFor="email" className="text-sm font-medium">
@@ -73,7 +82,7 @@ export function SignupForm({ role: controlledRole, onRoleChange }: Props = {}) {
       {state?.error && <p className="text-sm text-ink">{state.error}</p>}
       <button
         type="submit"
-        disabled={pending}
+        disabled={pending || !role}
         className="rounded-full bg-ink text-paper px-4 py-2 font-medium hover:bg-graphite transition disabled:opacity-50"
       >
         {pending ? "Creating account…" : "Create account"}

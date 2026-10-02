@@ -81,6 +81,18 @@ export function passwordChangedEmail(resetUrl: string): Email {
   });
 }
 
+// What /admin/email sends to check that mail gets out and looks right.
+export function testEmail(url: string): Email {
+  return render({
+    subject: "comtor test email",
+    preview: "If you can read this, email from comtor works.",
+    heading: "It works.",
+    body: "This is a test email from the admin area. If it's in your inbox, sign-up, verification and password emails reach people too.",
+    action: { label: "Open comtor", url },
+    note: "Sent by an admin from /admin/email. Nothing to do.",
+  });
+}
+
 // The waitlist's double opt-in: nobody gets the launch email without
 // clicking this first (see joinWaitlistAction).
 export function waitlistConfirmationEmail(url: string): Email {

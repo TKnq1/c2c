@@ -27,6 +27,11 @@ export default function ErrorPage({
           <p className="text-sm text-neutral-600 mt-2 dark:text-neutral-400">
             An unexpected error occurred. You can try again, or head back to your dashboard.
           </p>
+          {/* What the server log has this error under (Vercel logs, search
+              for it), so a report can be traced to the real cause. */}
+          {error.digest && (
+            <p className="mt-3 text-xs text-neutral-400 dark:text-neutral-500">Reference: {error.digest}</p>
+          )}
         </div>
         <div className="flex items-center gap-3">
           <button

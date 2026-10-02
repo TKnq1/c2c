@@ -5,6 +5,9 @@ import { z } from "zod";
 import { auth } from "@/lib/auth";
 import { hasAdminAccess } from "@/lib/admin-access";
 import { prisma } from "@/lib/prisma";
+import { sendEmail } from "@/lib/email";
+import { testEmail } from "@/lib/email-templates";
+import { SITE_URL } from "@/lib/site";
 
 // Same shape ConfirmActionButton expects: an error message, or nothing.
 export type AdminActionResult = { error?: string };
@@ -91,4 +94,16 @@ export async function setRequestStatusAction(requestId: string, status: "OPEN" |
   revalidatePath("/dashboard/creator");
   revalidatePath(`/dashboard/startup/requests/${requestId}`);
   return {};
+}
+
+// One test email to the admin's own address, and what the email service
+// answered: the id when it took the mail, its error when it didn't. Returned,
+// not thrown, so the message survives to production (see errorMessage).
+export async function sendTestEmailAction(): Promise<{ error?: string; to?: string; id?: string }> {
+  const session = await requireAdmin();
+  if (!session?.user.email) return { error: "Not authorized." };
+
+  const to = session.user.email;
+  const result = await sendEmail({ to, ...testEmail(SITE_URL) });
+  return result.ok ? { to, id: result.id } : { error: result.error };
 }

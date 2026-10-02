@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   passwordChangedEmail,
   passwordResetEmail,
+  testEmail,
   verificationEmail,
   waitlistConfirmationEmail,
   welcomeEmail,
@@ -66,5 +67,19 @@ describe("welcomeEmail", () => {
   it("tells creators and brands what comes next", () => {
     expect(welcomeEmail(url, "CREATOR").text).toContain("brand deals");
     expect(welcomeEmail(url, "STARTUP").text).toContain("first request");
+  });
+});
+
+describe("testEmail", () => {
+  const email = testEmail("https://www.comtor.app");
+
+  it("says what it is, in the subject and the body", () => {
+    expect(email.subject).toBe("comtor test email");
+    expect(email.html).toContain("It works.");
+    expect(email.text).toContain("test email");
+  });
+
+  it("links to the site", () => {
+    expect(email.html).toContain('href="https://www.comtor.app"');
   });
 });
