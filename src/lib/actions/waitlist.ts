@@ -1,6 +1,8 @@
 "use server";
 
+import { revalidatePath } from "next/cache";
 import { z } from "zod";
+import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
 export type WaitlistState = { ok?: boolean; error?: string } | undefined;
@@ -33,4 +35,13 @@ export async function joinWaitlistAction(_prev: WaitlistState, formData: FormDat
     return { error: "That didn't work. Try again in a moment." };
   }
   return { ok: true };
+}
+
+// Admin only: someone asked to be taken off the list (the privacy policy
+// promises that), or the address is obviously junk.
+export async function removeWaitlistEntryAction(id: string): Promise<{ error?: string } | void> {
+  const session = await auth();
+  if (!session || session.user.role !== "ADMIN") return { error: "Not authorized." };
+  await prisma.waitlistEntry.deleteMany({ where: { id } });
+  revalidatePath("/admin");
 }

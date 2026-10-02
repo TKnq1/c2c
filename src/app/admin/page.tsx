@@ -4,7 +4,12 @@ import { ActionButton } from "@/components/action-button";
 import { ConfirmActionButton } from "@/components/confirm-action-button";
 import { resolveReportAction, dismissReportAction } from "@/lib/actions/moderation";
 import { refundDisputedPaymentAction, releaseDisputedPaymentAction } from "@/lib/actions/disputes";
+import { removeWaitlistEntryAction } from "@/lib/actions/waitlist";
+import { RelativeTime } from "@/components/relative-time";
 import { PRO_SUBSCRIPTION_PRICE_CENTS } from "@/lib/constants";
+
+// The newest ones on the page; the CSV has everyone.
+const WAITLIST_SHOWN = 50;
 
 export default async function AdminOverviewPage() {
   const [
@@ -23,6 +28,10 @@ export default async function AdminOverviewPage() {
     recentUsers,
     recentRequests,
     openReports,
+    waitlistTotal,
+    waitlistCreators,
+    waitlistBrands,
+    waitlist,
   ] = await Promise.all([
     prisma.user.count(),
     prisma.user.count({ where: { role: "STARTUP" } }),
@@ -67,6 +76,11 @@ export default async function AdminOverviewPage() {
       include: { reporter: true, reported: true },
       orderBy: { createdAt: "desc" },
     }),
+    // Who left their email on the landing page (see WaitlistForm).
+    prisma.waitlistEntry.count(),
+    prisma.waitlistEntry.count({ where: { role: "CREATOR" } }),
+    prisma.waitlistEntry.count({ where: { role: "STARTUP" } }),
+    prisma.waitlistEntry.findMany({ orderBy: { createdAt: "desc" }, take: WAITLIST_SHOWN }),
   ]);
   // Oldest first — the money has been frozen longest there.
   const disputes = await prisma.interest.findMany({
@@ -120,12 +134,73 @@ export default async function AdminOverviewPage() {
         </div>
       </div>
 
-      <div className="rounded-2xl border border-ink/10 p-4">
-        <p className="text-sm text-neutral-500 dark:text-neutral-400">Total payment volume</p>
-        <p className="font-display text-title-1 font-bold mt-1">{formatCents(totalVolumeCents)}</p>
-        <p className="text-xs text-neutral-500 mt-1 dark:text-neutral-400">
-          Across {volumeCount} non-refunded payments, real escrow via Stripe.
+      <div className="grid gap-4 sm:grid-cols-2">
+        <div className="rounded-2xl border border-ink/10 p-4">
+          <p className="text-sm text-neutral-500 dark:text-neutral-400">Total payment volume</p>
+          <p className="font-display text-title-1 font-bold mt-1">{formatCents(totalVolumeCents)}</p>
+          <p className="text-xs text-neutral-500 mt-1 dark:text-neutral-400">
+            Across {volumeCount} non-refunded payments, real escrow via Stripe.
+          </p>
+        </div>
+        <a href="#waitlist" className="rounded-2xl border border-ink/10 p-4 transition hover:border-ink/30">
+          <p className="text-sm text-neutral-500 dark:text-neutral-400">Waitlist</p>
+          <p className="font-display text-title-1 font-bold mt-1">{waitlistTotal}</p>
+          <p className="text-xs text-neutral-500 mt-1 dark:text-neutral-400">
+            {waitlistCreators} creators · {waitlistBrands} brands, from comtor.app
+          </p>
+        </a>
+      </div>
+
+      <div id="waitlist" className="scroll-mt-6">
+        <div className="mb-1 flex items-baseline justify-between gap-3">
+          <h2 className="font-semibold">Waitlist ({waitlistTotal})</h2>
+          {waitlistTotal > 0 && (
+            <a href="/api/admin/waitlist" className="text-sm font-medium underline">
+              Download CSV
+            </a>
+          )}
+        </div>
+        <p className="text-sm text-neutral-500 mb-3 dark:text-neutral-400">
+          Emails left on the landing page to hear when the iOS and Android apps are out. Stored here only, nobody has
+          been emailed yet. Remove someone when they ask to be taken off the list.
         </p>
+        {waitlist.length === 0 ? (
+          <p className="text-sm text-neutral-500 dark:text-neutral-400">Nobody yet.</p>
+        ) : (
+          <div className="flex flex-col gap-2">
+            {waitlist.map((w) => (
+              <div key={w.id} className="rounded-xl border border-ink/10 px-4 py-2 flex items-center justify-between gap-3">
+                <span className="min-w-0 truncate text-sm">{w.email}</span>
+                <span className="flex shrink-0 items-center gap-3">
+                  {w.role && (
+                    <span className="text-xs rounded bg-fog text-neutral-700 px-2 py-1 dark:text-neutral-300">
+                      {w.role === "STARTUP" ? "Brand" : "Creator"}
+                    </span>
+                  )}
+                  <span className="text-xs text-neutral-500 dark:text-neutral-400">
+                    <RelativeTime ms={w.createdAt.getTime()} />
+                  </span>
+                  <ConfirmActionButton
+                    action={removeWaitlistEntryAction.bind(null, w.id)}
+                    successMessage="Removed from the waitlist."
+                    title="Remove from the waitlist?"
+                    description={`${w.email} is deleted and won't get the launch email. This can't be undone.`}
+                    confirmLabel="Remove"
+                    pendingLabel="Removing…"
+                    className="text-xs text-neutral-400 hover:text-ink transition disabled:opacity-50 dark:text-neutral-500"
+                  >
+                    Remove
+                  </ConfirmActionButton>
+                </span>
+              </div>
+            ))}
+            {waitlistTotal > waitlist.length && (
+              <p className="text-xs text-neutral-500 dark:text-neutral-400">
+                The newest {waitlist.length} of {waitlistTotal}. The CSV has all of them.
+              </p>
+            )}
+          </div>
+        )}
       </div>
 
       <div>
