@@ -13,8 +13,11 @@ const PATH = "/admin/waitlist";
 const PAGE_SIZE = 50;
 
 // The emails left on comtor.app to hear when the iOS and Android apps are
-// out (see WaitlistForm). The CSV is for the launch email; Remove is for
-// anyone who asks to be taken off, as the privacy policy promises.
+// out (see WaitlistForm). Only confirmed addresses count (double opt-in),
+// so the stats and the CSV for the launch email leave the rest out;
+// unconfirmed ones show in the list with a tag and go after 30 days.
+// Remove is for anyone who asks to be taken off, as the privacy policy
+// promises.
 export default async function AdminWaitlistPage(props: {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
@@ -29,7 +32,8 @@ export default async function AdminWaitlistPage(props: {
     ...(q && { email: { contains: q, mode: "insensitive" } }),
   };
 
-  const [entries, total, all, creators, brands] = await Promise.all([
+  const confirmed = { confirmedAt: { not: null } } satisfies Prisma.WaitlistEntryWhereInput;
+  const [entries, total, all, onList, creators, brands] = await Promise.all([
     prisma.waitlistEntry.findMany({
       where,
       orderBy: { createdAt: "desc" },
@@ -38,8 +42,9 @@ export default async function AdminWaitlistPage(props: {
     }),
     prisma.waitlistEntry.count({ where }),
     prisma.waitlistEntry.count(),
-    prisma.waitlistEntry.count({ where: { role: "CREATOR" } }),
-    prisma.waitlistEntry.count({ where: { role: "STARTUP" } }),
+    prisma.waitlistEntry.count({ where: confirmed }),
+    prisma.waitlistEntry.count({ where: { ...confirmed, role: "CREATOR" } }),
+    prisma.waitlistEntry.count({ where: { ...confirmed, role: "STARTUP" } }),
   ]);
 
   return (
@@ -48,10 +53,11 @@ export default async function AdminWaitlistPage(props: {
         <div>
           <h1 className="font-display text-title-1 font-bold">Waitlist</h1>
           <p className="mt-1 text-sm text-neutral-600 dark:text-neutral-400">
-            Emails left on comtor.app to hear when the iOS and Android apps are out. Nobody has been emailed yet.
+            Emails left on comtor.app to hear when the iOS and Android apps are out. Only confirmed addresses get the
+            launch email, and only they are in the CSV. Unconfirmed ones are deleted after 30 days.
           </p>
         </div>
-        {all > 0 && (
+        {onList > 0 && (
           <a
             href="/api/admin/waitlist"
             className="inline-flex shrink-0 items-center gap-2 self-start rounded-full bg-ink px-4 py-2 text-sm font-medium text-paper transition hover:bg-graphite sm:self-auto"
@@ -63,7 +69,7 @@ export default async function AdminWaitlistPage(props: {
       </div>
 
       <div className="grid gap-3 sm:grid-cols-3">
-        <StatTile label="On the list" value={all.toLocaleString("en-US")} />
+        <StatTile label="Confirmed" value={onList.toLocaleString("en-US")} />
         <StatTile label="Creators" value={creators.toLocaleString("en-US")} />
         <StatTile label="Brands" value={brands.toLocaleString("en-US")} />
       </div>
@@ -74,9 +80,9 @@ export default async function AdminWaitlistPage(props: {
           params={params}
           name="side"
           options={[
-            { value: undefined, label: "All", count: all },
-            { value: "creator", label: "Creators", count: creators },
-            { value: "brand", label: "Brands", count: brands },
+            { value: undefined, label: "All" },
+            { value: "creator", label: "Creators" },
+            { value: "brand", label: "Brands" },
           ]}
         />
         <ListSearch path={PATH} params={params} placeholder="Search email" />
@@ -96,7 +102,14 @@ export default async function AdminWaitlistPage(props: {
               className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-4 gap-y-1 border-ink/10 px-4 py-3 md:grid-cols-[minmax(0,1fr)_6rem_8rem_auto] [&+&]:border-t"
             >
               <span className="min-w-0">
-                <span className="block truncate text-sm font-medium">{e.email}</span>
+                <span className="flex min-w-0 items-center gap-2">
+                  <span className="truncate text-sm font-medium">{e.email}</span>
+                  {!e.confirmedAt && (
+                    <span className="shrink-0 rounded-full border border-ink/15 px-2 py-0.5 text-[11px] font-medium text-neutral-500 dark:text-neutral-400">
+                      Unconfirmed
+                    </span>
+                  )}
+                </span>
                 <span className="block text-footnote text-neutral-500 md:hidden dark:text-neutral-400">
                   {e.role === "STARTUP" ? "Brand · " : e.role === "CREATOR" ? "Creator · " : ""}
                   <RelativeTime ms={e.createdAt.getTime()} />

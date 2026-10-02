@@ -10,8 +10,8 @@ import { SITE_URL } from "@/lib/site";
 // what can fail quietly: Lato (Apple Mail; everyone else gets their system
 // font), narrower margins on phones and dark mode (Apple Mail; Gmail and
 // Outlook darken on their own). One block each, because a client that
-// chokes on one rule throws out its whole block. /dev-emails/verify and
-// /dev-emails/reset show them locally.
+// chokes on one rule throws out its whole block. /dev-emails/<name> shows
+// them locally (see that route for the names).
 
 export type Email = { subject: string; html: string; text: string };
 
@@ -45,6 +45,32 @@ export function passwordResetEmail(url: string): Email {
     body: "Someone asked to reset your comtor password. If that was you, choose a new one.",
     action: { label: "Choose a new password", url },
     note: "The link works once, for 1 hour. A new password logs you out everywhere. Didn't ask for this? Then ignore this email and your password stays the same.",
+  });
+}
+
+// After every password change and reset. The button is for when it wasn't
+// them: a reset through their inbox logs out whoever changed it.
+export function passwordChangedEmail(resetUrl: string): Email {
+  return render({
+    subject: "Your comtor password was changed",
+    preview: "If that was you, you're all set.",
+    heading: "Your password was changed.",
+    body: "The password of your comtor account was just changed, and your other devices were logged out. If that was you, you're all set.",
+    action: { label: "Reset password", url: resetUrl },
+    note: "Wasn't you? Reset your password right away. That logs out whoever changed it.",
+  });
+}
+
+// The waitlist's double opt-in: nobody gets the launch email without
+// clicking this first (see joinWaitlistAction).
+export function waitlistConfirmationEmail(url: string): Email {
+  return render({
+    subject: "Confirm your spot on the comtor waitlist",
+    preview: "One tap and you'll hear from us the day the apps are out.",
+    heading: "Confirm your email.",
+    body: "You asked to hear when the comtor apps are out on iOS and Android. Confirm that this address is yours and you're on the list.",
+    action: { label: "Confirm email", url },
+    note: "We'll send you one email, the day the apps are out. Didn't sign up? Then ignore this email and you won't hear from us.",
   });
 }
 

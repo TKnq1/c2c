@@ -2,13 +2,14 @@
 
 import { useActionState, useState } from "react";
 import Link from "next/link";
-import { FiCheck } from "react-icons/fi";
+import { FiCheck, FiMail } from "react-icons/fi";
 import { joinWaitlistAction } from "@/lib/actions/waitlist";
 import { Spinner } from "@/components/spinner";
 import { useLandingRole } from "@/components/landing/landing-role";
 
-// One email when the apps are out. Keeps which side the visitor picked, so
-// the launch email can talk to creators and brands differently.
+// One email when the apps are out, after the address is confirmed (see
+// joinWaitlistAction). Keeps which side the visitor picked, so the launch
+// email can talk to creators and brands differently.
 export function WaitlistForm() {
   const role = useLandingRole();
   const [state, action, pending] = useActionState(joinWaitlistAction, undefined);
@@ -16,12 +17,27 @@ export function WaitlistForm() {
   // an action form's own fields after every submit).
   const [email, setEmail] = useState("");
 
-  if (state?.ok) {
+  if (state?.alreadyConfirmed) {
     return (
       <p role="status" className="lp-rise mx-auto mt-8 flex w-fit items-center gap-2 rounded-full bg-ink px-5 py-3 font-medium text-paper">
-        <FiCheck className="h-5 w-5" />
-        You&apos;re on the list. We&apos;ll write when it&apos;s out.
+        <FiCheck className="h-5 w-5 shrink-0" />
+        You&apos;re already on the list.
       </p>
+    );
+  }
+
+  if (state?.ok) {
+    return (
+      <div role="status" className="lp-rise mx-auto mt-8 flex max-w-md flex-col items-center gap-2">
+        <p className="flex w-fit items-center gap-2 rounded-full bg-ink px-5 py-3 font-medium text-paper">
+          <FiMail className="h-5 w-5 shrink-0" />
+          Check your inbox.
+        </p>
+        <p className="text-sm text-neutral-700 dark:text-neutral-300">
+          Confirm your email with the link we sent to <span className="font-semibold text-ink">{email}</span>, and
+          you&apos;re on the list.
+        </p>
+      </div>
     );
   }
 
@@ -71,7 +87,7 @@ export function WaitlistForm() {
         </p>
       )}
       <p className="mt-3 text-center text-footnote text-neutral-600 dark:text-neutral-400">
-        One email when the apps are out, nothing else. See the{" "}
+        You confirm by email first. Then one email when the apps are out, nothing else. See the{" "}
         <Link href="/legal/privacy" className="underline underline-offset-2">
           Privacy Policy
         </Link>

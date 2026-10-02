@@ -84,5 +84,5 @@ Password reset and email verification send real emails via Resend. Set `RESEND_A
 and, in production, `EMAIL_FROM` to a sender on the domain verified in Resend
 (`comtor <no-reply@comtor.app>`). Without it, Resend's shared sender only delivers to the
 Resend account's own address, which is the safe default for local dev. The emails are built
-in `src/lib/email-templates.ts`; `/dev-emails/verify` and `/dev-emails/reset` preview them
-locally.
+in `src/lib/email-templates.ts`; `/dev-emails/verify`, `/reset`, `/changed` and `/waitlist`
+preview them locally.

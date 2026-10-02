@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { passwordResetEmail, verificationEmail } from "@/lib/email-templates";
+import {
+  passwordChangedEmail,
+  passwordResetEmail,
+  verificationEmail,
+  waitlistConfirmationEmail,
+} from "@/lib/email-templates";
 
 describe("verificationEmail", () => {
   const url = "https://www.comtor.app/verify-email/abc123";
@@ -27,5 +32,23 @@ describe("passwordResetEmail", () => {
     expect(email.html).toContain('href="https://x.test/?a=1&amp;b=&quot;&gt;&lt;script&gt;"');
     // The plain-text part is never parsed as markup.
     expect(email.text).toContain('https://x.test/?a=1&b="><script>');
+  });
+});
+
+describe("passwordChangedEmail", () => {
+  it("offers a reset for when it wasn't them", () => {
+    const email = passwordChangedEmail("https://www.comtor.app/forgot-password");
+    expect(email.subject).toBe("Your comtor password was changed");
+    expect(email.html).toContain('href="https://www.comtor.app/forgot-password"');
+    expect(email.text).toContain("Wasn't you?");
+  });
+});
+
+describe("waitlistConfirmationEmail", () => {
+  it("links to the confirmation page and promises one email only", () => {
+    const url = "https://www.comtor.app/waitlist/confirm/abc";
+    const email = waitlistConfirmationEmail(url);
+    expect(email.html).toContain(`href="${url}"`);
+    expect(email.text).toContain("one email");
   });
 });

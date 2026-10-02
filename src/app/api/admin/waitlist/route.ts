@@ -2,7 +2,9 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { hasAdminAccess } from "@/lib/admin-access";
 
-// The whole waitlist as a spreadsheet, for the launch email. Admin only.
+// The confirmed part of the waitlist as a spreadsheet, for the launch
+// email: an address nobody confirmed must not get it (double opt-in).
+// Admin only.
 
 function csvCell(value: string): string {
   // A leading = + - or @ would make Excel read the cell as a formula.
@@ -14,14 +16,18 @@ export async function GET() {
   const session = await auth();
   if (!session || !hasAdminAccess(session.user)) return new Response("Not authorized", { status: 401 });
 
-  const entries = await prisma.waitlistEntry.findMany({ orderBy: { createdAt: "asc" } });
+  const entries = await prisma.waitlistEntry.findMany({
+    where: { confirmedAt: { not: null } },
+    orderBy: { createdAt: "asc" },
+  });
   const lines = [
-    ["Email", "Side", "Joined"].join(","),
+    ["Email", "Side", "Joined", "Confirmed"].join(","),
     ...entries.map((e) =>
       [
         csvCell(e.email),
         e.role === "STARTUP" ? "Brand" : e.role === "CREATOR" ? "Creator" : "",
         e.createdAt.toISOString().slice(0, 10),
+        e.confirmedAt?.toISOString().slice(0, 10) ?? "",
       ].join(","),
     ),
   ];

@@ -1,20 +1,32 @@
 "use server";
 
+import { randomBytes } from "crypto";
 import { revalidatePath } from "next/cache";
+import { after } from "next/server";
 import { z } from "zod";
 import { auth } from "@/lib/auth";
 import { hasAdminAccess } from "@/lib/admin-access";
 import { prisma } from "@/lib/prisma";
+import { sendEmail } from "@/lib/email";
+import { waitlistConfirmationEmail } from "@/lib/email-templates";
+import { SITE_URL } from "@/lib/site";
 
-export type WaitlistState = { ok?: boolean; error?: string } | undefined;
+export type WaitlistState = { ok?: boolean; alreadyConfirmed?: boolean; error?: string } | undefined;
 
 const waitlistSchema = z.object({
   email: z.string().trim().toLowerCase().max(254).email("Enter a valid email address."),
   role: z.enum(["creator", "brand"]).optional(),
 });
 
-// The landing page's "tell me when it's out". Signing up twice is fine and
-// says the same thing: the address is on the list either way.
+// Anyone can type any address into the form, so one confirmation email per
+// address every few minutes; trying again sooner gets the same answer.
+const RESEND_AFTER_MS = 10 * 60 * 1000;
+// Unconfirmed addresses are deleted after this (privacy policy).
+const UNCONFIRMED_KEPT_MS = 30 * 24 * 60 * 60 * 1000;
+
+// The landing page's "tell me when it's out", with double opt-in: the
+// address gets a link first, and only confirmed addresses get the launch
+// email. Signing up again just sends the link again (or says it's done).
 export async function joinWaitlistAction(_prev: WaitlistState, formData: FormData): Promise<WaitlistState> {
   // A field people never see; bots fill in everything.
   if (formData.get("website")) return { ok: true };
@@ -27,13 +39,49 @@ export async function joinWaitlistAction(_prev: WaitlistState, formData: FormDat
 
   const { email, role } = parsed.data;
   try {
+    // Housekeeping here rather than in a cron: this is where entries come in.
+    await prisma.waitlistEntry.deleteMany({
+      where: { confirmedAt: null, createdAt: { lt: new Date(Date.now() - UNCONFIRMED_KEPT_MS) } },
+    });
+
+    const existing = await prisma.waitlistEntry.findUnique({ where: { email } });
+    if (existing?.confirmedAt) return { ok: true, alreadyConfirmed: true };
+    if (existing?.confirmSentAt && Date.now() - existing.confirmSentAt.getTime() < RESEND_AFTER_MS) {
+      return { ok: true };
+    }
+
+    // The same link as last time, so an older email still works.
+    const confirmToken = existing?.confirmToken ?? randomBytes(32).toString("hex");
     await prisma.waitlistEntry.upsert({
       where: { email },
-      create: { email, role: role === "brand" ? "STARTUP" : role === "creator" ? "CREATOR" : null },
-      update: {},
+      create: {
+        email,
+        role: role === "brand" ? "STARTUP" : role === "creator" ? "CREATOR" : null,
+        confirmToken,
+        confirmSentAt: new Date(),
+      },
+      update: { confirmToken, confirmSentAt: new Date() },
     });
+    after(() =>
+      sendEmail({ to: email, ...waitlistConfirmationEmail(`${SITE_URL}/waitlist/confirm/${confirmToken}`) }),
+    );
   } catch {
     return { error: "That didn't work. Try again in a moment." };
+  }
+  return { ok: true };
+}
+
+export type ConfirmWaitlistState = { ok?: boolean; error?: string } | undefined;
+
+// The click that counts as consent. A button on the page rather than the
+// link itself: mail scanners open every link in an email, and that mustn't
+// sign anyone up.
+export async function confirmWaitlistAction(token: string): Promise<ConfirmWaitlistState> {
+  const entry = await prisma.waitlistEntry.findUnique({ where: { confirmToken: token } });
+  if (!entry) return { error: "This link doesn't work anymore. Leave your email on comtor.app again to get a new one." };
+  if (!entry.confirmedAt) {
+    await prisma.waitlistEntry.update({ where: { id: entry.id }, data: { confirmedAt: new Date() } });
+    revalidatePath("/admin/waitlist");
   }
   return { ok: true };
 }

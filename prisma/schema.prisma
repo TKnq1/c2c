@@ -13,19 +13,19 @@ enum Role {
 }
 
 model User {
-  id            String   @id @default(cuid())
-  email         String   @unique
-  passwordHash  String
+  id                String    @id @default(cuid())
+  email             String    @unique
+  passwordHash      String
   // Set when the password changes: sessions that began before it are
   // logged out at their next check (see the jwt callback in
   // src/lib/auth.ts), except keptSessionId, the one that made the change.
   sessionsRevokedAt DateTime?
   keptSessionId     String?
-  role          Role
-  emailVerified Boolean  @default(false)
-  totpSecret    String?
-  totpEnabled   Boolean  @default(false)
-  createdAt     DateTime @default(now())
+  role              Role
+  emailVerified     Boolean   @default(false)
+  totpSecret        String?
+  totpEnabled       Boolean   @default(false)
+  createdAt         DateTime  @default(now())
 
   // Set by an admin from /admin/users. A suspended account can't sign in,
   // and an existing session ends at its next periodic check (see auth.ts).
@@ -167,10 +167,15 @@ model SignupAttempt {
 // People who left their email on the landing page to hear when the iOS and
 // Android apps are out. role is what they picked there, if anything.
 model WaitlistEntry {
-  id        String   @id @default(cuid())
-  email     String   @unique
-  role      Role?
-  createdAt DateTime @default(now())
+  id            String    @id @default(cuid())
+  email         String    @unique
+  role          Role?
+  createdAt     DateTime  @default(now())
+  // Double opt-in: the address gets a link first, and only confirmed
+  // addresses get the launch email. confirmedAt is the proof of consent.
+  confirmToken  String?   @unique
+  confirmSentAt DateTime?
+  confirmedAt   DateTime?
 }
 
 model PasswordResetToken {

@@ -2,6 +2,7 @@
 
 import { randomBytes } from "crypto";
 import { redirect } from "next/navigation";
+import { after } from "next/server";
 import { AuthError } from "next-auth";
 import bcrypt from "bcryptjs";
 import type { Role } from "@prisma/client";
@@ -18,7 +19,7 @@ import {
   SIGNUP_RATE_LIMIT_MESSAGE,
 } from "@/lib/login-security";
 import { sendEmail } from "@/lib/email";
-import { passwordResetEmail, verificationEmail } from "@/lib/email-templates";
+import { passwordChangedEmail, passwordResetEmail, verificationEmail } from "@/lib/email-templates";
 import { SITE_URL } from "@/lib/site";
 import {
   loginSchema,
@@ -121,25 +122,29 @@ export async function signupAction(_prevState: ActionState, formData: FormData):
 
   const passwordHash = await bcrypt.hash(data.password, 10);
 
-  if (data.role === "STARTUP") {
-    await prisma.user.create({
-      data: {
-        email: data.email,
-        passwordHash,
-        role: "STARTUP",
-        startupProfile: { create: { companyName: "" } },
-      },
-    });
-  } else {
-    await prisma.user.create({
-      data: {
-        email: data.email,
-        passwordHash,
-        role: "CREATOR",
-        creatorProfile: { create: { displayName: "", niche: "" } },
-      },
-    });
-  }
+  const user =
+    data.role === "STARTUP"
+      ? await prisma.user.create({
+          data: {
+            email: data.email,
+            passwordHash,
+            role: "STARTUP",
+            startupProfile: { create: { companyName: "" } },
+          },
+        })
+      : await prisma.user.create({
+          data: {
+            email: data.email,
+            passwordHash,
+            role: "CREATOR",
+            creatorProfile: { create: { displayName: "", niche: "" } },
+          },
+        });
+
+  // Straight away, so the link is waiting once onboarding is done. After
+  // the response (it still runs through the redirect below): signing up
+  // shouldn't wait on the mail provider.
+  after(() => sendVerificationEmail(user.id, user.email));
 
   try {
     await signIn("credentials", {
@@ -184,6 +189,7 @@ export async function changePasswordAction(
     where: { id: user.id },
     data: { passwordHash, sessionsRevokedAt: new Date(), keptSessionId: session.sid || null },
   });
+  after(() => sendPasswordChangedEmail(user.email));
 
   return { success: true };
 }
@@ -234,29 +240,53 @@ export async function resetPasswordAction(
 
   const passwordHash = await bcrypt.hash(parsed.data.password, 10);
   // A reset is often because someone else got in: every device is logged out.
-  await prisma.user.update({
+  const user = await prisma.user.update({
     where: { id: resetToken.userId },
     data: { passwordHash, sessionsRevokedAt: new Date(), keptSessionId: null },
   });
   await prisma.passwordResetToken.update({ where: { id: resetToken.id }, data: { usedAt: new Date() } });
+  after(() => sendPasswordChangedEmail(user.email));
 
   redirect("/login");
 }
 
 export type GenerateVerificationState = { error?: string; sent?: boolean } | undefined;
 
+// /dashboard/verify-email calls this on every visit, and sign-up has
+// usually just sent a link: one email every few minutes is plenty, and the
+// page says "sent" either way.
+const VERIFICATION_RESEND_AFTER_MS = 5 * 60 * 1000;
+
 export async function generateEmailVerificationAction(): Promise<GenerateVerificationState> {
   const session = await auth();
   if (!session) return { error: "Not authorized." };
 
-  const token = randomBytes(32).toString("hex");
-  await prisma.emailVerificationToken.create({
-    data: { userId: session.user.id, token, expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000) },
+  const recent = await prisma.emailVerificationToken.findFirst({
+    where: {
+      userId: session.user.id,
+      usedAt: null,
+      createdAt: { gt: new Date(Date.now() - VERIFICATION_RESEND_AFTER_MS) },
+    },
+    select: { id: true },
   });
-
-  await sendEmail({ to: session.user.email!, ...verificationEmail(`${SITE_URL}/verify-email/${token}`) });
+  if (!recent) await sendVerificationEmail(session.user.id, session.user.email!);
 
   return { sent: true };
+}
+
+// A fresh 24-hour link, mailed.
+async function sendVerificationEmail(userId: string, email: string) {
+  const token = randomBytes(32).toString("hex");
+  await prisma.emailVerificationToken.create({
+    data: { userId, token, expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000) },
+  });
+  await sendEmail({ to: email, ...verificationEmail(`${SITE_URL}/verify-email/${token}`) });
+}
+
+// After every change and reset, so a change someone else made doesn't go
+// unnoticed.
+async function sendPasswordChangedEmail(email: string) {
+  await sendEmail({ to: email, ...passwordChangedEmail(`${SITE_URL}/forgot-password`) });
 }
 
 export type ConfirmVerificationState = { error?: string; success?: boolean } | undefined;

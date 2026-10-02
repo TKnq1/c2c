@@ -16,7 +16,7 @@ const SECTIONS: { title: string; body: string[] }[] = [
   {
     title: "Your account",
     body: [
-      "Your email address, a hashed password (never stored in plain text), whether you're a brand or a creator, whether your email is verified and, if you turn on two-factor authentication, the secret used to check your codes. We need this to run your account (Art. 6(1)(b) GDPR).",
+      "Your email address, a hashed password (never stored in plain text), whether you're a brand or a creator, whether your email is verified and, if you turn on two-factor authentication, the secret used to check your codes. We need this to run your account (Art. 6(1)(b) GDPR). We email you to verify your address, to reset your password when you ask, and to tell you when your password was changed.",
       "If we suspend an account for breaking our terms, we store when and why, so the decision can be reviewed later (Art. 6(1)(f) GDPR).",
     ],
   },
@@ -36,7 +36,7 @@ const SECTIONS: { title: string; body: string[] }[] = [
   {
     title: "Waitlist",
     body: [
-      "If you leave your email address on our homepage to hear when the iOS and Android apps are out, we store it together with whether you picked brand or creator, and use it for that one email only (Art. 6(1)(a) GDPR). Once the apps are out and we've told you, the address is deleted. You can withdraw your consent at any time by writing to info@comtor.app, and we'll delete it straight away.",
+      "If you leave your email address on our homepage to hear when the iOS and Android apps are out, we store it together with whether you picked brand or creator, and first send you an email with a link to confirm that the address is yours (double opt-in). Only once you've confirmed do we use it, for that one email only (Art. 6(1)(a) GDPR); we keep the time you confirmed as proof of your consent. If you don't confirm, you won't hear from us again and the address is deleted after 30 days. Once the apps are out and we've told you, the address is deleted. You can withdraw your consent at any time by writing to info@comtor.app, and we'll delete it straight away.",
     ],
   },
   {
@@ -55,7 +55,7 @@ const SECTIONS: { title: string; body: string[] }[] = [
   {
     title: "Service providers",
     body: [
-      "These providers process data on our behalf and according to our instructions (Art. 28 GDPR): Vercel Inc., USA, which hosts the website and app; Neon Inc., USA, whose database we use, hosted in Frankfurt, Germany; Resend Inc., USA, which delivers account emails; and Google Ireland Limited, which delivers push notifications to the Android app through Firebase Cloud Messaging.",
+      "These providers process data on our behalf and according to our instructions (Art. 28 GDPR): Vercel Inc., USA, which hosts the website and app; Neon Inc., USA, whose database we use, hosted in Frankfurt, Germany; Resend Inc., USA, which delivers our emails (account and waitlist); and Google Ireland Limited, which delivers push notifications to the Android app through Firebase Cloud Messaging.",
       "Payments, payouts and the identity checks required for payouts are handled by Stripe. For some of this processing, Stripe Payments Europe, Ltd. (Ireland) is responsible itself. See Stripe's privacy policy.",
       "Where data reaches the USA, the transfer is based on the EU–U.S. Data Privacy Framework or on the EU Standard Contractual Clauses.",
     ],
