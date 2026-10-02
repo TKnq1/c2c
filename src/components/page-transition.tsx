@@ -34,7 +34,10 @@ export function PageTransition({ children }: { children: React.ReactNode }) {
   // On desktop Messages is two columns (see messages/layout.tsx): opening
   // another conversation should swap the thread, not remount and fade the
   // list next to it, so every Messages page shares one key there.
-  const key = isDesktop && pathname.startsWith("/dashboard/messages") ? "/dashboard/messages" : pathname;
+  // Discover likewise: a profile opened from the list shows as a panel over
+  // it (see discover/@panel), so the list must stay mounted and scrolled.
+  const discover = pathname.match(/^\/dashboard\/(creator|startup)\/discover(?=\/|$)/)?.[0];
+  const key = discover ?? (isDesktop && pathname.startsWith("/dashboard/messages") ? "/dashboard/messages" : pathname);
   return (
     <ViewTransition key={key} enter={directional} exit={directional} default="none">
       <div className="page-transition-fade flex-1 min-h-0 flex flex-col">{children}</div>

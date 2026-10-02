@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { IoChevronUp, IoLogOutOutline, IoSettingsOutline, IoShieldCheckmarkOutline } from "react-icons/io5";
 import { Avatar } from "@/components/avatar";
+import { SidebarTooltip } from "@/components/sidebar-tooltip";
 import { LogoutButton } from "@/components/logout-button";
 import { useExitAnimation } from "@/lib/use-exit-animation";
 import type { Me } from "@/app/api/me/route";
@@ -56,8 +57,8 @@ export function SidebarProfile({
         onClick={() => setOpen((v) => !v)}
         aria-haspopup="menu"
         aria-expanded={open}
-        title={name}
-        className={`flex h-12 w-full items-center justify-center gap-3 rounded px-2 transition lg:justify-start ${
+        aria-label={`${name}: account menu`}
+        className={`group relative flex h-12 w-full items-center justify-center gap-3 rounded px-2 transition lg:justify-start ${
           active || open ? "bg-fog" : "hover:bg-fog"
         }`}
       >
@@ -67,6 +68,7 @@ export function SidebarProfile({
           className={`hidden h-4 w-4 shrink-0 text-graphite transition lg:block ${open ? "" : "rotate-180"}`}
           aria-hidden
         />
+        {!open && <SidebarTooltip label={name} />}
       </button>
 
       {menu.present && (

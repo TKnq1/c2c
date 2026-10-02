@@ -575,6 +575,39 @@ async function main() {
     },
   });
 
+  // 6) Two more of Mia's matches with Glow, so her Matches list has
+  // something under each filter: one she applied to that's still waiting on
+  // a reply, and one Glow answered with an offer.
+  const [glowThirdRequest, glowFourthRequest] = await prisma.request.findMany({
+    where: { startupId: startup1.id },
+    orderBy: { createdAt: "asc" },
+    skip: 2,
+    take: 2,
+  });
+  await prisma.interest.create({
+    data: { requestId: glowThirdRequest.id, creatorId: creator1User.creatorProfile!.id, createdAt: oneDayAgo },
+  });
+  const miaOfferInterest = await prisma.interest.create({
+    data: {
+      requestId: glowFourthRequest.id,
+      creatorId: creator1User.creatorProfile!.id,
+      amountCents: 20_000, // $200.00
+      platformFeeCents: 2_000, // $20.00 (10%)
+      payoutCents: 18_000, // $180.00
+      paymentStatus: "OFFERED",
+      offerRole: "STARTUP",
+      offeredAt: fiveHoursAgo,
+    },
+  });
+  await prisma.message.create({
+    data: {
+      interestId: miaOfferInterest.id,
+      senderRole: "STARTUP",
+      body: "Your routines are exactly the vibe for this one. Sent you an offer, happy to adjust.",
+      createdAt: fiveHoursAgo,
+    },
+  });
+
   // Glow Beauty Co has Jonas Fit saved for later, and it's mutual — Jonas
   // has Glow Beauty saved too — so neither Favorites page is empty on
   // first look, and the pair demonstrates both directions at once.

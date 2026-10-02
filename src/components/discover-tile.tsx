@@ -35,7 +35,9 @@ export function DiscoverTile({
 
   return (
     <div className="relative flex min-w-0 flex-col gap-2">
-      <Link href={href} className="group flex min-w-0 flex-col gap-2">
+      {/* scroll={false}: the profile opens as a panel over the list (see
+          discover/@panel), which should stay where it was scrolled to. */}
+      <Link href={href} scroll={false} className="group flex min-w-0 flex-col gap-2">
         <div className="relative aspect-[4/5] overflow-hidden rounded bg-fog">
           {photo ? (
             // User-uploaded images served by our own routes — nothing for

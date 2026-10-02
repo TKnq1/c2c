@@ -68,10 +68,12 @@ export default async function DashboardLayout({ children }: { children: React.Re
           floating header and tab bar (see Nav): the top padding clears the
           header (--header-h, also what scroll-padding keeps anchors and
           focused fields clear of), the bottom one the tab bar. From md up
-          the header is an ordinary bar above it. */}
+          the header is an ordinary bar above it. Lists and tables (pages
+          marked .page-wide) get more room on large screens than reading
+          pages like settings or a request. */}
       <main
         id="main-content"
-        className="flex-1 min-h-0 overflow-y-auto max-w-5xl w-full mx-auto px-6 pt-[calc(var(--header-h)+2rem)] pb-24 max-md:scroll-pt-[var(--header-h)] md:pt-8 md:pb-8"
+        className="flex-1 min-h-0 overflow-y-auto max-w-5xl has-[.page-wide]:max-w-7xl w-full mx-auto px-6 pt-[calc(var(--header-h)+2rem)] pb-24 max-md:scroll-pt-[var(--header-h)] md:pt-8 md:pb-8"
       >
         {/* Inside <main>, right under the header, so they scroll away with
             the page instead of sitting between the header and a page that

@@ -12,7 +12,8 @@ import { ChatLiveUpdates } from "@/components/chat-live-updates";
 import { ChatViewport } from "@/components/chat-viewport";
 import { buildCollabTimeline } from "@/lib/collab-timeline";
 import { chatThreadVersion } from "@/lib/chat-version";
-import { PLATFORM_FEE_RATE, PRO_PLATFORM_FEE_RATE } from "@/lib/constants";
+import { DEPOSITS_ENABLED, PLATFORM_FEE_RATE, PRO_PLATFORM_FEE_RATE } from "@/lib/constants";
+import { ChatInfoPanel } from "@/components/chat-info-panel";
 
 export default async function MessageThreadPage({ params }: { params: Promise<{ interestId: string }> }) {
   const { interestId } = await params;
@@ -108,52 +109,80 @@ export default async function MessageThreadPage({ params }: { params: Promise<{ 
     // globals.css) so the thread can run edge to edge — its own header and
     // composer take over the safe-area insets instead, since the nav bars
     // that normally handle them are hidden here.
-    <div className="chat-thread flex h-full flex-col">
-      <MarkThreadRead interestId={interestId} latestUnreadId={latestUnreadId} />
-      <ChatLiveUpdates interestId={interestId} version={version} />
-      <ChatViewport />
+    // From xl a details column sits to the right of the thread.
+    <div className="flex h-full min-h-0 gap-6">
+      <div className="chat-thread flex h-full min-w-0 flex-1 flex-col">
+        <MarkThreadRead interestId={interestId} latestUnreadId={latestUnreadId} />
+        <ChatLiveUpdates interestId={interestId} version={version} />
+        <ChatViewport />
 
-      <header className="flex shrink-0 items-center gap-2 border-b border-ink/10 px-2 pb-2 pt-[calc(var(--safe-top)+8px)] md:px-0 md:pb-3 md:pt-0">
-        <Link
-          href="/dashboard/messages"
-          transitionTypes={["nav-back"]}
-          aria-label="Back to messages"
-          // Desktop has the list right next to the thread, no way back needed.
-          className="-ml-1 flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-ink transition hover:bg-fog md:ml-0 lg:hidden"
-        >
-          <IoChevronBack className="h-6 w-6" />
-        </Link>
-        <Link href={other.href} className="flex min-w-0 flex-1 items-center gap-3">
-          <Avatar src={other.avatarUrl} name={other.name} size={40} />
-          <span className="min-w-0 truncate font-semibold">{other.name}</span>
-        </Link>
-        <ReportBlockActions otherUserId={other.userId} otherName={other.name} initialBlockedByMe={blockedByMe} />
-      </header>
+        <header className="flex shrink-0 items-center gap-2 border-b border-ink/10 px-2 pb-2 pt-[calc(var(--safe-top)+8px)] md:px-0 md:pb-3 md:pt-0">
+          <Link
+            href="/dashboard/messages"
+            transitionTypes={["nav-back"]}
+            aria-label="Back to messages"
+            // Desktop has the list right next to the thread, no way back needed.
+            className="-ml-1 flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-ink transition hover:bg-fog md:ml-0 lg:hidden"
+          >
+            <IoChevronBack className="h-6 w-6" />
+          </Link>
+          <Link href={other.href} className="flex min-w-0 flex-1 items-center gap-3">
+            <Avatar src={other.avatarUrl} name={other.name} size={40} />
+            <span className="min-w-0 truncate font-semibold">{other.name}</span>
+          </Link>
+          <ReportBlockActions otherUserId={other.userId} otherName={other.name} initialBlockedByMe={blockedByMe} />
+        </header>
 
-      {/* One combined, chronological feed — chat bubbles for messages, the
-          current offer as a card, small centered rows for payment/deposit/
-          review milestones — so the whole collab's story reads in one place
-          instead of being split across this thread, the Payments page, and
-          the request detail page. The timeline's own "proposed" row is left
-          out since the offer card already stands in for it. Dates cross into
-          the client as plain numbers; formatting happens there, in the
-          viewer's own time zone. */}
-      <ChatConversation
+        {/* One combined, chronological feed — chat bubbles for messages, the
+            current offer as a card, small centered rows for payment/deposit/
+            review milestones — so the whole collab's story reads in one place
+            instead of being split across this thread, the Payments page, and
+            the request detail page. The timeline's own "proposed" row is left
+            out since the offer card already stands in for it. Dates cross into
+            the client as plain numbers; formatting happens there, in the
+            viewer's own time zone. */}
+        <ChatConversation
+          interestId={interestId}
+          requestTitle={interest.request.title}
+          blockedNotice={blockedNotice}
+          offer={offer}
+          makeOffer={makeOffer}
+          messages={interest.messages.map((m) => ({
+            id: m.id,
+            body: m.body,
+            createdAt: m.createdAt.getTime(),
+            isMine: m.senderRole === session.user.role,
+            read: m.read,
+          }))}
+          events={buildCollabTimeline(interest)
+            .filter((e) => e.type !== "offer")
+            .map((e) => ({ at: e.at.getTime(), label: e.label, href: e.href }))}
+        />
+      </div>
+      <ChatInfoPanel
         interestId={interestId}
-        requestTitle={interest.request.title}
-        blockedNotice={blockedNotice}
+        other={other}
+        request={{
+          title: interest.request.title,
+          href: isStartup ? `/dashboard/startup/requests/${interest.request.id}` : null,
+          budgetMinCents: interest.request.budgetMinCents,
+          budgetMaxCents: interest.request.budgetMaxCents,
+          platform: interest.request.platform,
+          deliverables: interest.request.deliverables,
+          postBy: interest.request.postBy,
+          productIncluded: interest.request.productIncluded,
+          productCategory: interest.request.productCategory,
+        }}
         offer={offer}
         makeOffer={makeOffer}
-        messages={interest.messages.map((m) => ({
-          id: m.id,
-          body: m.body,
-          createdAt: m.createdAt.getTime(),
-          isMine: m.senderRole === session.user.role,
-          read: m.read,
-        }))}
-        events={buildCollabTimeline(interest)
-          .filter((e) => e.type !== "offer")
-          .map((e) => ({ at: e.at.getTime(), label: e.label, href: e.href }))}
+        waitingOn={`No offer yet. ${other.name} sends one once you've agreed on the content.`}
+        deposit={
+          DEPOSITS_ENABLED && interest.depositStatus && interest.depositCents
+            ? { status: interest.depositStatus, amountCents: interest.depositCents }
+            : null
+        }
+        startedAt={interest.createdAt.getTime()}
+        disputedAt={interest.disputedAt}
       />
     </div>
   );

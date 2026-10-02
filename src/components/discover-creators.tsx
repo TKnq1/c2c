@@ -167,7 +167,7 @@ export function DiscoverCreators({ creators }: { creators: CreatorEntry[] }) {
             }}
           />
         ) : (
-          <div className="grid grid-cols-2 gap-x-3 gap-y-5 sm:grid-cols-3">
+          <div className="grid grid-cols-2 gap-x-3 gap-y-5 sm:grid-cols-3 xl:grid-cols-4">
             {filtered.map((c) => (
               <CreatorCard
                 key={c.id}

@@ -93,7 +93,7 @@ export default async function DiscoverBrandsPage() {
   });
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="page-wide flex flex-col gap-6">
       {/* The favorites-only toggle lives in DiscoverBrands' own search row,
           next to the search input, rather than sitting alone up here. */}
       <PageTitle description="Browse brands across every niche and see what they're looking for.">

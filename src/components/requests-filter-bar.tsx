@@ -33,7 +33,8 @@ export function RequestsFilterBar() {
       <Select
         value={sort || "newest"}
         onChange={(e) => setParam("sort", e.target.value === "newest" ? "" : e.target.value)}
-        wrapperClassName="w-40"
+        // From md the table's column headers sort instead.
+        wrapperClassName="w-40 md:hidden"
         aria-label="Sort by"
       >
         <option value="newest">Newest first</option>

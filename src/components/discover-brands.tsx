@@ -162,7 +162,7 @@ export function DiscoverBrands({ brands }: { brands: BrandEntry[] }) {
           action={{ label: "Clear filters", onClick: () => setParams({ q: "", niche: "", favorites: "" }) }}
         />
       ) : (
-        <div className="grid grid-cols-2 gap-x-3 gap-y-5 sm:grid-cols-3">
+        <div className="grid grid-cols-2 gap-x-3 gap-y-5 sm:grid-cols-3 xl:grid-cols-4">
           {filtered.map((b) => (
             <BrandCard
               key={b.id}

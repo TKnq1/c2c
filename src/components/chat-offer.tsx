@@ -65,11 +65,15 @@ export function ChatOfferCard({
   offer,
   timeLabel,
   isNew,
+  variant = "bubble",
 }: {
   interestId: string;
   offer: ChatOffer;
   timeLabel: string;
   isNew: boolean;
+  // "panel": the same card, full width and in place, for the chat's info
+  // column on wide screens (see ChatInfoPanel).
+  variant?: "bubble" | "panel";
 }) {
   const router = useRouter();
   const refresh = () => router.refresh();
@@ -205,13 +209,20 @@ export function ChatOfferCard({
       break;
   }
 
+  const panel = variant === "panel";
   return (
     <div
-      className={`my-2 flex ${isMine ? "origin-bottom-right justify-end" : "origin-bottom-left justify-start"} ${
-        isNew ? "animate-bubble-in" : ""
-      }`}
+      className={
+        panel
+          ? ""
+          : `my-2 flex ${isMine ? "origin-bottom-right justify-end" : "origin-bottom-left justify-start"} ${isNew ? "animate-bubble-in" : ""}`
+      }
     >
-      <div className="w-[80%] max-w-xs rounded-[18px] border border-ink/10 bg-background p-3.5 shadow-sm">
+      <div
+        className={
+          panel ? "rounded bg-background p-3.5" : "w-[80%] max-w-xs rounded-[18px] border border-ink/10 bg-background p-3.5 shadow-sm"
+        }
+      >
         <p className="text-[11px] font-medium uppercase tracking-wide text-neutral-500 dark:text-neutral-400">
           {eyebrow}
         </p>
@@ -226,7 +237,7 @@ export function ChatOfferCard({
           ) : (
             <span />
           )}
-          <span className="text-[11px] text-neutral-500 dark:text-neutral-400">{timeLabel}</span>
+          {timeLabel && <span className="text-[11px] text-neutral-500 dark:text-neutral-400">{timeLabel}</span>}
         </div>
       </div>
     </div>
