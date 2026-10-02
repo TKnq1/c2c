@@ -165,7 +165,7 @@ function toInterestEntry(i: {
   creator: {
     displayName: string;
     avatarUrl: string | null;
-    niche: string;
+    niches: string[];
     user: { email: string };
     platforms: { platform: string; followerCount: number }[];
   };
@@ -182,7 +182,7 @@ function toInterestEntry(i: {
     id: i.id,
     displayName: i.creator.displayName,
     avatarUrl: i.creator.avatarUrl,
-    niche: i.creator.niche,
+    niche: i.creator.niches.join(", "),
     email: i.creator.user.email,
     platforms: i.creator.platforms,
     paymentStatus: i.paymentStatus,

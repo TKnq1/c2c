@@ -76,7 +76,7 @@ async function notifyMatchingCreators(
   const blockedUserIds = await getMutualBlockedUserIds(viewerUserId);
   const matchingCreators = await prisma.creatorProfile.findMany({
     where: {
-      niche: request.niche,
+      niches: { has: request.niche },
       platforms: { some: { followerCount: { gte: request.minFollowers } } },
       userId: { notIn: blockedUserIds },
       user: { suspendedAt: null },
@@ -290,14 +290,15 @@ export async function bulkCloseRequestsAction(requestIds: string[]) {
 // both are "creator commits to this request" in substance, they just differ
 // in what happens after (stay on the feed vs. jump into the new thread).
 async function createInterestAsCreator(
-  creator: { id: string; displayName: string; niche: string; platforms: { followerCount: number }[] },
+  creator: { id: string; displayName: string; niches: string[]; platforms: { followerCount: number }[] },
   requestId: string,
   userId: string,
 ) {
   // Never trust that the UI only offered a matching request — re-verify
-  // server-side against the same live feed computation.
+  // server-side against the same live feed computation. "all", not
+  // "forYou": the Feed's All tab offers requests outside the creator's niches.
   const blockedUserIds = await getMutualBlockedUserIds(userId);
-  const matches = await getCreatorFeed(creator, blockedUserIds);
+  const matches = await getCreatorFeed(creator, blockedUserIds, "all");
   const match = matches.find((r) => r.id === requestId);
   if (!match) {
     throw new Error("This request is currently unavailable.");

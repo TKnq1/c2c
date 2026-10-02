@@ -219,7 +219,7 @@ async function main() {
         create: {
           displayName: "Mia Summers",
           avatarUrl: initialsAvatar("Mia Summers", "#f43f5e"),
-          niche: "Beauty",
+          niches: ["Beauty", "Fitness"],
           contentLanguage: "English",
           bio: "Skincare-obsessed creator sharing honest routines and first-impression reviews.",
           // Multiple platforms on purpose: demonstrates that matching uses
@@ -245,7 +245,7 @@ async function main() {
       creatorProfile: {
         create: {
           displayName: "Lena Cross",
-          niche: "Beauty",
+          niches: ["Beauty"],
           platforms: { create: [{ platform: "TikTok", followerCount: 3000, url: "https://tiktok.com/@lenacross" }] },
         },
       },
@@ -262,7 +262,7 @@ async function main() {
         create: {
           displayName: "Jonas Fit",
           avatarUrl: initialsAvatar("Jonas Fit", "#3b82f6"),
-          niche: "Fitness",
+          niches: ["Fitness"],
           contentLanguage: "English",
           bio: "Strength training and running content — real footage, no green screens.",
           platforms: {
@@ -285,7 +285,7 @@ async function main() {
         create: {
           displayName: "Paul Delish",
           avatarUrl: initialsAvatar("Paul Delish", "#eab308"),
-          niche: "Food",
+          niches: ["Food"],
           platforms: { create: [{ platform: "Instagram", followerCount: 100000, url: "https://instagram.com/pauldelish" }] },
         },
       },
@@ -301,7 +301,7 @@ async function main() {
       creatorProfile: {
         create: {
           displayName: "Sara Trend",
-          niche: "Fashion",
+          niches: ["Fashion"],
           contentLanguage: "German",
           bio: "Fashion-Content auf Deutsch — Lookbooks, Try-on-Hauls und Styling-Tipps.",
           platforms: { create: [{ platform: "TikTok", followerCount: 10000, url: "https://tiktok.com/@saratrend" }] },

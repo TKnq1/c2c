@@ -2,7 +2,8 @@
 
 import { useActionState, useEffect, useState } from "react";
 import { updateCreatorProfileAction } from "@/lib/actions/profile";
-import { NICHES, LANGUAGES } from "@/lib/constants";
+import { LANGUAGES, MAX_CREATOR_NICHES } from "@/lib/constants";
+import { NicheTilesMulti } from "@/components/niche-tiles";
 import { PlatformChips, type PlatformDraft } from "@/components/platform-chips";
 import { Select } from "@/components/select";
 import { AvatarUpload } from "@/components/avatar-upload";
@@ -13,7 +14,7 @@ import { useNavigationBlocker } from "@/lib/navigation-blocker";
 type Props = {
   displayName: string;
   avatarUrl: string | null;
-  niche: string;
+  niches: string[];
   contentLanguage: string | null;
   bio: string | null;
   platforms: { platform: string; followerCount: number; url?: string | null }[];
@@ -22,12 +23,13 @@ type Props = {
 export function EditProfileForm({
   displayName,
   avatarUrl,
-  niche,
+  niches,
   contentLanguage,
   bio,
   platforms,
 }: Props) {
   const [state, formAction, pending] = useActionState(updateCreatorProfileAction, undefined);
+  const [nicheDrafts, setNicheDrafts] = useState(niches);
   const [platformDrafts, setPlatformDrafts] = useState<PlatformDraft[]>(() =>
     platforms.map((p) => ({ platform: p.platform, followers: String(p.followerCount), url: p.url ?? "" })),
   );
@@ -57,16 +59,11 @@ export function EditProfileForm({
         />
       </div>
       <div className="flex flex-col gap-1">
-        <label htmlFor="niche" className="text-sm font-medium">
-          Niche
-        </label>
-        <Select id="niche" name="niche" defaultValue={niche} required>
-          {NICHES.map((n) => (
-            <option key={n} value={n}>
-              {n}
-            </option>
-          ))}
-        </Select>
+        <span className="text-sm font-medium">Niches</span>
+        <p className="text-xs text-neutral-500 dark:text-neutral-400">
+          Up to {MAX_CREATOR_NICHES}. Your Feed&apos;s For you shows requests in them.
+        </p>
+        <NicheTilesMulti name="niches" value={nicheDrafts} onChange={setNicheDrafts} />
       </div>
       <div className="flex flex-col gap-1">
         <label htmlFor="contentLanguage" className="text-sm font-medium">

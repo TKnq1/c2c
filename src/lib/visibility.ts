@@ -1,32 +1,25 @@
 import { prisma } from "@/lib/prisma";
 import { requestPhotoIds } from "@/lib/request-photos";
+import { creatorFeedWhere, type FeedCreator, type FeedScope } from "@/lib/feed-scope";
 
 /**
- * A creator's feed: every request matching niche + follower threshold. A
- * creator qualifies if ANY of their platforms clears the request's
- * minFollowers — requests aren't platform-specific, so the highest reach
- * across platforms is what's checked. Requests from a mutually-blocked
- * brand are excluded entirely.
+ * A creator's feed: open requests whose follower threshold is cleared by ANY
+ * of their platforms — requests aren't platform-specific, so the highest
+ * reach across platforms is what's checked. Requests from a mutually-blocked
+ * brand are excluded entirely (see creatorFeedWhere).
+ *
+ * The scope decides the niche: "forYou" keeps to the creator's niches, "all"
+ * doesn't look at them. "all" is also what a creator may still reach out to
+ * (see createInterestAsCreator), since the Feed lets them swipe on it.
  *
  * Takes blockedUserIds rather than fetching it internally — every caller
  * already needs it (or can get it) alongside other queries it's running in
  * the same Promise.all, and fetching it in here instead would force an
  * extra sequential round-trip after that Promise.all rather than joining it.
  */
-export async function getCreatorFeed(
-  creator: { niche: string; platforms: { followerCount: number }[] },
-  blockedUserIds: string[],
-) {
-  const maxFollowers = creator.platforms.reduce((max, p) => Math.max(max, p.followerCount), 0);
+export async function getCreatorFeed(creator: FeedCreator, blockedUserIds: string[], scope: FeedScope) {
   return prisma.request.findMany({
-    where: {
-      niche: creator.niche,
-      minFollowers: { lte: maxFollowers },
-      status: "OPEN",
-      // A suspended brand's requests are closed on suspension; this also
-      // covers any that slip through (see /admin/users).
-      startup: { userId: { notIn: blockedUserIds }, user: { suspendedAt: null } },
-    },
+    where: creatorFeedWhere(creator, blockedUserIds, scope),
     // Photo ids only (served by /api/request-images), never the legacy
     // data-URI column — a feed would otherwise ship every image inline.
     include: { startup: true, ...requestPhotoIds },

@@ -1,5 +1,13 @@
 import { describe, expect, it } from "vitest";
-import { formatBudget, formatCents, formatFollowers, formatPostBy, formatRelativeTime, isRecentlyCreated } from "@/lib/format";
+import {
+  formatBudget,
+  formatCents,
+  formatFollowers,
+  formatNiches,
+  formatPostBy,
+  formatRelativeTime,
+  isRecentlyCreated,
+} from "@/lib/format";
 
 describe("formatCents", () => {
   it("formats whole euros", () => {
@@ -110,5 +118,19 @@ describe("formatRelativeTime", () => {
     const justAfterMidnight = Date.parse("2026-10-01T00:30:00+02:00");
     expect(formatRelativeTime(justAfterMidnight, now, tz)).toBe("14 h ago");
     expect(formatRelativeTime(justAfterMidnight, now, "UTC")).toBe("Yesterday");
+  });
+});
+
+describe("formatNiches", () => {
+  it("shows a single niche as is", () => {
+    expect(formatNiches(["Beauty"])).toBe("Beauty");
+  });
+
+  it("counts the rest after the first niche", () => {
+    expect(formatNiches(["Beauty", "Fitness", "Food"])).toBe("Beauty +2");
+  });
+
+  it("is empty without niches", () => {
+    expect(formatNiches([])).toBe("");
   });
 });

@@ -21,7 +21,7 @@ const FAQS: { question: string; answer: string }[] = [
   {
     question: "How does matching work?",
     answer:
-      "Brands post a request with a niche, a minimum follower count, and a product category. Creators see requests that match their own niche and where at least one of their platforms clears the follower threshold. No manual approval: if it matches, it shows up in the feed.",
+      "Brands post a request with a niche, a minimum follower count, and a product category. Creators pick up to three niches and see requests in them under For you, where at least one of their platforms clears the follower threshold. Under All they see every request their reach qualifies for, whatever its niche. No manual approval: if it matches, it shows up in the feed.",
   },
   {
     question: "How do I reach out?",

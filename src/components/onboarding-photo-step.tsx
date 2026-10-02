@@ -13,13 +13,13 @@ import { StepError, StepFooter, StepHeading, useStepDone } from "@/components/on
 export function OnboardingPhotoStep({
   kind,
   name,
-  niche,
+  niches,
   onBack,
   onDone,
 }: {
   kind: "photo" | "logo";
   name: string;
-  niche: string;
+  niches: string[];
   onBack: () => void;
   onDone: () => void;
 }) {
@@ -28,7 +28,7 @@ export function OnboardingPhotoStep({
   const inputRef = useRef<HTMLInputElement>(null);
   const [preview, setPreview] = useState<string | null>(null);
   const [readError, setReadError] = useState<string | null>(null);
-  const NicheIcon = NICHE_ICONS[niche] ?? DEFAULT_NICHE_ICON;
+  const NicheIcon = NICHE_ICONS[niches[0]] ?? DEFAULT_NICHE_ICON;
   const noun = kind === "logo" ? "logo" : "photo";
 
   async function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
@@ -86,10 +86,10 @@ export function OnboardingPhotoStep({
           <Avatar src={preview} name={name || "?"} size={44} />
           <div className="min-w-0">
             <p className="truncate font-semibold">{name}</p>
-            {niche && (
+            {niches.length > 0 && (
               <p className="flex items-center gap-1.5 text-footnote text-neutral-500 dark:text-neutral-400">
                 <NicheIcon className="h-3.5 w-3.5 shrink-0" aria-hidden />
-                {niche}
+                {niches.join(", ")}
               </p>
             )}
           </div>

@@ -1,8 +1,9 @@
 "use client";
 
 import { useActionState, useCallback, useState } from "react";
-import { saveDisplayNameAction, saveNicheAction, savePlatformsAction } from "@/lib/actions/onboarding";
-import { NicheTiles } from "@/components/niche-tiles";
+import { saveDisplayNameAction, saveNichesAction, savePlatformsAction } from "@/lib/actions/onboarding";
+import { NicheTilesMulti } from "@/components/niche-tiles";
+import { MAX_CREATOR_NICHES } from "@/lib/constants";
 import { PlatformChips, type PlatformDraft } from "@/components/platform-chips";
 import { OnboardingPhotoStep } from "@/components/onboarding-photo-step";
 import { OnboardingDone } from "@/components/onboarding-done";
@@ -15,13 +16,13 @@ import {
   useStepDone,
 } from "@/components/onboarding-ui";
 
-// Name, niche, platforms, photo (optional), then the "all set" screen.
+// Name, niches, platforms, photo (optional), then the "all set" screen.
 const STEPS = 4;
 
 export function CreatorOnboarding({ emailVerified }: { emailVerified: boolean }) {
   const [step, setStep] = useState(0);
   const [displayName, setDisplayName] = useState("");
-  const [niche, setNiche] = useState("");
+  const [niches, setNiches] = useState<string[]>([]);
   const [platforms, setPlatforms] = useState<PlatformDraft[]>([]);
   const next = useCallback(() => setStep((s) => s + 1), []);
   const back = useCallback(() => setStep((s) => s - 1), []);
@@ -35,9 +36,9 @@ export function CreatorOnboarding({ emailVerified }: { emailVerified: boolean })
       <OnboardingProgress step={step} total={STEPS} />
       <StepPanels step={step}>
         <NameStep value={displayName} onChange={setDisplayName} onDone={next} />
-        <NicheStep value={niche} onChange={setNiche} onBack={back} onDone={next} />
+        <NichesStep value={niches} onChange={setNiches} onBack={back} onDone={next} />
         <PlatformsStep value={platforms} onChange={setPlatforms} onBack={back} onDone={next} />
-        <OnboardingPhotoStep kind="photo" name={displayName.trim()} niche={niche} onBack={back} onDone={next} />
+        <OnboardingPhotoStep kind="photo" name={displayName.trim()} niches={niches} onBack={back} onDone={next} />
       </StepPanels>
     </div>
   );
@@ -67,26 +68,29 @@ function NameStep({ value, onChange, onDone }: { value: string; onChange: (v: st
   );
 }
 
-function NicheStep({
+function NichesStep({
   value,
   onChange,
   onBack,
   onDone,
 }: {
-  value: string;
-  onChange: (v: string) => void;
+  value: string[];
+  onChange: (v: string[]) => void;
   onBack: () => void;
   onDone: () => void;
 }) {
-  const [state, formAction, pending] = useActionState(saveNicheAction, undefined);
+  const [state, formAction, pending] = useActionState(saveNichesAction, undefined);
   useStepDone(state, onDone);
 
   return (
     <form action={formAction} className="flex flex-col gap-6">
-      <StepHeading title="What's your niche?" description="Your feed shows requests in this niche, so pick the closest fit." />
-      <NicheTiles name="niche" value={value} onChange={onChange} />
+      <StepHeading
+        title="What are your niches?"
+        description={`Pick up to ${MAX_CREATOR_NICHES}. Your feed shows requests in them first; you can switch it to everything that fits your reach.`}
+      />
+      <NicheTilesMulti name="niches" value={value} onChange={onChange} />
       <StepError state={state} />
-      <StepFooter onBack={onBack} pending={pending} disabled={!value} />
+      <StepFooter onBack={onBack} pending={pending} disabled={value.length === 0} />
     </form>
   );
 }

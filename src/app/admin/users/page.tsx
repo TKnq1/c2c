@@ -40,7 +40,7 @@ export default async function AdminUsersPage(props: PageProps<"/admin/users">) {
       take: PAGE_SIZE,
       include: {
         startupProfile: { select: { companyName: true, isPro: true } },
-        creatorProfile: { select: { displayName: true, niche: true } },
+        creatorProfile: { select: { displayName: true, niches: true } },
         _count: { select: { reportsReceived: { where: { status: "OPEN" } } } },
       },
     }),
@@ -104,7 +104,7 @@ export default async function AdminUsersPage(props: PageProps<"/admin/users">) {
                     </span>
                     <span className="block truncate text-footnote text-neutral-500 dark:text-neutral-400">
                       {u.email}
-                      {u.creatorProfile && ` · ${u.creatorProfile.niche}`}
+                      {u.creatorProfile && ` · ${u.creatorProfile.niches.join(", ")}`}
                     </span>
                   </span>
                   <span className="hidden text-footnote text-neutral-500 md:block dark:text-neutral-400">

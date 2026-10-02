@@ -71,7 +71,6 @@ export async function CreatorProfileView({ id, variant }: { id: string; variant:
     ),
   );
   const totalReach = creator.platforms.reduce((sum, p) => sum + p.followerCount, 0);
-  const NicheIcon = NICHE_ICONS[creator.niche] ?? DEFAULT_NICHE_ICON;
 
   return (
     <div className="flex flex-col gap-6">
@@ -82,7 +81,14 @@ export async function CreatorProfileView({ id, variant }: { id: string; variant:
         avatarUrl={creator.avatarUrl}
         tags={
           <>
-            <ProfileTag icon={<NicheIcon className="h-3.5 w-3.5" aria-hidden />}>{creator.niche}</ProfileTag>
+            {creator.niches.map((niche) => {
+              const NicheIcon = NICHE_ICONS[niche] ?? DEFAULT_NICHE_ICON;
+              return (
+                <ProfileTag key={niche} icon={<NicheIcon className="h-3.5 w-3.5" aria-hidden />}>
+                  {niche}
+                </ProfileTag>
+              );
+            })}
             {creator.contentLanguage && (
               <ProfileTag icon={<IoLanguageOutline className="h-3.5 w-3.5" aria-hidden />}>{creator.contentLanguage}</ProfileTag>
             )}

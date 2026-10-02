@@ -279,7 +279,10 @@ model CreatorProfile {
   user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   displayName     String
   avatarUrl       String?
-  niche           String
+  // Up to MAX_CREATOR_NICHES (src/lib/constants.ts). Empty only until the
+  // onboarding wizard's niche step. The Feed's "For you" shows requests in
+  // these; "All" ignores them.
+  niches          String[] @default([])
   bio             String?
   contentLanguage String?
   createdAt       DateTime @default(now())

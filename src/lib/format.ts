@@ -14,6 +14,13 @@ export function formatFollowers(count: number): string {
   return `${Math.floor(count / 100_000) / 10}M+`;
 }
 
+// A creator's niches on a tight line (a Discover tile): the first one and
+// how many more there are, e.g. "Beauty +2".
+export function formatNiches(niches: string[]): string {
+  if (niches.length <= 1) return niches[0] ?? "";
+  return `${niches[0]} +${niches.length - 1}`;
+}
+
 const NEW_WINDOW_MS = 7 * 24 * 60 * 60 * 1000;
 
 // Drives the "New" badge on Discover cards — a week feels long enough to

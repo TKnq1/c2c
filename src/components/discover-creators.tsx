@@ -15,7 +15,7 @@ type CreatorEntry = {
   id: string;
   displayName: string;
   avatarUrl: string | null;
-  niche: string;
+  niches: string[];
   bio: string | null;
   contentLanguage: string | null;
   platforms: { platform: string; followerCount: number }[];
@@ -46,7 +46,7 @@ export function DiscoverCreators({ creators }: { creators: CreatorEntry[] }) {
     setParams,
   ] = useUrlState(["q", "niche", "platform", "language", "minFollowers", "sort", "favorites"]);
   const sort = (sortParam || "best") as SortKey;
-  const niches = useMemo(() => (niche ? niche.split(",") : []), [niche]);
+  const nicheFilters = useMemo(() => (niche ? niche.split(",") : []), [niche]);
   const platformFilters = useMemo(() => (platform ? platform.split(",") : []), [platform]);
   const languages = useMemo(() => (language ? language.split(",") : []), [language]);
 
@@ -73,12 +73,12 @@ export function DiscoverCreators({ creators }: { creators: CreatorEntry[] }) {
 
     const results = creators.filter((c) => {
       if (favorites === "1" && !favoritedIds.has(c.id)) return false;
-      if (niches.length > 0 && !niches.includes(c.niche)) return false;
+      if (nicheFilters.length > 0 && !c.niches.some((n) => nicheFilters.includes(n))) return false;
       if (platformFilters.length > 0 && !c.platforms.some((p) => platformFilters.includes(p.platform))) return false;
       if (languages.length > 0 && !languages.includes(c.contentLanguage ?? "")) return false;
       if (maxFollowers(c) < min) return false;
       if (query) {
-        const haystack = `${c.displayName} ${c.niche} ${c.bio ?? ""}`.toLowerCase();
+        const haystack = `${c.displayName} ${c.niches.join(" ")} ${c.bio ?? ""}`.toLowerCase();
         if (!haystack.includes(query)) return false;
       }
       return true;
@@ -90,7 +90,7 @@ export function DiscoverCreators({ creators }: { creators: CreatorEntry[] }) {
     // "best" — a real weighted score (rating, track record, responsiveness,
     // recency), not just createdAt in disguise.
     return [...results].sort((a, b) => computeRelevanceScore(b) - computeRelevanceScore(a));
-  }, [creators, search, niches, platformFilters, languages, minFollowers, sort, favorites, favoritedIds]);
+  }, [creators, search, nicheFilters, platformFilters, languages, minFollowers, sort, favorites, favoritedIds]);
 
   return (
     <div className="flex flex-col gap-6">
@@ -107,7 +107,7 @@ export function DiscoverCreators({ creators }: { creators: CreatorEntry[] }) {
         <MultiSelect
           label="Niche"
           options={NICHES}
-          selected={niches}
+          selected={nicheFilters}
           onChange={(vals) => setParam("niche", vals.join(","))}
           wrapperClassName="w-40 lg:w-auto"
         />
@@ -174,7 +174,7 @@ export function DiscoverCreators({ creators }: { creators: CreatorEntry[] }) {
                 id={c.id}
                 displayName={c.displayName}
                 avatarUrl={c.avatarUrl}
-                niche={c.niche}
+                niches={c.niches}
                 platforms={c.platforms}
                 rating={c.rating}
                 isFavorited={favoritedIds.has(c.id)}

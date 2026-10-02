@@ -4,16 +4,19 @@ import { FiSearch } from "react-icons/fi";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { getCreatorFeed } from "@/lib/visibility";
+import { parseFeedScope } from "@/lib/feed-scope";
 import { photoUrlsByRequestId } from "@/lib/request-photos";
 import { getMutualBlockedUserIds } from "@/lib/moderation";
 import { CreatorFeed } from "@/components/creator-feed";
+import { FeedScopeTabs } from "@/components/feed-scope-tabs";
 import { SkeletonCardList } from "@/components/skeleton";
 import { EmptyState } from "@/components/empty-state";
 import { PageTitle } from "@/components/page-title";
 
-export default async function CreatorFeedPage() {
+export default async function CreatorFeedPage(props: PageProps<"/dashboard/creator">) {
   const session = await auth();
   if (!session || session.user.role !== "CREATOR") redirect("/login");
+  const scope = parseFeedScope((await props.searchParams).feed);
 
   const [creator, blockedUserIds] = await Promise.all([
     prisma.creatorProfile.findUniqueOrThrow({
@@ -23,11 +26,14 @@ export default async function CreatorFeedPage() {
     getMutualBlockedUserIds(session.user.id),
   ]);
 
-  const requests = await getCreatorFeed(creator, blockedUserIds);
-  const interestByRequestId = new Map(creator.interests.map((i) => [i.requestId, i]));
-  // Swiped away on an earlier visit — filtered here, not in getCreatorFeed,
-  // since that also decides what a creator may still message a brand about.
-  const passedRequestIds = new Set(creator.passes.map((p) => p.requestId));
+  const matching = await getCreatorFeed(creator, blockedUserIds, scope);
+  // Already decided: swiped away on an earlier visit, or an interest exists
+  // (yours, or the brand reaching out first) — those live on the Matches
+  // page, the swipe stack is only ever fresh ones. Filtered here, not in
+  // getCreatorFeed, since that also decides what a creator may still message
+  // a brand about.
+  const decidedRequestIds = new Set([...creator.interests.map((i) => i.requestId), ...creator.passes.map((p) => p.requestId)]);
+  const requests = matching.filter((r) => !decidedRequestIds.has(r.id));
 
   const startupIds = requests.map((r) => r.startup.id);
   const [ratingGroups, favorites, photos] = await Promise.all([
@@ -54,46 +60,50 @@ export default async function CreatorFeedPage() {
   const favoritedStartupIds = new Set(favorites.map((f) => f.startupId));
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-3 md:gap-6">
       <PageTitle>Feed</PageTitle>
-      {requests.length === 0 ? (
-        <EmptyState
-          icon={FiSearch}
-          title="No matching requests yet."
-          description="Check back later, or browse every brand on Discover in the meantime."
-          action={{ label: "Browse Discover", href: "/dashboard/creator/discover" }}
-        />
+      <FeedScopeTabs scope={scope} />
+      {matching.length === 0 ? (
+        scope === "forYou" ? (
+          <EmptyState
+            icon={FiSearch}
+            title="No requests in your niches yet."
+            description="Check back later, or see everything that fits your reach under All."
+            action={{ label: "Show all requests", href: "/dashboard/creator?feed=all" }}
+          />
+        ) : (
+          <EmptyState
+            icon={FiSearch}
+            title="No matching requests yet."
+            description="Check back later, or browse every brand on Discover in the meantime."
+            action={{ label: "Browse Discover", href: "/dashboard/creator/discover" }}
+          />
+        )
       ) : (
         <Suspense fallback={<SkeletonCardList />}>
           <CreatorFeed
-            requests={requests
-              .filter((r) => !passedRequestIds.has(r.id))
-              .map((r) => {
-                const interest = interestByRequestId.get(r.id);
-                return {
-                  id: r.id,
-                  startupId: r.startup.id,
-                  isBrandFavorited: favoritedStartupIds.has(r.startup.id),
-                  title: r.title,
-                  description: r.description,
-                  niche: r.niche,
-                  languages: r.languages,
-                  minFollowers: r.minFollowers,
-                  productCategory: r.productCategory,
-                  companyName: r.startup.companyName,
-                  companyAvatarUrl: r.startup.avatarUrl,
-                  rating: ratingByStartupId.get(r.startup.id) ?? { average: 0, count: 0 },
-                  photos: photos.get(r.id) ?? [],
-                  budgetMinCents: r.budgetMinCents,
-                  budgetMaxCents: r.budgetMaxCents,
-                  platform: r.platform,
-                  deliverables: r.deliverables,
-                  postBy: r.postBy ? r.postBy.toISOString().slice(0, 10) : null,
-                  productIncluded: r.productIncluded,
-                  interestId: interest?.id ?? null,
-                  contactedByStartup: interest?.initiatedBy === "STARTUP",
-                };
-              })}
+            scope={scope}
+            requests={requests.map((r) => ({
+              id: r.id,
+              startupId: r.startup.id,
+              isBrandFavorited: favoritedStartupIds.has(r.startup.id),
+              title: r.title,
+              description: r.description,
+              niche: r.niche,
+              languages: r.languages,
+              minFollowers: r.minFollowers,
+              productCategory: r.productCategory,
+              companyName: r.startup.companyName,
+              companyAvatarUrl: r.startup.avatarUrl,
+              rating: ratingByStartupId.get(r.startup.id) ?? { average: 0, count: 0 },
+              photos: photos.get(r.id) ?? [],
+              budgetMinCents: r.budgetMinCents,
+              budgetMaxCents: r.budgetMaxCents,
+              platform: r.platform,
+              deliverables: r.deliverables,
+              postBy: r.postBy ? r.postBy.toISOString().slice(0, 10) : null,
+              productIncluded: r.productIncluded,
+            }))}
           />
         </Suspense>
       )}

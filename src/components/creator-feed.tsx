@@ -1,23 +1,25 @@
 "use client";
 
-import { useMemo } from "react";
 import { SwipeCardStack } from "@/components/swipe-card-stack";
 import type { SwipeRequest } from "@/components/swipe-card";
+import type { FeedScope } from "@/lib/feed-scope";
 
-type RequestEntry = SwipeRequest & {
-  interestId: string | null;
-  contactedByStartup: boolean;
+// What's left to swipe once For you runs out: the All tab is the way on. All
+// itself has nothing wider to point to, so it keeps the stack's default.
+const FOR_YOU_CAUGHT_UP = {
+  description: "No more new requests in your niches right now. Everything that fits your reach is under All.",
+  action: { label: "Show all requests", href: "/dashboard/creator?feed=all" },
 };
 
-export function CreatorFeed({ requests }: { requests: RequestEntry[] }) {
-  // Already-decided requests (an interest exists, yours or the brand
-  // reaching out first) live on the dedicated Matches page now — the swipe
-  // stack here is only ever fresh, undecided ones.
-  const undecided = useMemo(() => requests.filter((r) => r.interestId === null), [requests]);
-
+export function CreatorFeed({ requests, scope }: { requests: SwipeRequest[]; scope: FeedScope }) {
   return (
     // key resets the stack's local state if the underlying set changes
-    // under it (e.g. a revalidated fetch bringing in a new request).
-    <SwipeCardStack key={undecided.map((r) => r.id).join(",")} requests={undecided} />
+    // under it (e.g. a revalidated fetch bringing in a new request, or the
+    // other tab).
+    <SwipeCardStack
+      key={`${scope}:${requests.map((r) => r.id).join(",")}`}
+      requests={requests}
+      caughtUp={scope === "forYou" ? FOR_YOU_CAUGHT_UP : undefined}
+    />
   );
 }

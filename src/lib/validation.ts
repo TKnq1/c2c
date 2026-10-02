@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { NICHES, PLATFORMS, PRODUCT_CATEGORIES, LANGUAGES } from "@/lib/constants";
+import { NICHES, MAX_CREATOR_NICHES, PLATFORMS, PRODUCT_CATEGORIES, LANGUAGES } from "@/lib/constants";
 
 const nicheEnum = z.enum([...NICHES]);
 const platformEnum = z.enum([...PLATFORMS]);
@@ -86,6 +86,23 @@ export const onboardingNicheSchema = z.object({
   niche: nicheEnum,
 });
 
+// A creator's niches post as one comma-joined hidden input, like languages
+// below.
+const nichesField = z
+  .string()
+  .transform((val) => val.split(",").filter(Boolean))
+  .pipe(
+    z
+      .array(nicheEnum)
+      .min(1, "Pick at least one niche.")
+      .max(MAX_CREATOR_NICHES, `Pick up to ${MAX_CREATOR_NICHES} niches.`)
+      .refine((niches) => new Set(niches).size === niches.length, "Each niche can only be picked once."),
+  );
+
+export const onboardingNichesSchema = z.object({
+  niches: nichesField,
+});
+
 export const onboardingPlatformsSchema = z.object({
   platforms: platformsField,
 });
@@ -166,7 +183,7 @@ export const createRequestSchema = z
 
 export const updateCreatorProfileSchema = z.object({
   displayName: z.string().min(1).max(120),
-  niche: nicheEnum,
+  niches: nichesField,
   contentLanguage: languageEnum,
   bio: z.string().max(2000).optional(),
   platforms: platformsField,

@@ -14,7 +14,15 @@ import { errorMessage } from "@/lib/error-message";
 
 const VISIBLE_DEPTH = 3;
 
-export function SwipeCardStack({ requests }: { requests: SwipeRequest[] }) {
+export function SwipeCardStack({
+  requests,
+  caughtUp,
+}: {
+  requests: SwipeRequest[];
+  // Replaces the "all caught up" text and the Discover link, for a feed
+  // that has somewhere better to send you.
+  caughtUp?: { description: string; action: { label: string; href: string } };
+}) {
   const [stack, setStack] = useState(requests);
   // Only the single most recent pass is undoable — same as Tinder's own
   // rewind, and simpler to reason about than a full history. An
@@ -131,11 +139,11 @@ export function SwipeCardStack({ requests }: { requests: SwipeRequest[] }) {
       <EmptyState
         icon={FiCheck}
         title="You're all caught up."
-        description="No more new requests to review right now. Check back later."
+        description={caughtUp?.description ?? "No more new requests to review right now. Check back later."}
         action={
           lastPassed
             ? { label: "Undo last pass", onClick: undoLastPass }
-            : { label: "Browse Discover", href: "/dashboard/creator/discover" }
+            : (caughtUp?.action ?? { label: "Browse Discover", href: "/dashboard/creator/discover" })
         }
       />
     );
