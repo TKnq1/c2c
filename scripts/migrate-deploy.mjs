@@ -1,8 +1,20 @@
-// Runs before `next build` (see package.json), so every Vercel deploy brings
-// the database schema up to date first. If a migration fails, the build
-// fails and Vercel keeps serving the previous deployment.
+// Runs before `next build` (see package.json), so every production deploy
+// brings the database schema up to date first. If a migration fails, the
+// build fails and Vercel keeps serving the previous deployment.
 import { execSync } from "node:child_process";
 import "dotenv/config";
+
+// A preview build gets whatever DATABASE_URL the project gives previews, and
+// here that's the database the live site runs on. It must not change that
+// schema: a branch's migration would hit production before the branch is
+// merged, and a failing or destructive one would take the live site down
+// with it. Only production builds migrate (locally VERCEL_ENV isn't set, so
+// `npm run build` still does); a preview's migration is applied by
+// `npm run db:deploy` or by the production build once it's merged.
+if (process.env.VERCEL_ENV && process.env.VERCEL_ENV !== "production") {
+  console.log(`VERCEL_ENV is "${process.env.VERCEL_ENV}", not a production build: skipping migrations.`);
+  process.exit(0);
+}
 
 // Prisma Migrate needs a direct connection, not Neon's pooler (it can't
 // hold the lock migrations take). Neon's Vercel integration provides one;

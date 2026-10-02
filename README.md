@@ -75,7 +75,11 @@ file wouldn't have survived between requests there.
 4. **Deploy.** The schema is already applied to this database (step above pointed at
    it), so no separate migration step is needed for the first deploy. After any
    future schema change, run `DATABASE_URL="<production URL>" npm run db:deploy`
-   before or after pushing the code that needs it.
+   before or after pushing the code that needs it. Production builds apply pending
+   migrations themselves (`scripts/migrate-deploy.mjs`); preview builds never do,
+   since previews share this database and a branch's migration would reach the live
+   site before it's merged. Keep migrations additive (add, backfill, drop in a later
+   release) so the release still serving traffic keeps working on the new schema.
 5. **Custom domain** — optional, add anytime later in Settings → Domains, then point
    the DNS record your registrar shows you at Vercel. Not required to go live on the
    assigned `*.vercel.app` URL first.
