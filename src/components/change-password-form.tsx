@@ -9,7 +9,7 @@ import { useNavigationBlocker } from "@/lib/navigation-blocker";
 export function ChangePasswordForm() {
   const [state, formAction, pending] = useActionState(changePasswordAction, undefined);
   const formRef = useRef<HTMLFormElement>(null);
-  useActionToast(state, "Password changed.");
+  useActionToast(state, "Password changed. Your other devices are logged out.");
   const { setIsBlocked } = useNavigationBlocker();
 
   useEffect(() => {

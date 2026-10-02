@@ -16,6 +16,11 @@ model User {
   id            String   @id @default(cuid())
   email         String   @unique
   passwordHash  String
+  // Set when the password changes: sessions that began before it are
+  // logged out at their next check (see the jwt callback in
+  // src/lib/auth.ts), except keptSessionId, the one that made the change.
+  sessionsRevokedAt DateTime?
+  keptSessionId     String?
   role          Role
   emailVerified Boolean  @default(false)
   totpSecret    String?

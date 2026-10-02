@@ -173,7 +173,11 @@ export async function changePasswordAction(
   if (!valid) return { error: "Current password is incorrect." };
 
   const passwordHash = await bcrypt.hash(parsed.data.newPassword, 10);
-  await prisma.user.update({ where: { id: user.id }, data: { passwordHash } });
+  // Every other device is logged out within minutes; this one stays.
+  await prisma.user.update({
+    where: { id: user.id },
+    data: { passwordHash, sessionsRevokedAt: new Date(), keptSessionId: session.sid || null },
+  });
 
   return { success: true };
 }
@@ -227,7 +231,11 @@ export async function resetPasswordAction(
   }
 
   const passwordHash = await bcrypt.hash(parsed.data.password, 10);
-  await prisma.user.update({ where: { id: resetToken.userId }, data: { passwordHash } });
+  // A reset is often because someone else got in: every device is logged out.
+  await prisma.user.update({
+    where: { id: resetToken.userId },
+    data: { passwordHash, sessionsRevokedAt: new Date(), keptSessionId: null },
+  });
   await prisma.passwordResetToken.update({ where: { id: resetToken.id }, data: { usedAt: new Date() } });
 
   redirect("/login");

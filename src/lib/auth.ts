@@ -6,9 +6,14 @@ import { loginSchema } from "@/lib/validation";
 import { verifyTotpCode } from "@/lib/totp";
 import { verifyAndConsumeRecoveryCode } from "@/lib/recovery-codes";
 import { isRateLimited, logLoginAttempt } from "@/lib/login-security";
+import { isSessionRevoked } from "@/lib/session-revocation";
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
-  session: { strategy: "jwt" },
+  // A year, and every visit starts the year over: people stay logged in for
+  // as long as they use comtor at all. Changing the password logs out every
+  // other device (sessionsRevokedAt, below), so a lost phone doesn't stay
+  // in for a year.
+  session: { strategy: "jwt", maxAge: 60 * 60 * 24 * 365 },
   pages: { signIn: "/login" },
   providers: [
     Credentials({
@@ -63,7 +68,14 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         token.id = user.id;
         token.role = user.role;
         token.checkedAt = Date.now();
+        token.sid = crypto.randomUUID();
+        token.loginAt = Date.now();
         return token;
+      }
+      // Logins from before sessions had an id get one on their next request.
+      if (typeof token.sid !== "string") {
+        token.sid = crypto.randomUUID();
+        token.loginAt = Date.now();
       }
       // A JWT stays cryptographically valid even after its user row is
       // gone (e.g. a local reseed replaces every user with a fresh id) —
@@ -89,8 +101,15 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       // just leaves checkedAt alone so this retries on the next request
       // instead of waiting out the full 5 minutes again.
       try {
-        const stillExists = await prisma.user.findUnique({ where: { id: token.id }, select: { id: true } });
-        if (!stillExists) return null;
+        const current = await prisma.user.findUnique({
+          where: { id: token.id },
+          select: { sessionsRevokedAt: true, keptSessionId: true },
+        });
+        if (!current) return null;
+        // The password was changed after this login began, somewhere else.
+        // Nothing here trusts the session update endpoint, so a copied
+        // cookie can't refresh itself back in.
+        if (isSessionRevoked(token, current)) return null;
         token.checkedAt = Date.now();
       } catch {
         // Fall through and return the token below, checkedAt untouched.
@@ -100,6 +119,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     session({ session, token }) {
       session.user.id = token.id;
       session.user.role = token.role;
+      session.sid = token.sid ?? "";
       return session;
     },
   },
