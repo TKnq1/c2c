@@ -52,17 +52,24 @@ export function BrandBuilder({ onPhoto }: { onPhoto: (photo: PhotoKey) => void }
   };
 
   const card = (
-    <div className="absolute inset-0 flex flex-col overflow-hidden rounded-b-[28px] border border-ink/10 bg-paper shadow-xl">
+    <div className="absolute inset-0 flex flex-col overflow-hidden rounded-b-[28px] border border-ink/10 bg-paper text-left shadow-xl">
       <RequestCardFace request={request} />
     </div>
   );
 
   return (
-    <div className="flex w-full flex-col items-center gap-6 lg:flex-row lg:items-center lg:justify-center lg:gap-16">
-      {/* Phones: the card alone, at the size a Feed card has. */}
-      <div className="relative h-[400px] w-full max-w-[320px] lg:hidden">{card}</div>
+    <div className="flex w-full flex-col items-center lg:flex-row lg:items-center lg:justify-center lg:gap-16">
+      {/* Phones: the top of the phone, down to the card's bottom edge, then
+          fading out under the controls, so the card and what changes it
+          fit on one screen. */}
+      <div className="lp-phone-crop relative h-[540px] w-full max-w-[350px] overflow-hidden px-5 pt-2 lg:hidden">
+        <PhoneFrame className="h-[640px] w-full">
+          <AppHeader title="Feed" />
+          <div className="relative mt-3 h-[380px] shrink-0">{card}</div>
+        </PhoneFrame>
+      </div>
 
-      <div className="order-last w-full max-w-[360px] lg:order-none">
+      <div className="relative z-10 order-last -mt-8 w-full max-w-[360px] lg:order-none lg:mt-0">
         <div className="flex flex-col gap-5 rounded border border-ink/10 bg-paper/85 p-5 text-left shadow-xl backdrop-blur-xl">
           <div className="flex flex-col gap-1.5">
             <label htmlFor="lp-title" className="text-sm font-medium">

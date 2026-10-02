@@ -7,7 +7,7 @@ import { IoCardOutline, IoChatbubbleOutline, IoHome, IoSearchOutline, IoSettings
 export function PhoneFrame({ children, className = "" }: { children: React.ReactNode; className?: string }) {
   return (
     <div className={`lp-phone relative shrink-0 rounded-[3rem] bg-[#0c0c0d] p-[9px] ${className}`}>
-      <div className="relative flex h-full w-full flex-col overflow-hidden rounded-[2.45rem] bg-paper text-ink">
+      <div className="relative flex h-full w-full flex-col overflow-hidden rounded-[2.45rem] bg-paper text-left text-ink">
         <StatusBar />
         {children}
       </div>

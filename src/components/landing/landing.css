@@ -378,3 +378,20 @@ html[data-landing-role="brand"] .lp-toggle [data-value="brand"] {
 html:not([data-lp-js]) .lp-count {
   --lp-n: var(--lp-to);
 }
+
+/* The colour sections melt into the plain page around them instead of
+   ending in a straight edge: the hero fades out at the bottom, the closing
+   section fades in at the top. */
+.lp-fade-out {
+  mask-image: linear-gradient(to bottom, #000 62%, transparent);
+}
+
+.lp-fade-in {
+  mask-image: linear-gradient(to bottom, transparent, #000 38%);
+}
+
+/* A phone cut off below what matters, fading out rather than ending in a
+   straight line (the brand's preview on phones). */
+.lp-phone-crop {
+  mask-image: linear-gradient(to bottom, #000 calc(100% - 48px), transparent);
+}

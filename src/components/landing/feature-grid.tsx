@@ -1,5 +1,5 @@
 import Image from "next/image";
-import { FiBell, FiCheck, FiChevronLeft, FiExternalLink } from "react-icons/fi";
+import { FiCheck, FiChevronLeft, FiExternalLink } from "react-icons/fi";
 import { Avatar } from "@/components/avatar";
 import { PlatformIcon } from "@/components/platform-icons";
 import { RequestCardFace, RequestFacts } from "@/components/request-card-face";
@@ -294,8 +294,8 @@ function PayoutMock() {
           ))}
         </div>
       </CroppedPhone>
-      <Floating className="top-[46%] right-[4%] rotate-[2deg] sm:right-[9%]">
-        <div className="w-[236px] rounded border border-ink/10 bg-paper p-4 text-left shadow-xl">
+      <Floating className="top-[60%] right-[4%] rotate-[2deg] sm:right-[9%]">
+        <div className="w-[228px] rounded border border-ink/10 bg-paper px-3.5 py-3 text-left shadow-xl">
           <p className="text-[11px] font-medium tracking-wide text-neutral-500 uppercase dark:text-neutral-400">Payment released</p>
           <div className="mt-2 flex justify-between text-sm">
             <span>Odd Bloom paid</span>
@@ -305,9 +305,9 @@ function PayoutMock() {
             <span>comtor fee (10%)</span>
             <span className="tabular-nums">−25,00 €</span>
           </div>
-          <div className="mt-2 flex items-baseline justify-between border-t border-ink/10 pt-2">
+          <div className="mt-1.5 flex items-baseline justify-between border-t border-ink/10 pt-1.5">
             <span className="text-sm font-medium">You get</span>
-            <span className="font-display text-[28px] font-black tabular-nums">
+            <span className="font-display text-[26px] leading-none font-black tabular-nums">
               <span className="lp-count" style={{ "--lp-to": 225 } as React.CSSProperties} />
               ,00 €
             </span>
@@ -349,7 +349,7 @@ function RequestMock() {
           </div>
         </div>
       </CroppedPhone>
-      <Floating className="top-[64%] right-[4%] rotate-[-2deg] sm:right-[10%]">
+      <Floating className="top-[80%] right-[4%] rotate-[-2deg] sm:right-[10%]">
         <Toast>Request posted.</Toast>
       </Floating>
     </>
@@ -386,14 +386,19 @@ function InterestedMock() {
           </div>
         </div>
       </CroppedPhone>
-      <Floating className="top-[66%] left-[3%] rotate-[-3deg] sm:left-[8%]">
-        <div className="flex w-[250px] items-start gap-3 rounded border border-ink/10 bg-paper p-3.5 text-left shadow-xl">
-          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-ink text-paper">
-            <FiBell className="h-4 w-4" />
+      {/* The push notification the brand gets, coming in over the top of
+          the screen the way iOS shows one. Same text the app sends. */}
+      <Floating className="top-[17%] left-1/2 w-[248px] -translate-x-1/2">
+        <div className="flex items-start gap-2.5 rounded-[18px] border border-ink/10 bg-paper/90 p-2.5 text-left shadow-xl backdrop-blur-xl">
+          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[9px] bg-ink">
+            <Image src="/logo.png" alt="" width={22} height={22} className="invert dark:invert-0" />
           </span>
-          <span className="min-w-0 text-sm">
-            <span className="font-bold">Mia K. is interested</span> in Our new fragrance.
-            <span className="mt-0.5 block text-xs text-neutral-500 dark:text-neutral-400">Just now</span>
+          <span className="min-w-0 flex-1 text-[13px] leading-snug">
+            <span className="flex items-baseline justify-between gap-2">
+              <span className="font-semibold">comtor</span>
+              <span className="text-[11px] text-neutral-500 dark:text-neutral-400">now</span>
+            </span>
+            <span className="block">Mia K. is interested in &ldquo;Our new fragrance&rdquo;</span>
           </span>
         </div>
       </Floating>

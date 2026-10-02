@@ -21,6 +21,22 @@ export function CreatorDeck({ onTop }: { onTop: (photo: PhotoKey) => void }) {
   const [toast, setToast] = useState<{ id: string; brand: string } | null>(null);
   const [touched, setTouched] = useState(false);
   const topRef = useRef<SwipeCardHandle>(null);
+  const deckRef = useRef<HTMLDivElement>(null);
+
+  // A tap opens nothing here (the details are for the app); the stack
+  // gives a little wiggle instead, so it's clear it wants dragging.
+  function wiggle() {
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    deckRef.current?.animate(
+      [
+        { transform: "none" },
+        { transform: "translateX(22px) rotate(2deg)" },
+        { transform: "translateX(-7px) rotate(-0.7deg)" },
+        { transform: "none" },
+      ],
+      { duration: 700, easing: "cubic-bezier(0.45, 0, 0.2, 1)" },
+    );
+  }
 
   function show(next: Card[]) {
     setStack(next);
@@ -57,6 +73,7 @@ export function CreatorDeck({ onTop }: { onTop: (photo: PhotoKey) => void }) {
       <PhoneFrame className="h-[600px] w-[290px] sm:h-[660px] sm:w-[320px]">
         <AppHeader title="Feed" />
         <div
+          ref={deckRef}
           className={`relative mt-3 flex-1 ${touched ? "" : "lp-nudge"}`}
           onPointerDownCapture={() => setTouched(true)}
         >
@@ -68,6 +85,7 @@ export function CreatorDeck({ onTop }: { onTop: (photo: PhotoKey) => void }) {
               stackIndex={i}
               onSwipe={(direction) => handleSwipe(card, direction)}
               restoredFrom={card.id === restored ? "left" : undefined}
+              onTap={wiggle}
             />
           ))}
         </div>

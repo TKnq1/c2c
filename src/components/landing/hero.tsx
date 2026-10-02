@@ -17,13 +17,13 @@ export function Hero() {
 
   return (
     <section id="top" className="relative isolate overflow-hidden">
-      <div data-for="creator" className="absolute inset-0 -z-10">
+      <div data-for="creator" className="lp-fade-out absolute inset-0 -z-10">
         <PhotoBackdrop photo={creatorPhoto} />
       </div>
-      <div data-for="brand" className="absolute inset-0 -z-10">
+      <div data-for="brand" className="lp-fade-out absolute inset-0 -z-10">
         <PhotoBackdrop photo={brandPhoto} />
       </div>
-      <div aria-hidden="true" className="lp-grain" />
+      <div aria-hidden="true" className="lp-grain lp-fade-out" />
 
       <div className="mx-auto flex max-w-6xl flex-col items-center px-4 pt-[calc(var(--safe-top)+112px)] pb-20 text-center md:pt-40 md:pb-28">
         <h1

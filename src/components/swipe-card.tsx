@@ -59,7 +59,11 @@ export const SwipeCard = forwardRef<SwipeCardHandle, {
   // (reversed) that swiping it away had, using the exact spring curve
   // below — it reads as the swipe undoing itself, not a separate effect.
   restoredFrom?: "left" | "right";
-}>(function SwipeCard({ request, stackIndex, onSwipe, restoredFrom }, ref) {
+  // Takes over a clean tap, which otherwise opens the details (or steps
+  // through the photos). The landing page's demo deck uses it: the
+  // details are for the real app.
+  onTap?: () => void;
+}>(function SwipeCard({ request, stackIndex, onSwipe, restoredFrom, onTap }, ref) {
   const isTop = stackIndex === 0;
   const [drag, setDrag] = useState(() =>
     restoredFrom
@@ -237,7 +241,9 @@ export const SwipeCard = forwardRef<SwipeCardHandle, {
       // On the info at the bottom, a clean tap opens the details; on the
       // photo itself, its left or right half steps through the photos, like
       // any photo stack. With one photo, anywhere opens the details.
-      if (!movedRef.current) {
+      if (!movedRef.current && onTap) {
+        onTap();
+      } else if (!movedRef.current) {
         const count = request.photos.length;
         const onInfo = !!document.elementFromPoint(e.clientX, e.clientY)?.closest("[data-card-info]");
         const rect = cardElRef.current?.getBoundingClientRect();

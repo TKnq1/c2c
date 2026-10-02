@@ -9,13 +9,13 @@ export function ComingSoon() {
   return (
     <section id="get-the-app" className="relative isolate scroll-mt-16 overflow-hidden px-4 py-24 md:py-32">
       {/* The same washed-out photo colour the page opened with. */}
-      <div data-for="creator" className="absolute inset-0 -z-10">
+      <div data-for="creator" className="lp-fade-in absolute inset-0 -z-10">
         <PhotoBackdrop photo="serum" />
       </div>
-      <div data-for="brand" className="absolute inset-0 -z-10">
+      <div data-for="brand" className="lp-fade-in absolute inset-0 -z-10">
         <PhotoBackdrop photo="flask" />
       </div>
-      <div aria-hidden="true" className="lp-grain" />
+      <div aria-hidden="true" className="lp-grain lp-fade-in" />
       <Reveal className="mx-auto max-w-2xl text-center">
         <h2 className="font-display text-[44px] leading-[0.98] font-black tracking-[-0.035em] text-balance md:text-[72px]">
           Coming soon to iOS &amp; Android
