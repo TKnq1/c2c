@@ -2,6 +2,10 @@ import { prisma } from "@/lib/prisma";
 import { ConfirmEmailVerificationForm } from "@/components/confirm-email-verification-form";
 import { Logo } from "@/components/logo";
 import { ImprintLink } from "@/components/imprint-link";
+import type { Metadata } from "next";
+import { NO_INDEX } from "@/lib/seo";
+
+export const metadata: Metadata = { title: "Verify your email", robots: NO_INDEX };
 
 export default async function VerifyEmailTokenPage({ params }: { params: Promise<{ token: string }> }) {
   const { token } = await params;

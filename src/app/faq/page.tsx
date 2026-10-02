@@ -3,10 +3,12 @@ import Link from "next/link";
 import { PLATFORM_FEE_RATE, PRO_PLATFORM_FEE_RATE, PRO_SUBSCRIPTION_PRICE_CENTS, RELEASE_REVIEW_DAYS } from "@/lib/constants";
 import { formatCents } from "@/lib/format";
 import { canSellProSubscription } from "@/lib/native-app-server";
+import { canonical } from "@/lib/seo";
 
 export const metadata: Metadata = {
   title: "FAQ",
   description: "How matching, payments, and reviews work on comtor.",
+  alternates: canonical("/faq"),
 };
 
 // Stands in for the Pro upsell sentence in the payments answer, so the store

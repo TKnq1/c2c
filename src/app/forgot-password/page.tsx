@@ -3,8 +3,9 @@ import Link from "next/link";
 import { ForgotPasswordForm } from "@/components/forgot-password-form";
 import { Logo } from "@/components/logo";
 import { ImprintLink } from "@/components/imprint-link";
+import { NO_INDEX } from "@/lib/seo";
 
-export const metadata: Metadata = { title: "Reset your password" };
+export const metadata: Metadata = { title: "Reset your password", robots: NO_INDEX };
 
 export default function ForgotPasswordPage() {
   return (
