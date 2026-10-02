@@ -57,22 +57,9 @@
   --header-h: calc(var(--safe-top) + 63px);
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --color-ink: var(--ink);
-  --color-paper: var(--paper);
-  --color-fog: var(--fog);
-  --color-stone: var(--stone);
-  --color-graphite: var(--graphite);
-
-  --font-sans: var(--font-bentonsans);
-  /* Not a second typeface — Lato covers both roles now (see layout.tsx).
-     Kept as its own utility name so call sites that mean "this is a
-     heading" stay legible as that, even though it resolves to the same
-     font file as --font-sans today. */
-  --font-display: var(--font-bentonsans);
-
+/* Not "inline" like the block below: the text-* utilities read these as
+   variables, so the desktop sizes further down can swap them in one place. */
+@theme {
   /* Type scale — iOS Human Interface Guidelines-style hierarchy, ported to
      rem (1pt/sp treated as 1px, then /16). Each pairs a size with a
      line-height; weight is applied separately per use (see the table this
@@ -101,6 +88,23 @@
   --text-footnote--line-height: 1.125rem;
   --text-caption-2: 0.6875rem; /* 11px — Tab Bar labels */
   --text-caption-2--line-height: 0.875rem;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-ink: var(--ink);
+  --color-paper: var(--paper);
+  --color-fog: var(--fog);
+  --color-stone: var(--stone);
+  --color-graphite: var(--graphite);
+
+  --font-sans: var(--font-bentonsans);
+  /* Not a second typeface — Lato covers both roles now (see layout.tsx).
+     Kept as its own utility name so call sites that mean "this is a
+     heading" stay legible as that, even though it resolves to the same
+     font file as --font-sans today. */
+  --font-display: var(--font-bentonsans);
 
   /* Editorial gallery discipline: every corner is 4px, no exceptions —
      rounded-full (avatars, and anything left as a true circle) is the one
@@ -783,5 +787,49 @@ dialog[data-state="closing"]::backdrop {
   .animate-panel-in,
   .animate-backdrop-in {
     animation-duration: 1ms;
+  }
+}
+
+/* Desktop type. The scale above is iOS-sized for phones; from md (tablet
+   and up, where the sidebar replaces the tab bar) text steps down to
+   desktop-app sizes. Phones keep theirs, including 16px form fields,
+   which stop iOS Safari zooming into a field when it's focused. */
+@media (min-width: 48rem) {
+  :root {
+    --text-large-title: 1.875rem; /* 30px */
+    --text-large-title--line-height: 2.25rem;
+    --text-title-1: 1.4375rem; /* 23px */
+    --text-title-1--line-height: 1.75rem;
+    --text-title-2: 1.25rem; /* 20px */
+    --text-title-2--line-height: 1.625rem;
+    --text-title-3: 1.125rem; /* 18px */
+    --text-title-3--line-height: 1.5rem;
+    --text-headline: 0.9375rem; /* 15px */
+    --text-headline--line-height: 1.375rem;
+    --text-body: 0.9375rem; /* 15px */
+    --text-body--line-height: 1.375rem;
+    --text-callout: 0.875rem; /* 14px */
+    --text-callout--line-height: 1.25rem;
+    --text-subhead: 0.875rem; /* 14px */
+    --text-subhead--line-height: 1.25rem;
+  }
+}
+
+@layer base {
+  @media (min-width: 48rem) {
+    /* Text with no size of its own. */
+    body {
+      font-size: 0.9375rem; /* 15px */
+      line-height: 1.5;
+    }
+
+    /* Fields and dropdowns (they'd otherwise inherit 15px); in the base
+       layer, so a field's own text-* utility still wins. */
+    input:not([type="checkbox"], [type="radio"], [type="range"], [type="file"]),
+    select,
+    textarea {
+      font-size: 0.875rem; /* 14px */
+      line-height: 1.25rem;
+    }
   }
 }
