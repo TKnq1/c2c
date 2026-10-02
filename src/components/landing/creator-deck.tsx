@@ -70,7 +70,7 @@ export function CreatorDeck({ onTop }: { onTop: (photo: PhotoKey) => void }) {
 
   return (
     <div className="relative">
-      <PhoneFrame className="h-[600px] w-[290px] sm:h-[660px] sm:w-[320px]">
+      <PhoneFrame className="h-[600px] w-[290px] max-w-full sm:h-[660px] sm:w-[320px]">
         <AppHeader title="Feed" />
         <div
           ref={deckRef}

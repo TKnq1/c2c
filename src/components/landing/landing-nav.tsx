@@ -3,9 +3,8 @@ import Link from "next/link";
 import { RoleToggle } from "@/components/landing/role-toggle";
 
 // A frosted pill floating over the page: logo, the Creators | Brands switch,
-// log in for people using the web app already (from md up; on phones it's
-// in the closing section and the footer, for room) and the way to the
-// store badges.
+// log in for people using the web app already, and from sm up the way to
+// the store badges (on phones that's a button in the hero, for room).
 export function LandingNav() {
   return (
     <header className="pointer-events-none fixed inset-x-0 top-0 z-40 flex justify-center px-3 pt-[calc(var(--safe-top)+12px)]">
@@ -21,15 +20,13 @@ export function LandingNav() {
         <div className="flex shrink-0 items-center gap-1">
           <Link
             href="/login"
-            className="hidden rounded-full px-3 py-2 text-sm font-medium text-graphite transition hover:text-ink md:inline-flex"
+            className="rounded-full px-3 py-2 text-[13px] font-semibold whitespace-nowrap text-ink transition hover:text-graphite sm:text-sm sm:font-medium sm:text-graphite sm:hover:text-ink"
           >
             Log in
           </Link>
-          {/* Not on the very narrowest phones, where the switch needs the
-              room; the section it leads to is a scroll away anyway. */}
           <a
             href="#get-the-app"
-            className="rounded-full bg-ink px-3.5 py-2 text-[13px] font-semibold whitespace-nowrap text-paper transition hover:bg-graphite max-[339px]:hidden sm:px-4 sm:text-sm"
+            className="hidden rounded-full bg-ink px-4 py-2 text-sm font-semibold whitespace-nowrap text-paper transition hover:bg-graphite sm:inline-flex"
           >
             Get the app
           </a>

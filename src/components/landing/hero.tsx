@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { FiArrowDown } from "react-icons/fi";
 import { BrandBuilder } from "@/components/landing/brand-builder";
 import { CreatorDeck } from "@/components/landing/creator-deck";
 import { PhotoBackdrop } from "@/components/landing/photo-backdrop";
@@ -28,7 +29,7 @@ export function Hero() {
       <div className="mx-auto flex max-w-6xl flex-col items-center px-4 pt-[calc(var(--safe-top)+112px)] pb-20 text-center md:pt-40 md:pb-28">
         <h1
           data-for="creator"
-          className="font-display text-[44px] leading-[0.98] font-black tracking-[-0.035em] sm:text-[64px] lg:text-[88px]"
+          className="font-display text-[clamp(34px,11.4vw,44px)] leading-[0.98] font-black tracking-[-0.035em] sm:text-[64px] lg:text-[88px]"
         >
           <span className="lp-line">
             <span>Swipe right on</span>
@@ -39,7 +40,7 @@ export function Hero() {
         </h1>
         <h1
           data-for="brand"
-          className="font-display text-[44px] leading-[0.98] font-black tracking-[-0.035em] sm:text-[64px] lg:text-[88px]"
+          className="font-display text-[clamp(34px,11.4vw,44px)] leading-[0.98] font-black tracking-[-0.035em] sm:text-[64px] lg:text-[88px]"
         >
           <span className="lp-line">
             <span>Post a deal.</span>
@@ -69,7 +70,17 @@ export function Hero() {
           approved the post.
         </p>
 
-        <div className="mt-12 flex w-full justify-center md:mt-16">
+        {/* Phones have no room for it in the nav. */}
+        <a
+          href="#get-the-app"
+          className="lp-rise mt-6 inline-flex items-center gap-1.5 rounded-full border border-ink/15 bg-paper/60 px-4 py-2 text-sm font-semibold backdrop-blur sm:hidden"
+          style={delay(330)}
+        >
+          Coming soon · Get notified
+          <FiArrowDown className="h-4 w-4" />
+        </a>
+
+        <div className="mt-10 flex w-full justify-center sm:mt-12 md:mt-16">
           <div data-for="creator" className="lp-phone-in" style={delay(350)}>
             <CreatorDeck onTop={setCreatorPhoto} />
           </div>

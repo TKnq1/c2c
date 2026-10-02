@@ -74,7 +74,6 @@ export function WaitlistForm() {
         </Link>
         .
       </p>
-      {/* On phones the nav has no room for it. */}
       <p className="mt-6 text-center text-sm text-neutral-700 dark:text-neutral-300">
         Already have an account?{" "}
         <Link href="/login" className="font-semibold underline underline-offset-2">

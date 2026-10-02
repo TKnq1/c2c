@@ -173,10 +173,10 @@ function Bubble({ mine, children }: { mine?: boolean; children: React.ReactNode 
 // The chat's offer card (see chat-offer.tsx), in its states.
 function OfferCard({ eyebrow, amount, detail, children }: { eyebrow: string; amount: string; detail: string; children?: React.ReactNode }) {
   return (
-    <div className="rounded-[18px] border border-ink/10 bg-paper p-3.5 text-left shadow-xl">
+    <div className="rounded-[18px] border border-ink/10 bg-paper p-3 text-left shadow-xl">
       <p className="text-[11px] font-medium tracking-wide text-neutral-500 uppercase dark:text-neutral-400">{eyebrow}</p>
-      <p className="mt-0.5 text-2xl font-bold tabular-nums">{amount}</p>
-      <p className="mt-1 text-xs text-neutral-600 dark:text-neutral-400">{detail}</p>
+      <p className="text-[22px] leading-tight font-bold tabular-nums">{amount}</p>
+      <p className="mt-0.5 text-xs text-neutral-600 dark:text-neutral-400">{detail}</p>
       {children}
     </div>
   );
@@ -257,7 +257,7 @@ function CreatorOfferMock() {
         <div className="lp-cycle grid items-start">
           <OfferCard eyebrow="Offer accepted" amount="250,00 €" detail="Odd Bloom pays next. It's held in escrow until you post." />
           <OfferCard eyebrow="Offer accepted" amount="250,00 €" detail="Odd Bloom pays next. It's held in escrow until you post.">
-            <p className="mt-3 flex items-center justify-center gap-2 rounded-full bg-fog px-4 py-2 text-sm font-medium text-neutral-500 dark:text-neutral-400">
+            <p className="mt-2.5 flex items-center justify-center gap-2 rounded-full bg-fog px-4 py-1.5 text-sm font-medium text-neutral-500 dark:text-neutral-400">
               <Spinner />
               Waiting for payment
             </p>
@@ -420,7 +420,7 @@ function BrandOfferMock() {
         <div className="lp-cycle grid items-start">
           <OfferCard eyebrow="Your offer" amount="300,00 €" detail="Mia K. would get 270,00 € after the 10% fee." />
           <OfferCard eyebrow="Offer accepted" amount="300,00 €" detail="Pay through Stripe. It's held in escrow until Mia K. posts and you approve it.">
-            <span className="mt-3 flex justify-center rounded-full bg-ink px-4 py-2 text-sm font-medium text-paper">Pay now</span>
+            <span className="mt-2.5 flex justify-center rounded-full bg-ink px-4 py-1.5 text-sm font-medium text-paper">Pay now</span>
           </OfferCard>
           <OfferCard eyebrow="Paid · held in escrow" amount="300,00 €" detail="Released to Mia K. once they post and you approve it." />
         </div>
@@ -446,15 +446,15 @@ function ApproveMock() {
       <Floating className="top-[56%] left-1/2 w-[80%] max-w-[290px] -translate-x-1/2">
         <div className="lp-cycle grid items-start">
           <OfferCard eyebrow="Post submitted" amount="300,00 €" detail="Check the post, then approve it or report a problem within 3 days.">
-            <span className="mt-3 flex gap-2">
-              <span className="flex-1 rounded-full bg-ink px-4 py-2 text-center text-sm font-medium text-paper">Approve</span>
-              <span className="flex-1 rounded-full border border-neutral-300 px-4 py-2 text-center text-sm font-medium dark:border-neutral-700">
+            <span className="mt-2.5 flex gap-2">
+              <span className="flex-1 rounded-full bg-ink px-4 py-1.5 text-center text-sm font-medium text-paper">Approve</span>
+              <span className="flex-1 rounded-full border border-neutral-300 px-4 py-1.5 text-center text-sm font-medium dark:border-neutral-700">
                 Report
               </span>
             </span>
           </OfferCard>
           <OfferCard eyebrow="Post submitted" amount="300,00 €" detail="Check the post, then approve it or report a problem within 3 days.">
-            <span className="mt-3 flex items-center justify-center gap-2 rounded-full bg-ink px-4 py-2 text-sm font-medium text-paper">
+            <span className="mt-2.5 flex items-center justify-center gap-2 rounded-full bg-ink px-4 py-1.5 text-sm font-medium text-paper">
               <Spinner />
               Approving
             </span>

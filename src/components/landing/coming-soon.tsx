@@ -23,7 +23,7 @@ export function ComingSoon() {
         <p className="mx-auto mt-5 max-w-[34ch] text-[19px] leading-snug text-neutral-700 md:text-[22px] dark:text-neutral-300">
           Leave your email and we&apos;ll tell you the day it&apos;s out.
         </p>
-        <div className="mt-9 flex items-center justify-center gap-4" aria-label="Soon on the App Store and Google Play">
+        <div className="mt-9 flex flex-wrap items-center justify-center gap-x-4 gap-y-3" aria-label="Soon on the App Store and Google Play">
           {/* eslint-disable-next-line @next/next/no-img-element -- Apple's own SVG, shown as is */}
           <img src="/badges/download-on-the-app-store.svg" alt="Download on the App Store" width={144} height={48} className="h-12 w-auto" />
           {/* The PNG carries Google's own clear space around the badge; the
