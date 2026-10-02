@@ -23,7 +23,9 @@ export async function getCreatorFeed(
       niche: creator.niche,
       minFollowers: { lte: maxFollowers },
       status: "OPEN",
-      startup: { userId: { notIn: blockedUserIds } },
+      // A suspended brand's requests are closed on suspension; this also
+      // covers any that slip through (see /admin/users).
+      startup: { userId: { notIn: blockedUserIds }, user: { suspendedAt: null } },
     },
     // Photo ids only (served by /api/request-images), never the legacy
     // data-URI column — a feed would otherwise ship every image inline.

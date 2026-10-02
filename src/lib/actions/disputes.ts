@@ -1,6 +1,7 @@
 "use server";
 
 import { auth } from "@/lib/auth";
+import { hasAdminAccess } from "@/lib/admin-access";
 import { prisma } from "@/lib/prisma";
 import { refundHeldPayment, releaseHeldPayment, type MoneyMoveResult } from "@/lib/payment-release";
 
@@ -9,7 +10,7 @@ import { refundHeldPayment, releaseHeldPayment, type MoneyMoveResult } from "@/l
 // sides); these just carry it out.
 async function loadDisputedPayment(interestId: string): Promise<MoneyMoveResult | null> {
   const session = await auth();
-  if (!session || session.user.role !== "ADMIN") return { error: "Not authorized." };
+  if (!session || !hasAdminAccess(session.user)) return { error: "Not authorized." };
 
   const interest = await prisma.interest.findUnique({ where: { id: interestId } });
   if (!interest || interest.paymentStatus !== "HELD" || !interest.disputedAt) {

@@ -94,34 +94,36 @@ export function DiscoverCreators({ creators }: { creators: CreatorEntry[] }) {
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex flex-wrap gap-3">
+      {/* From lg: search across the top, the five filters evenly below it,
+          every label readable. Below that the controls wrap as they fit. */}
+      <div className="flex flex-wrap gap-3 lg:grid lg:grid-cols-5">
         <SearchInput
           value={search}
           onChange={(e) => setParam("q", e.target.value)}
           placeholder="Search name, niche, bio…"
           aria-label="Search creators"
-          wrapperClassName="flex-1 min-w-48"
+          wrapperClassName="flex-1 min-w-48 lg:col-span-5"
         />
         <MultiSelect
-          label="All niches"
+          label="Niche"
           options={NICHES}
           selected={niches}
           onChange={(vals) => setParam("niche", vals.join(","))}
-          wrapperClassName="w-40"
+          wrapperClassName="w-40 lg:w-auto"
         />
         <MultiSelect
-          label="All platforms"
+          label="Platform"
           options={PLATFORMS}
           selected={platformFilters}
           onChange={(vals) => setParam("platform", vals.join(","))}
-          wrapperClassName="w-40"
+          wrapperClassName="w-40 lg:w-auto"
         />
         <MultiSelect
-          label="All languages"
+          label="Language"
           options={LANGUAGES}
           selected={languages}
           onChange={(vals) => setParam("language", vals.join(","))}
-          wrapperClassName="w-40"
+          wrapperClassName="w-40 lg:w-auto"
         />
         <input
           type="number"
@@ -130,12 +132,12 @@ export function DiscoverCreators({ creators }: { creators: CreatorEntry[] }) {
           onChange={(e) => setParam("minFollowers", e.target.value)}
           placeholder="Min. followers"
           aria-label="Minimum followers"
-          className="rounded border border-neutral-300 px-3 py-2.5 w-36 dark:border-neutral-700"
+          className="rounded border border-neutral-300 px-3 py-2.5 w-36 lg:w-auto dark:border-neutral-700"
         />
         <Select
           value={sort}
           onChange={(e) => setParam("sort", e.target.value)}
-          wrapperClassName="w-40"
+          wrapperClassName="w-40 lg:w-auto"
           aria-label="Sort by"
         >
           {Object.entries(SORTS).map(([key, label]) => (
@@ -165,7 +167,7 @@ export function DiscoverCreators({ creators }: { creators: CreatorEntry[] }) {
             }}
           />
         ) : (
-          <div className="grid grid-cols-2 gap-x-3 gap-y-5 sm:grid-cols-3">
+          <div className="grid grid-cols-2 gap-x-3 gap-y-5 sm:grid-cols-3 xl:grid-cols-4">
             {filtered.map((c) => (
               <CreatorCard
                 key={c.id}

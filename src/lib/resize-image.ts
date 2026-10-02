@@ -24,6 +24,10 @@ export function resizeImageFile(
       canvas.height = height;
       const ctx = canvas.getContext("2d");
       if (!ctx) return reject(new Error("Canvas not supported"));
+      // JPEG has no transparency: without a backdrop, a transparent PNG
+      // logo comes out on solid black.
+      ctx.fillStyle = "#ffffff";
+      ctx.fillRect(0, 0, width, height);
       ctx.drawImage(img, 0, 0, width, height);
       canvas.toBlob(
         (blob) => {

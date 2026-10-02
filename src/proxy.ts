@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
+import { hasAdminAccess } from "@/lib/admin-access";
 
 // Pre-launch gate — flip to false once setup is finished and the site is
 // ready for real signups. While on, EVERYTHING is off-limits — login and
@@ -60,6 +61,13 @@ export default auth((req) => {
     }
   }
 
+  // /dev-* are local review tools (phone frame, swipe demo with fake data)
+  // — never reachable in a production build, where a store reviewer or a
+  // real user could stumble onto them.
+  if (process.env.NODE_ENV === "production" && pathname.startsWith("/dev-")) {
+    return NextResponse.rewrite(new URL("/__not-found", req.url));
+  }
+
   // The landing page, log in and sign up are for people who aren't in yet:
   // anyone logged in goes straight on to their dashboard. That includes the
   // installed app, which starts at /login and used to show the login form
@@ -79,7 +87,7 @@ export default auth((req) => {
   const role = req.auth.user.role;
 
   if (isAdminPath) {
-    if (role !== "ADMIN") return NextResponse.redirect(new URL("/login", req.url));
+    if (!hasAdminAccess(req.auth.user)) return NextResponse.redirect(new URL("/login", req.url));
     return;
   }
 

@@ -5,6 +5,7 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { stripe } from "@/lib/stripe";
 import { SITE_URL } from "@/lib/site";
+import { canSellProSubscription } from "@/lib/native-app-server";
 
 function revalidateSubscriptionPaths() {
   revalidatePath("/dashboard/startup/settings");
@@ -21,6 +22,8 @@ function revalidateSubscriptionPaths() {
 export async function createProCheckoutSessionAction(): Promise<{ url: string } | { error: string }> {
   const session = await auth();
   if (!session || session.user.role !== "STARTUP") return { error: "Not authorized." };
+  // Mirrors the hidden upgrade UI in the store apps, see canSellProSubscription.
+  if (!(await canSellProSubscription())) return { error: "Pro isn't available in the app." };
 
   const startup = await prisma.startupProfile.findUniqueOrThrow({ where: { userId: session.user.id } });
   if (startup.isPro) return { error: "You're already on Pro." };

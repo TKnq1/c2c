@@ -38,7 +38,8 @@ export function postByDate(postBy: string) {
 
 // The face of the card: the cover (or current) photo full-bleed with the
 // budget up top and the brand, title and what the job is laid over the
-// bottom — or, without photos, the same on paper.
+// bottom — or, without photos, the same on paper with the description
+// filling the space the photo would take.
 export function RequestCardFace({ request, photoIndex = 0 }: { request: CardRequest; photoIndex?: number }) {
   const photo = request.photos[photoIndex] ?? request.photos[0];
   const budget = formatBudget(request.budgetMinCents, request.budgetMaxCents);
@@ -53,6 +54,12 @@ export function RequestCardFace({ request, photoIndex = 0 }: { request: CardRequ
           </p>
         )}
         <CardHeader request={request} />
+        {/* Fills the space a photo would take instead of leaving it blank. */}
+        {request.description && (
+          <p className="line-clamp-[8] min-h-0 overflow-hidden whitespace-pre-line leading-relaxed text-neutral-700 dark:text-neutral-300">
+            {request.description}
+          </p>
+        )}
         <CardChips request={request} className="mt-auto" />
       </div>
     );
@@ -183,9 +190,24 @@ function CardChips({ request, light, className = "" }: { request: CardRequest; l
   );
 }
 
+export type RequestFactFields = Pick<
+  CardRequest,
+  | "budgetMinCents"
+  | "budgetMaxCents"
+  | "platform"
+  | "deliverables"
+  | "postBy"
+  | "productIncluded"
+  | "productCategory"
+  | "niche"
+  | "languages"
+  | "minFollowers"
+>;
+
 // The facts under the description in the details sheet — every field, in
-// the same order the brand filled them in.
-export function RequestFacts({ request }: { request: CardRequest }) {
+// the same order the brand filled them in. Also the brand's own request
+// page, which is why it only needs the request, not the brand.
+export function RequestFacts({ request }: { request: RequestFactFields }) {
   const budget = formatBudget(request.budgetMinCents, request.budgetMaxCents);
   const rows: [string, React.ReactNode][] = [];
   if (budget) rows.push(["Budget", <span key="b" className="font-bold">{budget}</span>]);

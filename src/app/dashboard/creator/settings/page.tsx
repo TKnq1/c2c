@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
@@ -17,6 +18,7 @@ import { ConnectStripeButton } from "@/components/connect-stripe-button";
 import { LegalLinks } from "@/components/legal-links";
 import { AppearanceSettings } from "@/components/appearance-settings";
 import { OnboardingChecklist } from "@/components/onboarding-checklist";
+import { PageTitle } from "@/components/page-title";
 
 export default async function CreatorSettingsPage() {
   const session = await auth();
@@ -42,7 +44,10 @@ export default async function CreatorSettingsPage() {
   ]);
 
   return (
-    <div className="flex flex-col gap-8">
+    // A centered reading-width column from md, like a document, instead of
+    // fields stretched across the whole screen.
+    <div className="flex flex-col gap-8 md:mx-auto md:w-full md:max-w-2xl">
+      <PageTitle>Settings</PageTitle>
       <SettingsNav role="CREATOR" />
 
       <OnboardingChecklist
@@ -131,6 +136,19 @@ export default async function CreatorSettingsPage() {
 
       </SettingsSection>
 
+      {session.user.isAdmin && (
+        <SettingsSection id="admin" title="Admin">
+          <SettingsRow label="Admin dashboard" hint="Users, payments, reports and disputes across comtor.">
+            <Link
+              href="/admin"
+              className="shrink-0 rounded-full border border-neutral-300 px-4 py-2 text-sm font-medium transition hover:border-neutral-400 dark:border-neutral-700"
+            >
+              Open
+            </Link>
+          </SettingsRow>
+        </SettingsSection>
+      )}
+
       <SettingsSection id="data" title="Your data">
         <SettingsRow label="Export my data" hint="Everything in your account, as a JSON file.">
           <a
@@ -148,7 +166,7 @@ export default async function CreatorSettingsPage() {
 
       <LegalLinks />
 
-      <LogoutButton className="w-full rounded-full border border-neutral-300 px-4 py-2.5 text-sm font-medium text-neutral-700 transition hover:border-ink dark:border-neutral-700 dark:text-neutral-300" />
+      <LogoutButton className="w-full rounded-full border border-neutral-300 px-4 py-2.5 md:w-auto md:self-start md:px-6 text-sm font-medium text-neutral-700 transition hover:border-ink dark:border-neutral-700 dark:text-neutral-300" />
     </div>
   );
 }

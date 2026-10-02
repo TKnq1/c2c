@@ -26,16 +26,25 @@ export function DiscoverTile({
   isNew: boolean;
   favorite: React.ReactNode;
 }) {
+  // A drawn graphic (the generated initials logos are SVG) isn't a photo:
+  // stretched over the 4:5 tile it turns into a giant cropped circle. Shown
+  // like a missing photo instead, as the round avatar in the middle.
+  const isGraphic = photoUrl?.startsWith("data:image/svg") ?? false;
+  const photo = isGraphic ? null : photoUrl;
+  const avatar = isGraphic && !avatarUrl ? photoUrl : avatarUrl;
+
   return (
     <div className="relative flex min-w-0 flex-col gap-2">
-      <Link href={href} className="group flex min-w-0 flex-col gap-2">
+      {/* scroll={false}: the profile opens as a panel over the list (see
+          discover/@panel), which should stay where it was scrolled to. */}
+      <Link href={href} scroll={false} className="group flex min-w-0 flex-col gap-2">
         <div className="relative aspect-[4/5] overflow-hidden rounded bg-fog">
-          {photoUrl ? (
+          {photo ? (
             // User-uploaded images served by our own routes — nothing for
             // next/image to optimize.
             // eslint-disable-next-line @next/next/no-img-element
             <img
-              src={photoUrl}
+              src={photo}
               alt=""
               loading="lazy"
               draggable={false}
@@ -43,7 +52,7 @@ export function DiscoverTile({
             />
           ) : (
             <div className="flex h-full items-center justify-center">
-              <Avatar src={avatarUrl} name={name} size={72} />
+              <Avatar src={avatar} name={name} size={96} />
             </div>
           )}
           {isNew && (
@@ -54,7 +63,7 @@ export function DiscoverTile({
         </div>
         <div className="min-w-0 px-0.5">
           <div className="flex min-w-0 items-center gap-1.5">
-            {showAvatar && photoUrl && <Avatar src={avatarUrl} name={name} size={20} />}
+            {showAvatar && photo && <Avatar src={avatar} name={name} size={20} />}
             <p className="truncate text-subhead font-bold">{name}</p>
           </div>
           <p className="line-clamp-2 text-footnote text-neutral-500 dark:text-neutral-400">{facts}</p>

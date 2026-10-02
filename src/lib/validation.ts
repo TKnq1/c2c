@@ -27,10 +27,12 @@ function jsonField<T extends z.ZodTypeAny>(schema: T) {
 const platformEntrySchema = z.object({
   platform: platformEnum,
   followerCount: z.coerce.number().int().min(0),
-  // PlatformPicker omits this key entirely (not even "") when left blank,
-  // since JSON.stringify drops undefined values — so the empty case here is
-  // "key absent", not "key present with an empty string".
-  url: optionalUrl.optional(),
+  // Required: it's what a brand opens from the creator's profile.
+  url: z
+    .string({ error: "Add the link to each of your profiles." })
+    .trim()
+    .min(1, "Add the link to each of your profiles.")
+    .url("Please enter a valid profile link"),
 });
 
 const platformsField = jsonField(

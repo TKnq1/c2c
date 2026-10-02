@@ -2,15 +2,15 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import type { PaymentStatus, DepositStatus } from "@prisma/client";
 import { FiUsers } from "react-icons/fi";
+import { IoChevronBack } from "react-icons/io5";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { ActionButton } from "@/components/action-button";
 import { BulkInterestedCreatorsList } from "@/components/bulk-interested-creators-list";
 import { paymentStage } from "@/components/payment-status-badge";
 import { EmptyState } from "@/components/empty-state";
-import { closeRequestAction, reopenRequestAction, duplicateRequestAction } from "@/lib/actions/requests";
+import { RequestActions } from "@/components/request-actions";
+import { RequestFacts } from "@/components/request-card-face";
 import { PLATFORM_FEE_RATE, PRO_PLATFORM_FEE_RATE } from "@/lib/constants";
-import { formatBudget, formatPostBy } from "@/lib/format";
 import { photoUrlsByRequestId, requestPhotoIds } from "@/lib/request-photos";
 
 export default async function RequestDetailPage({ params }: { params: Promise<{ id: string }> }) {
@@ -40,13 +40,8 @@ export default async function RequestDetailPage({ params }: { params: Promise<{ 
 
   if (!request || request.startupId !== startup.id) notFound();
   const photos = (await photoUrlsByRequestId([request])).get(request.id) ?? [];
-  const budget = formatBudget(request.budgetMinCents, request.budgetMaxCents);
-  // The deal at a glance, the way creators see it on the card.
-  const deal = [
-    request.platform && request.deliverables ? `${request.platform} · ${request.deliverables}` : null,
-    request.postBy ? `Post by ${formatPostBy(request.postBy)}` : null,
-    request.productIncluded ? "Product included" : null,
-  ].filter(Boolean);
+  const isOpen = request.status === "OPEN";
+  const feeRatePercent = (startup.isPro ? PRO_PLATFORM_FEE_RATE : PLATFORM_FEE_RATE) * 100;
 
   // Both a creator applying and this startup reaching out directly create
   // the same Interest row — split them back apart so "interested" only
@@ -56,90 +51,111 @@ export default async function RequestDetailPage({ params }: { params: Promise<{ 
 
   return (
     <div className="flex flex-col gap-8">
-      <div className="flex items-start justify-between gap-4">
-        <div>
-          <p className="text-sm text-neutral-500 dark:text-neutral-400">
-            {request.niche} · {request.productCategory}
-          </p>
-          <h1 className="font-display text-title-1 font-bold flex items-center gap-2">
-            {request.title}
-            {request.status === "CLOSED" && (
-              <span className="text-xs font-normal rounded bg-fog text-neutral-500 px-2 py-0.5 dark:text-neutral-400">
-                Closed
+      <div className="flex flex-col gap-4">
+        <Link
+          href="/dashboard/startup"
+          className="flex items-center gap-1 self-start text-sm text-neutral-500 transition hover:text-ink dark:text-neutral-400"
+        >
+          <IoChevronBack className="h-4 w-4" aria-hidden />
+          Requests
+        </Link>
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <div className="min-w-0">
+            <h1 className="flex flex-wrap items-center gap-3 font-display text-title-1 font-bold text-balance">
+              {request.title}
+              <span
+                className={`rounded-full px-2.5 py-1 text-xs font-medium ${
+                  isOpen ? "border border-ink text-ink" : "bg-ink/10 text-stone"
+                }`}
+              >
+                {isOpen ? "Open" : "Closed"}
               </span>
-            )}
-          </h1>
-          <p className="text-sm text-neutral-600 mt-1 dark:text-neutral-400">
-            {budget && <span className="font-semibold text-neutral-900 dark:text-neutral-100">{budget} budget · </span>}
-            Min. {request.minFollowers.toLocaleString("en-US")} followers
-          </p>
-          {deal.length > 0 && <p className="text-sm text-neutral-600 mt-1 dark:text-neutral-400">{deal.join(" · ")}</p>}
+            </h1>
+          </div>
+          <RequestActions requestId={request.id} isOpen={isOpen} />
+        </div>
+      </div>
+
+      {/* Desktop: what the request is on the left, the facts in a column on
+          the right next to all of it. Phones: one column, facts after the
+          description and before the creators. */}
+      <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_20rem]">
+        <section className="flex min-w-0 flex-col gap-5 lg:col-start-1">
           {photos.length > 0 && (
-            <div className="mt-4 flex gap-2 overflow-x-auto">
+            <div className="-mx-6 flex snap-x snap-mandatory gap-2 overflow-x-auto px-6 md:mx-0 md:px-0" style={{ scrollbarWidth: "none" }}>
               {photos.map((url, i) => (
                 // eslint-disable-next-line @next/next/no-img-element
-                <img key={url} src={url} alt={`Photo ${i + 1}`} className="h-20 w-20 shrink-0 rounded border border-ink/10 object-cover" />
+                <img
+                  key={url}
+                  src={url}
+                  alt={`Photo ${i + 1}`}
+                  className="aspect-[4/5] w-44 shrink-0 snap-start rounded object-cover md:w-52"
+                />
               ))}
             </div>
           )}
-          <p className="text-neutral-700 whitespace-pre-wrap mt-4 dark:text-neutral-300">{request.description}</p>
-        </div>
-        <div className="flex flex-col gap-2 shrink-0">
-          <Link
-            href={`/dashboard/startup/requests/${request.id}/edit`}
-            className="rounded border border-neutral-300 px-4 py-2 text-sm font-medium text-center hover:bg-neutral-50 transition dark:border-neutral-700 dark:hover:bg-neutral-800/50"
-          >
-            Edit
-          </Link>
-          <form action={duplicateRequestAction.bind(null, request.id)}>
-            <button
-              type="submit"
-              className="w-full rounded border border-neutral-300 px-4 py-2 text-sm font-medium hover:bg-neutral-50 transition dark:border-neutral-700 dark:hover:bg-neutral-800/50"
-            >
-              Duplicate
-            </button>
-          </form>
-          <ActionButton
-            action={
-              request.status === "OPEN"
-                ? closeRequestAction.bind(null, request.id)
-                : reopenRequestAction.bind(null, request.id)
-            }
-            successMessage={request.status === "OPEN" ? "Request closed." : "Request reopened."}
-            className="w-full rounded border border-neutral-300 px-4 py-2 text-sm font-medium hover:bg-neutral-50 transition disabled:opacity-50 dark:border-neutral-700 dark:hover:bg-neutral-800/50"
-          >
-            {request.status === "OPEN" ? "Close request" : "Reopen request"}
-          </ActionButton>
+          <p className="whitespace-pre-wrap leading-relaxed text-neutral-700 dark:text-neutral-300">{request.description}</p>
+        </section>
+
+        <aside className="flex flex-col gap-3 lg:sticky lg:top-0 lg:col-start-2 lg:row-span-2 lg:row-start-1 lg:self-start">
+          <RequestFacts
+            request={{
+              budgetMinCents: request.budgetMinCents,
+              budgetMaxCents: request.budgetMaxCents,
+              platform: request.platform,
+              deliverables: request.deliverables,
+              postBy: request.postBy ? request.postBy.toISOString().slice(0, 10) : null,
+              productIncluded: request.productIncluded,
+              productCategory: request.productCategory,
+              niche: request.niche,
+              languages: request.languages,
+              minFollowers: request.minFollowers,
+            }}
+          />
+          <dl className="grid grid-cols-2 gap-3">
+            <div className="rounded bg-fog px-4 py-3">
+              <dt className="text-footnote text-neutral-500 dark:text-neutral-400">Interested</dt>
+              <dd className="font-display text-title-2 font-bold tabular-nums">{interestedCreators.length}</dd>
+            </div>
+            <div className="rounded bg-fog px-4 py-3">
+              <dt className="text-footnote text-neutral-500 dark:text-neutral-400">Contacted</dt>
+              <dd className="font-display text-title-2 font-bold tabular-nums">{contactedCreators.length}</dd>
+            </div>
+          </dl>
+        </aside>
+
+        <div className="flex min-w-0 flex-col gap-8 lg:col-start-1">
+          <section className="flex flex-col gap-3">
+            <h2 className="font-semibold">Interested creators ({interestedCreators.length})</h2>
+            {interestedCreators.length === 0 ? (
+              <div className="rounded bg-fog">
+                <EmptyState
+                  icon={FiUsers}
+                  title="No creator interest yet."
+                  description="Matching creators will show up here once they express interest."
+                />
+              </div>
+            ) : (
+              <BulkInterestedCreatorsList
+                requestId={request.id}
+                interests={interestedCreators.map(toInterestEntry)}
+                feeRatePercent={feeRatePercent}
+              />
+            )}
+          </section>
+
+          {contactedCreators.length > 0 && (
+            <section className="flex flex-col gap-3">
+              <h2 className="font-semibold">Creators you contacted ({contactedCreators.length})</h2>
+              <BulkInterestedCreatorsList
+                requestId={request.id}
+                interests={contactedCreators.map(toInterestEntry)}
+                feeRatePercent={feeRatePercent}
+              />
+            </section>
+          )}
         </div>
       </div>
-
-      <div>
-        <h2 className="font-semibold mb-3">Interested creators ({interestedCreators.length})</h2>
-        {interestedCreators.length === 0 ? (
-          <EmptyState
-            icon={FiUsers}
-            title="No creator interest yet."
-            description="Matching creators will show up here once they express interest."
-          />
-        ) : (
-          <BulkInterestedCreatorsList
-            requestId={request.id}
-            interests={interestedCreators.map(toInterestEntry)}
-            feeRatePercent={(startup.isPro ? PRO_PLATFORM_FEE_RATE : PLATFORM_FEE_RATE) * 100}
-          />
-        )}
-      </div>
-
-      {contactedCreators.length > 0 && (
-        <div>
-          <h2 className="font-semibold mb-3">Creators you contacted ({contactedCreators.length})</h2>
-          <BulkInterestedCreatorsList
-            requestId={request.id}
-            interests={contactedCreators.map(toInterestEntry)}
-            feeRatePercent={(startup.isPro ? PRO_PLATFORM_FEE_RATE : PLATFORM_FEE_RATE) * 100}
-          />
-        </div>
-      )}
     </div>
   );
 }

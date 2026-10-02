@@ -44,7 +44,7 @@ export function MultiSelect({ label, options, selected, onChange, wrapperClassNa
         aria-haspopup="listbox"
         aria-expanded={open}
         aria-label={label}
-        className="w-full appearance-none rounded border border-neutral-300 bg-white text-neutral-900 pl-3 pr-9 py-2 text-left truncate dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-100"
+        className="w-full appearance-none rounded border border-neutral-300 bg-white text-neutral-900 pl-3 pr-9 py-2.5 text-left truncate dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-100"
       >
         {buttonLabel}
       </button>

@@ -1,10 +1,9 @@
 "use server";
 
-import { redirect } from "next/navigation";
-import { revalidatePath } from "next/cache";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { notify } from "@/lib/notifications";
+import { processAvatarUpload } from "@/lib/avatar-upload";
 import {
   onboardingCompanyNameSchema,
   onboardingDisplayNameSchema,
@@ -34,7 +33,7 @@ export async function saveCompanyNameAction(
   return { success: true };
 }
 
-export async function finishBrandOnboardingAction(
+export async function saveBrandNicheAction(
   _prevState: OnboardingState,
   formData: FormData,
 ): Promise<OnboardingState> {
@@ -51,8 +50,11 @@ export async function finishBrandOnboardingAction(
     data: { niche: parsed.data.niche },
   });
 
-  revalidatePath("/dashboard/startup");
-  redirect("/dashboard/startup?welcome=1");
+  // No revalidatePath here or in the steps after: it would re-render
+  // /onboarding, which now counts the profile as complete and redirects
+  // away before the photo step and the "all set" screen. The dashboard
+  // renders per request anyway.
+  return { success: true };
 }
 
 export async function saveDisplayNameAction(
@@ -95,7 +97,7 @@ export async function saveNicheAction(
   return { success: true };
 }
 
-export async function finishCreatorOnboardingAction(
+export async function savePlatformsAction(
   _prevState: OnboardingState,
   formData: FormData,
 ): Promise<OnboardingState> {
@@ -136,6 +138,31 @@ export async function finishCreatorOnboardingAction(
     );
   }
 
-  revalidatePath("/dashboard/creator");
-  redirect("/dashboard/creator?welcome=1");
+  // See saveBrandNicheAction on why there's no revalidatePath.
+  return { success: true };
+}
+
+// Optional last step for both roles: a photo (creators) or logo (brands).
+// Skipping it never calls this.
+export async function saveOnboardingPhotoAction(
+  _prevState: OnboardingState,
+  formData: FormData,
+): Promise<OnboardingState> {
+  const session = await auth();
+  if (!session || (session.user.role !== "STARTUP" && session.user.role !== "CREATOR")) {
+    return { error: "Not authorized." };
+  }
+
+  const isBrand = session.user.role === "STARTUP";
+  const { avatarUrl, error } = await processAvatarUpload(formData, isBrand ? "Logo" : "Photo");
+  if (error) return { error };
+  if (!avatarUrl) return { error: isBrand ? "Choose a logo first." : "Choose a photo first." };
+
+  if (isBrand) {
+    await prisma.startupProfile.update({ where: { userId: session.user.id }, data: { avatarUrl } });
+  } else {
+    await prisma.creatorProfile.update({ where: { userId: session.user.id }, data: { avatarUrl } });
+  }
+
+  return { success: true };
 }

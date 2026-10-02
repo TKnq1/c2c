@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { FiMessageSquare } from "react-icons/fi";
 import { IoFilterOutline } from "react-icons/io5";
 import { useUrlState } from "@/lib/use-url-state";
@@ -21,7 +22,10 @@ type Conversation = {
   unreadCount: number;
 };
 
-export function MessagesList({ conversations }: { conversations: Conversation[] }) {
+// `compact` is the desktop column next to an open thread (see
+// messages/layout.tsx): narrower, and the open conversation is marked.
+export function MessagesList({ conversations, compact = false }: { conversations: Conversation[]; compact?: boolean }) {
+  const pathname = usePathname();
   const [{ q: search, unread }, setParam, setParams] = useUrlState(["q", "unread"]);
   const [filterOpen, setFilterOpen] = useState(false);
   const filterPanel = useExitAnimation(filterOpen);
@@ -52,22 +56,22 @@ export function MessagesList({ conversations }: { conversations: Conversation[] 
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex flex-wrap items-center gap-3">
+      <div className="flex flex-wrap items-stretch gap-3">
         <SearchInput
           value={search}
           onChange={(e) => setParam("q", e.target.value)}
-          placeholder="Search name or request…"
+          placeholder={compact ? "Search…" : "Search name or request…"}
           aria-label="Search conversations"
           wrapperClassName="flex-1 min-w-48"
         />
-        <div ref={filterRef} className="relative shrink-0">
+        <div ref={filterRef} className="relative flex shrink-0">
           <button
             type="button"
             onClick={() => setFilterOpen((v) => !v)}
             aria-haspopup="true"
             aria-expanded={filterOpen}
             aria-label="Filter conversations"
-            className={`flex items-center gap-1.5 rounded border px-3.5 py-2 text-sm font-medium transition ${
+            className={`flex h-full items-center gap-1.5 rounded-full border px-3.5 py-2 text-sm font-medium transition ${
               activeFilterCount > 0
                 ? "border-ink bg-ink text-paper"
                 : "border-neutral-300 text-neutral-700 hover:border-neutral-400 dark:border-neutral-700 dark:text-neutral-300 dark:hover:border-neutral-600"
@@ -88,7 +92,7 @@ export function MessagesList({ conversations }: { conversations: Conversation[] 
               onAnimationEnd={filterPanel.onExitEnd}
               className={`${
                 filterPanel.closing ? "animate-dropdown-out pointer-events-none" : "animate-dropdown-in"
-              } absolute right-0 z-20 mt-1 min-w-40 rounded border border-ink/10 bg-white py-1 dark:bg-neutral-900`}
+              } absolute right-0 top-full z-20 mt-1 min-w-40 rounded border border-ink/10 bg-white py-1 dark:bg-neutral-900`}
             >
               <label className="flex items-center gap-2 px-3 py-2 text-sm text-neutral-700 whitespace-nowrap hover:bg-neutral-50 cursor-pointer dark:text-neutral-300 dark:hover:bg-neutral-800">
                 <input
@@ -117,38 +121,43 @@ export function MessagesList({ conversations }: { conversations: Conversation[] 
           key={`${search}|${unread}`}
           className="discover-results-fade divide-y divide-ink/10 overflow-hidden rounded bg-fog"
         >
-          {filtered.map((c) => (
-            <Link
-              key={c.interestId}
-              href={`/dashboard/messages/${c.interestId}`}
-              transitionTypes={["nav-forward"]}
-              className="flex items-start gap-3 px-4 py-3 transition hover:bg-ink/5"
-            >
-              <Avatar src={c.other.avatarUrl} name={c.other.name} size={44} />
-              <div className="flex-1 min-w-0">
-                <div className="flex items-start justify-between gap-2">
-                  <p className={`font-medium truncate ${c.unreadCount > 0 ? "text-neutral-900 dark:text-neutral-100" : ""}`}>
-                    {c.other.name}
-                  </p>
-                  <div className="flex flex-col items-end gap-1 shrink-0">
-                    {c.lastMessage && (
-                      <p className="text-xs text-neutral-500 whitespace-nowrap dark:text-neutral-400">
-                        {formatMessageTimestamp(c.lastMessage.createdAt, timeZone)}
-                      </p>
-                    )}
-                    {c.unreadCount > 0 && (
-                      <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-ink px-1 text-[11px] font-medium text-paper">
-                        {c.unreadCount > 9 ? "9+" : c.unreadCount}
-                      </span>
-                    )}
+          {filtered.map((c) => {
+            const href = `/dashboard/messages/${c.interestId}`;
+            const open = compact && pathname === href;
+            return (
+              <Link
+                key={c.interestId}
+                href={href}
+                transitionTypes={compact ? undefined : ["nav-forward"]}
+                aria-current={open ? "page" : undefined}
+                className={`flex items-start gap-3 px-4 py-3 transition ${open ? "bg-ink/10" : "hover:bg-ink/5"}`}
+              >
+                <Avatar src={c.other.avatarUrl} name={c.other.name} size={44} />
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-start justify-between gap-2">
+                    <p className={`font-medium truncate ${c.unreadCount > 0 ? "text-neutral-900 dark:text-neutral-100" : ""}`}>
+                      {c.other.name}
+                    </p>
+                    <div className="flex flex-col items-end gap-1 shrink-0">
+                      {c.lastMessage && (
+                        <p className="text-xs text-neutral-500 whitespace-nowrap dark:text-neutral-400">
+                          {formatMessageTimestamp(c.lastMessage.createdAt, timeZone)}
+                        </p>
+                      )}
+                      {c.unreadCount > 0 && (
+                        <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-ink px-1 text-[11px] font-medium text-paper">
+                          {c.unreadCount > 9 ? "9+" : c.unreadCount}
+                        </span>
+                      )}
+                    </div>
                   </div>
+                  <p className={`text-sm mt-1 truncate ${c.unreadCount > 0 ? "text-neutral-900 font-medium dark:text-neutral-100" : "text-neutral-500 dark:text-neutral-400"}`}>
+                    {c.lastMessage ? `${c.lastMessage.isMine ? "You: " : ""}${c.lastMessage.body}` : "No messages yet. Say hi!"}
+                  </p>
                 </div>
-                <p className={`text-sm mt-1 truncate ${c.unreadCount > 0 ? "text-neutral-900 font-medium dark:text-neutral-100" : "text-neutral-500 dark:text-neutral-400"}`}>
-                  {c.lastMessage ? `${c.lastMessage.isMine ? "You: " : ""}${c.lastMessage.body}` : "No messages yet. Say hi!"}
-                </p>
-              </div>
-            </Link>
-          ))}
+              </Link>
+            );
+          })}
         </div>
       )}
     </div>

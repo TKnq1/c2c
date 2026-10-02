@@ -246,7 +246,7 @@ async function main() {
         create: {
           displayName: "Lena Cross",
           niche: "Beauty",
-          platforms: { create: [{ platform: "TikTok", followerCount: 3000 }] },
+          platforms: { create: [{ platform: "TikTok", followerCount: 3000, url: "https://tiktok.com/@lenacross" }] },
         },
       },
     },
@@ -286,7 +286,7 @@ async function main() {
           displayName: "Paul Delish",
           avatarUrl: initialsAvatar("Paul Delish", "#eab308"),
           niche: "Food",
-          platforms: { create: [{ platform: "Instagram", followerCount: 100000 }] },
+          platforms: { create: [{ platform: "Instagram", followerCount: 100000, url: "https://instagram.com/pauldelish" }] },
         },
       },
     },
@@ -304,7 +304,7 @@ async function main() {
           niche: "Fashion",
           contentLanguage: "German",
           bio: "Fashion-Content auf Deutsch — Lookbooks, Try-on-Hauls und Styling-Tipps.",
-          platforms: { create: [{ platform: "TikTok", followerCount: 10000 }] },
+          platforms: { create: [{ platform: "TikTok", followerCount: 10000, url: "https://tiktok.com/@saratrend" }] },
         },
       },
     },
@@ -493,6 +493,8 @@ async function main() {
     data: {
       requestId: glowFirstRequest.id,
       creatorId: creator1User.creatorProfile!.id,
+      // Started before the deposit below, so the chat's timeline reads in order.
+      createdAt: threeDaysAgo,
       // Mia already paid her deposit for the sample serum set — demonstrates
       // the brand's release/forfeit decision on first load.
       depositCents: 2_000, // $20.00
@@ -507,6 +509,7 @@ async function main() {
       interestId: glowMiaInterest.id,
       senderRole: "STARTUP",
       body: "Hi Mia! Loved your morning routine reel — would love to chat about our new serum launch.",
+      createdAt: new Date(threeDaysAgo.getTime() + oneHour),
     },
   });
 
@@ -572,6 +575,39 @@ async function main() {
     },
   });
 
+  // 6) Two more of Mia's matches with Glow, so her Matches list has
+  // something under each filter: one she applied to that's still waiting on
+  // a reply, and one Glow answered with an offer.
+  const [glowThirdRequest, glowFourthRequest] = await prisma.request.findMany({
+    where: { startupId: startup1.id },
+    orderBy: { createdAt: "asc" },
+    skip: 2,
+    take: 2,
+  });
+  await prisma.interest.create({
+    data: { requestId: glowThirdRequest.id, creatorId: creator1User.creatorProfile!.id, createdAt: oneDayAgo },
+  });
+  const miaOfferInterest = await prisma.interest.create({
+    data: {
+      requestId: glowFourthRequest.id,
+      creatorId: creator1User.creatorProfile!.id,
+      amountCents: 20_000, // $200.00
+      platformFeeCents: 2_000, // $20.00 (10%)
+      payoutCents: 18_000, // $180.00
+      paymentStatus: "OFFERED",
+      offerRole: "STARTUP",
+      offeredAt: fiveHoursAgo,
+    },
+  });
+  await prisma.message.create({
+    data: {
+      interestId: miaOfferInterest.id,
+      senderRole: "STARTUP",
+      body: "Your routines are exactly the vibe for this one. Sent you an offer, happy to adjust.",
+      createdAt: fiveHoursAgo,
+    },
+  });
+
   // Glow Beauty Co has Jonas Fit saved for later, and it's mutual — Jonas
   // has Glow Beauty saved too — so neither Favorites page is empty on
   // first look, and the pair demonstrates both directions at once.
@@ -581,6 +617,30 @@ async function main() {
   await prisma.favorite.create({
     data: { startupId: startup1.id, creatorId: creator3User.creatorProfile!.id, favoritedByRole: "CREATOR" },
   });
+
+  // Interests above are created "now" while their messages and payment
+  // steps are backdated, which put "Conversation started" after them in
+  // the chat timeline. Start each conversation just before its first event.
+  const interests = await prisma.interest.findMany({
+    include: { messages: { select: { createdAt: true }, orderBy: { createdAt: "asc" }, take: 1 } },
+  });
+  for (const i of interests) {
+    const events = [
+      i.messages[0]?.createdAt,
+      i.offeredAt,
+      i.paidAt,
+      i.proofSubmittedAt,
+      i.disputedAt,
+      i.releasedAt,
+      i.refundedAt,
+      i.depositRequestedAt,
+      i.depositPaidAt,
+    ].filter((d): d is Date => d instanceof Date);
+    const first = Math.min(...events.map((d) => d.getTime()));
+    if (events.length > 0 && first < i.createdAt.getTime()) {
+      await prisma.interest.update({ where: { id: i.id }, data: { createdAt: new Date(first - 5 * 60 * 1000) } });
+    }
+  }
 
   console.log("Seed complete. All accounts use password: password123");
 }

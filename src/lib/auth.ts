@@ -47,6 +47,11 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           return null;
         }
 
+        if (user.suspendedAt) {
+          await logLoginAttempt({ email, succeeded: false, userId: user.id });
+          return null;
+        }
+
         if (user.totpEnabled) {
           const validCode =
             (user.totpSecret ? verifyTotpCode(user.totpSecret, code) : false) ||
@@ -58,7 +63,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         }
 
         await logLoginAttempt({ email, succeeded: true, userId: user.id });
-        return { id: user.id, email: user.email, role: user.role };
+        return { id: user.id, email: user.email, role: user.role, isAdmin: user.isAdmin };
       },
     }),
   ],
@@ -67,6 +72,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       if (user) {
         token.id = user.id;
         token.role = user.role;
+        token.isAdmin = user.isAdmin;
         token.checkedAt = Date.now();
         token.sid = crypto.randomUUID();
         token.loginAt = Date.now();
@@ -103,13 +109,18 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       try {
         const current = await prisma.user.findUnique({
           where: { id: token.id },
-          select: { sessionsRevokedAt: true, keptSessionId: true },
+          select: { suspendedAt: true, role: true, isAdmin: true, sessionsRevokedAt: true, keptSessionId: true },
         });
-        if (!current) return null;
+        // A suspension (see /admin/users) ends the session the same way.
+        if (!current || current.suspendedAt) return null;
         // The password was changed after this login began, somewhere else.
         // Nothing here trusts the session update endpoint, so a copied
         // cookie can't refresh itself back in.
         if (isSessionRevoked(token, current)) return null;
+        // Admin access granted or taken away in the database applies
+        // without signing out and back in.
+        token.role = current.role;
+        token.isAdmin = current.isAdmin;
         token.checkedAt = Date.now();
       } catch {
         // Fall through and return the token below, checkedAt untouched.
@@ -119,6 +130,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     session({ session, token }) {
       session.user.id = token.id;
       session.user.role = token.role;
+      session.user.isAdmin = token.isAdmin === true;
       session.sid = token.sid ?? "";
       return session;
     },

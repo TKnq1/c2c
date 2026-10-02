@@ -1,9 +1,9 @@
 "use client";
 
-import { useActionState, useEffect } from "react";
+import { useActionState, useEffect, useState } from "react";
 import { updateCreatorProfileAction } from "@/lib/actions/profile";
 import { NICHES, LANGUAGES } from "@/lib/constants";
-import { PlatformPicker } from "@/components/platform-picker";
+import { PlatformChips, type PlatformDraft } from "@/components/platform-chips";
 import { Select } from "@/components/select";
 import { AvatarUpload } from "@/components/avatar-upload";
 import { TextareaWithCounter } from "@/components/textarea-with-counter";
@@ -28,6 +28,9 @@ export function EditProfileForm({
   platforms,
 }: Props) {
   const [state, formAction, pending] = useActionState(updateCreatorProfileAction, undefined);
+  const [platformDrafts, setPlatformDrafts] = useState<PlatformDraft[]>(() =>
+    platforms.map((p) => ({ platform: p.platform, followers: String(p.followerCount), url: p.url ?? "" })),
+  );
   useActionToast(state, "Profile saved.");
   const { setIsBlocked } = useNavigationBlocker();
   useEffect(() => {
@@ -94,9 +97,17 @@ export function EditProfileForm({
       <div className="flex flex-col gap-1">
         <span className="text-sm font-medium">Platforms &amp; followers</span>
         <p className="text-xs text-neutral-500 dark:text-neutral-400">
-          The link is optional. Add it so brands can check out your profile directly.
+          Followers and a link for each, so brands can check out your profile directly.
         </p>
-        <PlatformPicker name="platforms" initial={platforms} />
+        <PlatformChips
+          name="platforms"
+          value={platformDrafts}
+          onChange={(next) => {
+            setPlatformDrafts(next);
+            // Chip taps aren't input events, so the form's onChange misses them.
+            setIsBlocked(true);
+          }}
+        />
       </div>
       {state?.error && <p className="text-sm text-ink">{state.error}</p>}
       <button

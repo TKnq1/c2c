@@ -500,20 +500,23 @@ export async function reportProblemAction(
     "/dashboard/creator/payments",
     "payments",
   );
-  const admins = await prisma.user.findMany({ where: { role: "ADMIN" }, select: { id: true } });
+  const admins = await prisma.user.findMany({
+    where: { OR: [{ role: "ADMIN" }, { isAdmin: true }] },
+    select: { id: true },
+  });
   await Promise.all(
     admins.map((a) =>
       notify(
         a.id,
         `Payment dispute: ${brand} reported a problem with ${interest.creator.displayName}'s post for "${title}" (${formatCents(interest.amountCents!)})`,
-        "/admin",
+        "/admin/moderation",
         "payments",
       ),
     ),
   );
 
   await revalidateOfferPaths(interest.requestId);
-  revalidatePath("/admin");
+  revalidatePath("/admin", "layout");
   return { success: true };
 }
 

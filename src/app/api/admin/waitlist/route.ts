@@ -1,5 +1,6 @@
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { hasAdminAccess } from "@/lib/admin-access";
 
 // The whole waitlist as a spreadsheet, for the launch email. Admin only.
 
@@ -11,7 +12,7 @@ function csvCell(value: string): string {
 
 export async function GET() {
   const session = await auth();
-  if (!session || session.user.role !== "ADMIN") return new Response("Not authorized", { status: 401 });
+  if (!session || !hasAdminAccess(session.user)) return new Response("Not authorized", { status: 401 });
 
   const entries = await prisma.waitlistEntry.findMany({ orderBy: { createdAt: "asc" } });
   const lines = [

@@ -20,6 +20,7 @@ export function ChatLink({ interestId, name }: { interestId: string; name: strin
 // A titled group on the Payments pages — "Offers", "Payments", "Deposits" —
 // with an optional count and something on the right (e.g. Export).
 export function PaymentSection({
+  id,
   title,
   count,
   description,
@@ -27,6 +28,8 @@ export function PaymentSection({
   className = "",
   children,
 }: {
+  // Anchor for links straight to this group (e.g. the brand home's tiles).
+  id?: string;
   title: string;
   count?: number;
   description?: string;
@@ -35,7 +38,7 @@ export function PaymentSection({
   children: React.ReactNode;
 }) {
   return (
-    <section className={`flex flex-col gap-2 ${className}`}>
+    <section id={id} className={`flex scroll-mt-6 flex-col gap-2 ${className}`}>
       <div className="flex items-center justify-between gap-3 px-1">
         <div className="min-w-0">
           <h2 className="text-footnote text-neutral-500 dark:text-neutral-400">
@@ -129,29 +132,53 @@ export function PaymentStats({
   footnote?: React.ReactNode;
 }) {
   return (
-    <div className="rounded bg-fog p-4 no-print">
-      <div className="grid grid-cols-2 divide-x divide-ink/10">
-        {stats.map((s) => (
-          <div key={s.label} className="min-w-0 px-4 first:pl-0 last:pr-0">
-            <p className="text-xs text-neutral-500 dark:text-neutral-400">{s.label}</p>
-            <p className="mt-1 truncate font-display text-title-3 font-bold tabular-nums">{s.value}</p>
-            <p className="mt-0.5 text-xs text-neutral-500 dark:text-neutral-400">{s.hint}</p>
-          </div>
-        ))}
-      </div>
-      {counts && (
-        <dl className="mt-3 grid grid-cols-3 gap-2 border-t border-ink/10 pt-3">
-          {counts.map((c) => (
-            <div key={c.label} className="flex min-w-0 flex-col">
-              <dt className="order-2 truncate text-xs text-neutral-500 dark:text-neutral-400">{c.label}</dt>
-              <dd className="order-1 truncate text-headline font-bold tabular-nums">{c.value}</dd>
+    <>
+      {/* From md: one card per figure, the money large, the counts beside
+          or below it. */}
+      <div className="hidden flex-col gap-3 no-print md:flex">
+        <div className="grid grid-cols-6 gap-3 lg:grid-cols-12">
+          {stats.map((s) => (
+            <div key={s.label} className="col-span-3 min-w-0 rounded bg-fog p-5">
+              <p className="text-footnote text-neutral-500 dark:text-neutral-400">{s.label}</p>
+              <p className="mt-2 truncate font-display text-title-1 font-bold tabular-nums">{s.value}</p>
+              <p className="mt-1 text-footnote text-neutral-500 dark:text-neutral-400">{s.hint}</p>
             </div>
           ))}
-        </dl>
-      )}
-      {footnote && (
-        <p className="mt-3 border-t border-ink/10 pt-3 text-xs text-neutral-500 dark:text-neutral-400">{footnote}</p>
-      )}
-    </div>
+          {counts?.map((c) => (
+            <div key={c.label} className="col-span-2 min-w-0 rounded bg-fog p-5">
+              <p className="text-footnote text-neutral-500 dark:text-neutral-400">{c.label}</p>
+              <p className="mt-2 truncate font-display text-title-2 font-bold tabular-nums">{c.value}</p>
+            </div>
+          ))}
+        </div>
+        {footnote && <p className="px-1 text-footnote text-neutral-500 dark:text-neutral-400">{footnote}</p>}
+      </div>
+
+      {/* Phones: everything in one compact block. */}
+      <div className="rounded bg-fog p-4 no-print md:hidden">
+        <div className="grid grid-cols-2 divide-x divide-ink/10">
+          {stats.map((s) => (
+            <div key={s.label} className="min-w-0 px-4 first:pl-0 last:pr-0">
+              <p className="text-xs text-neutral-500 dark:text-neutral-400">{s.label}</p>
+              <p className="mt-1 truncate font-display text-title-3 font-bold tabular-nums">{s.value}</p>
+              <p className="mt-0.5 text-xs text-neutral-500 dark:text-neutral-400">{s.hint}</p>
+            </div>
+          ))}
+        </div>
+        {counts && (
+          <dl className="mt-3 grid grid-cols-3 gap-2 border-t border-ink/10 pt-3">
+            {counts.map((c) => (
+              <div key={c.label} className="flex min-w-0 flex-col">
+                <dt className="order-2 truncate text-xs text-neutral-500 dark:text-neutral-400">{c.label}</dt>
+                <dd className="order-1 truncate text-headline font-bold tabular-nums">{c.value}</dd>
+              </div>
+            ))}
+          </dl>
+        )}
+        {footnote && (
+          <p className="mt-3 border-t border-ink/10 pt-3 text-xs text-neutral-500 dark:text-neutral-400">{footnote}</p>
+        )}
+      </div>
+    </>
   );
 }

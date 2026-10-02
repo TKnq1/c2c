@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { auth } from "@/lib/auth";
+import { hasAdminAccess } from "@/lib/admin-access";
 import { prisma } from "@/lib/prisma";
 
 export type WaitlistState = { ok?: boolean; error?: string } | undefined;
@@ -41,7 +42,7 @@ export async function joinWaitlistAction(_prev: WaitlistState, formData: FormDat
 // promises that), or the address is obviously junk.
 export async function removeWaitlistEntryAction(id: string): Promise<{ error?: string } | void> {
   const session = await auth();
-  if (!session || session.user.role !== "ADMIN") return { error: "Not authorized." };
+  if (!session || !hasAdminAccess(session.user)) return { error: "Not authorized." };
   await prisma.waitlistEntry.deleteMany({ where: { id } });
-  revalidatePath("/admin");
+  revalidatePath("/admin/waitlist");
 }

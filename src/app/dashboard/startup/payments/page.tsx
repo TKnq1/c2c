@@ -20,6 +20,7 @@ import { EmptyState } from "@/components/empty-state";
 import { refundPaymentAction, withdrawOfferAction } from "@/lib/actions/payments";
 import { releaseDepositAction, forfeitDepositAction } from "@/lib/actions/deposits";
 import { formatCents } from "@/lib/format";
+import { canSellProSubscription } from "@/lib/native-app-server";
 import {
   DEPOSITS_ENABLED,
   PLATFORM_FEE_RATE,
@@ -28,6 +29,7 @@ import {
   RELEASE_REVIEW_DAYS,
   RELEASE_REVIEW_MS,
 } from "@/lib/constants";
+import { PageTitle } from "@/components/page-title";
 
 const primaryButton =
   "rounded-full bg-ink px-4 py-2.5 text-sm font-medium text-paper transition hover:bg-graphite disabled:opacity-50";
@@ -115,9 +117,12 @@ export default async function StartupPaymentsPage(props: PageProps<"/dashboard/s
     Math.round((i.platformFeeCents! / i.amountCents!) * 100);
 
   const requestHref = (requestId: string) => `/dashboard/startup/requests/${requestId}`;
+  // No Pro upsell in the store apps, see canSellProSubscription.
+  const showProOffer = !startup.isPro && (await canSellProSubscription());
 
   return (
-    <div className="flex flex-col gap-8">
+    <div className="page-wide flex flex-col gap-8">
+      <PageTitle>Payments</PageTitle>
       <CheckoutReturn status={checkout} waiting={confirmingId !== null} />
       <PaymentStats
         stats={[
@@ -148,18 +153,22 @@ export default async function StartupPaymentsPage(props: PageProps<"/dashboard/s
         <p className="text-sm text-neutral-700 dark:text-neutral-300">
           {startup.isPro
             ? `Pro plan: ${PRO_PLATFORM_FEE_RATE * 100}% fee per payment instead of ${PLATFORM_FEE_RATE * 100}%.`
-            : `${PLATFORM_FEE_RATE * 100}% fee per payment. Pro lowers it to ${PRO_PLATFORM_FEE_RATE * 100}% for ${formatCents(PRO_SUBSCRIPTION_PRICE_CENTS)}/month.`}
+            : showProOffer
+              ? `${PLATFORM_FEE_RATE * 100}% fee per payment. Pro lowers it to ${PRO_PLATFORM_FEE_RATE * 100}% for ${formatCents(PRO_SUBSCRIPTION_PRICE_CENTS)}/month.`
+              : `${PLATFORM_FEE_RATE * 100}% fee per payment.`}
         </p>
-        <Link
-          href="/dashboard/startup/settings#plan"
-          className={
-            startup.isPro
-              ? "shrink-0 text-sm font-medium underline"
-              : "shrink-0 rounded-full bg-ink px-3.5 py-1.5 text-sm font-medium text-paper transition hover:bg-graphite"
-          }
-        >
-          {startup.isPro ? "Manage" : "Go Pro"}
-        </Link>
+        {(startup.isPro || showProOffer) && (
+          <Link
+            href="/dashboard/startup/settings#plan"
+            className={
+              startup.isPro
+                ? "shrink-0 text-sm font-medium underline"
+                : "shrink-0 rounded-full bg-ink px-3.5 py-1.5 text-sm font-medium text-paper transition hover:bg-graphite"
+            }
+          >
+            {startup.isPro ? "Manage" : "Go Pro"}
+          </Link>
+        )}
       </div>
 
       {allInterests.length === 0 && (
@@ -172,7 +181,7 @@ export default async function StartupPaymentsPage(props: PageProps<"/dashboard/s
       )}
 
       {toApprove.length > 0 && (
-        <PaymentSection title="To approve" count={toApprove.length} className="no-print">
+        <PaymentSection id="to-approve" title="To approve" count={toApprove.length} className="no-print">
           {toApprove.map((p) => {
             const creator = p.creator.displayName;
             return (
@@ -215,7 +224,7 @@ export default async function StartupPaymentsPage(props: PageProps<"/dashboard/s
       )}
 
       {pendingOffers.length > 0 && (
-        <PaymentSection title="Offers" count={pendingOffers.length} className="no-print">
+        <PaymentSection id="offers" title="Offers" count={pendingOffers.length} className="no-print">
           {pendingOffers.map((i) => {
             const creator = i.creator.displayName;
             const mine = i.offerRole === "STARTUP";
@@ -255,7 +264,7 @@ export default async function StartupPaymentsPage(props: PageProps<"/dashboard/s
       )}
 
       {awaitingPayment.length > 0 && (
-        <PaymentSection title="To pay" count={awaitingPayment.length} className="no-print">
+        <PaymentSection id="to-pay" title="To pay" count={awaitingPayment.length} className="no-print">
           {awaitingPayment.map((i) => (
             <PaymentRow
               key={i.id}
@@ -286,7 +295,7 @@ export default async function StartupPaymentsPage(props: PageProps<"/dashboard/s
       )}
 
       {interested.length > 0 && (
-        <PaymentSection title="Interested creators" count={interested.length} className="no-print">
+        <PaymentSection id="interested" title="Interested creators" count={interested.length} className="no-print">
           {interested.map((i) => (
             <PaymentRow
               key={i.id}

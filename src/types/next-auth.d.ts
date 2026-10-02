@@ -6,6 +6,7 @@ declare module "next-auth" {
     user: {
       id: string;
       role: Role;
+      isAdmin: boolean;
     } & DefaultSession["user"];
     // Which login this is, so a password change can keep this one and log
     // out the others (see src/lib/auth.ts).
@@ -15,6 +16,7 @@ declare module "next-auth" {
   interface User {
     id: string;
     role: Role;
+    isAdmin: boolean;
   }
 }
 
@@ -22,6 +24,7 @@ declare module "@auth/core/jwt" {
   interface JWT {
     id: string;
     role: Role;
+    isAdmin?: boolean;
     sid?: string;
     loginAt?: number;
   }

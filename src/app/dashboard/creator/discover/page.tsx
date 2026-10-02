@@ -7,6 +7,7 @@ import { computeResponseTimeMs, formatResponseTime } from "@/lib/response-time";
 import { photoUrlsByRequestId, requestPhotoIds } from "@/lib/request-photos";
 import { DiscoverBrands } from "@/components/discover-brands";
 import { SkeletonTileGrid } from "@/components/skeleton";
+import { PageTitle } from "@/components/page-title";
 
 export default async function DiscoverBrandsPage() {
   const session = await auth();
@@ -15,6 +16,8 @@ export default async function DiscoverBrandsPage() {
   const [creator, brands] = await Promise.all([
     prisma.creatorProfile.findUniqueOrThrow({ where: { userId: session.user.id } }),
     prisma.startupProfile.findMany({
+      // Suspended accounts (see /admin/users) drop out of Discover entirely.
+      where: { user: { suspendedAt: null } },
       include: { socialLinks: true },
       orderBy: { createdAt: "desc" },
     }),
@@ -90,11 +93,12 @@ export default async function DiscoverBrandsPage() {
   });
 
   return (
-    <div className="flex flex-col gap-6">
-      {/* "Discover" now lives in the navbar title (see nav.tsx) instead of
-          repeating it here as a page-level heading. The favorites-only
-          toggle moved into DiscoverBrands' own search row, next to the
-          search input, rather than sitting alone up here. */}
+    <div className="page-wide flex flex-col gap-6">
+      {/* The favorites-only toggle lives in DiscoverBrands' own search row,
+          next to the search input, rather than sitting alone up here. */}
+      <PageTitle description="Browse brands across every niche and see what they're looking for.">
+        Discover Brands
+      </PageTitle>
       <Suspense fallback={<SkeletonTileGrid />}>
         <DiscoverBrands brands={brandsWithRatings} />
       </Suspense>

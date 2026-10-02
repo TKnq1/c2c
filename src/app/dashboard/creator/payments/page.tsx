@@ -18,6 +18,7 @@ import { payDepositAction } from "@/lib/actions/deposits";
 import { withdrawOfferAction } from "@/lib/actions/payments";
 import { formatCents, isWithinLastWeek } from "@/lib/format";
 import { DEPOSITS_ENABLED, RELEASE_REVIEW_DAYS, RELEASE_REVIEW_MS } from "@/lib/constants";
+import { PageTitle } from "@/components/page-title";
 
 const primaryButton =
   "mt-3 w-full rounded-full bg-ink px-4 py-2.5 text-sm font-medium text-paper transition hover:bg-graphite disabled:opacity-50 sm:w-auto";
@@ -73,7 +74,8 @@ export default async function CreatorPaymentsPage() {
     payments.length === 0 && pendingOffers.length === 0 && awaitingPayment.length === 0 && deposits.length === 0;
 
   return (
-    <div className="flex flex-col gap-8">
+    <div className="page-wide flex flex-col gap-8">
+      <PageTitle>Payments</PageTitle>
       <PaymentStats
         stats={[
           { label: "Earned", value: formatCents(earnedCents), hint: "Paid out to you" },

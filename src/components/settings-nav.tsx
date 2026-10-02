@@ -90,7 +90,7 @@ export function SettingsNav({ role }: { role: Role }) {
       // sticky element sticks inside its scroll container's padding — so
       // it pulls up by the 2rem (-mt-8) and sticks that much higher
       // (-top-8). Frosted like the header, which it continues.
-      className="sticky -top-8 z-10 -mx-6 -mt-8 flex items-center gap-1.5 overflow-x-auto border-b border-ink/10 bg-background/80 px-6 py-2.5 text-sm backdrop-blur-xl backdrop-saturate-150 scrollbar-hide md:mx-0 md:px-0"
+      className="sticky -top-8 z-10 -mx-6 -mt-8 flex md:mt-0 items-center gap-1.5 overflow-x-auto border-b border-ink/10 bg-background/80 px-6 py-2.5 text-sm backdrop-blur-xl backdrop-saturate-150 scrollbar-hide md:mx-0 md:px-0"
     >
       {groups.map((g) => (
         <a
@@ -104,7 +104,7 @@ export function SettingsNav({ role }: { role: Role }) {
             document.getElementById(g.id)?.scrollIntoView({ behavior: "smooth", block: "start" });
           }}
           className={`shrink-0 whitespace-nowrap rounded-full px-3.5 py-1.5 font-medium transition ${
-            g.id === active ? "bg-ink text-paper" : "text-neutral-500 hover:text-ink dark:text-neutral-400 dark:hover:text-paper"
+            g.id === active ? "bg-ink text-paper" : "text-neutral-500 hover:text-ink dark:text-neutral-400"
           }`}
         >
           {g.label}

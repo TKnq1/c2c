@@ -65,6 +65,11 @@ export async function checkLoginAction(_prevState: CheckLoginState, formData: Fo
     return { error: "Incorrect email or password." };
   }
 
+  if (user.suspendedAt) {
+    await logLoginAttempt({ email, succeeded: false, userId: user.id });
+    return { error: "This account has been suspended. Contact us via the Imprint page if you think this is a mistake." };
+  }
+
   if (user.totpEnabled) return { requiresTwoFactor: true, role: user.role };
   return { proceed: true, role: user.role };
 }

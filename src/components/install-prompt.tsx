@@ -2,6 +2,7 @@
 
 import { useLayoutEffect, useState } from "react";
 import { FiX } from "react-icons/fi";
+import { Capacitor } from "@capacitor/core";
 
 const DISMISS_KEY = "install-prompt-dismissed";
 
@@ -35,10 +36,10 @@ export function InstallPrompt() {
       });
     }
 
-    // Same pre-paint idiom as EmailVerificationBanner — a returning visitor
+    // Runs before paint so a returning visitor
     // who already dismissed this, or who's already running the installed
-    // app, never sees it flash on screen first.
-    if (isStandalone()) return;
+    // app (the PWA or a store app), never sees it flash on screen first.
+    if (isStandalone() || Capacitor.isNativePlatform()) return;
     let wasDismissed = false;
     try {
       wasDismissed = localStorage.getItem(DISMISS_KEY) === "1";

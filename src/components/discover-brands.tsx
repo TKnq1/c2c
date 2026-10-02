@@ -83,7 +83,7 @@ export function DiscoverBrands({ brands }: { brands: BrandEntry[] }) {
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex flex-wrap items-center gap-3">
+      <div className="flex flex-wrap items-stretch gap-3">
         <SearchInput
           value={search}
           onChange={(e) => setParam("q", e.target.value)}
@@ -91,14 +91,14 @@ export function DiscoverBrands({ brands }: { brands: BrandEntry[] }) {
           aria-label="Search brands"
           wrapperClassName="flex-1 min-w-40"
         />
-        <div ref={filterRef} className="relative shrink-0">
+        <div ref={filterRef} className="relative flex shrink-0">
           <button
             type="button"
             onClick={() => setFilterOpen((v) => !v)}
             aria-haspopup="true"
             aria-expanded={filterOpen}
             aria-label="Filter brands"
-            className={`flex items-center gap-1.5 rounded border px-3.5 py-2 text-sm font-medium transition ${
+            className={`flex h-full items-center gap-1.5 rounded-full border px-3.5 py-2 text-sm font-medium transition ${
               activeFilterCount > 0
                 ? "border-ink bg-ink text-paper"
                 : "border-neutral-300 text-neutral-700 hover:border-neutral-400 dark:border-neutral-700 dark:text-neutral-300 dark:hover:border-neutral-600"
@@ -119,7 +119,7 @@ export function DiscoverBrands({ brands }: { brands: BrandEntry[] }) {
               onAnimationEnd={filterPanel.onExitEnd}
               className={`${
                 filterPanel.closing ? "animate-dropdown-out pointer-events-none" : "animate-dropdown-in"
-              } absolute right-0 z-20 mt-1 w-52 max-h-96 overflow-y-auto rounded border border-ink/10 bg-white py-1 dark:bg-neutral-900`}
+              } absolute right-0 top-full z-20 mt-1 w-52 max-h-96 overflow-y-auto rounded border border-ink/10 bg-white py-1 dark:bg-neutral-900`}
             >
               <label className="flex items-center gap-2 px-3 py-2 text-sm text-neutral-700 whitespace-nowrap hover:bg-neutral-50 cursor-pointer dark:text-neutral-300 dark:hover:bg-neutral-800">
                 <input
@@ -162,7 +162,7 @@ export function DiscoverBrands({ brands }: { brands: BrandEntry[] }) {
           action={{ label: "Clear filters", onClick: () => setParams({ q: "", niche: "", favorites: "" }) }}
         />
       ) : (
-        <div className="grid grid-cols-2 gap-x-3 gap-y-5 sm:grid-cols-3">
+        <div className="grid grid-cols-2 gap-x-3 gap-y-5 sm:grid-cols-3 xl:grid-cols-4">
           {filtered.map((b) => (
             <BrandCard
               key={b.id}
