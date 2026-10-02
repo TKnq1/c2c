@@ -6,6 +6,10 @@ import { Logo } from "@/components/logo";
 import { LogoutButton } from "@/components/logout-button";
 import { BrandOnboarding } from "@/components/brand-onboarding";
 import { CreatorOnboarding } from "@/components/creator-onboarding";
+import type { Metadata } from "next";
+import { NO_INDEX } from "@/lib/seo";
+
+export const metadata: Metadata = { title: "Set up your profile", robots: NO_INDEX };
 
 export default async function OnboardingPage() {
   const session = await auth();

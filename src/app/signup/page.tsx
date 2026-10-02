@@ -3,10 +3,12 @@ import Link from "next/link";
 import { SignupForm } from "@/components/signup-form";
 import { Logo } from "@/components/logo";
 import { ImprintLink } from "@/components/imprint-link";
+import { canonical } from "@/lib/seo";
 
 export const metadata: Metadata = {
   title: "Sign up",
   description: "Create a brand or creator account on comtor.",
+  alternates: canonical("/signup"),
 };
 
 export default function SignupPage() {

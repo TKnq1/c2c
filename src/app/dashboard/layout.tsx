@@ -12,6 +12,11 @@ import { getUnreadCount } from "@/lib/notifications";
 import { getUnreadMessageCount } from "@/lib/messages";
 import { getPendingPaymentActionCount } from "@/lib/payments";
 import { isOnboardingComplete } from "@/lib/onboarding";
+import type { Metadata } from "next";
+import { NO_INDEX } from "@/lib/seo";
+
+// The signed-in app: never in search, whatever links to it.
+export const metadata: Metadata = { robots: NO_INDEX };
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   const session = await auth();

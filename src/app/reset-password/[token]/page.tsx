@@ -3,6 +3,10 @@ import { prisma } from "@/lib/prisma";
 import { ResetPasswordForm } from "@/components/reset-password-form";
 import { Logo } from "@/components/logo";
 import { ImprintLink } from "@/components/imprint-link";
+import type { Metadata } from "next";
+import { NO_INDEX } from "@/lib/seo";
+
+export const metadata: Metadata = { title: "Choose a new password", robots: NO_INDEX };
 
 export default async function ResetPasswordPage({ params }: { params: Promise<{ token: string }> }) {
   const { token } = await params;

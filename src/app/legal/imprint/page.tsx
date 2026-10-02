@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
+import { canonical } from "@/lib/seo";
 
-export const metadata: Metadata = { title: "Imprint" };
+export const metadata: Metadata = { title: "Imprint", alternates: canonical("/legal/imprint") };
 
 const ROWS: { label: string; lines: string[] }[] = [
   { label: "Service provider", lines: ["Teethawat Kanpai", "Sonnenscheinpfad 64", "12277 Berlin, Germany"] },

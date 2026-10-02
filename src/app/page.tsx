@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { LandingPage } from "@/components/landing/landing-page";
 import { LANDING_ROLE_SCRIPT } from "@/components/landing/landing-role-script";
+import { canonical } from "@/lib/seo";
 
 const TITLE = "comtor · Paid brand deals for creators";
 const DESCRIPTION =
@@ -9,6 +10,7 @@ const DESCRIPTION =
 export const metadata: Metadata = {
   title: { absolute: TITLE },
   description: DESCRIPTION,
+  alternates: canonical("/"),
   openGraph: { title: TITLE, description: DESCRIPTION },
   twitter: { title: TITLE, description: DESCRIPTION },
 };

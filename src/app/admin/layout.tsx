@@ -4,6 +4,11 @@ import { prisma } from "@/lib/prisma";
 import { Logo } from "@/components/logo";
 import { LogoutButton } from "@/components/logout-button";
 import { AdminNav } from "@/components/admin/admin-nav";
+import type { Metadata } from "next";
+import { NO_INDEX } from "@/lib/seo";
+
+// The signed-in app: never in search, whatever links to it.
+export const metadata: Metadata = { robots: NO_INDEX };
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const session = await requireAdminSession();

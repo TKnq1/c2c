@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import { LegalDocument } from "@/components/legal-document";
+import { canonical } from "@/lib/seo";
 
-export const metadata: Metadata = { title: "Privacy Policy" };
+export const metadata: Metadata = { title: "Privacy Policy", alternates: canonical("/legal/privacy") };
 
 // Describes what the app actually does with personal data — keep it in step
 // with the code when that changes (new data, a new service provider).

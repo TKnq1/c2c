@@ -5,8 +5,9 @@ import { DeletedAccountToast } from "@/components/deleted-account-toast";
 import { Logo } from "@/components/logo";
 import { ImprintLink } from "@/components/imprint-link";
 import { WelcomeLogoPreload } from "@/components/welcome-overlay";
+import { canonical } from "@/lib/seo";
 
-export const metadata: Metadata = { title: "Log in" };
+export const metadata: Metadata = { title: "Log in", alternates: canonical("/login") };
 
 export default function LoginPage() {
   return (
