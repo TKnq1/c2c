@@ -8,30 +8,40 @@ export function PhoneFrame({ children, className = "" }: { children: React.React
   return (
     <div className={`lp-phone relative shrink-0 rounded-[3rem] bg-[#0c0c0d] p-[9px] ${className}`}>
       <div className="relative flex h-full w-full flex-col overflow-hidden rounded-[2.45rem] bg-paper text-left text-ink">
+        {/* The Dynamic Island in an iPhone's own proportions: 31% of the
+            screen's width, 3.4 times as wide as tall, 7px from the top, so
+            it shrinks along with a smaller phone. */}
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute top-[7px] left-1/2 z-30 aspect-[3.4/1] w-[31%] -translate-x-1/2 rounded-full bg-black"
+        />
         <StatusBar />
         {children}
       </div>
-      <div aria-hidden="true" className="pointer-events-none absolute top-[18px] left-1/2 z-30 h-[24px] w-[84px] -translate-x-1/2 rounded-full bg-black" />
     </div>
   );
 }
 
-// 11:11, as in the launch video.
+// Laid out the way iOS does it: the time centred in the space left of the
+// island, the signal, wifi and battery centred to its right, so nothing
+// ever runs under it, however narrow the phone. 11:11, as in the launch
+// video.
 function StatusBar() {
   return (
-    <div aria-hidden="true" className="flex h-11 shrink-0 items-center justify-between px-7 pt-1 text-[13px] font-bold">
-      <span>11:11</span>
-      <span className="flex items-center gap-1">
-        <svg viewBox="0 0 18 12" className="h-[11px] w-auto" fill="currentColor">
+    <div aria-hidden="true" className="grid h-10 shrink-0 grid-cols-[1fr_31%_1fr] items-center text-[13px] font-bold">
+      <span className="justify-self-center">11:11</span>
+      <span />
+      <span className="flex items-center gap-[3px] justify-self-center">
+        <svg viewBox="0 0 18 12" className="h-[10px] w-auto" fill="currentColor">
           <rect x="0" y="8" width="3" height="4" rx="1" />
           <rect x="5" y="5.5" width="3" height="6.5" rx="1" />
           <rect x="10" y="3" width="3" height="9" rx="1" />
           <rect x="15" y="0" width="3" height="12" rx="1" />
         </svg>
-        <svg viewBox="0 0 16 12" className="h-[11px] w-auto" fill="currentColor">
+        <svg viewBox="0 0 16 12" className="h-[10px] w-auto" fill="currentColor">
           <path d="M8 2.2c2.4 0 4.6.9 6.2 2.5l1.3-1.3A10.6 10.6 0 0 0 8 .3 10.6 10.6 0 0 0 .5 3.4l1.3 1.3A8.7 8.7 0 0 1 8 2.2Zm0 3.7c1.4 0 2.7.5 3.6 1.4l1.3-1.3A7 7 0 0 0 8 4a7 7 0 0 0-4.9 2l1.3 1.3c1-.9 2.2-1.4 3.6-1.4Zm0 3.6c.5 0 .9.2 1.2.5L8 11.2 6.8 10c.3-.3.7-.5 1.2-.5Z" />
         </svg>
-        <svg viewBox="0 0 27 13" className="h-[12px] w-auto" fill="none">
+        <svg viewBox="0 0 27 13" className="h-[11px] w-auto" fill="none">
           <rect x="0.5" y="0.5" width="22" height="12" rx="3.5" stroke="currentColor" opacity="0.4" />
           <rect x="2" y="2" width="17" height="9" rx="2" fill="currentColor" />
           <path d="M24.5 4.5v4c.8-.3 1.3-1.1 1.3-2s-.5-1.7-1.3-2Z" fill="currentColor" opacity="0.4" />
