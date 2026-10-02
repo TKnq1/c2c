@@ -168,7 +168,7 @@ export default async function AdminUserPage(props: PageProps<"/admin/users/[id]"
         <Section title="Profile">
           <div className="flex flex-col gap-1 rounded bg-fog px-4 py-3 text-sm">
             <p>
-              {creator.niche}
+              {creator.niches.join(", ") || "No niche set"}
               {creator.contentLanguage && ` · ${creator.contentLanguage}`}
             </p>
             {creator.platforms.length > 0 && (

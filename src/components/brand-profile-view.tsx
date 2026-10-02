@@ -67,7 +67,8 @@ export async function BrandProfileView({ id, variant }: { id: string; variant: "
       where: { creatorId: creator.id, request: { startupId: startup.id } },
       select: { id: true, requestId: true },
     }),
-    getCreatorFeed(creator, blockedUserIds),
+    // "all": what a creator may reach out about doesn't depend on their niches.
+    getCreatorFeed(creator, blockedUserIds, "all"),
     prisma.favorite.findUnique({
       where: {
         startupId_creatorId_favoritedByRole: { startupId: startup.id, creatorId: creator.id, favoritedByRole: "CREATOR" },

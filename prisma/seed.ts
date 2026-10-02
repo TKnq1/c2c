@@ -219,6 +219,7 @@ async function main() {
         create: {
           displayName: "Mia Summers",
           avatarUrl: initialsAvatar("Mia Summers", "#f43f5e"),
+          niches: ["Beauty", "Fitness"],
           niche: "Beauty",
           contentLanguage: "English",
           bio: "Skincare-obsessed creator sharing honest routines and first-impression reviews.",
@@ -245,6 +246,7 @@ async function main() {
       creatorProfile: {
         create: {
           displayName: "Lena Cross",
+          niches: ["Beauty"],
           niche: "Beauty",
           platforms: { create: [{ platform: "TikTok", followerCount: 3000, url: "https://tiktok.com/@lenacross" }] },
         },
@@ -262,6 +264,7 @@ async function main() {
         create: {
           displayName: "Jonas Fit",
           avatarUrl: initialsAvatar("Jonas Fit", "#3b82f6"),
+          niches: ["Fitness"],
           niche: "Fitness",
           contentLanguage: "English",
           bio: "Strength training and running content — real footage, no green screens.",
@@ -285,6 +288,7 @@ async function main() {
         create: {
           displayName: "Paul Delish",
           avatarUrl: initialsAvatar("Paul Delish", "#eab308"),
+          niches: ["Food"],
           niche: "Food",
           platforms: { create: [{ platform: "Instagram", followerCount: 100000, url: "https://instagram.com/pauldelish" }] },
         },
@@ -301,6 +305,7 @@ async function main() {
       creatorProfile: {
         create: {
           displayName: "Sara Trend",
+          niches: ["Fashion"],
           niche: "Fashion",
           contentLanguage: "German",
           bio: "Fashion-Content auf Deutsch — Lookbooks, Try-on-Hauls und Styling-Tipps.",

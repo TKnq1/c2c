@@ -4,10 +4,12 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { notify } from "@/lib/notifications";
 import { processAvatarUpload } from "@/lib/avatar-upload";
+import { creatorNicheColumns } from "@/lib/creator-niches";
 import {
   onboardingCompanyNameSchema,
   onboardingDisplayNameSchema,
   onboardingNicheSchema,
+  onboardingNichesSchema,
   onboardingPlatformsSchema,
 } from "@/lib/validation";
 
@@ -77,21 +79,21 @@ export async function saveDisplayNameAction(
   return { success: true };
 }
 
-export async function saveNicheAction(
+export async function saveNichesAction(
   _prevState: OnboardingState,
   formData: FormData,
 ): Promise<OnboardingState> {
   const session = await auth();
   if (!session || session.user.role !== "CREATOR") return { error: "Not authorized." };
 
-  const parsed = onboardingNicheSchema.safeParse(Object.fromEntries(formData));
+  const parsed = onboardingNichesSchema.safeParse(Object.fromEntries(formData));
   if (!parsed.success) {
-    return { error: "Please choose a niche." };
+    return { error: parsed.error.issues[0]?.message ?? "Please choose a niche." };
   }
 
   await prisma.creatorProfile.update({
     where: { userId: session.user.id },
-    data: { niche: parsed.data.niche },
+    data: creatorNicheColumns(parsed.data.niches),
   });
 
   return { success: true };
@@ -123,7 +125,7 @@ export async function savePlatformsAction(
   // history yet.
   const maxFollowers = parsed.data.platforms.reduce((max, p) => Math.max(max, p.followerCount), 0);
   const matchingRequests = await prisma.request.findMany({
-    where: { niche: creator.niche, minFollowers: { lte: maxFollowers }, status: "OPEN" },
+    where: { niche: { in: creator.niches }, minFollowers: { lte: maxFollowers }, status: "OPEN" },
     include: { startup: true },
   });
   const notifiedStartupIds = new Set<string>();
@@ -132,7 +134,7 @@ export async function savePlatformsAction(
     notifiedStartupIds.add(r.startupId);
     await notify(
       r.startup.userId,
-      `New ${creator.niche} creator joined: ${creator.displayName}`,
+      `New ${r.niche} creator joined: ${creator.displayName}`,
       `/dashboard/startup/discover/${creator.id}`,
       "newCreators",
     );

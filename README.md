@@ -37,7 +37,7 @@ becomes worth it later.
 | startup2@example.com | Brand | FitTech Labs — on the Pro plan (3% fee); has a completed, released payment to Jonas Fit ($500, history view) |
 | startup3@example.com | Brand | TasteBox |
 | startup4@example.com | Brand | StyleHub — has a payment held in escrow for Sara Trend ($300) |
-| creator1@example.com | Creator | Beauty, Instagram 50,000 + TikTok 12,000 (multi-platform demo); interested in a Glow Beauty Co request, unpaid |
+| creator1@example.com | Creator | Beauty + Fitness (two niches: For you shows both, All shows every niche), Instagram 50,000 + TikTok 12,000 (multi-platform demo); interested in a Glow Beauty Co request, unpaid |
 | creator2@example.com | Creator | Beauty, 3,000 followers (sees fewer requests — follower gating) |
 | creator3@example.com | Creator | Fitness, 20,000 followers; has a released $500 payment from FitTech Labs |
 | creator4@example.com | Creator | Food, 100,000 followers |
@@ -75,7 +75,11 @@ file wouldn't have survived between requests there.
 4. **Deploy.** The schema is already applied to this database (step above pointed at
    it), so no separate migration step is needed for the first deploy. After any
    future schema change, run `DATABASE_URL="<production URL>" npm run db:deploy`
-   before or after pushing the code that needs it.
+   before or after pushing the code that needs it. Production builds apply pending
+   migrations themselves (`scripts/migrate-deploy.mjs`); preview builds never do,
+   since previews share this database and a branch's migration would reach the live
+   site before it's merged. Keep migrations additive (add, backfill, drop in a later
+   release) so the release still serving traffic keeps working on the new schema.
 5. **Custom domain** — optional, add anytime later in Settings → Domains, then point
    the DNS record your registrar shows you at Vercel. Not required to go live on the
    assigned `*.vercel.app` URL first.

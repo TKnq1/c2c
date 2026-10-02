@@ -1,5 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { createRequestSchema, onboardingPlatformsSchema, sendOfferSchema } from "@/lib/validation";
+import {
+  createRequestSchema,
+  onboardingNichesSchema,
+  onboardingPlatformsSchema,
+  sendOfferSchema,
+  updateCreatorProfileSchema,
+} from "@/lib/validation";
 
 // sendOfferSchema's `amount` field is the euro string straight out of a
 // payment form (see PayCreatorForm/OfferForm) — this is the boundary where
@@ -136,5 +142,50 @@ describe("onboardingPlatformsSchema", () => {
 
   it("rejects a link that isn't a URL", () => {
     expect(parse([{ platform: "TikTok", followerCount: 1200, url: "tiktok lea" }]).success).toBe(false);
+  });
+});
+
+describe("onboardingNichesSchema", () => {
+  it("reads the comma-joined niches a form posts", () => {
+    const r = onboardingNichesSchema.parse({ niches: "Beauty,Fitness" });
+    expect(r.niches).toEqual(["Beauty", "Fitness"]);
+  });
+
+  it("accepts one niche and up to three", () => {
+    expect(onboardingNichesSchema.safeParse({ niches: "Beauty" }).success).toBe(true);
+    expect(onboardingNichesSchema.safeParse({ niches: "Beauty,Fitness,Food" }).success).toBe(true);
+  });
+
+  it("needs at least one niche", () => {
+    expect(onboardingNichesSchema.safeParse({ niches: "" }).success).toBe(false);
+  });
+
+  it("refuses a fourth niche", () => {
+    const r = onboardingNichesSchema.safeParse({ niches: "Beauty,Fitness,Food,Tech" });
+    expect(r.success).toBe(false);
+    if (!r.success) expect(r.error.issues[0].message).toBe("Pick up to 3 niches.");
+  });
+
+  it("refuses unknown and repeated niches", () => {
+    expect(onboardingNichesSchema.safeParse({ niches: "Beauty,Astrology" }).success).toBe(false);
+    expect(onboardingNichesSchema.safeParse({ niches: "Beauty,Beauty" }).success).toBe(false);
+  });
+});
+
+describe("updateCreatorProfileSchema", () => {
+  const valid = {
+    displayName: "Mia Summers",
+    niches: "Beauty,Fitness",
+    contentLanguage: "English",
+    platforms: JSON.stringify([{ platform: "Instagram", followerCount: 5000, url: "https://instagram.com/mia" }]),
+  };
+
+  it("takes the niches as a list", () => {
+    const r = updateCreatorProfileSchema.parse(valid);
+    expect(r.niches).toEqual(["Beauty", "Fitness"]);
+  });
+
+  it("rejects a profile without a niche", () => {
+    expect(updateCreatorProfileSchema.safeParse({ ...valid, niches: "" }).success).toBe(false);
   });
 });

@@ -1,13 +1,13 @@
 import { DiscoverTile } from "@/components/discover-tile";
 import { FavoriteButton } from "@/components/favorite-button";
 import { favoriteCreatorAction, unfavoriteCreatorAction } from "@/lib/actions/favorites";
-import { formatFollowers, isRecentlyCreated } from "@/lib/format";
+import { formatFollowers, formatNiches, isRecentlyCreated } from "@/lib/format";
 
 type Props = {
   id: string;
   displayName: string;
   avatarUrl: string | null;
-  niche: string;
+  niches: string[];
   platforms: { platform: string; followerCount: number }[];
   rating: { average: number; count: number };
   isFavorited: boolean;
@@ -21,7 +21,7 @@ export function CreatorCard({
   id,
   displayName,
   avatarUrl,
-  niche,
+  niches,
   platforms,
   rating,
   isFavorited,
@@ -30,7 +30,7 @@ export function CreatorCard({
 }: Props) {
   const reach = platforms.reduce((max, p) => Math.max(max, p.followerCount), 0);
   const facts = [
-    niche,
+    formatNiches(niches),
     reach > 0 ? `${formatFollowers(reach)} followers` : null,
     rating.count > 0 ? `★ ${rating.average.toFixed(1)}` : null,
   ]

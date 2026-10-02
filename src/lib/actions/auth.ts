@@ -137,7 +137,7 @@ export async function signupAction(_prevState: ActionState, formData: FormData):
             email: data.email,
             passwordHash,
             role: "CREATOR",
-            creatorProfile: { create: { displayName: "", niche: "" } },
+            creatorProfile: { create: { displayName: "" } },
           },
         });
 

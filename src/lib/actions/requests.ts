@@ -69,14 +69,17 @@ function requestFields(data: ReturnType<typeof createRequestSchema.parse>) {
 // Shared by createRequestAction and duplicateRequestAction — a duplicate is
 // a genuinely new, open request, so it should reach matching creators too.
 async function notifyMatchingCreators(
-  request: { niche: string; minFollowers: number; title: string },
+  request: { niche: string; languages: string[]; minFollowers: number; title: string },
   startup: { companyName: string },
   viewerUserId: string,
 ) {
   const blockedUserIds = await getMutualBlockedUserIds(viewerUserId);
   const matchingCreators = await prisma.creatorProfile.findMany({
     where: {
-      niche: request.niche,
+      niches: { has: request.niche },
+      // Same rule as the Feed: the creator's content language has to be one
+      // of the request's, if they've set one.
+      OR: [{ contentLanguage: null }, { contentLanguage: { in: request.languages } }],
       platforms: { some: { followerCount: { gte: request.minFollowers } } },
       userId: { notIn: blockedUserIds },
       user: { suspendedAt: null },
@@ -120,10 +123,10 @@ export async function createRequestAction(_prevState: ActionState, formData: For
 
   const request = await prisma.request.create({
     data: { ...requestFields(parsed.data), startupId: startup.id, images: { create: images } },
-    select: { niche: true, minFollowers: true, title: true },
+    select: { niche: true, languages: true, minFollowers: true, title: true },
   });
 
-  // Let creators whose niche and follower count already qualify know right
+  // Let creators whose niche, language and follower count already qualify know right
   // away, instead of relying on them to check back on their own.
   await notifyMatchingCreators(request, startup, session.user.id);
 
@@ -286,22 +289,31 @@ export async function bulkCloseRequestsAction(requestIds: string[]) {
   return { count };
 }
 
+const UNAVAILABLE = "This request is currently unavailable.";
+
 // Shared by expressInterestAction and startConversationAsCreatorAction —
 // both are "creator commits to this request" in substance, they just differ
 // in what happens after (stay on the feed vs. jump into the new thread).
+// Null when the request isn't open to this creator (closed, blocked, or out
+// of their reach).
 async function createInterestAsCreator(
-  creator: { id: string; displayName: string; niche: string; platforms: { followerCount: number }[] },
+  creator: {
+    id: string;
+    displayName: string;
+    niches: string[];
+    contentLanguage: string | null;
+    platforms: { followerCount: number }[];
+  },
   requestId: string,
   userId: string,
 ) {
   // Never trust that the UI only offered a matching request — re-verify
-  // server-side against the same live feed computation.
+  // server-side against the same live feed computation. "all", not
+  // "forYou": the Feed's All tab offers requests outside the creator's niches.
   const blockedUserIds = await getMutualBlockedUserIds(userId);
-  const matches = await getCreatorFeed(creator, blockedUserIds);
+  const matches = await getCreatorFeed(creator, blockedUserIds, "all");
   const match = matches.find((r) => r.id === requestId);
-  if (!match) {
-    throw new Error("This request is currently unavailable.");
-  }
+  if (!match) return null;
 
   const interest = await prisma.interest.upsert({
     where: { requestId_creatorId: { requestId, creatorId: creator.id } },
@@ -319,7 +331,9 @@ async function createInterestAsCreator(
   return interest;
 }
 
-export async function expressInterestAction(requestId: string) {
+// True if the interest went out, false if the request isn't open to this
+// creator.
+async function sendInterest(requestId: string) {
   const session = await auth();
   if (!session || session.user.role !== "CREATOR") {
     throw new Error("Not authorized.");
@@ -330,9 +344,22 @@ export async function expressInterestAction(requestId: string) {
     include: { platforms: true },
   });
 
-  await createInterestAsCreator(creator, requestId, session.user.id);
+  if (!(await createInterestAsCreator(creator, requestId, session.user.id))) return false;
 
   revalidatePath("/dashboard/creator");
+  return true;
+}
+
+export async function expressInterestAction(requestId: string) {
+  if (!(await sendInterest(requestId))) throw new Error(UNAVAILABLE);
+}
+
+// The Feed's "Interested" swipe. The same as expressInterestAction, except a
+// request that's gone comes back as `unavailable` instead of an error: in
+// production a thrown message is redacted, so the stack couldn't tell it
+// from a dropped connection, and would keep putting the card back.
+export async function swipeInterestedAction(requestId: string): Promise<{ unavailable: true } | undefined> {
+  if (!(await sendInterest(requestId))) return { unavailable: true };
 }
 
 async function requireCreatorProfileId() {
@@ -385,6 +412,7 @@ export async function startConversationAsCreatorAction(formData: FormData) {
   });
 
   const interest = await createInterestAsCreator(creator, requestId, session.user.id);
+  if (!interest) throw new Error(UNAVAILABLE);
 
   revalidatePath("/dashboard/creator");
   redirect(`/dashboard/messages/${interest.id}`);

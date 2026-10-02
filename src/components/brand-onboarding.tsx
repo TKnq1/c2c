@@ -34,7 +34,7 @@ export function BrandOnboarding({ emailVerified }: { emailVerified: boolean }) {
       <StepPanels step={step}>
         <CompanyNameStep value={companyName} onChange={setCompanyName} onDone={next} />
         <NicheStep value={niche} onChange={setNiche} onBack={back} onDone={next} />
-        <OnboardingPhotoStep kind="logo" name={companyName.trim()} niche={niche} onBack={back} onDone={next} />
+        <OnboardingPhotoStep kind="logo" name={companyName.trim()} niches={niche ? [niche] : []} onBack={back} onDone={next} />
       </StepPanels>
     </div>
   );

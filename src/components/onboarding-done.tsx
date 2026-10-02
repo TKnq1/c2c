@@ -54,7 +54,7 @@ export function OnboardingDone({
           <p className="mt-1.5 text-neutral-600 dark:text-neutral-400">
             {role === "brand"
               ? "Post a request and matching creators will find it in their feed."
-              : "Your feed is ready with requests that match your niche and reach."}
+              : "Your feed is ready with requests that match your niches and reach."}
           </p>
         </div>
       </div>

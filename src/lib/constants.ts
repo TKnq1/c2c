@@ -9,6 +9,9 @@ export const NICHES = [
   "Lifestyle",
 ] as const;
 
+// How many niches a creator can pick: what their Feed's "For you" shows.
+export const MAX_CREATOR_NICHES = 3;
+
 export const PLATFORMS = ["Instagram", "TikTok", "YouTube", "Twitch", "X"] as const;
 
 export const LANGUAGES = [

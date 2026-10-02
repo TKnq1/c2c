@@ -5,6 +5,7 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { updateBrandProfileSchema, updateCreatorProfileSchema } from "@/lib/validation";
 import { processAvatarUpload } from "@/lib/avatar-upload";
+import { creatorNicheColumns } from "@/lib/creator-niches";
 
 export type ActionState = { error?: string; success?: boolean } | undefined;
 
@@ -25,11 +26,12 @@ export async function updateCreatorProfileAction(
   const { avatarUrl, error } = await processAvatarUpload(formData, "Photo");
   if (error) return { error };
 
-  const { platforms, ...rest } = parsed.data;
+  const { platforms, niches, ...rest } = parsed.data;
   await prisma.creatorProfile.update({
     where: { userId: session.user.id },
     data: {
       ...rest,
+      ...creatorNicheColumns(niches),
       avatarUrl,
       // Replace the whole list rather than diffing it — simplest correct
       // approach for a handful of rows with no other data hanging off them.

@@ -2,6 +2,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { getMutualBlockedUserIds } from "@/lib/moderation";
+import { NICHES } from "@/lib/constants";
 
 export type SearchResult = {
   kind: "person" | "chat" | "request";
@@ -27,6 +28,9 @@ export async function GET(req: NextRequest) {
   if (q.length < 2) return NextResponse.json([]);
 
   const contains = { contains: q, mode: "insensitive" as const };
+  // A creator's niches are a list, which "contains" can't look inside: the
+  // niches whose names contain the text are matched instead.
+  const matchedNiches = NICHES.filter((n) => n.toLowerCase().includes(q.toLowerCase()));
   const userId = session.user.id;
   const blocked = await getMutualBlockedUserIds(userId);
   const visibleUser = { suspendedAt: null, id: { notIn: blocked } };
@@ -34,8 +38,11 @@ export async function GET(req: NextRequest) {
   if (session.user.role === "STARTUP") {
     const [creators, chats, requests] = await Promise.all([
       prisma.creatorProfile.findMany({
-        where: { user: visibleUser, OR: [{ displayName: contains }, { niche: contains }] },
-        select: { id: true, displayName: true, niche: true, avatarUrl: true },
+        where: {
+          user: visibleUser,
+          OR: [{ displayName: contains }, ...(matchedNiches.length > 0 ? [{ niches: { hasSome: matchedNiches } }] : [])],
+        },
+        select: { id: true, displayName: true, niches: true, avatarUrl: true },
         take: LIMIT,
       }),
       prisma.interest.findMany({
@@ -60,7 +67,7 @@ export async function GET(req: NextRequest) {
         kind: "person" as const,
         id: c.id,
         title: c.displayName,
-        subtitle: `Creator · ${c.niche}`,
+        subtitle: `Creator · ${c.niches.join(", ")}`,
         href: `/dashboard/startup/discover/${c.id}`,
         avatarUrl: c.avatarUrl,
       })),

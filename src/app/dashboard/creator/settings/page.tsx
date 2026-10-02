@@ -62,7 +62,7 @@ export default async function CreatorSettingsPage() {
         <EditProfileForm
           displayName={creator.displayName}
           avatarUrl={creator.avatarUrl}
-          niche={creator.niche}
+          niches={creator.niches}
           contentLanguage={creator.contentLanguage}
           bio={creator.bio}
           // The picker re-serializes this prop verbatim into the form's
@@ -72,7 +72,7 @@ export default async function CreatorSettingsPage() {
           // schema's url field only accepts a real string or undefined, so
           // saving with any URL-less platform (the common case, url is
           // optional) failed validation and silently dropped the whole
-          // save, niche included.
+          // save, niches included.
           platforms={creator.platforms.map((p) => ({
             platform: p.platform,
             followerCount: p.followerCount,
