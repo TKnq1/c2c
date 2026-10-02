@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import { FiArrowRight } from "react-icons/fi";
 import { haptic } from "@/lib/haptics";
 import { chooseLandingRole, type LandingRole } from "@/components/landing/landing-role";
@@ -35,7 +36,14 @@ export function RoleGate() {
       }`}
     >
       <div className="lp-gate-head flex flex-col items-start gap-5 px-1 pb-5">
-        <Image src="/logo.png" alt="comtor" width={40} height={40} preload className="lp-rise dark:invert" />
+        {/* People with an account skip the question: the gate covers the
+            nav, so the way to log in has to be on it. */}
+        <div className="lp-rise flex w-full items-center justify-between">
+          <Image src="/logo.png" alt="comtor" width={40} height={40} preload className="dark:invert" />
+          <Link href="/login" className="rounded-full px-3 py-2 text-sm font-medium text-graphite transition hover:text-ink">
+            Log in
+          </Link>
+        </div>
         <div>
           <h1 className="lp-line font-display text-large-title font-black tracking-tight">
             <span style={{ "--lp-delay": "80ms" } as React.CSSProperties}>Who are you?</span>

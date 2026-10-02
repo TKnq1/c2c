@@ -60,10 +60,11 @@ export default auth((req) => {
     }
   }
 
-  // The landing page is for people who aren't in yet: anyone logged in goes
-  // straight on to their dashboard, the way / always took them before. The
-  // page itself stays static that way.
-  if (pathname === "/" && req.auth) {
+  // The landing page, log in and sign up are for people who aren't in yet:
+  // anyone logged in goes straight on to their dashboard. That includes the
+  // installed app, which starts at /login and used to show the login form
+  // to people who were still logged in. The landing page stays static.
+  if (req.auth && (pathname === "/" || pathname === "/login" || pathname === "/signup")) {
     return NextResponse.redirect(new URL("/dashboard", req.url));
   }
 
