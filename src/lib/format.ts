@@ -124,3 +124,9 @@ export function formatPostBy(date: Date): string {
     timeZone: "UTC",
   });
 }
+
+// "Oct 2026" — when an account was created, for "Member since" on profiles.
+// UTC, so the server render and the client agree on the month.
+export function formatMemberSince(date: Date): string {
+  return date.toLocaleDateString("en-US", { month: "short", year: "numeric", timeZone: "UTC" });
+}
