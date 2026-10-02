@@ -1,8 +1,10 @@
 import { SITE_URL } from "@/lib/site";
 
-// The app's emails, in the app's own look: the app icon, a heavy Lato
-// headline ending in a full stop like the landing page's, one ink pill
-// button, the fallback link on a fog panel like the app's cards.
+// The app's emails, in the launch video's look: the white comtor mark and
+// a big white Lato Black headline (ending in a full stop, like the video's
+// and the landing page's) on a near-black panel with film grain, then the
+// text and one ink pill button on white, the fallback link on a fog panel
+// like the app's cards.
 //
 // Built the way email has to be: layout tables and inline styles. Gmail
 // drops <style> in some of its apps and Outlook on Windows renders with
@@ -10,8 +12,9 @@ import { SITE_URL } from "@/lib/site";
 // what can fail quietly: Lato (Apple Mail; everyone else gets their system
 // font), narrower margins on phones and dark mode (Apple Mail; Gmail and
 // Outlook darken on their own). One block each, because a client that
-// chokes on one rule throws out its whole block. /dev-emails/<name> shows
-// them locally (see that route for the names).
+// chokes on one rule throws out its whole block. The panel's grain is a
+// background image with a plain near-black underneath for clients without
+// one. /dev-emails/<name> shows them locally (see that route for the names).
 
 export type Email = { subject: string; html: string; text: string };
 
@@ -25,6 +28,23 @@ type Content = {
   // Under the button: how long the link works, what to do if this wasn't you.
   note: string;
 };
+
+// The first email after sign-up: a welcome with the verification link in
+// it, so a new account gets one email rather than two. Asking for the link
+// again later gets the plain verificationEmail below.
+export function welcomeEmail(url: string, role: "CREATOR" | "STARTUP"): Email {
+  return render({
+    subject: "Welcome to comtor – verify your email",
+    preview: "Thanks for signing up. One tap and your email is verified.",
+    heading: "Welcome to comtor.",
+    body:
+      role === "CREATOR"
+        ? "Thanks for signing up. Verify your email, then swipe through brand deals with the budget right on the card."
+        : "Thanks for signing up. Verify your email, then post your first request. Creators come to you.",
+    action: { label: "Verify email", url },
+    note: "The link works for 24 hours. Didn't sign up for comtor? Then you can ignore this email.",
+  });
+}
 
 export function verificationEmail(url: string): Email {
   return render({
@@ -82,10 +102,12 @@ const MUTED = "#737373";
 const FOG = "#f2f2f2";
 const LINE = "#e5e5e5";
 const DARK = { paper: "#1e1e1e", fog: "#2d2d2d", text: "#d4d4d4", muted: "#a3a3a3" };
+// The video's backdrop, under its grain image (public/email/band-dark.jpg).
+const NIGHT = "#0b0b0b";
 
 const FONT = "Lato, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif";
 
-// Served from public/email, next to the icon (Lato is SIL OFL, see the
+// Served from public/email, next to the images (Lato is SIL OFL, see the
 // licence there). Only clients that support web fonts fetch them.
 const FONT_FACES = (
   [
@@ -117,6 +139,7 @@ function render(c: Content): Email {
   const url = escapeHtml(c.action.url);
   const imprint = `${SITE_URL}/legal/imprint`;
   const privacy = `${SITE_URL}/legal/privacy`;
+  const night = `${SITE_URL}/email/band-dark.jpg`;
 
   const html = `<!doctype html>
 <html lang="en" xmlns:o="urn:schemas-microsoft-com:office:office">
@@ -135,7 +158,7 @@ ${FONT_FACES}
 <style>
 @media (max-width: 600px) {
   .px { padding-left: 24px !important; padding-right: 24px !important; }
-  .h1 { font-size: 28px !important; }
+  .h1 { font-size: 36px !important; }
 }
 </style>
 <style>
@@ -158,13 +181,15 @@ ${FONT_FACES}
 <tr><td align="center">
 <!--[if mso]><table role="presentation" width="520" align="center" cellpadding="0" cellspacing="0" border="0"><tr><td><![endif]-->
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:520px;">
-<tr><td class="px" style="padding:48px 32px 0;">
-<img src="${SITE_URL}/email/icon.png" width="44" height="44" alt="comtor" style="display:block;width:44px;height:44px;border:0;">
-</td></tr>
 <tr><td class="px" style="padding:32px 32px 0;">
-<h1 class="ink h1" style="margin:0;font-family:${FONT};font-size:30px;line-height:1.1;font-weight:900;letter-spacing:-0.02em;color:${INK};">${escapeHtml(c.heading)}</h1>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr>
+<td bgcolor="${NIGHT}" background="${night}" style="padding:32px 28px 40px;border-radius:4px;background-color:${NIGHT};background-image:url(${night});background-size:cover;background-position:center;">
+<img src="${SITE_URL}/email/mark-white.png" width="48" height="32" alt="comtor" style="display:block;width:48px;height:32px;border:0;">
+<h1 class="h1" style="margin:88px 0 0;font-family:${FONT};font-size:42px;line-height:1.04;font-weight:900;letter-spacing:-0.025em;color:#ffffff;">${escapeHtml(c.heading)}</h1>
+</td>
+</tr></table>
 </td></tr>
-<tr><td class="px" style="padding:14px 32px 0;">
+<tr><td class="px" style="padding:24px 32px 0;">
 <p class="text" style="margin:0;font-family:${FONT};font-size:16px;line-height:1.55;color:${TEXT};">${escapeHtml(c.body)}</p>
 </td></tr>
 <tr><td class="px" style="padding:28px 32px 0;">

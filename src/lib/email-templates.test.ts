@@ -4,6 +4,7 @@ import {
   passwordResetEmail,
   verificationEmail,
   waitlistConfirmationEmail,
+  welcomeEmail,
 } from "@/lib/email-templates";
 
 describe("verificationEmail", () => {
@@ -50,5 +51,20 @@ describe("waitlistConfirmationEmail", () => {
     const email = waitlistConfirmationEmail(url);
     expect(email.html).toContain(`href="${url}"`);
     expect(email.text).toContain("one email");
+  });
+});
+
+describe("welcomeEmail", () => {
+  const url = "https://www.comtor.app/verify-email/abc123";
+
+  it("carries the verification link", () => {
+    const email = welcomeEmail(url, "CREATOR");
+    expect(email.html.split(`href="${url}"`)).toHaveLength(3);
+    expect(email.text).toContain(url);
+  });
+
+  it("tells creators and brands what comes next", () => {
+    expect(welcomeEmail(url, "CREATOR").text).toContain("brand deals");
+    expect(welcomeEmail(url, "STARTUP").text).toContain("first request");
   });
 });

@@ -19,7 +19,7 @@ import {
   SIGNUP_RATE_LIMIT_MESSAGE,
 } from "@/lib/login-security";
 import { sendEmail } from "@/lib/email";
-import { passwordChangedEmail, passwordResetEmail, verificationEmail } from "@/lib/email-templates";
+import { passwordChangedEmail, passwordResetEmail, verificationEmail, welcomeEmail } from "@/lib/email-templates";
 import { SITE_URL } from "@/lib/site";
 import {
   loginSchema,
@@ -141,10 +141,11 @@ export async function signupAction(_prevState: ActionState, formData: FormData):
           },
         });
 
-  // Straight away, so the link is waiting once onboarding is done. After
-  // the response (it still runs through the redirect below): signing up
-  // shouldn't wait on the mail provider.
-  after(() => sendVerificationEmail(user.id, user.email));
+  // The welcome email, with the verification link in it. Straight away, so
+  // the link is waiting once onboarding is done; after the response (it
+  // still runs through the redirect below), so signing up doesn't wait on
+  // the mail provider.
+  after(() => sendVerificationEmail(user.id, user.email, data.role));
 
   try {
     await signIn("credentials", {
@@ -274,13 +275,15 @@ export async function generateEmailVerificationAction(): Promise<GenerateVerific
   return { sent: true };
 }
 
-// A fresh 24-hour link, mailed.
-async function sendVerificationEmail(userId: string, email: string) {
+// A fresh 24-hour link, mailed: inside the welcome email right after
+// sign-up (pass the new account's role), on its own when asked for again.
+async function sendVerificationEmail(userId: string, email: string, welcomeAs?: "CREATOR" | "STARTUP") {
   const token = randomBytes(32).toString("hex");
   await prisma.emailVerificationToken.create({
     data: { userId, token, expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000) },
   });
-  await sendEmail({ to: email, ...verificationEmail(`${SITE_URL}/verify-email/${token}`) });
+  const url = `${SITE_URL}/verify-email/${token}`;
+  await sendEmail({ to: email, ...(welcomeAs ? welcomeEmail(url, welcomeAs) : verificationEmail(url)) });
 }
 
 // After every change and reset, so a change someone else made doesn't go
