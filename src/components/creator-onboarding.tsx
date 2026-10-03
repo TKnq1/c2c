@@ -112,7 +112,7 @@ function PlatformsStep({
 
   return (
     <form action={formAction} className="flex flex-col gap-6">
-      <StepHeading title="Where do you post?" description="Pick your platforms, then add your followers and the link to each profile, so brands can see your reach." />
+      <StepHeading title="Where do you post?" description="Pick your platforms, then add your followers and the link to each profile (both are required), so brands can see your reach." />
       <PlatformChips name="platforms" value={value} onChange={onChange} />
       <StepError state={state} />
       <StepFooter onBack={onBack} pending={pending} disabled={!complete} />

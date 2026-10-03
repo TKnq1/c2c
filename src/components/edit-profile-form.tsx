@@ -103,12 +103,11 @@ export function EditProfileForm({
       <div className="flex flex-col gap-1">
         <span className="text-sm font-medium">Platforms &amp; followers</span>
         <p className="text-xs text-neutral-500 dark:text-neutral-400">
-          Followers and a link for each, so brands can check out your profile directly.
+          Followers and the link to your profile are required for each platform, so brands can check out your profile directly.
         </p>
         <PlatformChips
           name="platforms"
           value={platformDrafts}
-          flagMissingLinks
           onChange={(next) => {
             setPlatformDrafts(next);
             // Chip taps aren't input events, so the form's onChange misses them.
