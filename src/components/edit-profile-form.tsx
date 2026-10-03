@@ -96,6 +96,7 @@ export function EditProfileForm({
         <PlatformChips
           name="platforms"
           value={platformDrafts}
+          flagMissingLinks
           onChange={(next) => {
             setPlatformDrafts(next);
             // Chip taps aren't input events, so the form's onChange misses them.

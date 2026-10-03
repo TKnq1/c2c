@@ -11,14 +11,20 @@ export type PlatformDraft = { platform: string; followers: string; url: string }
 // the row that appears. Both are required — the link is what a brand opens
 // from the profile — so the inputs carry `required` and the form won't
 // submit with one missing. Posts the rows as JSON in one hidden field.
+// `flagMissingLinks` says so in the row itself: accounts from before links
+// were required have platforms without one, and the browser's own "fill out
+// this field" bubble is easy to miss (not shown at all on some phones), so
+// Save looked like it did nothing.
 export function PlatformChips({
   name,
   value,
   onChange,
+  flagMissingLinks = false,
 }: {
   name: string;
   value: PlatformDraft[];
   onChange: (entries: PlatformDraft[]) => void;
+  flagMissingLinks?: boolean;
 }) {
   const selected = new Set(value.map((e) => e.platform));
   const serialized = value.map((e) => ({ platform: e.platform, followerCount: Number(e.followers), url: e.url.trim() }));
@@ -88,6 +94,11 @@ export function PlatformChips({
               className="min-w-0 flex-1 rounded border border-neutral-300 bg-background px-3 py-2.5 dark:border-neutral-700"
             />
           </div>
+          {flagMissingLinks && e.url.trim() === "" && (
+            <p className="text-xs font-medium text-ink">
+              Add the link to your {e.platform} profile to save. Brands open it from your profile.
+            </p>
+          )}
         </div>
       ))}
     </div>
