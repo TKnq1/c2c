@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useEffect } from "react";
+import { useActionState } from "react";
 import { updateBrandProfileAction } from "@/lib/actions/profile";
 import { NICHES } from "@/lib/constants";
 import { Select } from "@/components/select";
@@ -8,7 +8,7 @@ import { SocialLinksPicker } from "@/components/social-links-picker";
 import { AvatarUpload } from "@/components/avatar-upload";
 import { TextareaWithCounter } from "@/components/textarea-with-counter";
 import { useActionToast } from "@/lib/use-action-toast";
-import { useNavigationBlocker } from "@/lib/navigation-blocker";
+import { useUnsavedChanges } from "@/lib/navigation-blocker";
 
 type Props = {
   companyName: string;
@@ -31,13 +31,10 @@ export function EditBrandProfileForm({
 }: Props) {
   const [state, formAction, pending] = useActionState(updateBrandProfileAction, undefined);
   useActionToast(state, "Profile saved.");
-  const { setIsBlocked } = useNavigationBlocker();
-  useEffect(() => {
-    if (state?.success) queueMicrotask(() => setIsBlocked(false));
-  }, [state, setIsBlocked]);
+  const markDirty = useUnsavedChanges(state);
 
   return (
-    <form action={formAction} onChange={() => setIsBlocked(true)} className="flex flex-col gap-4">
+    <form action={formAction} onChange={markDirty} className="flex flex-col gap-4">
       <div className="flex flex-col gap-1">
         <span className="text-sm font-medium">Logo</span>
         <AvatarUpload name="avatar" initial={avatarUrl} emptyLabel="No logo" />

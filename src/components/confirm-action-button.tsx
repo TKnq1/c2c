@@ -17,6 +17,7 @@ export function ConfirmActionButton({
   description,
   confirmLabel,
   pendingLabel = "Working…",
+  redirectTo,
   className,
   children,
 }: {
@@ -28,6 +29,8 @@ export function ConfirmActionButton({
   description: string;
   confirmLabel: string;
   pendingLabel?: string;
+  // Where to go once it worked, for an action that removes the page it's on.
+  redirectTo?: string;
   className?: string;
   children: React.ReactNode;
 }) {
@@ -47,6 +50,10 @@ export function ConfirmActionButton({
         }
         toast.success(successMessage);
         setOpen(false);
+        if (redirectTo) {
+          router.push(redirectTo);
+          return;
+        }
         // Not every action revalidates the page it's used on (the chat
         // doesn't get revalidated by the offer actions, for one).
         router.refresh();

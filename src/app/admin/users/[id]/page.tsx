@@ -6,7 +6,7 @@ import { requireAdminSession } from "@/lib/admin-session";
 import { hasAdminAccess } from "@/lib/admin-access";
 import { formatCents } from "@/lib/format";
 import { parseUserAgent } from "@/lib/user-agent";
-import { unsuspendUserAction } from "@/lib/actions/admin";
+import { deleteUserAction, unsuspendUserAction } from "@/lib/actions/admin";
 import { Avatar } from "@/components/avatar";
 import { LocalDate } from "@/components/local-date";
 import { ConfirmActionButton } from "@/components/confirm-action-button";
@@ -107,7 +107,23 @@ export default async function AdminUserPage(props: PageProps<"/admin/users/[id]"
             </div>
           </div>
         </div>
-        {canSuspend && !user.suspendedAt && <SuspendUserButton userId={user.id} label={name} isBrand={!!brand} />}
+        {canSuspend && (
+          <div className="flex flex-wrap items-center gap-2">
+            {!user.suspendedAt && <SuspendUserButton userId={user.id} label={name} isBrand={!!brand} />}
+            <ConfirmActionButton
+              action={deleteUserAction.bind(null, user.id)}
+              successMessage={`${name} is deleted.`}
+              title={`Delete ${name}?`}
+              description={`${user.email} is deleted for good, with everything that belongs to the account: the profile${brand ? ", its requests" : ""}, interests, messages, reviews and notifications. This can't be undone.`}
+              confirmLabel="Delete"
+              pendingLabel="Deleting…"
+              redirectTo="/admin/users"
+              className="rounded-full border border-neutral-300 px-4 py-2 text-sm font-medium transition hover:border-ink dark:border-neutral-700"
+            >
+              Delete account
+            </ConfirmActionButton>
+          </div>
+        )}
       </div>
 
       {user.suspendedAt && (

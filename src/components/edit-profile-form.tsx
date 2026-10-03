@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useEffect, useState } from "react";
+import { useActionState, useState } from "react";
 import { updateCreatorProfileAction } from "@/lib/actions/profile";
 import { LANGUAGES, MAX_CREATOR_NICHES } from "@/lib/constants";
 import { NicheTilesMulti } from "@/components/niche-tiles";
@@ -9,7 +9,7 @@ import { Select } from "@/components/select";
 import { AvatarUpload } from "@/components/avatar-upload";
 import { TextareaWithCounter } from "@/components/textarea-with-counter";
 import { useActionToast } from "@/lib/use-action-toast";
-import { useNavigationBlocker } from "@/lib/navigation-blocker";
+import { useUnsavedChanges } from "@/lib/navigation-blocker";
 
 type Props = {
   displayName: string;
@@ -34,13 +34,10 @@ export function EditProfileForm({
     platforms.map((p) => ({ platform: p.platform, followers: String(p.followerCount), url: p.url ?? "" })),
   );
   useActionToast(state, "Profile saved.");
-  const { setIsBlocked } = useNavigationBlocker();
-  useEffect(() => {
-    if (state?.success) queueMicrotask(() => setIsBlocked(false));
-  }, [state, setIsBlocked]);
+  const markDirty = useUnsavedChanges(state);
 
   return (
-    <form action={formAction} onChange={() => setIsBlocked(true)} className="flex flex-col gap-4">
+    <form action={formAction} onChange={markDirty} className="flex flex-col gap-4">
       <div className="flex flex-col gap-1">
         <span className="text-sm font-medium">Photo</span>
         <AvatarUpload name="avatar" initial={avatarUrl} emptyLabel="No photo" />
@@ -102,7 +99,7 @@ export function EditProfileForm({
           onChange={(next) => {
             setPlatformDrafts(next);
             // Chip taps aren't input events, so the form's onChange misses them.
-            setIsBlocked(true);
+            markDirty();
           }}
         />
       </div>
