@@ -4,23 +4,20 @@ import { useActionState, useEffect, useRef } from "react";
 import { changePasswordAction } from "@/lib/actions/auth";
 import { useActionToast } from "@/lib/use-action-toast";
 import { NewPasswordField } from "@/components/new-password-field";
-import { useNavigationBlocker } from "@/lib/navigation-blocker";
+import { useUnsavedChanges } from "@/lib/navigation-blocker";
 
 export function ChangePasswordForm() {
   const [state, formAction, pending] = useActionState(changePasswordAction, undefined);
   const formRef = useRef<HTMLFormElement>(null);
   useActionToast(state, "Password changed. Your other devices are logged out.");
-  const { setIsBlocked } = useNavigationBlocker();
+  const markDirty = useUnsavedChanges(state);
 
   useEffect(() => {
-    if (state?.success) {
-      formRef.current?.reset();
-      queueMicrotask(() => setIsBlocked(false));
-    }
-  }, [state, setIsBlocked]);
+    if (state?.success) formRef.current?.reset();
+  }, [state]);
 
   return (
-    <form ref={formRef} action={formAction} onChange={() => setIsBlocked(true)} className="flex flex-col gap-4">
+    <form ref={formRef} action={formAction} onChange={markDirty} className="flex flex-col gap-4">
       <div className="flex flex-col gap-1">
         <label htmlFor="currentPassword" className="text-sm font-medium">
           Current password
