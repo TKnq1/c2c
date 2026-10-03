@@ -10,6 +10,7 @@ import { AvatarUpload } from "@/components/avatar-upload";
 import { TextareaWithCounter } from "@/components/textarea-with-counter";
 import { useActionToast } from "@/lib/use-action-toast";
 import { useUnsavedChanges } from "@/lib/navigation-blocker";
+import { useFormProblem } from "@/lib/use-form-problem";
 
 type Props = {
   displayName: string;
@@ -35,9 +36,20 @@ export function EditProfileForm({
   );
   useActionToast(state, "Profile saved.");
   const markDirty = useUnsavedChanges(state);
+  const { formRef, problem, clearProblem } = useFormProblem();
+  const message = problem ?? state?.error;
 
   return (
-    <form action={formAction} onChange={markDirty} className="flex flex-col gap-4">
+    <form
+      ref={formRef}
+      action={formAction}
+      onChange={() => {
+        markDirty();
+        clearProblem();
+      }}
+      onSubmit={clearProblem}
+      className="flex flex-col gap-4"
+    >
       <div className="flex flex-col gap-1">
         <span className="text-sm font-medium">Photo</span>
         <AvatarUpload name="avatar" initial={avatarUrl} emptyLabel="No photo" />
@@ -91,12 +103,11 @@ export function EditProfileForm({
       <div className="flex flex-col gap-1">
         <span className="text-sm font-medium">Platforms &amp; followers</span>
         <p className="text-xs text-neutral-500 dark:text-neutral-400">
-          Followers and a link for each, so brands can check out your profile directly.
+          Followers and the link to your profile are required for each platform, so brands can check out your profile directly.
         </p>
         <PlatformChips
           name="platforms"
           value={platformDrafts}
-          flagMissingLinks
           onChange={(next) => {
             setPlatformDrafts(next);
             // Chip taps aren't input events, so the form's onChange misses them.
@@ -104,7 +115,11 @@ export function EditProfileForm({
           }}
         />
       </div>
-      {state?.error && <p className="text-sm text-ink">{state.error}</p>}
+      {message && (
+        <p role="alert" className="text-sm font-medium text-ink">
+          {message}
+        </p>
+      )}
       <button
         type="submit"
         disabled={pending}

@@ -9,6 +9,7 @@ import { AvatarUpload } from "@/components/avatar-upload";
 import { TextareaWithCounter } from "@/components/textarea-with-counter";
 import { useActionToast } from "@/lib/use-action-toast";
 import { useUnsavedChanges } from "@/lib/navigation-blocker";
+import { useFormProblem } from "@/lib/use-form-problem";
 
 type Props = {
   companyName: string;
@@ -32,9 +33,20 @@ export function EditBrandProfileForm({
   const [state, formAction, pending] = useActionState(updateBrandProfileAction, undefined);
   useActionToast(state, "Profile saved.");
   const markDirty = useUnsavedChanges(state);
+  const { formRef, problem, clearProblem } = useFormProblem();
+  const message = problem ?? state?.error;
 
   return (
-    <form action={formAction} onChange={markDirty} className="flex flex-col gap-4">
+    <form
+      ref={formRef}
+      action={formAction}
+      onChange={() => {
+        markDirty();
+        clearProblem();
+      }}
+      onSubmit={clearProblem}
+      className="flex flex-col gap-4"
+    >
       <div className="flex flex-col gap-1">
         <span className="text-sm font-medium">Logo</span>
         <AvatarUpload name="avatar" initial={avatarUrl} emptyLabel="No logo" />
@@ -110,7 +122,11 @@ export function EditBrandProfileForm({
           className="rounded border border-neutral-300 px-3 py-2.5 dark:border-neutral-700"
         />
       </div>
-      {state?.error && <p className="text-sm text-ink">{state.error}</p>}
+      {message && (
+        <p role="alert" className="text-sm font-medium text-ink">
+          {message}
+        </p>
+      )}
       <button
         type="submit"
         disabled={pending}
