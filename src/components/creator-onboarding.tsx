@@ -9,7 +9,6 @@ import { useI18n } from "@/components/i18n-provider";
 import { OnboardingLanguageStep } from "@/components/onboarding-language-step";
 import { OnboardingPhotoStep } from "@/components/onboarding-photo-step";
 import { OnboardingDone } from "@/components/onboarding-done";
-import { OnboardingProfileCard } from "@/components/onboarding-profile-card";
 import { CreatorAha } from "@/components/onboarding-aha";
 import { OnboardingSwipeDemo } from "@/components/onboarding-swipe-demo";
 import { OnboardingPayoutStep, PAYOUTS_AVAILABLE } from "@/components/onboarding-payout-step";
@@ -47,7 +46,6 @@ export function CreatorOnboarding({ emailVerified }: { emailVerified: boolean })
   const [displayName, setDisplayName] = useState("");
   const [niches, setNiches] = useState<string[]>([]);
   const [platforms, setPlatforms] = useState<PlatformDraft[]>([]);
-  const [avatar, setAvatar] = useState<string | null>(null);
   const [insights, setInsights] = useState<{
     niches?: OnboardingInsight;
     platforms?: OnboardingInsight;
@@ -108,16 +106,7 @@ export function CreatorOnboarding({ emailVerified }: { emailVerified: boolean })
       render: (i) => (
         <>
           <InsightBanner insight={insights.platforms} />
-          <OnboardingPhotoStep
-            kind="photo"
-            onPreview={setAvatar}
-            onBack={() => back(i)}
-            onDone={() => finish(i)}
-            onSkip={() => {
-              setAvatar(null);
-              finish(i, "skipped");
-            }}
-          />
+          <OnboardingPhotoStep kind="photo" onBack={() => back(i)} onDone={() => finish(i)} onSkip={() => finish(i, "skipped")} />
         </>
       ),
     },
@@ -166,14 +155,11 @@ export function CreatorOnboarding({ emailVerified }: { emailVerified: boolean })
   return (
     <div className="flex flex-1 flex-col gap-5">
       {inSetup && (
-        <>
-          <OnboardingProgress
-            step={step}
-            total={SETUP_STEPS.length}
-            labels={SETUP_STEPS.map((s) => t(`onboarding.steps.${s.key}` as MessageKey))}
-          />
-          {step > 0 && <OnboardingProfileCard role="creator" name={name} avatarUrl={avatar} niches={niches} platforms={platforms} />}
-        </>
+        <OnboardingProgress
+          step={step}
+          total={SETUP_STEPS.length}
+          labels={SETUP_STEPS.map((s) => t(`onboarding.steps.${s.key}` as MessageKey))}
+        />
       )}
       <StepPanels step={step}>{defs.map((d, i) => d.render(i))}</StepPanels>
     </div>

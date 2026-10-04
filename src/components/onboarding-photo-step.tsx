@@ -7,9 +7,8 @@ import { resizeImageFile } from "@/lib/resize-image";
 import { useI18n } from "@/components/i18n-provider";
 import { SkipButton, StepError, StepFooter, StepHeading, stepActions, stepScreen, useStepDone } from "@/components/onboarding-ui";
 
-// Optional photo (creators) or logo (brands). The wizard's profile card
-// above shows it as soon as one is picked (onPreview). Skipping goes
-// straight on.
+// Optional photo (creators) or logo (brands). The circle shows the pick
+// immediately. Skipping goes straight on.
 export function OnboardingPhotoStep({
   kind,
   onPreview,
@@ -18,7 +17,7 @@ export function OnboardingPhotoStep({
   onSkip,
 }: {
   kind: "photo" | "logo";
-  onPreview: (dataUrl: string | null) => void;
+  onPreview?: (dataUrl: string | null) => void;
   onBack: () => void;
   onDone: () => void;
   onSkip: () => void;
@@ -48,7 +47,7 @@ export function OnboardingPhotoStep({
       dt.items.add(resized);
       if (inputRef.current) inputRef.current.files = dt.files;
       setPreview(dataUrl);
-      onPreview(dataUrl);
+      onPreview?.(dataUrl);
     } catch (err) {
       setReadError(err instanceof Error ? err.message : t("onboarding.photo.readError"));
     }

@@ -7,7 +7,6 @@ import { useI18n } from "@/components/i18n-provider";
 import { OnboardingLanguageStep } from "@/components/onboarding-language-step";
 import { OnboardingPhotoStep } from "@/components/onboarding-photo-step";
 import { OnboardingDone } from "@/components/onboarding-done";
-import { OnboardingProfileCard } from "@/components/onboarding-profile-card";
 import { BrandAha } from "@/components/onboarding-aha";
 import { OnboardingPushStep, usePushOffer } from "@/components/onboarding-push-step";
 import {
@@ -42,7 +41,6 @@ export function BrandOnboarding({ emailVerified }: { emailVerified: boolean }) {
   const [step, setStep] = useState(0);
   const [companyName, setCompanyName] = useState("");
   const [niche, setNiche] = useState("");
-  const [avatar, setAvatar] = useState<string | null>(null);
   const [nicheInsight, setNicheInsight] = useState<OnboardingInsight | undefined>();
   const pushOffer = usePushOffer();
 
@@ -82,16 +80,7 @@ export function BrandOnboarding({ emailVerified }: { emailVerified: boolean }) {
       render: (i) => (
         <>
           <InsightBanner insight={nicheInsight} />
-          <OnboardingPhotoStep
-            kind="logo"
-            onPreview={setAvatar}
-            onBack={() => back(i)}
-            onDone={() => finish(i)}
-            onSkip={() => {
-              setAvatar(null);
-              finish(i, "skipped");
-            }}
-          />
+          <OnboardingPhotoStep kind="logo" onBack={() => back(i)} onDone={() => finish(i)} onSkip={() => finish(i, "skipped")} />
         </>
       ),
     },
@@ -120,14 +109,11 @@ export function BrandOnboarding({ emailVerified }: { emailVerified: boolean }) {
   return (
     <div className="flex flex-1 flex-col gap-5">
       {inSetup && (
-        <>
-          <OnboardingProgress
-            step={step}
-            total={SETUP_STEPS.length}
-            labels={SETUP_STEPS.map((s) => t(`onboarding.steps.${s.key}` as MessageKey))}
-          />
-          {step > 0 && <OnboardingProfileCard role="brand" name={name} avatarUrl={avatar} niches={niche ? [niche] : []} />}
-        </>
+        <OnboardingProgress
+          step={step}
+          total={SETUP_STEPS.length}
+          labels={SETUP_STEPS.map((s) => t(`onboarding.steps.${s.key}` as MessageKey))}
+        />
       )}
       <StepPanels step={step}>{defs.map((d, i) => d.render(i))}</StepPanels>
     </div>
