@@ -4,14 +4,12 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { isOnboardingComplete } from "@/lib/onboarding";
 import { Logo } from "@/components/logo";
-import { LogoutButton } from "@/components/logout-button";
+import { OnboardingExit } from "@/components/onboarding-exit";
 import { BrandOnboarding } from "@/components/brand-onboarding";
 import { CreatorOnboarding } from "@/components/creator-onboarding";
 import { GuestOnboarding } from "@/components/guest-onboarding";
 import type { Metadata } from "next";
-import Link from "next/link";
 import { NO_INDEX } from "@/lib/seo";
-import { getT } from "@/lib/i18n/server";
 import { parseSignupRole } from "@/lib/signup-role";
 
 export const metadata: Metadata = {
@@ -21,7 +19,6 @@ export const metadata: Metadata = {
 
 export default async function OnboardingPage(props: PageProps<"/onboarding">) {
   const session = await auth();
-  const t = await getT();
   const requestedRole = parseSignupRole((await props.searchParams).role);
 
   if (session?.user.role === "ADMIN") redirect("/admin");
@@ -55,13 +52,7 @@ export default async function OnboardingPage(props: PageProps<"/onboarding">) {
     <div className="flex min-h-dvh flex-1 flex-col">
       <header className="flex shrink-0 items-center justify-between px-5 pt-[calc(env(safe-area-inset-top)+0.75rem)] pb-2 sm:px-6 sm:pt-[calc(env(safe-area-inset-top)+1.25rem)] sm:pb-4">
         <Logo />
-        {session ? (
-          <LogoutButton className="text-sm text-neutral-500 transition hover:text-ink dark:text-neutral-400" />
-        ) : (
-          <Link href="/login" className="text-sm text-neutral-500 transition hover:text-ink dark:text-neutral-400">
-            {t("screens.auth.logIn")}
-          </Link>
-        )}
+        <OnboardingExit loggedIn={!!session} />
       </header>
       <main className="mx-auto flex w-full max-w-md flex-1 flex-col px-5 pt-2 pb-[max(1.25rem,env(safe-area-inset-bottom))] sm:px-6 sm:pt-4 sm:pb-12">
         {body}

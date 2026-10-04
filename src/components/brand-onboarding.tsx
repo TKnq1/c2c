@@ -25,6 +25,7 @@ import {
 } from "@/components/onboarding-ui";
 import type { MessageKey } from "@/lib/i18n/translate";
 import { BRAND_STEPS, type OnboardingEventKind, type OnboardingInsight, type OnboardingStepKey } from "@/lib/onboarding-flow";
+import { ONBOARDING_ACCOUNT_EVENT } from "@/components/onboarding-exit";
 import { clearOnboardingDraft, readOnboardingDraft, writeOnboardingDraft } from "@/lib/onboarding-draft";
 import { trackOnboarding, useTrackStepViews } from "@/lib/use-onboarding-tracking";
 
@@ -102,6 +103,7 @@ export function BrandOnboarding({ emailVerified, mode = "account" }: { emailVeri
   function replayGuestSteps(accountIndex: number) {
     sealed.current = true;
     clearOnboardingDraft();
+    window.dispatchEvent(new Event(ONBOARDING_ACCOUNT_EVENT));
     for (let n = 0; n <= accountIndex; n++) {
       const key = defs[n].key;
       trackOnboarding(key, "viewed");
