@@ -8,6 +8,8 @@ import { InAppNavigationMarker } from "@/lib/in-app-navigation";
 import { PageTransition } from "@/components/page-transition";
 import { Toaster } from "@/components/toaster";
 import { TopLoadingBar } from "@/components/top-loading-bar";
+import { AppSplash } from "@/components/app-splash";
+import { APP_SPLASH_SCRIPT } from "@/lib/app-splash";
 import { NavigationBlockerProvider } from "@/lib/navigation-blocker";
 import { SITE_URL } from "@/lib/site";
 import "./globals.css";
@@ -107,12 +109,17 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
 } catch (e) {}`,
           }}
         />
+        {/* Shows the logo splash (see AppSplash) before first paint; sets
+            data-splash="on" on <html> when this load should have one. */}
+        <script dangerouslySetInnerHTML={{ __html: APP_SPLASH_SCRIPT }} />
+        <link rel="preload" as="image" href="/logo-splash.png" fetchPriority="high" />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(ORGANIZATION_JSON_LD) }}
         />
       </head>
       <body className="min-h-full flex flex-col">
+        <AppSplash />
         <Suspense fallback={null}>
           <TopLoadingBar />
         </Suspense>
@@ -123,7 +130,16 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
               dashboard/layout.tsx, further down that same tree. */}
           <Nav />
           <InAppNavigationMarker />
-          <PageTransition>{children}</PageTransition>
+          {/* The boundary is what lets the server send this shell (and so the
+              splash) straight away. Without it, a layout further down that
+              awaits the database, like dashboard/layout.tsx, holds back the
+              whole response until Neon has answered. The fallback is only
+              a marker for AppSplash to wait on. Outside PageTransition so
+              its per-route remount never creates a new boundary, which
+              would blank the page on every navigation. */}
+          <Suspense fallback={<div data-splash-hold hidden />}>
+            <PageTransition>{children}</PageTransition>
+          </Suspense>
           <Toaster />
           <NativePushBridge />
           <NativeBackButton />

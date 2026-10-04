@@ -28,6 +28,7 @@ const GATE_INFRA_PREFIXES = [
   "/robots.txt",
   "/sitemap.xml",
   "/logo.png",
+  "/logo-splash.png",
   "/sw.js",
   // The icon and fonts the emails load (src/lib/email-templates.ts).
   "/email/",
