@@ -79,6 +79,19 @@ export const pl: Catalog = {
       company: "Twoja firma",
       niche: "Nisza",
       logo: "Logo",
+      account: "Konto",
+      matches: "Dopasowania",
+      swipe: "Swipe",
+      creators: "Twórcy",
+    },
+    role: {
+      title: "Jesteś twórcą czy marką?",
+      description: "Najpierw zobaczysz, co do ciebie pasuje. Konto zakładasz na końcu.",
+    },
+    account: {
+      title: "Załóż konto",
+      description: "Twoje dopasowania zostają z tobą. Wystarczy e-mail i hasło.",
+      brandDescription: "Twoi twórcy zostają z tobą. Wystarczy e-mail i hasło.",
     },
     language: {
       title: "W jakim języku ma być aplikacja?",
@@ -151,6 +164,8 @@ export const pl: Catalog = {
       lookingCreators: "Szukamy twórców z twojej niszy…",
       loadFailedCreator: "Profil jest zapisany. Nie udało się teraz wczytać dopasowań, czekają w feedzie.",
       loadFailedBrand: "Profil jest zapisany. Twórcy z twojej niszy czekają w Odkrywaj.",
+      loadFailedCreatorGuest: "Nie udało się teraz wczytać dopasowań. Poczekają w feedzie, gdy konto będzie gotowe.",
+      loadFailedBrandGuest: "Nie udało się teraz wczytać twórców. Znajdziesz ich w Odkrywaj.",
       earlyCreator: "Jesteś wcześnie, {name}",
       earlyReach:
         "W twoich niszach jeszcze nic nie ma, ale {count} otwartych {requests} gdzie indziej pasuje do zasięgu. Znajdziesz {them} w Wszystkie we feedzie.",

@@ -79,6 +79,19 @@ export const de: Catalog = {
       company: "Dein Unternehmen",
       niche: "Nische",
       logo: "Logo",
+      account: "Konto",
+      matches: "Matches",
+      swipe: "Swipen",
+      creators: "Creator",
+    },
+    role: {
+      title: "Bist du Creator oder Marke?",
+      description: "Du siehst zuerst, was zu dir passt. Das Konto kommt am Ende.",
+    },
+    account: {
+      title: "Konto erstellen",
+      description: "Deine Matches bleiben bei dir. Du brauchst nur eine E-Mail und ein Passwort.",
+      brandDescription: "Deine Creator bleiben bei dir. Du brauchst nur eine E-Mail und ein Passwort.",
     },
     language: {
       title: "In welcher Sprache soll die App sein?",
@@ -151,6 +164,8 @@ export const de: Catalog = {
       lookingCreators: "Wir suchen Creator in deiner Nische…",
       loadFailedCreator: "Dein Profil ist gespeichert. Deine Matches konnten gerade nicht geladen werden, sie warten in deinem Feed.",
       loadFailedBrand: "Dein Profil ist gespeichert. Creator deiner Nische warten unter Entdecken.",
+      loadFailedCreatorGuest: "Deine Matches konnten gerade nicht geladen werden. Sie warten in deinem Feed, sobald dein Konto steht.",
+      loadFailedBrandGuest: "Die Creator konnten gerade nicht geladen werden. Du findest sie unter Entdecken.",
       earlyCreator: "Du bist früh dran, {name}",
       earlyReach:
         "Noch nichts in deinen Nischen, aber {count} offene {requests} anderswo passen zu deiner Reichweite. Du findest {them} unter Alle in deinem Feed.",

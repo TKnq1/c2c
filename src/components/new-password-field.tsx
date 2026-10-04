@@ -27,7 +27,7 @@ function getStrength(pw: string): { score: number } {
 // A password input paired with a client-only confirm field: strength meter
 // and match check are pure UX — the confirm value is never submitted (no
 // `name`), so the server's schema and validation are untouched.
-export function NewPasswordField({ name, label }: { name: string; label?: string }) {
+export function NewPasswordField({ name, label, className }: { name: string; label?: string; className?: string }) {
   const { t } = useI18n();
   const fieldLabel = label ?? t("screens.auth.password");
   const [password, setPassword] = useState("");
@@ -55,7 +55,7 @@ export function NewPasswordField({ name, label }: { name: string; label?: string
         minLength={8}
         value={password}
         onChange={(e) => setPassword(e.target.value)}
-        className="rounded border border-neutral-300 px-3 py-2.5 dark:border-neutral-700"
+        className={`rounded border border-neutral-300 px-3 py-2.5 dark:border-neutral-700 ${className ?? ""}`}
       />
       {password.length > 0 && (
         <div className="flex items-center gap-2 mt-0.5">
@@ -78,7 +78,7 @@ export function NewPasswordField({ name, label }: { name: string; label?: string
         required
         value={confirm}
         onChange={(e) => setConfirm(e.target.value)}
-        className={`rounded border px-3 py-2.5 ${showMatch && !matches ? "border-ink" : "border-neutral-300 dark:border-neutral-700"}`}
+        className={`rounded border px-3 py-2.5 ${showMatch && !matches ? "border-ink" : "border-neutral-300 dark:border-neutral-700"} ${className ?? ""}`}
       />
       {showMatch && (
         <p className={`text-xs ${matches ? "text-stone" : "text-ink font-medium"}`}>

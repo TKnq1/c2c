@@ -79,6 +79,19 @@ export const pt: Catalog = {
       company: "A tua empresa",
       niche: "Nicho",
       logo: "Logótipo",
+      account: "Conta",
+      matches: "Matches",
+      swipe: "Swipe",
+      creators: "Criadores",
+    },
+    role: {
+      title: "És criador ou marca?",
+      description: "Primeiro vês o que combina contigo. A conta fica para o fim.",
+    },
+    account: {
+      title: "Cria a tua conta",
+      description: "Os teus matches ficam contigo. Só precisas de um e-mail e de uma palavra-passe.",
+      brandDescription: "Os teus criadores ficam contigo. Só precisas de um e-mail e de uma palavra-passe.",
     },
     language: {
       title: "Em que idioma queres a app?",
@@ -151,6 +164,8 @@ export const pt: Catalog = {
       lookingCreators: "A procurar criadores do teu nicho…",
       loadFailedCreator: "O perfil está guardado. Não foi possível carregar as correspondências; esperam-te no feed.",
       loadFailedBrand: "O perfil está guardado. Os criadores do teu nicho estão em Descobrir.",
+      loadFailedCreatorGuest: "Não foi possível carregar as correspondências. Esperam-te no feed assim que a conta estiver pronta.",
+      loadFailedBrandGuest: "Não foi possível carregar criadores. Encontras-os em Descobrir.",
       earlyCreator: "Chegas cedo, {name}",
       earlyReach:
         "Ainda nada nos teus nichos, mas {count} {requests} abertos noutros sítios encaixam no teu alcance. Encontras {them} em Tudo, no feed.",
