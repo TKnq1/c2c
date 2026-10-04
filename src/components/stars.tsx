@@ -1,3 +1,7 @@
+"use client";
+
+import { useI18n } from "@/components/i18n-provider";
+
 export function Stars({ rating, className, light }: { rating: number; className?: string; light?: boolean }) {
   const rounded = Math.round(rating);
   return (
@@ -13,10 +17,11 @@ export function Stars({ rating, className, light }: { rating: number; className?
 // independent of the app theme since it's tied to what's under it, not the
 // user's OS/app preference.
 export function RatingSummary({ average, count, light }: { average: number; count: number; light?: boolean }) {
+  const { t } = useI18n();
   if (count === 0) {
     return (
       <span className={light ? "text-xs text-white/70" : "text-xs text-neutral-400 dark:text-neutral-500"}>
-        No reviews yet
+        {t("screens.ui.noReviews")}
       </span>
     );
   }

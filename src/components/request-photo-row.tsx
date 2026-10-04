@@ -1,12 +1,14 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import { useI18n } from "@/components/i18n-provider";
 
 // The brand's photos in one sideways row. The page scrolls vertically, so a
 // plain overflow row never moved for a mouse wheel and, with the scrollbar
 // hidden, there was nothing to drag. A wheel over the row scrolls it
 // sideways until the last photo, then the page takes over again.
 export function RequestPhotoRow({ photos }: { photos: string[] }) {
+  const { t } = useI18n();
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -40,7 +42,7 @@ export function RequestPhotoRow({ photos }: { photos: string[] }) {
         <img
           key={url}
           src={url}
-          alt={`Photo ${i + 1}`}
+          alt={t("screens.ui.photoAlt", { n: i + 1 })}
           draggable={false}
           className="aspect-[4/5] w-44 shrink-0 rounded object-cover"
         />

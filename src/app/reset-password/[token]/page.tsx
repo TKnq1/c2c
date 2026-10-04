@@ -5,10 +5,12 @@ import { Logo } from "@/components/logo";
 import { ImprintLink } from "@/components/imprint-link";
 import type { Metadata } from "next";
 import { NO_INDEX } from "@/lib/seo";
+import { getT } from "@/lib/i18n/server";
 
 export const metadata: Metadata = { title: "Choose a new password", robots: NO_INDEX };
 
 export default async function ResetPasswordPage({ params }: { params: Promise<{ token: string }> }) {
+  const t = await getT();
   const { token } = await params;
 
   const resetToken = await prisma.passwordResetToken.findUnique({ where: { token } });
@@ -21,15 +23,15 @@ export default async function ResetPasswordPage({ params }: { params: Promise<{ 
           <Logo large />
         </div>
         <div className="text-center">
-          <h1 className="font-display text-title-1 font-bold">Set a new password</h1>
+          <h1 className="font-display text-title-1 font-bold">{t("screens.ui.setNewPassword")}</h1>
         </div>
         {isValid ? (
           <ResetPasswordForm token={token} />
         ) : (
           <p className="text-sm text-center text-neutral-600 dark:text-neutral-400">
-            This reset link is invalid or has expired.{" "}
+            {t("screens.ui.linkInvalidReset")}{" "}
             <Link href="/forgot-password" className="font-medium text-neutral-900 underline dark:text-neutral-100">
-              Request a new one
+              {t("screens.ui.requestNew")}
             </Link>
           </p>
         )}

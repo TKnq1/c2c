@@ -5,6 +5,7 @@ import Link from "next/link";
 import { IoChatbubble } from "react-icons/io5";
 import { startConversationAsStartupAction } from "@/lib/actions/requests";
 import { Dialog } from "@/components/dialog";
+import { useI18n } from "@/components/i18n-provider";
 
 type Props = {
   creatorId: string;
@@ -19,24 +20,30 @@ const BUTTON =
 // starts that conversation straight away; with several, which request it's
 // about is asked only after the tap, in a sheet.
 export function StartConversationAsStartup({ creatorId, existingInterestId, openRequests }: Props) {
+  const { t } = useI18n();
   const [choosing, setChoosing] = useState(false);
   const [pending, setPending] = useState(false);
   const action = startConversationAsStartupAction.bind(null, creatorId);
+  const label = (
+    <>
+      <IoChatbubble className="h-4 w-4" aria-hidden />
+      {t("screens.messages.message")}
+    </>
+  );
 
   if (existingInterestId) {
     return (
       <Link href={`/dashboard/messages/${existingInterestId}`} className={BUTTON}>
-        <IoChatbubble className="h-4 w-4" aria-hidden />
-        Message
+        {label}
       </Link>
     );
   }
 
   if (openRequests.length === 0) {
     return (
-      <Link href="/dashboard/startup/new" className={BUTTON} title="A conversation is always about one of your requests">
+      <Link href="/dashboard/startup/new" className={BUTTON} title={t("screens.ui.alwaysAbout")}>
         <IoChatbubble className="h-4 w-4" aria-hidden />
-        Post a request to message
+        {t("screens.ui.postToMessage")}
       </Link>
     );
   }
@@ -46,8 +53,7 @@ export function StartConversationAsStartup({ creatorId, existingInterestId, open
       <form action={action} onSubmit={() => setPending(true)} className="flex flex-1">
         <input type="hidden" name="requestId" value={openRequests[0].id} />
         <button type="submit" disabled={pending} className={BUTTON}>
-          <IoChatbubble className="h-4 w-4" aria-hidden />
-          Message
+          {label}
         </button>
       </form>
     );
@@ -56,10 +62,9 @@ export function StartConversationAsStartup({ creatorId, existingInterestId, open
   return (
     <>
       <button type="button" onClick={() => setChoosing(true)} className={BUTTON}>
-        <IoChatbubble className="h-4 w-4" aria-hidden />
-        Message
+        {label}
       </button>
-      <Dialog open={choosing} onClose={() => setChoosing(false)} title="Which request is this about?">
+      <Dialog open={choosing} onClose={() => setChoosing(false)} title={t("screens.ui.whichRequest")}>
         <form action={action} onSubmit={() => setPending(true)} className="flex flex-col gap-4">
           <div className="flex flex-col gap-2">
             {openRequests.map((r, i) => (
@@ -73,7 +78,7 @@ export function StartConversationAsStartup({ creatorId, existingInterestId, open
             ))}
           </div>
           <button type="submit" disabled={pending} className={BUTTON}>
-            {pending ? "Opening chat…" : "Start conversation"}
+            {pending ? t("screens.requests.openingChat") : t("screens.ui.startConversation")}
           </button>
         </form>
       </Dialog>

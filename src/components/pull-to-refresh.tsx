@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState, useTransition } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { haptic } from "@/lib/haptics";
+import { useI18n } from "@/components/i18n-provider";
 
 // How far the page has to come down to refresh, and where it rests while
 // it does — in pixels of page movement, not of finger travel (see rubber).
@@ -52,6 +53,7 @@ export function PullToRefresh() {
 }
 
 function PullDown() {
+  const { t } = useI18n();
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [refreshing, setRefreshing] = useState(false);
@@ -203,7 +205,7 @@ function PullDown() {
         />
       </svg>
       <span role="status" className="sr-only">
-        {refreshing ? "Refreshing" : ""}
+        {refreshing ? t("screens.ui.refreshing") : ""}
       </span>
     </div>
   );

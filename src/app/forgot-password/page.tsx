@@ -4,10 +4,12 @@ import { ForgotPasswordForm } from "@/components/forgot-password-form";
 import { Logo } from "@/components/logo";
 import { ImprintLink } from "@/components/imprint-link";
 import { NO_INDEX } from "@/lib/seo";
+import { getT } from "@/lib/i18n/server";
 
 export const metadata: Metadata = { title: "Reset your password", robots: NO_INDEX };
 
-export default function ForgotPasswordPage() {
+export default async function ForgotPasswordPage() {
+  const t = await getT();
   return (
     <main className="flex-1 flex items-center justify-center px-6 py-16">
       <div className="w-full max-w-sm flex flex-col gap-6">
@@ -15,13 +17,13 @@ export default function ForgotPasswordPage() {
           <Logo large />
         </div>
         <div className="text-center">
-          <h1 className="font-display text-title-1 font-bold">Reset your password</h1>
-          <p className="text-sm text-neutral-600 mt-1 dark:text-neutral-400">Enter your account email.</p>
+          <h1 className="font-display text-title-1 font-bold">{t("screens.ui.resetTitle")}</h1>
+          <p className="text-sm text-neutral-600 mt-1 dark:text-neutral-400">{t("screens.ui.resetHint")}</p>
         </div>
         <ForgotPasswordForm />
         <p className="text-sm text-center text-neutral-600 dark:text-neutral-400">
           <Link href="/login" className="font-medium text-neutral-900 underline dark:text-neutral-100">
-            Back to log in
+            {t("screens.ui.backToLogin")}
           </Link>
         </p>
       </div>

@@ -5,6 +5,7 @@ import { FiPlus, FiStar, FiX } from "react-icons/fi";
 import { resizeImageFile } from "@/lib/resize-image";
 import { MAX_REQUEST_PHOTOS } from "@/lib/request-photo-types";
 import { haptic } from "@/lib/haptics";
+import { useI18n } from "@/components/i18n-provider";
 
 // A photo on the form: one the request already has (a RequestImage, or the
 // single legacy image older requests carry), or a new pick waiting to be
@@ -54,6 +55,7 @@ type Drag = {
 };
 
 export function RequestPhotosInput({ photos, onChange }: { photos: PhotoItem[]; onChange: (photos: PhotoItem[]) => void }) {
+  const { t } = useI18n();
   const inputRef = useRef<HTMLInputElement>(null);
   const gridRef = useRef<HTMLDivElement>(null);
   const floatRef = useRef<HTMLDivElement>(null);
@@ -223,7 +225,7 @@ export function RequestPhotosInput({ photos, onChange }: { photos: PhotoItem[]; 
       );
       onChange([...photos, ...added]);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Couldn't read that image.");
+      setError(err instanceof Error ? err.message : t("screens.settings.imageReadError"));
     } finally {
       setBusy(false);
       if (inputRef.current) inputRef.current.value = "";
@@ -253,7 +255,7 @@ export function RequestPhotosInput({ photos, onChange }: { photos: PhotoItem[]; 
             tabIndex={0}
             role="group"
             aria-grabbed={draggingKey === p.key}
-            aria-label={`Photo ${i + 1}${i === 0 ? ", cover" : ""}. Hold and drag to reorder.`}
+            aria-label={t("screens.ui.photoReorder", { n: i + 1, cover: i === 0 ? t("screens.ui.coverSuffix") : "" })}
             onPointerDown={(e) => onPointerDown(e, p.key)}
             onPointerMove={onPointerMove}
             onPointerUp={onPointerUp}
@@ -267,20 +269,20 @@ export function RequestPhotosInput({ photos, onChange }: { photos: PhotoItem[]; 
             <button
               type="button"
               onClick={() => remove(p.key)}
-              aria-label={`Remove photo ${i + 1}`}
+              aria-label={t("screens.ui.removePhoto", { n: i + 1 })}
               className="absolute top-1.5 right-1.5 flex h-6 w-6 cursor-pointer items-center justify-center rounded-full bg-black/55 text-white transition hover:bg-black/75"
             >
               <FiX className="h-3.5 w-3.5" />
             </button>
             {i === 0 ? (
               <span className="pointer-events-none absolute bottom-1.5 left-1.5 rounded-md bg-black/55 px-1.5 py-0.5 text-[11px] font-semibold text-white">
-                Cover
+                {t("screens.ui.cover")}
               </span>
             ) : (
               <button
                 type="button"
                 onClick={() => makeCover(p.key)}
-                aria-label={`Make photo ${i + 1} the cover`}
+                aria-label={t("screens.ui.makeCover", { n: i + 1 })}
                 className="absolute bottom-1.5 left-1.5 flex h-6 w-6 cursor-pointer items-center justify-center rounded-full bg-black/55 text-white transition hover:bg-black/75"
               >
                 <FiStar className="h-3.5 w-3.5" />
@@ -293,7 +295,7 @@ export function RequestPhotosInput({ photos, onChange }: { photos: PhotoItem[]; 
             className={`flex aspect-square cursor-pointer flex-col items-center justify-center gap-1 rounded border border-dashed border-neutral-300 text-neutral-500 transition hover:border-neutral-400 dark:border-neutral-700 dark:text-neutral-400 ${busy ? "opacity-50" : ""}`}
           >
             <FiPlus className="h-5 w-5" />
-            <span className="text-xs font-medium">{busy ? "Adding…" : "Add"}</span>
+            <span className="text-xs font-medium">{busy ? t("screens.ui.adding") : t("screens.settings.add")}</span>
             <input
               ref={inputRef}
               type="file"

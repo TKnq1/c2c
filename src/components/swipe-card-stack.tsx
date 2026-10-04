@@ -57,10 +57,10 @@ export function SwipeCardStack({
     try {
       if (favorited) {
         await favoriteStartupAction(card.startupId);
-        toast.success(`${card.companyName} saved. Find it under Favorites on Discover.`);
+        toast.success(t("screens.ui.savedBrand", { name: card.companyName }));
       } else {
         await unfavoriteStartupAction(card.startupId);
-        toast.success(`Removed ${card.companyName} from favorites.`);
+        toast.success(t("screens.ui.unsavedBrand", { name: card.companyName }));
       }
     } catch (err) {
       setBrandFavorited(card.startupId, !favorited);
@@ -96,10 +96,10 @@ export function SwipeCardStack({
         if (result?.unavailable) {
           // Closed, blocked or out of reach since the page loaded: putting the
           // card back would only fail the same way again.
-          toast.error("That request isn't available any more.");
+          toast.error(t("screens.ui.requestGone"));
           return;
         }
-        toast.success("Interest sent.");
+        toast.success(t("screens.ui.interestSent"));
       } catch (err) {
         // Nothing was sent, so the card comes back rather than silently
         // vanishing — flying in from the right, where it just went.
@@ -146,7 +146,7 @@ export function SwipeCardStack({
     return (
       <EmptyState
         icon={FiCheck}
-        title="You're all caught up."
+        title={t("screens.requests.caughtUp")}
         description={caughtUp?.description ?? t("screens.feed.caughtUpDefault")}
         action={
           lastPassed
@@ -182,7 +182,9 @@ export function SwipeCardStack({
 
         <div className="w-full max-w-md flex flex-col items-center gap-2">
           <p className="text-xs text-neutral-400 dark:text-neutral-500">
-            {stack.length} request{stack.length === 1 ? "" : "s"} left
+            {stack.length === 1
+              ? t("screens.ui.leftOne", { count: stack.length })
+              : t("screens.ui.leftMany", { count: stack.length })}
           </p>
           {/* Pass / Favorite / Interested / Undo, big-small-big-small — same
               weighting as Tinder's own row for the swipe actions, with undo

@@ -43,8 +43,10 @@ export function postByDate(postBy: string) {
 // bottom — or, without photos, the same on paper with the description
 // filling the space the photo would take.
 export function RequestCardFace({ request, photoIndex = 0 }: { request: CardRequest; photoIndex?: number }) {
+  const { t } = useI18n();
   const photo = request.photos[photoIndex] ?? request.photos[0];
   const budget = formatBudget(request.budgetMinCents, request.budgetMaxCents);
+  const budgetLabel = t("screens.requests.budget");
 
   if (!photo) {
     return (
@@ -52,7 +54,7 @@ export function RequestCardFace({ request, photoIndex = 0 }: { request: CardRequ
         {budget && (
           <p className="flex items-baseline gap-1.5">
             <span className="font-display text-title-2 font-black">{budget}</span>
-            <span className="text-sm text-neutral-500 dark:text-neutral-400">budget</span>
+            <span className="text-sm text-neutral-500 dark:text-neutral-400">{budgetLabel}</span>
           </p>
         )}
         <CardHeader request={request} />
@@ -88,7 +90,7 @@ export function RequestCardFace({ request, photoIndex = 0 }: { request: CardRequ
       {budget && (
         <p className="absolute top-6 left-4 flex items-baseline gap-1 rounded-full bg-white/90 px-3 py-1.5 text-neutral-900 shadow-md">
           <span className="text-base font-black">{budget}</span>
-          <span className="text-xs font-semibold text-neutral-500">budget</span>
+          <span className="text-xs font-semibold text-neutral-500">{budgetLabel}</span>
         </p>
       )}
 

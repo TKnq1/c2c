@@ -81,7 +81,7 @@ export function PlatformChips({
                 inputMode="numeric"
                 min={0}
                 required
-                placeholder="e.g. 12000"
+                placeholder={t("screens.ui.followersExample")}
                 aria-label={t("screens.settings.followersOf", { name: e.platform })}
                 value={e.followers}
                 onChange={(ev) => update(e.platform, { followers: ev.target.value })}

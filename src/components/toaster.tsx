@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { subscribeToasts, toast, type Toast } from "@/lib/toast";
+import { useI18n } from "@/components/i18n-provider";
 
 const VARIANT_STYLES: Record<Toast["variant"], string> = {
   success: "border-ink/10 bg-paper text-ink",
@@ -13,6 +14,7 @@ const AUTO_DISMISS_MS = 4000;
 const EXIT_MS = 180;
 
 function ToastItem({ item }: { item: Toast }) {
+  const { t } = useI18n();
   const [closing, setClosing] = useState(false);
 
   const close = () => {
@@ -51,7 +53,7 @@ function ToastItem({ item }: { item: Toast }) {
           type="button"
           onClick={close}
           className="opacity-60 hover:opacity-100 transition"
-          aria-label="Dismiss"
+          aria-label={t("screens.ui.dismiss")}
         >
           ✕
         </button>

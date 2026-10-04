@@ -1,9 +1,11 @@
 import { SidePanel } from "@/components/side-panel";
+import { getT } from "@/lib/i18n/server";
 
 // Opens the panel straight away while the profile loads.
-export default function ProfilePanelLoading() {
+export default async function ProfilePanelLoading() {
+  const t = await getT();
   return (
-    <SidePanel label="Loading profile">
+    <SidePanel label={t("screens.ui.loadingProfile")}>
       <div className="flex animate-pulse flex-col gap-5" aria-hidden>
         <div className="flex items-center gap-4">
           <div className="h-20 w-20 shrink-0 rounded-full bg-fog" />

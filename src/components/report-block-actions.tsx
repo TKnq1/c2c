@@ -14,8 +14,16 @@ import { Dialog } from "@/components/dialog";
 import { toast } from "@/lib/toast";
 import { errorMessage } from "@/lib/error-message";
 import { useExitAnimation } from "@/lib/use-exit-animation";
+import { useI18n } from "@/components/i18n-provider";
+import type { MessageKey } from "@/lib/i18n/translate";
 
-const REASONS = ["Spam", "Harassment or abuse", "Scam or fraud", "Inappropriate content", "Other"];
+const REASONS: { value: string; label: MessageKey }[] = [
+  { value: "Spam", label: "screens.ui.reasonSpam" },
+  { value: "Harassment or abuse", label: "screens.ui.reasonHarassment" },
+  { value: "Scam or fraud", label: "screens.ui.reasonScam" },
+  { value: "Inappropriate content", label: "screens.ui.reasonInappropriate" },
+  { value: "Other", label: "screens.ui.reasonOther" },
+];
 
 const menuItemClassName =
   "block w-full px-3 py-2 text-left text-sm text-neutral-700 hover:bg-neutral-50 dark:text-neutral-300 dark:hover:bg-neutral-800";
@@ -37,6 +45,7 @@ export function ReportBlockActions({
   initialBlockedByMe: boolean;
   bordered?: boolean;
 }) {
+  const { t } = useI18n();
   const router = useRouter();
   const [menuOpen, setMenuOpen] = useState(false);
   const menu = useExitAnimation(menuOpen);
@@ -70,7 +79,7 @@ export function ReportBlockActions({
       else await unblockUserAction(otherUserId);
       setBlocked(next);
       setDialog(null);
-      toast.success(next ? `Blocked ${otherName}.` : `Unblocked ${otherName}.`);
+      toast.success(next ? t("screens.ui.blockedToast", { name: otherName }) : t("screens.ui.unblockedToast", { name: otherName }));
       // The actions only revalidate list pages, not whatever page this
       // menu sits on — refresh so e.g. a chat's composer swaps to (or back
       // from) its blocked notice right away.
@@ -93,7 +102,7 @@ export function ReportBlockActions({
         onClick={() => setMenuOpen((v) => !v)}
         aria-haspopup="menu"
         aria-expanded={menuOpen}
-        aria-label="More actions"
+        aria-label={t("screens.requests.moreActions")}
         className={`flex h-10 w-10 items-center justify-center rounded-full text-graphite transition hover:text-ink ${
           bordered ? "border border-neutral-300 hover:border-neutral-400 dark:border-neutral-700" : "hover:bg-fog"
         }`}
@@ -118,7 +127,7 @@ export function ReportBlockActions({
             }}
             className={menuItemClassName}
           >
-            Report
+            {t("screens.ui.report")}
           </button>
           <button
             type="button"
@@ -134,20 +143,17 @@ export function ReportBlockActions({
             }}
             className={`${menuItemClassName} disabled:opacity-50`}
           >
-            {blocked ? "Unblock" : "Block"}
+            {blocked ? t("screens.ui.unblock") : t("screens.ui.block")}
           </button>
         </div>
       )}
 
-      <Dialog open={dialog === "report"} onClose={() => setDialog(null)} title={`Report ${otherName}`}>
+      <Dialog open={dialog === "report"} onClose={() => setDialog(null)} title={t("screens.ui.reportName", { name: otherName })}>
         <ReportForm otherUserId={otherUserId} onSent={() => setDialog(null)} />
       </Dialog>
 
-      <Dialog open={dialog === "block"} onClose={() => setDialog(null)} title={`Block ${otherName}?`}>
-        <p className="text-sm text-neutral-600 dark:text-neutral-400">
-          You won&apos;t be able to message each other, and you&apos;ll stop seeing each other in Discover. You can
-          unblock them anytime from this menu.
-        </p>
+      <Dialog open={dialog === "block"} onClose={() => setDialog(null)} title={t("screens.ui.blockName", { name: otherName })}>
+        <p className="text-sm text-neutral-600 dark:text-neutral-400">{t("screens.ui.blockBody")}</p>
         {blockError && <p className="text-sm font-medium text-ink">{blockError}</p>}
         <div className="flex gap-2">
           <button
@@ -155,7 +161,7 @@ export function ReportBlockActions({
             onClick={() => setDialog(null)}
             className="flex-1 rounded-full border border-neutral-300 px-4 py-2.5 text-sm font-medium transition hover:border-neutral-400 dark:border-neutral-700"
           >
-            Cancel
+            {t("common.cancel")}
           </button>
           <button
             type="button"
@@ -163,7 +169,7 @@ export function ReportBlockActions({
             disabled={blockPending}
             className="flex-1 rounded-full bg-ink px-4 py-2.5 text-sm font-medium text-paper transition hover:bg-graphite disabled:opacity-50"
           >
-            {blockPending ? "Blocking…" : "Block"}
+            {blockPending ? t("screens.ui.blocking") : t("screens.ui.block")}
           </button>
         </div>
       </Dialog>
@@ -172,6 +178,7 @@ export function ReportBlockActions({
 }
 
 function ReportForm({ otherUserId, onSent }: { otherUserId: string; onSent: () => void }) {
+  const { t } = useI18n();
   const [state, formAction, pending] = useActionState(
     async (prev: ReportActionState, formData: FormData) => {
       let result: ReportActionState;
@@ -182,7 +189,7 @@ function ReportForm({ otherUserId, onSent }: { otherUserId: string; onSent: () =
         return { error: errorMessage(err) };
       }
       if (result?.success) {
-        toast.success("Report sent. Our team will take a look.");
+        toast.success(t("screens.ui.reportSent"));
         onSent();
       }
       return result;
@@ -198,15 +205,15 @@ function ReportForm({ otherUserId, onSent }: { otherUserId: string; onSent: () =
         name="reason"
         required
         defaultValue=""
-        aria-label="Reason for report"
+        aria-label={t("screens.ui.reasonForReport")}
         className="rounded border border-neutral-300 bg-white px-3 py-2.5 text-base md:text-sm dark:border-neutral-700 dark:bg-neutral-900"
       >
         <option value="" disabled>
-          Reason
+          {t("screens.ui.reason")}
         </option>
         {REASONS.map((r) => (
-          <option key={r} value={r}>
-            {r}
+          <option key={r.value} value={r.value}>
+            {t(r.label)}
           </option>
         ))}
       </select>
@@ -214,8 +221,8 @@ function ReportForm({ otherUserId, onSent }: { otherUserId: string; onSent: () =
         name="details"
         rows={3}
         maxLength={500}
-        placeholder="Optional details"
-        aria-label="Details"
+        placeholder={t("screens.ui.optionalDetails")}
+        aria-label={t("screens.ui.details")}
         className="resize-none rounded border border-neutral-300 px-3 py-2.5 text-base md:text-sm dark:border-neutral-700"
       />
       {state?.error && <p className="text-sm text-ink">{state.error}</p>}
@@ -224,7 +231,7 @@ function ReportForm({ otherUserId, onSent }: { otherUserId: string; onSent: () =
         disabled={pending}
         className="rounded-full bg-ink px-4 py-2.5 text-sm font-medium text-paper transition hover:bg-graphite disabled:opacity-50"
       >
-        {pending ? "Sending…" : "Send report"}
+        {pending ? t("screens.messages.sending") : t("screens.ui.sendReport")}
       </button>
     </form>
   );

@@ -304,7 +304,7 @@ export function ChatConversation({
       try {
         result = await sendMessageAction(interestId, undefined, formData);
       } catch {
-        result = { error: "Couldn't send. Check your connection and try again." };
+        result = { error: t("screens.ui.sendFailed") };
       }
       if (result?.error) {
         toast.error(result.error);
@@ -420,7 +420,7 @@ export function ChatConversation({
                       >
                         {m.pending ? t("screens.messages.sending") : formatMessageTime(m.createdAt, timeZone, locale)}
                         {item.seen && (
-                          <span className={initiallyReadIds.has(m.id) ? "" : "animate-fade-in"}> · Seen</span>
+                          <span className={initiallyReadIds.has(m.id) ? "" : "animate-fade-in"}> · {t("screens.ui.seen")}</span>
                         )}
                       </p>
                     )}
