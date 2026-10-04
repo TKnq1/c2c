@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Logo centred at its own size on a flat background: unlike a full-screen
+     bitmap, it isn't stretched on tall phones. The density- and night-specific
+     splash_icon.png files are 288dp squares with the logo (112dp, the size of
+     the web splash) in the middle. -->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:drawable="@color/splash_background" />
+    <item>
+        <bitmap
+            android:gravity="center"
+            android:src="@drawable/splash_icon" />
+    </item>
+</layer-list>
