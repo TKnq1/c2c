@@ -1,5 +1,6 @@
 "use client";
 
+import { useI18n } from "@/components/i18n-provider";
 import { Avatar } from "@/components/avatar";
 import { PlatformIcon } from "@/components/platform-icons";
 import { DEFAULT_NICHE_ICON, NICHE_ICONS } from "@/lib/niche-icons";
@@ -24,14 +25,15 @@ export function OnboardingProfileCard({
   niches: string[];
   platforms?: CardPlatform[];
 }) {
-  const audience = role === "creator" ? "brands" : "creators";
+  const { t } = useI18n();
   const trimmed = name.trim();
   const reach = platforms.filter((p) => Number(p.followers) > 0);
+  const seeYou = role === "creator" ? t("onboarding.card.seeYouBrands") : t("onboarding.card.seeYouCreators");
 
   return (
-    <section aria-label={`How ${audience} will see you`} className="rounded bg-fog px-4 py-3.5">
+    <section aria-label={seeYou} className="rounded bg-fog px-4 py-3.5">
       <p className="mb-2.5 text-xs font-medium tracking-wide text-neutral-500 uppercase dark:text-neutral-400">
-        How {audience} will see you
+        {seeYou}
       </p>
       <div className="flex items-center gap-3">
         <div key={avatarUrl ?? "none"} className={avatarUrl ? "animate-pop-in" : undefined}>
@@ -41,7 +43,7 @@ export function OnboardingProfileCard({
           {trimmed ? (
             <p className="truncate font-semibold">{trimmed}</p>
           ) : (
-            <Placeholder width="w-32" label={role === "creator" ? "Your name" : "Your company"} />
+            <Placeholder width="w-32" label={role === "creator" ? t("onboarding.card.yourName") : t("onboarding.card.yourCompany")} />
           )}
           <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1">
             {niches.length > 0 ? (
@@ -58,7 +60,7 @@ export function OnboardingProfileCard({
                 );
               })
             ) : (
-              <Placeholder width="w-24" label={role === "creator" ? "Your niches" : "Your niche"} />
+              <Placeholder width="w-24" label={role === "creator" ? t("onboarding.card.yourNiches") : t("onboarding.card.yourNiche")} />
             )}
           </div>
         </div>
@@ -77,7 +79,7 @@ export function OnboardingProfileCard({
               </span>
             ))
           ) : (
-            <Placeholder width="w-28" label="Your reach" />
+            <Placeholder width="w-28" label={t("onboarding.card.yourReach")} />
           )}
         </div>
       )}
@@ -89,7 +91,7 @@ export function OnboardingProfileCard({
 // rather than as a broken layout.
 function Placeholder({ width, label }: { width: string; label: string }) {
   return (
-    <span className={`inline-flex h-5 ${width} items-center rounded border border-dashed border-neutral-300 px-2 text-xs text-neutral-400 dark:border-neutral-700 dark:text-neutral-500`}>
+    <span className={`inline-flex h-5 ${width} min-w-fit items-center whitespace-nowrap rounded border border-dashed border-neutral-300 px-2 text-xs text-neutral-400 dark:border-neutral-700 dark:text-neutral-500`}>
       {label}
     </span>
   );

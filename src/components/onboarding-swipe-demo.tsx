@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { FiHeart, FiX } from "react-icons/fi";
 import { SwipeCard, type SwipeCardHandle, type SwipeRequest } from "@/components/swipe-card";
+import { useI18n } from "@/components/i18n-provider";
 import { PRIMARY_BUTTON, SkipButton, StepHeading } from "@/components/onboarding-ui";
 
 // Made up and labelled as such on screen: swiping it sends nothing.
@@ -28,14 +29,10 @@ const EXAMPLE: SwipeRequest = {
   productIncluded: true,
 };
 
-const OUTCOME = {
-  right: { title: "That's an \u201CI'm interested\u201D", description: "The brand gets a notification and you can chat. Nothing is sent from this example." },
-  left: { title: "That's a pass", description: "The request goes away and won't come back. You can undo your last pass in your feed." },
-} as const;
-
 // Teaches the one gesture the Feed is built on, on a made-up card, before
 // the real feed shows up.
 export function OnboardingSwipeDemo({ active, onNext, onSkip }: { active: boolean; onNext: () => void; onSkip: () => void }) {
+  const { t } = useI18n();
   const [outcome, setOutcome] = useState<"left" | "right" | null>(null);
   const cardRef = useRef<SwipeCardHandle>(null);
   const deckRef = useRef<HTMLDivElement>(null);
@@ -61,16 +58,16 @@ export function OnboardingSwipeDemo({ active, onNext, onSkip }: { active: boolea
   }, [active]);
 
   if (outcome) {
-    const message = OUTCOME[outcome];
+    const message =
+      outcome === "right"
+        ? { title: t("onboarding.swipe.rightTitle"), description: t("onboarding.swipe.rightBody") }
+        : { title: t("onboarding.swipe.leftTitle"), description: t("onboarding.swipe.leftBody") };
     return (
       <div className="animate-stagger-fade-in flex flex-col gap-6">
         <StepHeading title={message.title} description={message.description} />
-        <p className="rounded bg-fog px-4 py-3 text-sm text-neutral-700 dark:text-neutral-300">
-          That&apos;s all there is to it: swipe right on what you like, left on what you don&apos;t. Anything you&apos;re
-          interested in lands under Matches.
-        </p>
+        <p className="rounded bg-fog px-4 py-3 text-sm text-neutral-700 dark:text-neutral-300">{t("onboarding.swipe.recap")}</p>
         <button type="button" onClick={onNext} className={PRIMARY_BUTTON}>
-          Continue
+          {t("common.continue")}
         </button>
       </div>
     );
@@ -78,10 +75,7 @@ export function OnboardingSwipeDemo({ active, onNext, onSkip }: { active: boolea
 
   return (
     <div className="flex flex-col gap-5">
-      <StepHeading
-        title="Swipe to decide"
-        description="Right if you're interested, left to pass. Try it on this example."
-      />
+      <StepHeading title={t("onboarding.swipe.title")} description={t("onboarding.swipe.description")} />
 
       <div className="relative mx-auto w-full max-w-[340px] pt-3">
         {/* On the card, not behind it: the card paints at z-10, so a label
@@ -89,7 +83,7 @@ export function OnboardingSwipeDemo({ active, onNext, onSkip }: { active: boolea
             gives the heading, the buttons and "Skip the tour" room on a
             short phone instead of pushing them past the fold. */}
         <span className="absolute top-0 left-1/2 z-20 -translate-x-1/2 -translate-y-1/2 rounded-full bg-ink px-3 py-1 text-xs font-medium text-paper">
-          Example
+          {t("onboarding.swipe.example")}
         </span>
         <div ref={deckRef} className="relative h-[min(460px,calc(100dvh-23.5rem))] w-full">
           <SwipeCard
@@ -106,7 +100,7 @@ export function OnboardingSwipeDemo({ active, onNext, onSkip }: { active: boolea
         <button
           type="button"
           onClick={() => cardRef.current?.triggerExit("left")}
-          aria-label="Pass"
+          aria-label={t("onboarding.swipe.pass")}
           className="flex h-14 w-14 items-center justify-center rounded-full border border-ink/10 text-neutral-600 transition hover:border-ink hover:text-ink dark:text-neutral-400 dark:hover:text-white"
         >
           <FiX className="h-6 w-6" />
@@ -114,7 +108,7 @@ export function OnboardingSwipeDemo({ active, onNext, onSkip }: { active: boolea
         <button
           type="button"
           onClick={() => cardRef.current?.triggerExit("right")}
-          aria-label="Interested"
+          aria-label={t("onboarding.swipe.interested")}
           className="flex h-14 w-14 items-center justify-center rounded-full bg-ink text-paper transition hover:bg-graphite"
         >
           <FiHeart className="h-6 w-6" />
@@ -122,7 +116,7 @@ export function OnboardingSwipeDemo({ active, onNext, onSkip }: { active: boolea
       </div>
 
       <div className="flex flex-col">
-        <SkipButton onClick={onSkip}>Skip the tour</SkipButton>
+        <SkipButton onClick={onSkip}>{t("onboarding.swipe.skipTour")}</SkipButton>
       </div>
     </div>
   );

@@ -3,13 +3,17 @@
 import { useLayoutEffect, useState } from "react";
 import { getPreferredTheme, setTheme } from "@/lib/theme";
 import { playSound, setSoundsEnabled, soundsEnabled } from "@/lib/sounds";
+import { useI18n } from "@/components/i18n-provider";
+import { Select } from "@/components/select";
 import { SettingsRow } from "@/components/settings-section";
 import { Switch } from "@/components/switch";
+import { APP_LOCALES, type Locale } from "@/lib/i18n/locales";
 
 // Live switches, not form fields with a Save button — dark mode should
 // apply the instant you flip it, the same way it always has from the nav
 // icon this replaced; sounds likewise.
 export function AppearanceSettings() {
+  const { locale, setLocale, t } = useI18n();
   const [dark, setDark] = useState(false);
   const [sounds, setSounds] = useState(true);
 
@@ -37,11 +41,26 @@ export function AppearanceSettings() {
 
   return (
     <>
-      <SettingsRow label="Dark mode" hint="Applies immediately on this device.">
-        <Switch checked={dark} onChange={toggleDark} label="Dark mode" />
+      <SettingsRow label={t("settings.language")} hint={t("settings.languageHint")}>
+        <Select
+          aria-label={t("settings.language")}
+          value={locale}
+          wrapperClassName="w-40 shrink-0"
+          className="py-2 text-sm"
+          onChange={(e) => setLocale(e.target.value as Locale)}
+        >
+          {APP_LOCALES.map((item) => (
+            <option key={item.id} value={item.id}>
+              {item.native}
+            </option>
+          ))}
+        </Select>
       </SettingsRow>
-      <SettingsRow label="Sounds" hint="A soft sound when you swipe in the Feed.">
-        <Switch checked={sounds} onChange={toggleSounds} label="Sounds" />
+      <SettingsRow label={t("settings.darkMode")} hint={t("settings.darkModeHint")}>
+        <Switch checked={dark} onChange={toggleDark} label={t("settings.darkMode")} />
+      </SettingsRow>
+      <SettingsRow label={t("settings.sounds")} hint={t("settings.soundsHint")}>
+        <Switch checked={sounds} onChange={toggleSounds} label={t("settings.sounds")} />
       </SettingsRow>
     </>
   );

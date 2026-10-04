@@ -7,6 +7,8 @@ import { verifyTotpCode } from "@/lib/totp";
 import { verifyAndConsumeRecoveryCode } from "@/lib/recovery-codes";
 import { isRateLimited, logLoginAttempt } from "@/lib/login-security";
 import { isSessionRevoked } from "@/lib/session-revocation";
+import { writeLocaleCookie } from "@/lib/i18n/cookie";
+import { parseLocale } from "@/lib/i18n/locales";
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
   // A year, and every visit starts the year over: people stay logged in for
@@ -63,7 +65,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         }
 
         await logLoginAttempt({ email, succeeded: true, userId: user.id });
-        return { id: user.id, email: user.email, role: user.role, isAdmin: user.isAdmin };
+        return { id: user.id, email: user.email, role: user.role, isAdmin: user.isAdmin, locale: user.locale };
       },
     }),
   ],
@@ -76,6 +78,13 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         token.checkedAt = Date.now();
         token.sid = crypto.randomUUID();
         token.loginAt = Date.now();
+        // The sign-in request can write cookies; later session reads cannot.
+        // A failure here must not block the login.
+        try {
+          await writeLocaleCookie(parseLocale(user.locale));
+        } catch {
+          // cookies().set is refused outside a Route Handler or Server Action.
+        }
         return token;
       }
       // Logins from before sessions had an id get one on their next request.

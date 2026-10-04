@@ -19,8 +19,10 @@ import { LegalLinks } from "@/components/legal-links";
 import { AppearanceSettings } from "@/components/appearance-settings";
 import { OnboardingChecklist } from "@/components/onboarding-checklist";
 import { PageTitle } from "@/components/page-title";
+import { getT } from "@/lib/i18n/server";
 
 export default async function CreatorSettingsPage() {
+  const t = await getT();
   const session = await auth();
   if (!session || session.user.role !== "CREATOR") redirect("/login");
 
@@ -47,7 +49,7 @@ export default async function CreatorSettingsPage() {
     // A centered reading-width column from md, like a document, instead of
     // fields stretched across the whole screen.
     <div className="flex flex-col gap-8 md:mx-auto md:w-full md:max-w-2xl">
-      <PageTitle>Settings</PageTitle>
+      <PageTitle>{t("nav.settings")}</PageTitle>
       <SettingsNav role="CREATOR" />
 
       <OnboardingChecklist
@@ -104,7 +106,7 @@ export default async function CreatorSettingsPage() {
         </div>
       </SettingsSection>
 
-      <SettingsSection id="appearance" title="Appearance">
+      <SettingsSection id="appearance" title={t("settings.appearance")}>
         <AppearanceSettings />
       </SettingsSection>
 

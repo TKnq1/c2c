@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { IoNotificationsOutline } from "react-icons/io5";
+import { useI18n } from "@/components/i18n-provider";
 import { PRIMARY_BUTTON, SkipButton, StepHeading } from "@/components/onboarding-ui";
 import { enableNativePush, isNativeApp, nativePushPermission } from "@/lib/native-push-client";
 import { browserSupportsWebPush, currentWebPushSubscription, enableWebPush } from "@/lib/web-push-client";
@@ -53,6 +54,7 @@ export function OnboardingPushStep({
   onDone: () => void;
   onSkip: () => void;
 }) {
+  const { t } = useI18n();
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -62,13 +64,13 @@ export function OnboardingPushStep({
     try {
       const result = isNativeApp() ? await enableNativePush() : await enableWebPush();
       if (result === "denied") {
-        setError("Notifications are off for comtor. You can turn them on later in Settings.");
+        setError(t("onboarding.push.denied"));
         return;
       }
-      toast.success("Notifications are on.");
+      toast.success(t("onboarding.push.on"));
       onDone();
     } catch {
-      setError("Couldn't turn notifications on. You can try again in Settings.");
+      setError(t("onboarding.push.failed"));
     } finally {
       setPending(false);
     }
@@ -80,12 +82,8 @@ export function OnboardingPushStep({
         <IoNotificationsOutline className="h-7 w-7" aria-hidden />
       </span>
       <StepHeading
-        title={role === "creator" ? "Know the moment a brand replies" : "Know the moment a creator replies"}
-        description={
-          role === "creator"
-            ? "Turn on notifications and we'll tell you about new matches, replies and payments, even when the app is closed."
-            : "Turn on notifications and we'll tell you about replies, interested creators and payments, even when the app is closed."
-        }
+        title={role === "creator" ? t("onboarding.push.creatorTitle") : t("onboarding.push.brandTitle")}
+        description={role === "creator" ? t("onboarding.push.creatorBody") : t("onboarding.push.brandBody")}
       />
       {error && (
         <p role="alert" className="text-sm text-ink">
@@ -94,9 +92,9 @@ export function OnboardingPushStep({
       )}
       <div className="flex flex-col gap-3">
         <button type="button" onClick={turnOn} disabled={pending} className={PRIMARY_BUTTON}>
-          {pending ? "Turning on…" : "Turn on notifications"}
+          {pending ? t("onboarding.push.turningOn") : t("onboarding.push.turnOn")}
         </button>
-        <SkipButton onClick={error ? onDone : onSkip}>{error ? "Continue" : "Not now"}</SkipButton>
+        <SkipButton onClick={error ? onDone : onSkip}>{error ? t("common.continue") : t("onboarding.push.notNow")}</SkipButton>
       </div>
     </div>
   );

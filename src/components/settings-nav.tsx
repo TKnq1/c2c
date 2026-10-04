@@ -2,29 +2,32 @@
 
 import { useEffect, useRef, useState } from "react";
 import type { Role } from "@prisma/client";
+import { useI18n } from "@/components/i18n-provider";
+import type { MessageKey } from "@/lib/i18n/translate";
 
 // The Settings page's jump bar. Sections are grouped so it stays short —
 // Security covers password, 2FA and recent logins; Account covers data
 // export, deletion and the legal pages. Each group jumps to its first
 // section.
-type Group = { id: string; label: string; sections: string[] };
+type Group = { id: string; label: MessageKey; sections: string[] };
 
 function groupsFor(role: Role): Group[] {
   return [
-    { id: "profile", label: "Profile", sections: ["profile"] },
+    { id: "profile", label: "settingsNav.profile", sections: ["profile"] },
     // Plan/billing only applies to brands; payouts only to creators —
     // brands pay out, they don't receive.
     role === "STARTUP"
-      ? { id: "plan", label: "Plan", sections: ["plan"] }
-      : { id: "payouts", label: "Payouts", sections: ["payouts"] },
-    { id: "appearance", label: "Appearance", sections: ["appearance"] },
-    { id: "password", label: "Security", sections: ["password", "two-factor", "logins"] },
-    { id: "push", label: "Notifications", sections: ["push"] },
-    { id: "data", label: "Account", sections: ["data", "danger", "legal"] },
+      ? { id: "plan", label: "settingsNav.plan", sections: ["plan"] }
+      : { id: "payouts", label: "settingsNav.payouts", sections: ["payouts"] },
+    { id: "appearance", label: "settingsNav.appearance", sections: ["appearance"] },
+    { id: "password", label: "settingsNav.security", sections: ["password", "two-factor", "logins"] },
+    { id: "push", label: "settingsNav.notifications", sections: ["push"] },
+    { id: "data", label: "settingsNav.account", sections: ["data", "danger", "legal"] },
   ];
 }
 
 export function SettingsNav({ role }: { role: Role }) {
+  const { t } = useI18n();
   const groups = groupsFor(role);
   const [active, setActive] = useState(groups[0].id);
   // Whether the bar is scrolled all the way right — the fade that hints at
@@ -84,7 +87,7 @@ export function SettingsNav({ role }: { role: Role }) {
   return (
     <nav
       ref={navRef}
-      aria-label="Settings sections"
+      aria-label={t("settingsNav.label")}
       // Flush under the header: <main>'s top padding is the header's
       // height plus 2rem (on phones the header floats over <main>), and a
       // sticky element sticks inside its scroll container's padding — so
@@ -107,7 +110,7 @@ export function SettingsNav({ role }: { role: Role }) {
             g.id === active ? "bg-ink text-paper" : "text-neutral-500 hover:text-ink dark:text-neutral-400"
           }`}
         >
-          {g.label}
+          {t(g.label)}
         </a>
       ))}
       {/* Sticky insets count from inside the bar's px-6, so -right-6 is

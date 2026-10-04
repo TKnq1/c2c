@@ -5,6 +5,8 @@ import { saveDisplayNameAction, saveNichesAction, savePlatformsAction } from "@/
 import { NicheTilesMulti } from "@/components/niche-tiles";
 import { MAX_CREATOR_NICHES } from "@/lib/constants";
 import { PlatformChips, type PlatformDraft } from "@/components/platform-chips";
+import { useI18n } from "@/components/i18n-provider";
+import { OnboardingLanguageStep } from "@/components/onboarding-language-step";
 import { OnboardingPhotoStep } from "@/components/onboarding-photo-step";
 import { OnboardingDone } from "@/components/onboarding-done";
 import { OnboardingProfileCard } from "@/components/onboarding-profile-card";
@@ -21,18 +23,20 @@ import {
   StepPanels,
   useStepDone,
 } from "@/components/onboarding-ui";
+import type { MessageKey } from "@/lib/i18n/translate";
 import { CREATOR_STEPS, type OnboardingEventKind, type OnboardingInsight, type OnboardingStepKey } from "@/lib/onboarding-flow";
 import { trackOnboarding, useTrackStepViews } from "@/lib/use-onboarding-tracking";
 
-// Name, niches, platforms and a photo (optional) build the profile; then the
-// payoff: the matches waiting for it, how swiping works, payouts and
-// notifications (each optional), and the "all set" screen. Payouts and
-// notifications are left out when they can't work here (see below).
-const SETUP_STEPS = CREATOR_STEPS.slice(0, 4);
+// Language, then name, niches, platforms and a photo (optional) build the
+// profile; then the payoff: the matches waiting for it, how swiping works,
+// payouts and notifications (each optional), and the "all set" screen.
+// Payouts and notifications are left out when they can't work here.
+const SETUP_STEPS = CREATOR_STEPS.slice(0, 5);
 
 type StepDef = { key: OnboardingStepKey; render: (index: number) => React.ReactNode };
 
 export function CreatorOnboarding({ emailVerified }: { emailVerified: boolean }) {
+  const { t } = useI18n();
   const [step, setStep] = useState(0);
   const [displayName, setDisplayName] = useState("");
   const [niches, setNiches] = useState<string[]>([]);
@@ -53,6 +57,10 @@ export function CreatorOnboarding({ emailVerified }: { emailVerified: boolean })
   }
 
   const defs: StepDef[] = [
+    {
+      key: "language",
+      render: (i) => <OnboardingLanguageStep onDone={() => finish(i)} />,
+    },
     {
       key: "name",
       render: (i) => <NameStep value={displayName} onChange={setDisplayName} onDone={() => finish(i)} />,
@@ -152,14 +160,20 @@ export function CreatorOnboarding({ emailVerified }: { emailVerified: boolean })
     <div className="flex flex-col gap-8">
       {inSetup && (
         <>
-          <OnboardingProgress step={step} total={SETUP_STEPS.length} labels={SETUP_STEPS.map((s) => s.label)} />
-          <OnboardingProfileCard
-            role="creator"
-            name={name}
-            avatarUrl={avatar}
-            niches={niches}
-            platforms={platforms}
+          <OnboardingProgress
+            step={step}
+            total={SETUP_STEPS.length}
+            labels={SETUP_STEPS.map((s) => t(`onboarding.steps.${s.key}` as MessageKey))}
           />
+          {step > 0 && (
+            <OnboardingProfileCard
+              role="creator"
+              name={name}
+              avatarUrl={avatar}
+              niches={niches}
+              platforms={platforms}
+            />
+          )}
         </>
       )}
       <StepPanels step={step}>{defs.map((d, i) => d.render(i))}</StepPanels>
@@ -168,19 +182,20 @@ export function CreatorOnboarding({ emailVerified }: { emailVerified: boolean })
 }
 
 function NameStep({ value, onChange, onDone }: { value: string; onChange: (v: string) => void; onDone: () => void }) {
+  const { t } = useI18n();
   const [state, formAction, pending] = useActionState(saveDisplayNameAction, undefined);
   useStepDone(state, onDone);
 
   return (
     <form action={formAction} className="flex flex-col gap-6">
-      <StepHeading title="What should we call you?" description="Your display name, shown to brands you match with." />
+      <StepHeading title={t("onboarding.name.title")} description={t("onboarding.name.description")} />
       <input
         name="displayName"
         type="text"
         required
         autoFocus
         autoComplete="nickname"
-        placeholder="e.g. Mia Summers"
+        placeholder={t("onboarding.name.placeholder")}
         value={value}
         onChange={(e) => onChange(e.target.value)}
         className="rounded border border-neutral-300 px-4 py-3 text-lg dark:border-neutral-700"
@@ -202,15 +217,13 @@ function NichesStep({
   onBack: () => void;
   onDone: (insight?: OnboardingInsight) => void;
 }) {
+  const { t } = useI18n();
   const [state, formAction, pending] = useActionState(saveNichesAction, undefined);
   useStepDone(state, (s) => onDone(s.insight));
 
   return (
     <form action={formAction} className="flex flex-col gap-6">
-      <StepHeading
-        title="What are your niches?"
-        description={`Pick up to ${MAX_CREATOR_NICHES}. Your feed shows requests in them first; you can switch it to everything that fits your reach.`}
-      />
+      <StepHeading title={t("onboarding.niches.title")} description={t("onboarding.niches.description", { max: MAX_CREATOR_NICHES })} />
       <NicheTilesMulti name="niches" value={value} onChange={onChange} />
       <StepError state={state} />
       <StepFooter onBack={onBack} pending={pending} disabled={value.length === 0} />
@@ -231,6 +244,7 @@ function PlatformsStep({
   onBack: () => void;
   onDone: (insight?: OnboardingInsight) => void;
 }) {
+  const { t } = useI18n();
   const [state, formAction, pending] = useActionState(savePlatformsAction, undefined);
   useStepDone(state, (s) => onDone(s.insight));
   const complete = value.length > 0 && value.every((e) => e.followers !== "" && e.url.trim() !== "");
@@ -239,7 +253,7 @@ function PlatformsStep({
     <form action={formAction} className="flex flex-col gap-6">
       <div>
         <InsightBanner insight={insight} />
-        <StepHeading title="Where do you post?" description="Pick your platforms, then add your followers and the link to each profile (both are required), so brands can see your reach." />
+        <StepHeading title={t("onboarding.platforms.title")} description={t("onboarding.platforms.description")} />
       </div>
       <PlatformChips name="platforms" value={value} onChange={onChange} />
       <StepError state={state} />

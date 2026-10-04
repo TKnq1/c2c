@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import type { IconType } from "react-icons";
 import { FiBell } from "react-icons/fi";
 import { IoClose } from "react-icons/io5";
+import { useI18n } from "@/components/i18n-provider";
 import { markNotificationsReadAction } from "@/lib/actions/notifications";
 import { NotificationRow } from "@/components/notification-row";
 import { SidebarTooltip } from "@/components/sidebar-tooltip";
@@ -25,6 +26,7 @@ export function NotificationsPanelButton({
   activeIcon: IconType;
   active: boolean;
 }) {
+  const { t } = useI18n();
   const pathname = usePathname();
   const buttonRef = useRef<HTMLButtonElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
@@ -81,7 +83,7 @@ export function NotificationsPanelButton({
         onClick={() => setOpenOn(open ? null : pathname)}
         aria-expanded={open}
         aria-haspopup="dialog"
-        aria-label={unreadCount > 0 ? `Notifications (${unreadCount} new)` : "Notifications"}
+        aria-label={unreadCount > 0 ? t("nav.notificationsNew", { count: unreadCount }) : t("nav.notifications")}
         className={`group relative flex h-11 w-full items-center justify-center gap-3.5 rounded px-3 text-sm transition lg:justify-start ${
           open || active ? "bg-fog font-semibold text-ink" : "text-graphite hover:bg-fog hover:text-ink"
         }`}
@@ -94,13 +96,13 @@ export function NotificationsPanelButton({
             </span>
           )}
         </span>
-        <span className="hidden flex-1 text-left lg:inline">Notifications</span>
+        <span className="hidden flex-1 text-left lg:inline">{t("nav.notifications")}</span>
         {unreadCount > 0 && (
           <span className="hidden h-5 min-w-5 items-center justify-center rounded-full bg-ink px-1.5 text-[11px] font-semibold text-paper lg:flex">
             {badge}
           </span>
         )}
-        {!open && <SidebarTooltip label="Notifications" />}
+        {!open && <SidebarTooltip label={t("nav.notifications")} />}
       </button>
 
       {open && (
@@ -112,15 +114,15 @@ export function NotificationsPanelButton({
           <div
             ref={panelRef}
             role="dialog"
-            aria-label="Notifications"
+            aria-label={t("notifications.title")}
             className="pointer-events-auto animate-panel-in absolute inset-y-0 left-[var(--sidebar-w)] flex w-96 max-w-[calc(100vw-var(--sidebar-w))] flex-col border-r border-ink/10 bg-background shadow-2xl"
           >
             <div className="flex shrink-0 items-center justify-between gap-2 border-b border-ink/10 px-5 py-3">
-              <h2 className="font-display text-title-2 font-bold">Notifications</h2>
+              <h2 className="font-display text-title-2 font-bold">{t("notifications.title")}</h2>
               <button
                 type="button"
                 onClick={() => setOpenOn(null)}
-                aria-label="Close"
+                aria-label={t("common.close")}
                 className="flex h-9 w-9 items-center justify-center rounded-full transition hover:bg-fog"
               >
                 <IoClose className="h-5 w-5" aria-hidden />
@@ -136,7 +138,7 @@ export function NotificationsPanelButton({
               ) : items.length === 0 ? (
                 <div className="flex flex-col items-center gap-2 px-6 py-16 text-center text-sm text-neutral-500 dark:text-neutral-400">
                   <FiBell className="h-6 w-6" aria-hidden />
-                  No notifications yet.
+                  {t("notifications.empty")}
                 </div>
               ) : (
                 <div className="divide-y divide-ink/10">
@@ -150,7 +152,7 @@ export function NotificationsPanelButton({
               href="/dashboard/notifications"
               className="shrink-0 border-t border-ink/10 px-5 py-3 text-center text-sm font-medium transition hover:bg-fog"
             >
-              See all notifications
+              {t("notifications.seeAll")}
             </Link>
           </div>
         </div>

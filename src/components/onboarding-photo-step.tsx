@@ -4,6 +4,7 @@ import { useActionState, useRef, useState } from "react";
 import { IoCameraOutline } from "react-icons/io5";
 import { saveOnboardingPhotoAction } from "@/lib/actions/onboarding";
 import { resizeImageFile } from "@/lib/resize-image";
+import { useI18n } from "@/components/i18n-provider";
 import { SkipButton, StepError, StepFooter, StepHeading, useStepDone } from "@/components/onboarding-ui";
 
 // Optional photo (creators) or logo (brands). The wizard's profile card
@@ -22,12 +23,16 @@ export function OnboardingPhotoStep({
   onDone: () => void;
   onSkip: () => void;
 }) {
+  const { t } = useI18n();
   const [state, formAction, pending] = useActionState(saveOnboardingPhotoAction, undefined);
   useStepDone(state, onDone);
   const inputRef = useRef<HTMLInputElement>(null);
   const [preview, setPreview] = useState<string | null>(null);
   const [readError, setReadError] = useState<string | null>(null);
-  const noun = kind === "logo" ? "logo" : "photo";
+  const title = kind === "logo" ? t("onboarding.logo.title") : t("onboarding.photo.title");
+  const description = kind === "logo" ? t("onboarding.logo.description") : t("onboarding.photo.description");
+  const choose = kind === "logo" ? t("onboarding.logo.choose") : t("onboarding.photo.choose");
+  const change = kind === "logo" ? t("onboarding.logo.change") : t("onboarding.photo.change");
 
   async function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -43,20 +48,13 @@ export function OnboardingPhotoStep({
       setPreview(dataUrl);
       onPreview(dataUrl);
     } catch (err) {
-      setReadError(err instanceof Error ? err.message : "Couldn't read that image.");
+      setReadError(err instanceof Error ? err.message : t("onboarding.photo.readError"));
     }
   }
 
   return (
     <form action={formAction} className="flex flex-col gap-6">
-      <StepHeading
-        title={kind === "logo" ? "Add your logo" : "Add a profile photo"}
-        description={
-          kind === "logo"
-            ? "A logo makes your brand easy to recognise when creators scroll through requests."
-            : "A real face makes your profile feel like a person, not a placeholder."
-        }
-      />
+      <StepHeading title={title} description={description} />
 
       <label className="group relative mx-auto cursor-pointer">
         <input ref={inputRef} type="file" name="avatar" accept="image/*" onChange={handleChange} className="sr-only" />
@@ -67,12 +65,12 @@ export function OnboardingPhotoStep({
         ) : (
           <span className="flex h-32 w-32 flex-col items-center justify-center gap-1 rounded-full border-2 border-dashed border-neutral-300 text-neutral-500 transition group-hover:border-ink group-hover:text-ink dark:border-neutral-700 dark:text-neutral-400">
             <IoCameraOutline className="h-7 w-7" aria-hidden />
-            <span className="text-xs font-medium">Choose {noun}</span>
+            <span className="text-xs font-medium">{choose}</span>
           </span>
         )}
         {preview && (
           <span className="absolute right-0 bottom-0 flex h-9 w-9 items-center justify-center rounded-full border-2 border-background bg-ink text-paper">
-            <IoCameraOutline className="h-4 w-4" aria-label={`Change ${noun}`} />
+            <IoCameraOutline className="h-4 w-4" aria-label={change} />
           </span>
         )}
       </label>

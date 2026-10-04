@@ -5,6 +5,7 @@ import Link from "next/link";
 import { IoChevronUp, IoLogOutOutline, IoSettingsOutline, IoShieldCheckmarkOutline } from "react-icons/io5";
 import { Avatar } from "@/components/avatar";
 import { SidebarTooltip } from "@/components/sidebar-tooltip";
+import { useI18n } from "@/components/i18n-provider";
 import { LogoutButton } from "@/components/logout-button";
 import { useExitAnimation } from "@/lib/use-exit-animation";
 import type { Me } from "@/app/api/me/route";
@@ -28,6 +29,7 @@ export function SidebarProfile({
   active: boolean;
   onNavigate: (e: { preventDefault: () => void }) => void;
 }) {
+  const { t } = useI18n();
   const [open, setOpen] = useState(false);
   const menu = useExitAnimation(open);
   const ref = useRef<HTMLDivElement>(null);
@@ -48,7 +50,7 @@ export function SidebarProfile({
     };
   }, [open]);
 
-  const name = me?.name ?? "Account";
+  const name = me?.name ?? t("settingsNav.account");
 
   return (
     <div ref={ref} className="relative">
@@ -57,7 +59,7 @@ export function SidebarProfile({
         onClick={() => setOpen((v) => !v)}
         aria-haspopup="menu"
         aria-expanded={open}
-        aria-label={`${name}: account menu`}
+        aria-label={t("nav.accountMenu", { name })}
         className={`group relative flex h-12 w-full items-center justify-center gap-3 rounded px-2 transition lg:justify-start ${
           active || open ? "bg-fog" : "hover:bg-fog"
         }`}
@@ -87,18 +89,18 @@ export function SidebarProfile({
             className={ITEM}
           >
             <IoSettingsOutline className="h-4 w-4 shrink-0" aria-hidden />
-            Settings
+            {t("nav.settings")}
           </Link>
           {isAdmin && (
             <Link href="/admin" onNavigate={onNavigate} onClick={() => setOpen(false)} role="menuitem" className={ITEM}>
               <IoShieldCheckmarkOutline className="h-4 w-4 shrink-0" aria-hidden />
-              Admin dashboard
+              {t("nav.admin")}
             </Link>
           )}
           <div className="my-1 border-t border-ink/10" aria-hidden />
           <LogoutButton className={ITEM}>
             <IoLogOutOutline className="h-4 w-4 shrink-0" aria-hidden />
-            Log out
+            {t("nav.logOut")}
           </LogoutButton>
         </div>
       )}

@@ -2,6 +2,7 @@
 // funnel. No "use client" / "use server" so all of them can import it.
 
 export const CREATOR_STEPS = [
+  { key: "language", label: "Language" },
   { key: "name", label: "Your name" },
   { key: "niches", label: "Niches" },
   { key: "platforms", label: "Reach" },
@@ -14,6 +15,7 @@ export const CREATOR_STEPS = [
 ] as const;
 
 export const BRAND_STEPS = [
+  { key: "language", label: "Language" },
   { key: "company", label: "Your company" },
   { key: "niche", label: "Niche" },
   { key: "logo", label: "Logo" },
