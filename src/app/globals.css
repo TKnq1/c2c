@@ -807,7 +807,7 @@ html[data-splash="on"] #app-splash {
 /* A slow breath once the logo has landed, so a long wait (a database waking
    up) reads as "loading" and not as a frozen screen. */
 .app-splash-logo {
-  animation: splash-breathe 1400ms ease-in-out 600ms infinite;
+  animation: splash-breathe 3200ms ease-in-out 600ms infinite;
   will-change: transform;
 }
 
@@ -817,7 +817,7 @@ html[data-splash="on"] #app-splash {
     transform: scale(1);
   }
   50% {
-    transform: scale(1.07);
+    transform: scale(1.05);
   }
 }
 
