@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { IconType } from "react-icons";
@@ -26,6 +26,8 @@ export function NotificationsPanelButton({
   active: boolean;
 }) {
   const pathname = usePathname();
+  const buttonRef = useRef<HTMLButtonElement>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
   // Open for the page it was opened on: any navigation (a notification's
   // link, the sidebar) closes it without an effect to reset it.
   const [openOn, setOpenOn] = useState<string | null>(null);
@@ -36,6 +38,16 @@ export function NotificationsPanelButton({
   useEffect(() => {
     if (!open) return;
     let cancelled = false;
+    // The dimmed page is only the area beside the sidebar. A press anywhere
+    // else — the page, or the navbar itself — closes the panel. The
+    // notifications button keeps its own toggle.
+    const onPointerDown = (e: PointerEvent) => {
+      const target = e.target;
+      if (!(target instanceof Node)) return;
+      if (panelRef.current?.contains(target) || buttonRef.current?.contains(target)) return;
+      setOpenOn(null);
+    };
+    document.addEventListener("pointerdown", onPointerDown);
     fetch("/api/notifications")
       .then((res) => (res.ok ? res.json() : []))
       .then((data: NotificationItem[]) => {
@@ -54,6 +66,7 @@ export function NotificationsPanelButton({
     document.addEventListener("keydown", onKeyDown);
     return () => {
       cancelled = true;
+      document.removeEventListener("pointerdown", onPointerDown);
       document.removeEventListener("keydown", onKeyDown);
     };
   }, [open]);
@@ -63,6 +76,7 @@ export function NotificationsPanelButton({
   return (
     <>
       <button
+        ref={buttonRef}
         type="button"
         onClick={() => setOpenOn(open ? null : pathname)}
         aria-expanded={open}
@@ -90,13 +104,16 @@ export function NotificationsPanelButton({
       </button>
 
       {open && (
-        <div className="fixed inset-0 z-40 no-print">
-          {/* Starts right of the sidebar, so the sidebar stays usable. */}
-          <div aria-hidden className="animate-backdrop-in absolute inset-0 left-[var(--sidebar-w)] bg-black/20" onClick={() => setOpenOn(null)} />
+        // pointer-events-none on the shell, so a click on the sidebar reaches
+        // the navbar (and the listener above closes the panel). The dimmed
+        // page and the panel itself still take their own clicks.
+        <div className="pointer-events-none fixed inset-0 z-40 no-print">
+          <div aria-hidden className="pointer-events-auto animate-backdrop-in absolute inset-0 left-[var(--sidebar-w)] bg-black/20" onClick={() => setOpenOn(null)} />
           <div
+            ref={panelRef}
             role="dialog"
             aria-label="Notifications"
-            className="animate-panel-in absolute inset-y-0 left-[var(--sidebar-w)] flex w-96 max-w-[calc(100vw-var(--sidebar-w))] flex-col border-r border-ink/10 bg-background shadow-2xl"
+            className="pointer-events-auto animate-panel-in absolute inset-y-0 left-[var(--sidebar-w)] flex w-96 max-w-[calc(100vw-var(--sidebar-w))] flex-col border-r border-ink/10 bg-background shadow-2xl"
           >
             <div className="flex shrink-0 items-center justify-between gap-2 border-b border-ink/10 px-5 py-3">
               <h2 className="font-display text-title-2 font-bold">Notifications</h2>
