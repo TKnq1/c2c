@@ -14,6 +14,7 @@ import {
 } from "@/lib/actions/onboarding-flow";
 import { PLATFORM_FEE_RATE } from "@/lib/constants";
 import { hapticSuccess } from "@/lib/haptics";
+import { playSound } from "@/lib/sounds";
 
 // Long enough that "finding your matches" reads as the app looking, short
 // enough not to be a wait of its own.
@@ -54,6 +55,7 @@ function Looking({ title }: { title: string }) {
 function Celebrate() {
   useEffect(() => {
     hapticSuccess();
+    playSound("success", 0.5);
   }, []);
   return <Confetti />;
 }

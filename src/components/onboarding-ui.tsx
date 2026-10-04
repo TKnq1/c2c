@@ -6,6 +6,7 @@ import { useI18n } from "@/components/i18n-provider";
 import type { OnboardingState } from "@/lib/actions/onboarding";
 import { localizedInsight } from "@/lib/i18n/insight";
 import type { OnboardingInsight } from "@/lib/onboarding-flow";
+import { unlockSounds } from "@/lib/sounds";
 
 // Shared pieces of the brand and creator onboarding wizards.
 
@@ -102,7 +103,7 @@ export function StepFooter({
           {t("common.back")}
         </button>
       )}
-      <button type="submit" disabled={pending || disabled} className={PRIMARY_BUTTON}>
+      <button type="submit" disabled={pending || disabled} onClick={unlockSounds} className={PRIMARY_BUTTON}>
         {pending ? t("common.saving") : (label ?? t("common.continue"))}
       </button>
     </div>
@@ -171,7 +172,10 @@ export function SkipButton({ onClick, children }: { onClick: () => void; childre
   return (
     <button
       type="button"
-      onClick={onClick}
+      onClick={() => {
+        unlockSounds();
+        onClick();
+      }}
       className="self-center px-3 py-2 text-sm text-neutral-500 transition hover:text-ink dark:text-neutral-400"
     >
       {children ?? t("common.skip")}
