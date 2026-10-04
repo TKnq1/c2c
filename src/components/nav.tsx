@@ -470,7 +470,7 @@ function SidebarLink({
       aria-current={active ? "page" : undefined}
       // The written-out label is display:none on tablets, so the name comes from here.
       aria-label={link.badge > 0 ? `${link.label} (${link.badge} new)` : link.label}
-      className={`group relative flex h-11 items-center justify-center gap-3.5 rounded px-3 text-[15px] transition lg:justify-start ${
+      className={`group relative flex h-11 items-center justify-center gap-3.5 rounded px-3 text-sm transition lg:justify-start ${
         active ? "bg-fog font-semibold text-ink" : "text-graphite hover:bg-fog hover:text-ink"
       }`}
     >

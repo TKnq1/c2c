@@ -63,7 +63,7 @@ export function SidebarProfile({
         }`}
       >
         <Avatar src={me?.avatarUrl ?? null} name={name} size={32} />
-        <span className="hidden min-w-0 flex-1 truncate text-left text-[15px] font-medium lg:block">{name}</span>
+        <span className="hidden min-w-0 flex-1 truncate text-left text-sm font-medium lg:block">{name}</span>
         <IoChevronUp
           className={`hidden h-4 w-4 shrink-0 text-graphite transition lg:block ${open ? "" : "rotate-180"}`}
           aria-hidden

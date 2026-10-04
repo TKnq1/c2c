@@ -890,25 +890,46 @@ html[data-splash="on"] #app-splash {
 /* Desktop type. The scale above is iOS-sized for phones; from md (tablet
    and up, where the sidebar replaces the tab bar) text steps down to
    desktop-app sizes. Phones keep theirs, including 16px form fields,
-   which stop iOS Safari zooming into a field when it's focused. */
+   which stop iOS Safari zooming into a field when it's focused.
+   The plain Tailwind sizes (text-sm and the rest) step down here too —
+   most of the UI uses those, not only the named scale above. */
 @media (min-width: 48rem) {
   :root {
-    --text-large-title: 1.875rem; /* 30px */
-    --text-large-title--line-height: 2.25rem;
-    --text-title-1: 1.4375rem; /* 23px */
-    --text-title-1--line-height: 1.75rem;
-    --text-title-2: 1.25rem; /* 20px */
-    --text-title-2--line-height: 1.625rem;
-    --text-title-3: 1.125rem; /* 18px */
-    --text-title-3--line-height: 1.5rem;
-    --text-headline: 0.9375rem; /* 15px */
-    --text-headline--line-height: 1.375rem;
-    --text-body: 0.9375rem; /* 15px */
-    --text-body--line-height: 1.375rem;
-    --text-callout: 0.875rem; /* 14px */
-    --text-callout--line-height: 1.25rem;
-    --text-subhead: 0.875rem; /* 14px */
-    --text-subhead--line-height: 1.25rem;
+    --text-large-title: 1.625rem; /* 26px */
+    --text-large-title--line-height: 2rem;
+    --text-title-1: 1.25rem; /* 20px */
+    --text-title-1--line-height: 1.625rem;
+    --text-title-2: 1.0625rem; /* 17px */
+    --text-title-2--line-height: 1.5rem;
+    --text-title-3: 1rem; /* 16px */
+    --text-title-3--line-height: 1.375rem;
+    --text-headline: 0.875rem; /* 14px */
+    --text-headline--line-height: 1.25rem;
+    --text-body: 0.875rem; /* 14px */
+    --text-body--line-height: 1.25rem;
+    --text-callout: 0.8125rem; /* 13px */
+    --text-callout--line-height: 1.125rem;
+    --text-subhead: 0.8125rem; /* 13px */
+    --text-subhead--line-height: 1.125rem;
+    --text-footnote: 0.75rem; /* 12px */
+    --text-footnote--line-height: 1rem;
+
+    --text-xs: 0.6875rem; /* 11px */
+    --text-xs--line-height: 1rem;
+    --text-sm: 0.8125rem; /* 13px */
+    --text-sm--line-height: 1.125rem;
+    --text-base: 0.875rem; /* 14px */
+    --text-base--line-height: 1.25rem;
+    --text-lg: 1rem; /* 16px */
+    --text-lg--line-height: 1.5rem;
+    --text-xl: 1.125rem; /* 18px */
+    --text-xl--line-height: 1.5rem;
+    --text-2xl: 1.3125rem; /* 21px */
+    --text-2xl--line-height: 1.75rem;
+    --text-3xl: 1.625rem; /* 26px */
+    --text-3xl--line-height: 2rem;
+    --text-4xl: 2rem; /* 32px */
+    --text-4xl--line-height: 2.25rem;
   }
 }
 
@@ -916,17 +937,17 @@ html[data-splash="on"] #app-splash {
   @media (min-width: 48rem) {
     /* Text with no size of its own. */
     body {
-      font-size: 0.9375rem; /* 15px */
+      font-size: 0.875rem; /* 14px */
       line-height: 1.5;
     }
 
-    /* Fields and dropdowns (they'd otherwise inherit 15px); in the base
+    /* Fields and dropdowns (they'd otherwise inherit 14px); in the base
        layer, so a field's own text-* utility still wins. */
     input:not([type="checkbox"], [type="radio"], [type="range"], [type="file"]),
     select,
     textarea {
-      font-size: 0.875rem; /* 14px */
-      line-height: 1.25rem;
+      font-size: 0.8125rem; /* 13px */
+      line-height: 1.125rem;
     }
   }
 }
