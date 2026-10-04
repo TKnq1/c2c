@@ -68,7 +68,7 @@ export function NotificationsPanelButton({
         aria-expanded={open}
         aria-haspopup="dialog"
         aria-label={unreadCount > 0 ? `Notifications (${unreadCount} new)` : "Notifications"}
-        className={`group relative flex h-11 w-full items-center justify-center gap-3.5 rounded px-3 text-[15px] transition lg:justify-start ${
+        className={`group relative flex h-11 w-full items-center justify-center gap-3.5 rounded px-3 text-sm transition lg:justify-start ${
           open || active ? "bg-fog font-semibold text-ink" : "text-graphite hover:bg-fog hover:text-ink"
         }`}
       >
