@@ -34,7 +34,9 @@ export default async function OnboardingPage() {
       </header>
       {/* Top-aligned rather than centered, so the heading stays put as
           steps of different heights come and go. */}
-      <main className="flex flex-1 justify-center px-6 pt-[6vh] pb-16">
+      {/* pt/pb stay short on a phone so the last button of a tall step isn't
+          pushed under the fold; the roomier spacing is for wider screens. */}
+      <main className="flex flex-1 justify-center px-6 pt-4 pb-[max(2rem,env(safe-area-inset-bottom))] sm:pt-[6vh] sm:pb-16">
         <div className="w-full max-w-md">
           {session.user.role === "STARTUP" ? (
             <BrandOnboarding emailVerified={emailVerified} />

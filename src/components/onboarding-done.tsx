@@ -17,10 +17,14 @@ export function OnboardingDone({
   role,
   name,
   emailVerified,
+  payoutsStarted,
 }: {
   role: "brand" | "creator";
   name: string;
   emailVerified: boolean;
+  // The creator went through the payout form in the wizard, so there is no
+  // need to point at it again.
+  payoutsStarted: boolean;
 }) {
   const settings = role === "brand" ? "/dashboard/startup/settings" : "/dashboard/creator/settings";
   const steps: NextStep[] = [
@@ -29,7 +33,9 @@ export function OnboardingDone({
       : [{ href: "/dashboard/verify-email", icon: IoMailOutline, title: "Verify your email", description: "So you don't miss offers and messages." }]),
     ...(role === "brand"
       ? [{ href: "/dashboard/startup/discover", icon: IoSearchOutline, title: "Browse creators", description: "Find people in your niche and reach out." }]
-      : [{ href: `${settings}#payouts`, icon: IoWalletOutline, title: "Set up payouts", description: "Needed before a brand can pay you." }]),
+      : payoutsStarted
+        ? []
+        : [{ href: `${settings}#payouts`, icon: IoWalletOutline, title: "Set up payouts", description: "Needed before a brand can pay you." }]),
     {
       href: `${settings}#profile`,
       icon: IoPersonOutline,

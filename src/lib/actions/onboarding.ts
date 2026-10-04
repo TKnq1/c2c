@@ -5,6 +5,8 @@ import { prisma } from "@/lib/prisma";
 import { notify } from "@/lib/notifications";
 import { processAvatarUpload } from "@/lib/avatar-upload";
 import { creatorNicheColumns } from "@/lib/creator-niches";
+import type { OnboardingInsight } from "@/lib/onboarding-flow";
+import { brandNicheCreatorsInsight, nicheRequestsInsight, reachRequestsInsight } from "@/lib/onboarding-insights";
 import {
   onboardingCompanyNameSchema,
   onboardingDisplayNameSchema,
@@ -13,7 +15,9 @@ import {
   onboardingPlatformsSchema,
 } from "@/lib/validation";
 
-export type OnboardingState = { error?: string; success?: boolean } | undefined;
+// insight: a real number from the database for the next step to show (see
+// onboarding-insights.ts). Leaving it out is always fine.
+export type OnboardingState = { error?: string; success?: boolean; insight?: OnboardingInsight } | undefined;
 
 export async function saveCompanyNameAction(
   _prevState: OnboardingState,
@@ -51,12 +55,13 @@ export async function saveBrandNicheAction(
     where: { userId: session.user.id },
     data: { niche: parsed.data.niche },
   });
+  const insight = await brandNicheCreatorsInsight(parsed.data.niche).catch(() => undefined);
 
   // No revalidatePath here or in the steps after: it would re-render
   // /onboarding, which now counts the profile as complete and redirects
   // away before the photo step and the "all set" screen. The dashboard
   // renders per request anyway.
-  return { success: true };
+  return { success: true, insight };
 }
 
 export async function saveDisplayNameAction(
@@ -95,8 +100,9 @@ export async function saveNichesAction(
     where: { userId: session.user.id },
     data: creatorNicheColumns(parsed.data.niches),
   });
+  const insight = await nicheRequestsInsight(parsed.data.niches).catch(() => undefined);
 
-  return { success: true };
+  return { success: true, insight };
 }
 
 export async function savePlatformsAction(
@@ -111,10 +117,13 @@ export async function savePlatformsAction(
     return { error: parsed.error.issues[0]?.message ?? "Please add at least one platform." };
   }
 
+  // Back and Continue again submits this step twice, so the rows are
+  // replaced rather than added (they are unique per platform).
+  const alreadyHadPlatforms = await prisma.creatorPlatform.count({ where: { creator: { userId: session.user.id } } });
   const creator = await prisma.creatorProfile.update({
     where: { userId: session.user.id },
     data: {
-      platforms: { create: parsed.data.platforms.map((p) => ({ ...p, url: p.url || null })) },
+      platforms: { deleteMany: {}, create: parsed.data.platforms.map((p) => ({ ...p, url: p.url || null })) },
     },
   });
 
@@ -124,7 +133,13 @@ export async function savePlatformsAction(
   // No block check needed: a brand-new account can't have any block
   // history yet.
   const maxFollowers = parsed.data.platforms.reduce((max, p) => Math.max(max, p.followerCount), 0);
-  const matchingRequests = await prisma.request.findMany({
+  const insight = await reachRequestsInsight({
+    niches: creator.niches,
+    contentLanguage: creator.contentLanguage,
+    platforms: parsed.data.platforms.map((p) => ({ followerCount: p.followerCount })),
+  }).catch(() => undefined);
+  // Brands hear about a new creator once, not again on every resubmit.
+  const matchingRequests = alreadyHadPlatforms > 0 ? [] : await prisma.request.findMany({
     where: { niche: { in: creator.niches }, minFollowers: { lte: maxFollowers }, status: "OPEN" },
     include: { startup: true },
   });
@@ -141,7 +156,7 @@ export async function savePlatformsAction(
   }
 
   // See saveBrandNicheAction on why there's no revalidatePath.
-  return { success: true };
+  return { success: true, insight };
 }
 
 // Optional last step for both roles: a photo (creators) or logo (brands).

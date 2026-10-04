@@ -828,6 +828,37 @@ html[data-splash="on"] #app-splash {
   }
 }
 
+/* A short card (the onboarding tour on a small phone) would squash this
+   into a sliced line. Drop it; the budget, title and chips stay. */
+@container (max-height: 21rem) {
+  .card-blurb {
+    display: none;
+  }
+}
+
+/* Onboarding confetti (Confetti): each piece falls from above the screen,
+   drifting sideways and spinning, and ends invisible. */
+.confetti-piece {
+  transform: translate3d(0, -4vh, 0);
+  opacity: 0;
+  animation: confetti-fall ease-in forwards;
+  will-change: transform, opacity;
+}
+
+@keyframes confetti-fall {
+  0% {
+    opacity: 1;
+    transform: translate3d(0, -4vh, 0) rotate(0deg);
+  }
+  85% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translate3d(var(--drift), 100vh, 0) rotate(var(--spin));
+  }
+}
+
 /* Side panels (Discover's profile panel, the notifications panel): slide in
    from the right over a fading backdrop. */
 @keyframes panel-in {

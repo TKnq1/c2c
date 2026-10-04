@@ -29,3 +29,20 @@ export function haptic() {
     // No haptics is never worth surfacing.
   }
 }
+
+// A double tick for a moment that worked out, like the end of onboarding.
+// Android plays the pattern. iOS has the ticks only inside a user gesture
+// (see above), so there the first can be missed when this runs after a
+// load rather than a tap.
+export function hapticSuccess() {
+  try {
+    if (typeof navigator.vibrate === "function") {
+      navigator.vibrate([12, 70, 24]);
+      return;
+    }
+    haptic();
+    setTimeout(haptic, 110);
+  } catch {
+    // See haptic.
+  }
+}

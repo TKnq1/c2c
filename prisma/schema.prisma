@@ -59,6 +59,25 @@ model User {
   blocksMade              Block[]                  @relation("BlocksMade")
   blocksReceived          Block[]                  @relation("BlocksReceived")
   pushSubscriptions       PushSubscription[]
+  onboardingEvents        OnboardingEvent[]
+}
+
+// What happened at each step of the onboarding wizard, so /admin/onboarding
+// can show where people drop out. One row per user, step and kind (see
+// trackOnboardingEventAction), so it stays small and a reload can't count
+// a step twice. "Dropped out" is a step that was viewed but never
+// completed or skipped.
+model OnboardingEvent {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role      Role
+  step      String
+  kind      String
+  createdAt DateTime @default(now())
+
+  @@unique([userId, step, kind])
+  @@index([role, step, kind])
 }
 
 enum ReportStatus {
