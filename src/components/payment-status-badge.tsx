@@ -1,4 +1,8 @@
+"use client";
+
 import type { PaymentStatus } from "@prisma/client";
+import { useI18n } from "@/components/i18n-provider";
+import type { MessageKey } from "@/lib/i18n/translate";
 
 // What a payment shows as. The two approval sub-steps aren't statuses of
 // their own in the database (the money is HELD throughout) — they're
@@ -17,15 +21,14 @@ export function paymentStage(i: {
   return "HELD";
 }
 
-const LABELS: Record<PaymentStage, string> = {
-  // Read by both sides — "Offer sent" was only true for whoever sent it.
-  OFFERED: "Offer pending",
-  ACCEPTED: "Awaiting payment",
-  HELD: "In escrow",
-  SUBMITTED: "Awaiting approval",
-  DISPUTED: "Under review",
-  RELEASED: "Released",
-  REFUNDED: "Refunded",
+const LABELS: Record<PaymentStage, MessageKey> = {
+  OFFERED: "screens.payments.offerPending",
+  ACCEPTED: "screens.payments.awaitingPayment",
+  HELD: "screens.payments.inEscrow",
+  SUBMITTED: "screens.payments.awaitingApproval",
+  DISPUTED: "screens.payments.underReview",
+  RELEASED: "screens.payments.released",
+  REFUNDED: "screens.payments.refunded",
 };
 // Status conveyed through fill weight, not color: outline (proposed) →
 // stronger outline (accepted, held) → tinted (posted, waiting on the
@@ -44,9 +47,10 @@ const STYLES: Record<PaymentStage, string> = {
 };
 
 export function PaymentStatusBadge({ status }: { status: PaymentStage }) {
+  const { t } = useI18n();
   return (
     <span className={`text-xs rounded-full px-2.5 py-1 whitespace-nowrap font-medium ${STYLES[status]}`}>
-      {LABELS[status]}
+      {t(LABELS[status])}
     </span>
   );
 }

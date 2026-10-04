@@ -1,15 +1,19 @@
+"use client";
+
 import Link from "next/link";
 import { IoChatbubbleOutline } from "react-icons/io5";
 import { Avatar } from "@/components/avatar";
+import { useI18n } from "@/components/i18n-provider";
 
 // The conversation behind a row — every offer, payment and deposit is
 // negotiated in the chat, so each row leads back to it.
 export function ChatLink({ interestId, name }: { interestId: string; name: string }) {
+  const { t } = useI18n();
   return (
     <Link
       href={`/dashboard/messages/${interestId}`}
       transitionTypes={["nav-forward"]}
-      aria-label={`Chat with ${name}`}
+      aria-label={t("screens.messages.chatWith", { name })}
       className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-neutral-300 transition hover:border-neutral-400 no-print dark:border-neutral-700"
     >
       <IoChatbubbleOutline className="h-5 w-5" />

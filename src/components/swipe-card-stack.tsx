@@ -10,6 +10,7 @@ import { isTextField } from "@/lib/keyboard";
 import { passRequestAction, swipeInterestedAction, undoPassAction } from "@/lib/actions/requests";
 import { favoriteStartupAction, unfavoriteStartupAction } from "@/lib/actions/favorites";
 import { toast } from "@/lib/toast";
+import { useI18n } from "@/components/i18n-provider";
 import { errorMessage } from "@/lib/error-message";
 import { createOrderedSaves } from "@/lib/ordered-saves";
 
@@ -24,6 +25,7 @@ export function SwipeCardStack({
   // that has somewhere better to send you.
   caughtUp?: { description: string; action: { label: string; href: string } };
 }) {
+  const { t } = useI18n();
   const [stack, setStack] = useState(requests);
   // Only the single most recent pass is undoable — same as Tinder's own
   // rewind, and simpler to reason about than a full history. An
@@ -145,11 +147,11 @@ export function SwipeCardStack({
       <EmptyState
         icon={FiCheck}
         title="You're all caught up."
-        description={caughtUp?.description ?? "No more new requests to review right now. Check back later."}
+        description={caughtUp?.description ?? t("screens.feed.caughtUpDefault")}
         action={
           lastPassed
-            ? { label: "Undo last pass", onClick: undoLastPass }
-            : (caughtUp?.action ?? { label: "Browse Discover", href: "/dashboard/creator/discover" })
+            ? { label: t("screens.feed.undo"), onClick: undoLastPass }
+            : (caughtUp?.action ?? { label: t("screens.feed.browseDiscover"), href: "/dashboard/creator/discover" })
         }
       />
     );
@@ -203,7 +205,7 @@ export function SwipeCardStack({
             <button
               type="button"
               onClick={() => topCardRef.current?.triggerExit("left")}
-              aria-label="Pass"
+              aria-label={t("screens.feed.pass")}
               className="flex h-14 w-14 shrink-0 items-center justify-center justify-self-center rounded-full border border-ink/10 text-neutral-600 transition hover:border-ink hover:text-ink dark:text-neutral-400 dark:hover:text-white"
             >
               <FiX className="h-6 w-6" />
@@ -212,7 +214,7 @@ export function SwipeCardStack({
               type="button"
               onClick={() => topCard && toggleFavorite(topCard)}
               disabled={!topCard}
-              aria-label={topIsFavorited ? "Remove brand from favorites" : "Save brand to favorites"}
+              aria-label={topIsFavorited ? t("screens.feed.unsaveBrand") : t("screens.feed.saveBrand")}
               aria-pressed={topIsFavorited}
               className={`flex h-10 w-10 shrink-0 items-center justify-center justify-self-center rounded-full border transition-colors disabled:opacity-40 ${
                 topIsFavorited
@@ -225,7 +227,7 @@ export function SwipeCardStack({
             <button
               type="button"
               onClick={() => topCardRef.current?.triggerExit("right")}
-              aria-label="Interested"
+              aria-label={t("screens.feed.interested")}
               className="flex h-14 w-14 shrink-0 items-center justify-center justify-self-center rounded-full bg-ink text-paper transition hover:bg-graphite"
             >
               <FiHeart className="h-6 w-6" />
@@ -234,15 +236,15 @@ export function SwipeCardStack({
               type="button"
               onClick={undoLastPass}
               disabled={!lastPassed}
-              aria-label="Undo last pass"
+              aria-label={t("screens.feed.undo")}
               className="flex h-10 w-10 shrink-0 items-center justify-center justify-self-center rounded-full border border-ink/10 text-neutral-400 transition-colors hover:border-ink hover:text-ink disabled:opacity-40 disabled:hover:border-ink/10 disabled:hover:text-neutral-400 dark:hover:text-white"
             >
               <FiRotateCcw className="h-4 w-4" />
             </button>
           </div>
           <p className="hidden text-xs text-neutral-400 md:block dark:text-neutral-500">
-            <kbd className="font-sans">←</kbd> Pass · <kbd className="font-sans">→</kbd> Interested ·{" "}
-            <kbd className="font-sans">↑</kbd> Save brand · <kbd className="font-sans">R</kbd> Undo
+            <kbd className="font-sans">←</kbd> {t("screens.feed.pass")} · <kbd className="font-sans">→</kbd> {t("screens.feed.interested")} ·{" "}
+            <kbd className="font-sans">↑</kbd> {t("screens.feed.saveBrand")} · <kbd className="font-sans">R</kbd> {t("screens.feed.undo")}
           </p>
         </div>
       </div>

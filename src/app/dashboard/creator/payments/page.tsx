@@ -19,6 +19,7 @@ import { withdrawOfferAction } from "@/lib/actions/payments";
 import { formatCents, isWithinLastWeek } from "@/lib/format";
 import { DEPOSITS_ENABLED, RELEASE_REVIEW_DAYS, RELEASE_REVIEW_MS } from "@/lib/constants";
 import { PageTitle } from "@/components/page-title";
+import { getT } from "@/lib/i18n/server";
 
 const primaryButton =
   "mt-3 w-full rounded-full bg-ink px-4 py-2.5 text-sm font-medium text-paper transition hover:bg-graphite disabled:opacity-50 sm:w-auto";
@@ -29,6 +30,7 @@ const pillLink =
 export default async function CreatorPaymentsPage() {
   const session = await auth();
   if (!session || session.user.role !== "CREATOR") redirect("/login");
+  const t = await getT();
 
   // One round-trip instead of two — filtered through the creator relation
   // rather than creator.id, so this doesn't have to wait on the fetch below
@@ -75,16 +77,16 @@ export default async function CreatorPaymentsPage() {
 
   return (
     <div className="page-wide flex flex-col gap-8">
-      <PageTitle>Payments</PageTitle>
+      <PageTitle>{t("nav.payments")}</PageTitle>
       <PaymentStats
         stats={[
-          { label: "Earned", value: formatCents(earnedCents), hint: "Paid out to you" },
-          { label: "In escrow", value: formatCents(inEscrowCents), hint: "Released on approval" },
+          { label: t("screens.payments.earned"), value: formatCents(earnedCents), hint: t("screens.payments.paidOut") },
+          { label: t("screens.payments.inEscrow"), value: formatCents(inEscrowCents), hint: t("screens.payments.releasedOnApproval") },
         ]}
         counts={[
-          { label: "Completed", value: String(completedCount) },
-          { label: "In progress", value: String(inProgressCount) },
-          { label: "Rating", value: averageRating === null ? "–" : `${averageRating.toFixed(1)} ★` },
+          { label: t("screens.payments.completed"), value: String(completedCount) },
+          { label: t("screens.payments.inProgress"), value: String(inProgressCount) },
+          { label: t("screens.payments.rating"), value: averageRating === null ? "–" : `${averageRating.toFixed(1)} ★` },
         ]}
       />
 
@@ -92,10 +94,10 @@ export default async function CreatorPaymentsPage() {
         <div className="flex items-center justify-between gap-3 rounded bg-fog px-4 py-3 no-print">
           <p className="flex min-w-0 items-center gap-2 text-sm text-neutral-700 dark:text-neutral-300">
             <IoCheckmarkCircle className="h-5 w-5 shrink-0 text-ink" />
-            Payouts connected. Released payments go to your bank account.
+            {t("screens.payments.copy.payoutsConnected")}
           </p>
           <Link href="/dashboard/creator/settings#payouts" className="shrink-0 text-sm font-medium underline">
-            Manage
+            {t("screens.payments.manage")}
           </Link>
         </div>
       ) : (
@@ -109,18 +111,16 @@ export default async function CreatorPaymentsPage() {
                 up from there rather than pitching it like a fresh start. */}
             {creator.stripeAccountId ? (
               <div className="min-w-0">
-                <p className="font-medium">Finish setting up payouts</p>
+                <p className="font-medium">{t("screens.payments.copy.finishPayouts")}</p>
                 <p className="mt-0.5 text-sm text-neutral-600 dark:text-neutral-400">
-                  Stripe hasn&apos;t confirmed your payout account yet. Pick up where you left off to see what&apos;s
-                  still missing.
+                  {t("screens.payments.copy.finishPayoutsBody")}
                 </p>
               </div>
             ) : (
               <div className="min-w-0">
-                <p className="font-medium">Set up payouts</p>
+                <p className="font-medium">{t("screens.payments.copy.setupPayouts")}</p>
                 <p className="mt-0.5 text-sm text-neutral-600 dark:text-neutral-400">
-                  Connect Stripe so a brand&apos;s payment can reach your bank account. You&apos;ll need it before
-                  you can submit a post for payment.
+                  {t("screens.payments.copy.setupPayoutsBody")}
                 </p>
               </div>
             )}
@@ -128,7 +128,7 @@ export default async function CreatorPaymentsPage() {
           <div className="mt-3">
             <ConnectStripeButton
               isOnboarded={false}
-              label={creator.stripeAccountId ? "Continue setup" : undefined}
+              label={creator.stripeAccountId ? t("screens.payments.copy.continueSetup") : undefined}
               embedClassName="mt-1"
             />
           </div>
@@ -138,14 +138,14 @@ export default async function CreatorPaymentsPage() {
       {isEmpty && (
         <EmptyState
           icon={IoCardOutline}
-          title="No payments yet"
-          description="When a brand sends you an offer, it shows up here and in your chat with them. Paid collabs stay here as your history."
-          action={{ label: "Browse your feed", href: "/dashboard/creator" }}
+          title={t("screens.payments.noneCreator")}
+          description={t("screens.payments.copy.noneCreatorHistory")}
+          action={{ label: t("screens.payments.browseFeed"), href: "/dashboard/creator" }}
         />
       )}
 
       {pendingOffers.length > 0 && (
-        <PaymentSection title="Offers" count={pendingOffers.length} className="no-print">
+        <PaymentSection title={t("screens.payments.offers")} count={pendingOffers.length} className="no-print">
           {pendingOffers.map((o) => {
             const brand = o.request.startup.companyName;
             const theirs = o.offerRole === "STARTUP";
@@ -160,8 +160,8 @@ export default async function CreatorPaymentsPage() {
                 amount={formatCents(o.amountCents!)}
                 detail={
                   theirs
-                    ? `You'd get ${formatCents(o.payoutCents!)} after the platform fee, held in escrow until you post.`
-                    : `Your counter-offer is waiting for ${brand} to respond.`
+                    ? t("screens.payments.copy.youdGetEscrow", { payout: formatCents(o.payoutCents!) })
+                    : t("screens.payments.copy.counterWaiting", { name: brand })
                 }
               >
                 {theirs ? (
@@ -170,10 +170,10 @@ export default async function CreatorPaymentsPage() {
                   <div className="mt-2">
                     <ActionButton
                       action={withdrawOfferAction.bind(null, o.id)}
-                      successMessage="Counter-offer withdrawn."
+                      successMessage={t("screens.payments.copy.counterWithdrawn")}
                       className={quietButton}
                     >
-                      Withdraw counter-offer
+                      {t("screens.payments.copy.withdrawCounter")}
                     </ActionButton>
                   </div>
                 )}
@@ -184,7 +184,7 @@ export default async function CreatorPaymentsPage() {
       )}
 
       {awaitingPayment.length > 0 && (
-        <PaymentSection title="Waiting for payment" count={awaitingPayment.length} className="no-print">
+        <PaymentSection title={t("screens.payments.waiting")} count={awaitingPayment.length} className="no-print">
           {awaitingPayment.map((i) => (
             <PaymentRow
               key={i.id}
@@ -194,7 +194,10 @@ export default async function CreatorPaymentsPage() {
               headerAction={<ChatLink interestId={i.id} name={i.request.startup.companyName} />}
               badge={<PaymentStatusBadge status="ACCEPTED" />}
               amount={formatCents(i.amountCents!)}
-              detail={`Accepted. ${i.request.startup.companyName} pays next, and it's held in escrow until you post. You'll get ${formatCents(i.payoutCents!)} after the platform fee.`}
+              detail={t("screens.payments.copy.acceptedBrandPays", {
+                name: i.request.startup.companyName,
+                payout: formatCents(i.payoutCents!),
+              })}
             />
           ))}
         </PaymentSection>
@@ -202,11 +205,11 @@ export default async function CreatorPaymentsPage() {
 
       {payments.length > 0 && (
         <PaymentSection
-          title="Payments"
+          title={t("screens.payments.payments")}
           count={payments.length}
           action={
             <div className="flex shrink-0 items-center gap-2 no-print">
-              <a href="/api/payments/export" aria-label="Export as CSV" className={pillLink}>
+              <a href="/api/payments/export" aria-label={t("screens.payments.copy.exportCsv")} className={pillLink}>
                 <IoDownloadOutline className="h-4 w-4" />
                 CSV
               </a>
@@ -236,18 +239,18 @@ export default async function CreatorPaymentsPage() {
                   <>
                     {stage === "HELD" &&
                       (creator.stripeOnboarded
-                        ? `Post the content, then submit the link below. ${brand} has ${RELEASE_REVIEW_DAYS} days to approve it. If they don't respond, your ${payout} (after the platform fee) is released automatically.`
-                        : `Your ${payout} (after the platform fee) is waiting. Set up payouts above, then submit the link to your post.`)}
+                        ? t("screens.payments.copy.postThenSubmit", { name: brand, days: RELEASE_REVIEW_DAYS, payout })
+                        : t("screens.payments.copy.payoutWaitingSetup", { payout }))}
                     {stage === "SUBMITTED" && (
                       <>
-                        Waiting for {brand} to approve your post. If they don&apos;t respond by{" "}
-                        <LocalDate ms={p.proofSubmittedAt!.getTime() + RELEASE_REVIEW_MS} />, your {payout} is released
-                        automatically.
+                        {t("screens.payments.copy.waitingApproveBy", { name: brand })}
+                        <LocalDate ms={p.proofSubmittedAt!.getTime() + RELEASE_REVIEW_MS} />
+                        {t("screens.payments.copy.autoReleaseRest", { payout })}
                       </>
                     )}
                     {stage === "DISPUTED" &&
-                      `${brand} reported a problem with the post: “${p.disputeReason}” The payment is on hold while we look into it, and we'll get back to you both.`}
-                    {stage === "RELEASED" && `You received ${payout} after the platform fee.`}
+                      t("screens.payments.copy.brandReported", { name: brand, reason: p.disputeReason ?? "" })}
+                    {stage === "RELEASED" && t("screens.payments.copy.youReceived", { payout })}
                     {/* A release moves the money to the creator's Stripe
                         balance, not their bank yet — for the first week,
                         say when to expect it rather than leave them
@@ -255,13 +258,13 @@ export default async function CreatorPaymentsPage() {
                     {stage === "RELEASED" &&
                       p.releasedAt &&
                       isWithinLastWeek(p.releasedAt.getTime()) &&
-                      " Stripe sends it on to your bank, usually within a few business days. The first payout can take a little longer."}
-                    {stage === "REFUNDED" && `${brand} cancelled this collab and got a full refund.`}
+                      t("screens.payments.copy.stripeBank")}
+                    {stage === "REFUNDED" && t("screens.payments.copy.brandCancelled", { name: brand })}
                     {stage !== "HELD" && stage !== "REFUNDED" && p.proofUrl && (
                       <>
                         {" "}
                         <a href={p.proofUrl} target="_blank" rel="noopener noreferrer" className="underline">
-                          View post
+                          {t("screens.payments.copy.viewPost")}
                         </a>
                       </>
                     )}
@@ -269,20 +272,23 @@ export default async function CreatorPaymentsPage() {
                 }
                 meta={
                   <>
-                    Paid <LocalDate ms={p.paidAt!.getTime()} />
+                    {t("screens.payments.copy.paid")} <LocalDate ms={p.paidAt!.getTime()} />
                     {p.proofSubmittedAt && (
                       <>
-                        {" · "}Posted <LocalDate ms={p.proofSubmittedAt.getTime()} />
+                        {" · "}
+                        {t("screens.payments.copy.posted")} <LocalDate ms={p.proofSubmittedAt.getTime()} />
                       </>
                     )}
                     {p.releasedAt && (
                       <>
-                        {" · "}Released <LocalDate ms={p.releasedAt.getTime()} />
+                        {" · "}
+                        {t("screens.payments.copy.releasedOn")} <LocalDate ms={p.releasedAt.getTime()} />
                       </>
                     )}
                     {p.refundedAt && (
                       <>
-                        {" · "}Refunded <LocalDate ms={p.refundedAt.getTime()} />
+                        {" · "}
+                        {t("screens.payments.copy.refundedOn")} <LocalDate ms={p.refundedAt.getTime()} />
                       </>
                     )}
                   </>
@@ -295,7 +301,7 @@ export default async function CreatorPaymentsPage() {
                       interestId={p.id}
                       brandName={brand}
                       defaultUrl={p.proofUrl ?? undefined}
-                      label="Wrong link? Update it"
+                      label={t("screens.payments.copy.wrongLink")}
                       className={quietButton}
                     />
                   </div>
@@ -315,9 +321,9 @@ export default async function CreatorPaymentsPage() {
 
       {deposits.length > 0 && (
         <PaymentSection
-          title="Deposits"
+          title={t("screens.payments.deposits")}
           count={deposits.length}
-          description="Refundable, no fee. You get the full amount back once the brand confirms your post."
+          description={t("screens.payments.copy.depositsCreatorHint")}
         >
           {deposits.map((d) => {
             const brand = d.request.startup.companyName;
@@ -332,28 +338,31 @@ export default async function CreatorPaymentsPage() {
                 amount={formatCents(d.depositCents!)}
                 detail={
                   <>
-                    {d.depositStatus === "REQUESTED" && `${brand} asks for a refundable deposit before shipping product.`}
-                    {d.depositStatus === "HELD" && `Held until ${brand} confirms your post, then returned to you in full.`}
-                    {d.depositStatus === "RELEASED" && "Returned to you in full."}
-                    {d.depositStatus === "FORFEITED" && `${brand} kept it. They said the content wasn't delivered.`}
+                    {d.depositStatus === "REQUESTED" && t("screens.payments.copy.depositAsk", { name: brand })}
+                    {d.depositStatus === "HELD" && t("screens.payments.copy.depositHeldUntil", { name: brand })}
+                    {d.depositStatus === "RELEASED" && t("screens.payments.copy.depositReturnedFull")}
+                    {d.depositStatus === "FORFEITED" && t("screens.payments.copy.depositForfeitedBrand", { name: brand })}
                   </>
                 }
                 meta={
                   <>
-                    Requested <LocalDate ms={d.depositRequestedAt!.getTime()} />
+                    {t("screens.payments.copy.requested")} <LocalDate ms={d.depositRequestedAt!.getTime()} />
                     {d.depositPaidAt && (
                       <>
-                        {" · "}Paid <LocalDate ms={d.depositPaidAt.getTime()} />
+                        {" · "}
+                        {t("screens.payments.copy.paid")} <LocalDate ms={d.depositPaidAt.getTime()} />
                       </>
                     )}
                     {d.depositReleasedAt && (
                       <>
-                        {" · "}Returned <LocalDate ms={d.depositReleasedAt.getTime()} />
+                        {" · "}
+                        {t("screens.payments.copy.returned")} <LocalDate ms={d.depositReleasedAt.getTime()} />
                       </>
                     )}
                     {d.depositForfeitedAt && (
                       <>
-                        {" · "}Kept <LocalDate ms={d.depositForfeitedAt.getTime()} />
+                        {" · "}
+                        {t("screens.payments.copy.kept")} <LocalDate ms={d.depositForfeitedAt.getTime()} />
                       </>
                     )}
                   </>
@@ -362,11 +371,11 @@ export default async function CreatorPaymentsPage() {
                 {d.depositStatus === "REQUESTED" && (
                   <ActionButton
                     action={payDepositAction.bind(null, d.id)}
-                    successMessage="Deposit paid."
-                    pendingChildren="Paying…"
+                    successMessage={t("screens.payments.copy.depositPaidToast")}
+                    pendingChildren={t("screens.payments.copy.paying")}
                     className={`${primaryButton} no-print`}
                   >
-                    Pay {formatCents(d.depositCents!)} deposit
+                    {t("screens.payments.copy.payDeposit", { amount: formatCents(d.depositCents!) })}
                   </ActionButton>
                 )}
               </PaymentRow>

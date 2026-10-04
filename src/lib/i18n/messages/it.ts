@@ -1,4 +1,5 @@
 import type { Catalog } from "@/lib/i18n/messages/types";
+import { screensIt as screens } from "@/lib/i18n/messages/screens-it";
 
 export const it: Catalog = {
   common: {
@@ -7,6 +8,13 @@ export const it: Catalog = {
     saving: "Salvataggio…",
     skip: "Salta per ora",
     close: "Chiudi",
+    save: "Salva",
+    cancel: "Annulla",
+    done: "Fatto",
+    delete: "Elimina",
+    remove: "Rimuovi",
+    open: "Apri",
+    export: "Esporta",
   },
   nav: {
     requests: "Richieste",
@@ -217,4 +225,5 @@ export const it: Catalog = {
       goDashboard: "Vai alla dashboard",
     },
   },
+  screens,
 };

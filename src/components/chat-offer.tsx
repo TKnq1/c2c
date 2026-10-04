@@ -18,6 +18,7 @@ import { CompletePaymentButton } from "@/components/complete-payment-button";
 import { ConfirmActionButton } from "@/components/confirm-action-button";
 import { Dialog } from "@/components/dialog";
 import { LocalDate } from "@/components/local-date";
+import { useI18n } from "@/components/i18n-provider";
 import { PaymentApprovalButtons } from "@/components/payment-approval";
 import { SubmitPostButton } from "@/components/submit-post";
 import { Spinner } from "@/components/spinner";
@@ -78,6 +79,7 @@ export function ChatOfferCard({
   const router = useRouter();
   const refresh = () => router.refresh();
 
+  const { t } = useI18n();
   const other = offer.otherPartyName;
   const isMine = offer.offerRole === offer.viewerRole;
   const isBrand = offer.viewerRole === "STARTUP";
@@ -91,37 +93,37 @@ export function ChatOfferCard({
   switch (offer.status) {
     case "OFFERED":
       if (isMine) {
-        eyebrow = "Your offer";
-        detail = payout && (isBrand ? `${other} would get ${payout} after the ${fee} fee.` : `You'd get ${payout} after the ${fee} fee.`);
+        eyebrow = t("screens.payments.copy.yourOffer");
+        detail = payout && (isBrand ? t("screens.payments.copy.wouldGet", { name: other, payout, fee }) : t("screens.payments.copy.youdGet", { payout, fee }));
         actions = (
           <div className="mt-3 flex items-center justify-between gap-2">
-            <span className="text-xs text-neutral-500 dark:text-neutral-400">Waiting for {other}</span>
+            <span className="text-xs text-neutral-500 dark:text-neutral-400">{t("screens.payments.copy.waitingFor", { name: other })}</span>
             <ActionButton
               action={withdrawOfferAction.bind(null, interestId)}
-              successMessage="Offer withdrawn."
+              successMessage={t("screens.payments.copy.offerWithdrawn")}
               onSuccess={refresh}
               className={quietButton}
             >
-              Withdraw
+              {t("screens.payments.copy.withdraw")}
             </ActionButton>
           </div>
         );
       } else {
-        eyebrow = `${other}'s offer`;
-        detail = payout && (isBrand ? `${other} would get ${payout} after the ${fee} fee.` : `You'd get ${payout} after the ${fee} fee.`);
+        eyebrow = t("screens.payments.copy.theirOffer", { name: other });
+        detail = payout && (isBrand ? t("screens.payments.copy.wouldGet", { name: other, payout, fee }) : t("screens.payments.copy.youdGet", { payout, fee }));
         actions = <OfferResponseButtons interestId={interestId} otherPartyName={other} />;
       }
       break;
 
     case "ACCEPTED":
-      eyebrow = "Offer accepted";
+      eyebrow = t("screens.payments.copy.offerAccepted");
       if (isBrand) {
-        detail = `Pay through Stripe. It's held in escrow until ${other} posts and you approve it.`;
+        detail = t("screens.payments.copy.payThroughStripe", { name: other });
         actions = (
-          <CompletePaymentButton interestId={interestId} label="Pay now" className={`${primaryButton} w-full`} />
+          <CompletePaymentButton interestId={interestId} label={t("screens.payments.copy.payNow")} className={`${primaryButton} w-full`} />
         );
       } else {
-        detail = `${other} pays next. It's held in escrow until you post.`;
+        detail = t("screens.payments.copy.brandPaysNext", { name: other });
         // Live updates (ChatLiveUpdates) swap this for the paid card once the
         // payment lands.
         actions = (
@@ -130,7 +132,7 @@ export function ChatOfferCard({
             className="mt-3 flex items-center justify-center gap-2 rounded-full bg-fog px-4 py-2 text-sm font-medium text-neutral-500 dark:text-neutral-400"
           >
             <Spinner />
-            Waiting for payment
+            {t("screens.payments.waiting")}
           </p>
         );
       }
@@ -144,68 +146,71 @@ export function ChatOfferCard({
         <>
           {" "}
           <a href={offer.proofUrl} target="_blank" rel="noopener noreferrer" className="underline">
-            View post
+            {t("screens.payments.copy.viewPost")}
           </a>
         </>
       );
       if (offer.disputed) {
-        eyebrow = "Under review";
+        eyebrow = t("screens.payments.copy.underReview");
         detail = (
           <>
-            {isBrand ? "You reported a problem" : `${other} reported a problem`} with the post. The payment is on hold
-            while we look into it.{viewPost}
+            {isBrand ? t("screens.payments.copy.youReportedShort") : t("screens.payments.copy.theyReportedShort", { name: other })}
+            {t("screens.payments.copy.problemWithPost")}
+            {viewPost}
           </>
         );
       } else if (offer.proofSubmittedAt !== null) {
         const deadline = offer.proofSubmittedAt + RELEASE_REVIEW_MS;
-        eyebrow = "Post submitted";
+        eyebrow = t("screens.payments.copy.postSubmitted");
         if (isBrand) {
           detail = (
             <>
-              Check the post, then approve it or report a problem by <LocalDate ms={deadline} />. After that
-              it&apos;s released automatically.{viewPost}
+              {t("screens.payments.copy.checkThenApprove")}
+              <LocalDate ms={deadline} />
+              {t("screens.payments.copy.releasedAutoAfter")}
+              {viewPost}
             </>
           );
           actions = (
-            <PaymentApprovalButtons interestId={interestId} creatorName={other} payoutLabel={payout ?? "the payment"} />
+            <PaymentApprovalButtons interestId={interestId} creatorName={other} payoutLabel={payout ?? t("screens.payments.copy.thePayment")} />
           );
         } else {
           detail = (
             <>
-              Waiting for {other} to approve it. Otherwise it&apos;s released to you automatically on{" "}
+              {t("screens.payments.copy.waitingApproveElse", { name: other })}
               <LocalDate ms={deadline} />.{viewPost}
             </>
           );
         }
       } else {
-        eyebrow = "Paid · held in escrow";
+        eyebrow = t("screens.payments.copy.paidHeld");
         if (isBrand) {
-          detail = `Released to ${other} once they post and you approve it.`;
+          detail = t("screens.payments.copy.releasedOnce", { name: other });
         } else if (offer.payoutsReady) {
-          detail = `Post the content, then submit the link. You get ${payout ?? "paid"} once ${other} approves it.`;
+          detail = t("screens.payments.copy.postThenLink", { payout: payout ?? t("screens.payments.copy.paidWord"), name: other });
           actions = (
             <SubmitPostButton
               interestId={interestId}
               brandName={other}
-              label="Submit post link"
+              label={t("screens.payments.copy.submitPostLink")}
               className={`${primaryButton} mt-3 w-full`}
             />
           );
         } else {
-          detail = `Set up payouts in Payments, then submit the link to your post to get ${payout ?? "paid"}.`;
+          detail = t("screens.payments.copy.setupThenSubmit", { payout: payout ?? t("screens.payments.copy.paidWord") });
         }
       }
       break;
     }
 
     case "RELEASED":
-      eyebrow = "Payment released";
-      detail = payout && (isBrand ? `${other} received ${payout}.` : `You received ${payout}.`);
+      eyebrow = t("screens.payments.copy.paymentReleased");
+      detail = payout && (isBrand ? t("screens.payments.copy.theyReceived", { name: other, payout }) : t("screens.payments.copy.youReceivedShort", { payout }));
       break;
 
     case "REFUNDED":
-      eyebrow = "Refunded";
-      detail = isBrand ? "The full amount went back to you." : `The full amount went back to ${other}.`;
+      eyebrow = t("screens.payments.refunded");
+      detail = isBrand ? t("screens.payments.copy.fullBackYou") : t("screens.payments.copy.fullBackThem", { name: other });
       break;
   }
 
@@ -232,7 +237,7 @@ export function ChatOfferCard({
         <div className="mt-2 flex items-center justify-between gap-2">
           {offer.status !== "OFFERED" ? (
             <Link href={offer.paymentsHref} className="text-xs text-neutral-500 hover:underline dark:text-neutral-400">
-              View in Payments →
+              {t("screens.payments.copy.viewInPayments")}
             </Link>
           ) : (
             <span />
@@ -248,6 +253,7 @@ export function ChatOfferCard({
 // the same three wherever an offer can be answered: its card in the chat,
 // and its row in Payments.
 export function OfferResponseButtons({ interestId, otherPartyName }: { interestId: string; otherPartyName: string }) {
+  const { t } = useI18n();
   const router = useRouter();
   const [counterOpen, setCounterOpen] = useState(false);
 
@@ -256,43 +262,43 @@ export function OfferResponseButtons({ interestId, otherPartyName }: { interestI
       <div className="mt-3 flex gap-2">
         <ActionButton
           action={acceptOfferAction.bind(null, interestId)}
-          successMessage="Offer accepted."
+          successMessage={t("screens.payments.copy.offerAcceptedToast")}
           onSuccess={() => router.refresh()}
           className={acceptButton}
           pendingChildren={
             // Same width as the label, so the button doesn't jump.
             <span className="relative inline-flex items-center justify-center">
-              <span className="invisible">Accept</span>
+              <span className="invisible">{t("screens.payments.copy.accept")}</span>
               <Spinner className="absolute h-4 w-4" />
-              <span className="sr-only">Accepting…</span>
+              <span className="sr-only">{t("screens.payments.copy.accepting")}</span>
             </span>
           }
         >
-          Accept
+          {t("screens.payments.copy.accept")}
         </ActionButton>
         <button type="button" onClick={() => setCounterOpen(true)} className={secondaryButton}>
-          Counter
+          {t("screens.payments.copy.counter")}
         </button>
       </div>
       <div className="mt-2 flex justify-center">
         <ConfirmActionButton
           action={declineOfferAction.bind(null, interestId)}
-          successMessage="Offer declined."
-          title="Decline this offer?"
-          description={`${otherPartyName} will be told you declined, and the offer is cleared so a new one can be made.`}
-          confirmLabel="Decline offer"
-          pendingLabel="Declining…"
+          successMessage={t("screens.payments.copy.offerDeclined")}
+          title={t("screens.payments.copy.declineTitle")}
+          description={t("screens.payments.copy.declineBody", { name: otherPartyName })}
+          confirmLabel={t("screens.payments.copy.declineOffer")}
+          pendingLabel={t("screens.payments.copy.declining")}
           className={quietButton}
         >
-          Decline
+          {t("screens.payments.copy.decline")}
         </ConfirmActionButton>
       </div>
-      <Dialog open={counterOpen} onClose={() => setCounterOpen(false)} title="Counter-offer">
+      <Dialog open={counterOpen} onClose={() => setCounterOpen(false)} title={t("screens.payments.copy.counterTitle")}>
         <AmountForm
           action={counterOfferAction.bind(null, interestId)}
-          hint={`Propose a different amount. ${otherPartyName} can accept it, decline it, or counter again.`}
-          submitLabel="Send counter-offer"
-          successMessage="Counter-offer sent."
+          hint={t("screens.payments.copy.counterHint", { name: otherPartyName })}
+          submitLabel={t("screens.payments.copy.sendCounter")}
+          successMessage={t("screens.payments.copy.counterSent")}
           onDone={() => setCounterOpen(false)}
         />
       </Dialog>
@@ -312,19 +318,20 @@ export function MakeOfferButton({
   feeRatePercent: number;
   className?: string;
 }) {
+  const { t } = useI18n();
   const [open, setOpen] = useState(false);
   return (
     <>
       <button type="button" onClick={() => setOpen(true)} className={className}>
         <IoPricetagOutline className="h-4 w-4" />
-        Make an offer
+        {t("screens.payments.copy.makeOffer")}
       </button>
-      <Dialog open={open} onClose={() => setOpen(false)} title="Make an offer">
+      <Dialog open={open} onClose={() => setOpen(false)} title={t("screens.payments.copy.makeOffer")}>
         <AmountForm
           action={sendOfferAction.bind(null, interestId)}
-          hint={`Paid through Stripe escrow: the creator accepts or declines first, and you only pay once they accept. The money is held until they mark the work as posted, then released minus our ${feeRatePercent}% platform fee.`}
-          submitLabel="Send offer"
-          successMessage="Offer sent."
+          hint={t("screens.payments.copy.makeOfferHint", { fee: feeRatePercent })}
+          submitLabel={t("screens.payments.copy.sendOffer")}
+          successMessage={t("screens.payments.copy.offerSent")}
           onDone={() => setOpen(false)}
         />
       </Dialog>

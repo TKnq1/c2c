@@ -1,5 +1,6 @@
 import type { PaymentStatus, DepositStatus, Role } from "@prisma/client";
 import { formatCents } from "@/lib/format";
+import type { TFunction } from "@/lib/i18n/translate";
 
 // type "offer" marks the current proposal — the chat shows that one as an
 // interactive offer card instead of a plain milestone row.
@@ -33,64 +34,84 @@ type TimelineInterest = {
 // (there's no separate append-only event table) — reflects the milestones
 // that actually happened, not a full round-by-round negotiation transcript,
 // since each new offer/counter overwrites the previous one's fields.
-export function buildCollabTimeline(interest: TimelineInterest): TimelineEvent[] {
+export function buildCollabTimeline(interest: TimelineInterest, t: TFunction): TimelineEvent[] {
   const creatorName = interest.creator.displayName;
   const startupName = interest.request.startup.companyName;
   // Neutral wording deliberately: this can be created either by the creator
   // expressing interest, or by the brand reaching out first from Discover.
-  const events: TimelineEvent[] = [{ at: interest.createdAt, label: "Conversation started" }];
+  const events: TimelineEvent[] = [{ at: interest.createdAt, label: t("screens.messages.started") }];
 
   if (interest.offeredAt) {
     const proposer = interest.offerRole === "CREATOR" ? creatorName : startupName;
     events.push({
       at: interest.offeredAt,
-      label: `${proposer} proposed ${formatCents(interest.amountCents!)}`,
+      label: t("screens.messages.proposed", { name: proposer, amount: formatCents(interest.amountCents!) }),
       type: "offer",
     });
   }
   if (interest.paidAt) {
-    events.push({ at: interest.paidAt, label: `Offer accepted: ${formatCents(interest.amountCents!)} held in escrow` });
+    events.push({
+      at: interest.paidAt,
+      label: t("screens.messages.offerAcceptedEscrow", { amount: formatCents(interest.amountCents!) }),
+    });
   }
   // Only the latest submission — a corrected link overwrites the time.
   if (interest.proofSubmittedAt) {
     events.push({
       at: interest.proofSubmittedAt,
-      label: `${creatorName} submitted their post`,
+      label: t("screens.messages.submittedPost", { name: creatorName }),
       href: interest.proofUrl ?? undefined,
     });
   }
   if (interest.disputedAt) {
-    events.push({ at: interest.disputedAt, label: `${startupName} reported a problem: payment on hold` });
+    events.push({ at: interest.disputedAt, label: t("screens.messages.reportedHold", { name: startupName }) });
   }
   if (interest.releasedAt) {
     events.push({
       at: interest.releasedAt,
-      label: `Payment released: ${creatorName} received ${formatCents(interest.payoutCents!)}`,
+      label: t("screens.messages.releasedTo", { name: creatorName, amount: formatCents(interest.payoutCents!) }),
       href: interest.proofUrl ?? undefined,
     });
   }
   if (interest.refundedAt) {
-    events.push({ at: interest.refundedAt, label: `Payment refunded: ${formatCents(interest.amountCents!)} returned to ${startupName}` });
+    events.push({
+      at: interest.refundedAt,
+      label: t("screens.messages.refundedTo", { amount: formatCents(interest.amountCents!), name: startupName }),
+    });
   }
 
   if (interest.depositRequestedAt) {
-    events.push({ at: interest.depositRequestedAt, label: `${startupName} requested a ${formatCents(interest.depositCents!)} deposit` });
+    events.push({
+      at: interest.depositRequestedAt,
+      label: t("screens.messages.requestedDeposit", { name: startupName, amount: formatCents(interest.depositCents!) }),
+    });
   }
   if (interest.depositPaidAt) {
-    events.push({ at: interest.depositPaidAt, label: `${creatorName} paid the ${formatCents(interest.depositCents!)} deposit` });
+    events.push({
+      at: interest.depositPaidAt,
+      label: t("screens.messages.paidDeposit", { name: creatorName, amount: formatCents(interest.depositCents!) }),
+    });
   }
   if (interest.depositReleasedAt) {
-    events.push({ at: interest.depositReleasedAt, label: `${startupName} returned the ${formatCents(interest.depositCents!)} deposit` });
+    events.push({
+      at: interest.depositReleasedAt,
+      label: t("screens.messages.returnedDeposit", { name: startupName, amount: formatCents(interest.depositCents!) }),
+    });
   }
   if (interest.depositForfeitedAt) {
-    events.push({ at: interest.depositForfeitedAt, label: `${startupName} kept the ${formatCents(interest.depositCents!)} deposit` });
+    events.push({
+      at: interest.depositForfeitedAt,
+      label: t("screens.messages.keptDeposit", { name: startupName, amount: formatCents(interest.depositCents!) }),
+    });
   }
 
   for (const r of interest.reviews) {
     const author = r.authorRole === "CREATOR" ? creatorName : startupName;
     events.push({
       at: r.createdAt,
-      label: `${author} left a ${r.rating}-star review${r.comment ? `: "${r.comment}"` : ""}`,
+      label: r.comment
+        ? t("screens.messages.leftReviewComment", { name: author, rating: r.rating, comment: r.comment })
+        : t("screens.messages.leftReview", { name: author, rating: r.rating }),
     });
   }
 

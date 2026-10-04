@@ -30,6 +30,7 @@ import {
   RELEASE_REVIEW_MS,
 } from "@/lib/constants";
 import { PageTitle } from "@/components/page-title";
+import { getT } from "@/lib/i18n/server";
 
 const primaryButton =
   "rounded-full bg-ink px-4 py-2.5 text-sm font-medium text-paper transition hover:bg-graphite disabled:opacity-50";
@@ -40,6 +41,7 @@ const quietButton = "text-xs text-neutral-500 transition hover:text-ink disabled
 export default async function StartupPaymentsPage(props: PageProps<"/dashboard/startup/payments">) {
   const session = await auth();
   if (!session || session.user.role !== "STARTUP") redirect("/login");
+  const t = await getT();
 
   // Set by Stripe Checkout's return URLs — see createCheckoutSessionAction.
   const searchParams = await props.searchParams;
@@ -122,25 +124,28 @@ export default async function StartupPaymentsPage(props: PageProps<"/dashboard/s
 
   return (
     <div className="page-wide flex flex-col gap-8">
-      <PageTitle>Payments</PageTitle>
+      <PageTitle>{t("nav.payments")}</PageTitle>
       <CheckoutReturn status={checkout} waiting={confirmingId !== null} />
       <PaymentStats
         stats={[
-          { label: "Spent", value: formatCents(totalSpentCents), hint: "Refunds not counted" },
-          { label: "In escrow", value: formatCents(inEscrowCents), hint: "Until you approve" },
+          { label: t("screens.payments.spent"), value: formatCents(totalSpentCents), hint: t("screens.payments.refundsExcluded") },
+          { label: t("screens.payments.inEscrow"), value: formatCents(inEscrowCents), hint: t("screens.payments.untilApprove") },
         ]}
         counts={[
-          { label: "Completed", value: String(completedCount) },
-          { label: "In progress", value: String(inProgressCount) },
-          { label: "Rating", value: averageRating === null ? "–" : `${averageRating.toFixed(1)} ★` },
+          { label: t("screens.payments.completed"), value: String(completedCount) },
+          { label: t("screens.payments.inProgress"), value: String(inProgressCount) },
+          { label: t("screens.payments.rating"), value: averageRating === null ? "–" : `${averageRating.toFixed(1)} ★` },
         ]}
         footnote={
           creatorsWorkedWith > 0 && (
             <>
-              {creatorsWorkedWith} creator{creatorsWorkedWith === 1 ? "" : "s"} worked with
+              {creatorsWorkedWith === 1
+                ? t("screens.payments.creatorsWorked", { count: creatorsWorkedWith })
+                : t("screens.payments.creatorsWorkedMany", { count: creatorsWorkedWith })}
               {bestRequest && (
                 <>
-                  {" · "}Top request: <span className="font-medium text-ink">{bestRequest.title}</span> (
+                  {" · "}
+                  {t("screens.payments.topRequest")}: <span className="font-medium text-ink">{bestRequest.title}</span> (
                   {formatCents(bestRequest.totalCents)})
                 </>
               )}
@@ -152,10 +157,14 @@ export default async function StartupPaymentsPage(props: PageProps<"/dashboard/s
       <div className="flex items-center justify-between gap-3 rounded bg-fog px-4 py-3 no-print">
         <p className="text-sm text-neutral-700 dark:text-neutral-300">
           {startup.isPro
-            ? `Pro plan: ${PRO_PLATFORM_FEE_RATE * 100}% fee per payment instead of ${PLATFORM_FEE_RATE * 100}%.`
+            ? t("screens.payments.proFeeLine", { pro: PRO_PLATFORM_FEE_RATE * 100, standard: PLATFORM_FEE_RATE * 100 })
             : showProOffer
-              ? `${PLATFORM_FEE_RATE * 100}% fee per payment. Pro lowers it to ${PRO_PLATFORM_FEE_RATE * 100}% for ${formatCents(PRO_SUBSCRIPTION_PRICE_CENTS)}/month.`
-              : `${PLATFORM_FEE_RATE * 100}% fee per payment.`}
+              ? t("screens.payments.proOfferLine", {
+                  standard: PLATFORM_FEE_RATE * 100,
+                  pro: PRO_PLATFORM_FEE_RATE * 100,
+                  price: formatCents(PRO_SUBSCRIPTION_PRICE_CENTS),
+                })
+              : t("screens.payments.standardFeeLine", { rate: PLATFORM_FEE_RATE * 100 })}
         </p>
         {(startup.isPro || showProOffer) && (
           <Link
@@ -166,7 +175,7 @@ export default async function StartupPaymentsPage(props: PageProps<"/dashboard/s
                 : "shrink-0 rounded-full bg-ink px-3.5 py-1.5 text-sm font-medium text-paper transition hover:bg-graphite"
             }
           >
-            {startup.isPro ? "Manage" : "Go Pro"}
+            {startup.isPro ? t("screens.payments.manage") : t("screens.payments.goPro")}
           </Link>
         )}
       </div>
@@ -174,14 +183,14 @@ export default async function StartupPaymentsPage(props: PageProps<"/dashboard/s
       {allInterests.length === 0 && (
         <EmptyState
           icon={IoCardOutline}
-          title="No payments yet"
-          description="Once creators are interested in one of your requests, you can send them an offer here or right in your chat with them."
-          action={{ label: "Post a request", href: "/dashboard/startup/new" }}
+          title={t("screens.payments.noneBrand")}
+          description={t("screens.payments.noneBrandBody")}
+          action={{ label: t("screens.payments.postRequest"), href: "/dashboard/startup/new" }}
         />
       )}
 
       {toApprove.length > 0 && (
-        <PaymentSection id="to-approve" title="To approve" count={toApprove.length} className="no-print">
+        <PaymentSection id="to-approve" title={t("screens.payments.toApprove")} count={toApprove.length} className="no-print">
           {toApprove.map((p) => {
             const creator = p.creator.displayName;
             return (
@@ -196,26 +205,30 @@ export default async function StartupPaymentsPage(props: PageProps<"/dashboard/s
                 amount={formatCents(p.amountCents!)}
                 detail={
                   <>
-                    {creator} submitted their post.{" "}
+                    {t("screens.payments.copy.submittedLead", { name: creator })}{" "}
                     <a href={p.proofUrl!} target="_blank" rel="noopener noreferrer" className="underline">
-                      Check the post
+                      {t("screens.payments.copy.checkPost")}
                     </a>
-                    , then approve it or report a problem by{" "}
-                    <LocalDate ms={p.proofSubmittedAt!.getTime() + RELEASE_REVIEW_MS} />. After that it&apos;s released
-                    to them automatically.
+                    {t("screens.payments.copy.thenApprove")}
+                    <LocalDate ms={p.proofSubmittedAt!.getTime() + RELEASE_REVIEW_MS} />
+                    {t("screens.payments.copy.thenAuto")}
                   </>
                 }
                 meta={
                   <>
-                    Paid <LocalDate ms={p.paidAt!.getTime()} />
-                    {" · "}Posted <LocalDate ms={p.proofSubmittedAt!.getTime()} />
+                    {t("screens.payments.copy.paid")} <LocalDate ms={p.paidAt!.getTime()} />
+                    {" · "}
+                    {t("screens.payments.copy.posted")} <LocalDate ms={p.proofSubmittedAt!.getTime()} />
                   </>
                 }
               >
                 <PaymentApprovalButtons
                   interestId={p.id}
                   creatorName={creator}
-                  payoutLabel={`${formatCents(p.payoutCents!)} (after the ${feePercentOf(p)}% fee)`}
+                  payoutLabel={t("screens.payments.copy.afterFee", {
+                    payout: formatCents(p.payoutCents!),
+                    fee: feePercentOf(p),
+                  })}
                 />
               </PaymentRow>
             );
@@ -224,7 +237,7 @@ export default async function StartupPaymentsPage(props: PageProps<"/dashboard/s
       )}
 
       {pendingOffers.length > 0 && (
-        <PaymentSection id="offers" title="Offers" count={pendingOffers.length} className="no-print">
+        <PaymentSection id="offers" title={t("screens.payments.offers")} count={pendingOffers.length} className="no-print">
           {pendingOffers.map((i) => {
             const creator = i.creator.displayName;
             const mine = i.offerRole === "STARTUP";
@@ -240,18 +253,26 @@ export default async function StartupPaymentsPage(props: PageProps<"/dashboard/s
                 amount={formatCents(i.amountCents!)}
                 detail={
                   mine
-                    ? `Waiting for ${creator}. They'd get ${formatCents(i.payoutCents!)} after the ${feePercentOf(i)}% fee.`
-                    : `${creator} countered. They'd get ${formatCents(i.payoutCents!)} after the ${feePercentOf(i)}% fee.`
+                    ? t("screens.payments.copy.waitingFee", {
+                        name: creator,
+                        payout: formatCents(i.payoutCents!),
+                        fee: feePercentOf(i),
+                      })
+                    : t("screens.payments.copy.counteredFee", {
+                        name: creator,
+                        payout: formatCents(i.payoutCents!),
+                        fee: feePercentOf(i),
+                      })
                 }
               >
                 {mine ? (
                   <div className="mt-2">
                     <ActionButton
                       action={withdrawOfferAction.bind(null, i.id)}
-                      successMessage="Offer withdrawn."
+                      successMessage={t("screens.payments.copy.offerWithdrawn")}
                       className={quietButton}
                     >
-                      Withdraw offer
+                      {t("screens.payments.copy.withdrawOffer")}
                     </ActionButton>
                   </div>
                 ) : (
@@ -264,7 +285,7 @@ export default async function StartupPaymentsPage(props: PageProps<"/dashboard/s
       )}
 
       {awaitingPayment.length > 0 && (
-        <PaymentSection id="to-pay" title="To pay" count={awaitingPayment.length} className="no-print">
+        <PaymentSection id="to-pay" title={t("screens.payments.toPay")} count={awaitingPayment.length} className="no-print">
           {awaitingPayment.map((i) => (
             <PaymentRow
               key={i.id}
@@ -277,12 +298,16 @@ export default async function StartupPaymentsPage(props: PageProps<"/dashboard/s
               amount={formatCents(i.amountCents!)}
               detail={
                 i.id === confirmingId
-                  ? "Payment received. Confirming with Stripe, this takes a few seconds."
-                  : `Accepted. It's held in escrow until ${i.creator.displayName} posts and you approve it. They get ${formatCents(i.payoutCents!)} after the ${feePercentOf(i)}% fee.`
+                  ? t("screens.payments.copy.confirmingStripe")
+                  : t("screens.payments.copy.acceptedEscrow", {
+                      name: i.creator.displayName,
+                      payout: formatCents(i.payoutCents!),
+                      fee: feePercentOf(i),
+                    })
               }
             >
               {i.id !== confirmingId && (
-                <CompletePaymentButton interestId={i.id} label={`Pay ${formatCents(i.amountCents!)}`} />
+                <CompletePaymentButton interestId={i.id} label={t("screens.payments.copy.payAmount", { amount: formatCents(i.amountCents!) })} />
               )}
               {DEPOSITS_ENABLED && i.depositStatus === null && (
                 <div className="mt-3">
@@ -295,7 +320,7 @@ export default async function StartupPaymentsPage(props: PageProps<"/dashboard/s
       )}
 
       {interested.length > 0 && (
-        <PaymentSection id="interested" title="Interested creators" count={interested.length} className="no-print">
+        <PaymentSection id="interested" title={t("screens.payments.interested")} count={interested.length} className="no-print">
           {interested.map((i) => (
             <PaymentRow
               key={i.id}
@@ -324,13 +349,13 @@ export default async function StartupPaymentsPage(props: PageProps<"/dashboard/s
 
       {history.length > 0 && (
         <PaymentSection
-          title="Payments"
+          title={t("screens.payments.payments")}
           count={history.length}
           action={
             <div className="flex shrink-0 items-center gap-2 no-print">
               <a
                 href="/api/payments/export"
-                aria-label="Export as CSV"
+                aria-label={t("screens.payments.copy.exportCsv")}
                 className="inline-flex items-center gap-1.5 rounded-full border border-neutral-300 px-3 py-1.5 text-sm font-medium transition hover:border-neutral-400 dark:border-neutral-700"
               >
                 <IoDownloadOutline className="h-4 w-4" />
@@ -361,17 +386,27 @@ export default async function StartupPaymentsPage(props: PageProps<"/dashboard/s
                 detail={
                   <>
                     {stage === "HELD" &&
-                      `Held until ${creator} posts and submits the link. Then you have ${RELEASE_REVIEW_DAYS} days to approve it. They get ${formatCents(p.payoutCents!)} after the ${feePercentOf(p)}% fee.`}
+                      t("screens.payments.copy.heldUntil", {
+                        name: creator,
+                        days: RELEASE_REVIEW_DAYS,
+                        payout: formatCents(p.payoutCents!),
+                        fee: feePercentOf(p),
+                      })}
                     {stage === "DISPUTED" &&
-                      `You reported a problem: “${p.disputeReason}” The payment is on hold while we look into it, and we'll get back to you both.`}
+                      t("screens.payments.copy.youReported", { reason: p.disputeReason ?? "" })}
                     {stage === "RELEASED" &&
-                      `${creator} received ${formatCents(p.payoutCents!)} after the ${feePercentOf(p)}% fee (${formatCents(p.platformFeeCents!)}).`}
-                    {stage === "REFUNDED" && "Cancelled. The full amount was refunded to you."}
+                      t("screens.payments.copy.creatorReceived", {
+                        name: creator,
+                        payout: formatCents(p.payoutCents!),
+                        fee: feePercentOf(p),
+                        feeAmount: formatCents(p.platformFeeCents!),
+                      })}
+                    {stage === "REFUNDED" && t("screens.payments.copy.cancelledRefunded")}
                     {(stage === "DISPUTED" || stage === "RELEASED") && p.proofUrl && (
                       <>
                         {" "}
                         <a href={p.proofUrl} target="_blank" rel="noopener noreferrer" className="underline">
-                          View post
+                          {t("screens.payments.copy.viewPost")}
                         </a>
                       </>
                     )}
@@ -379,20 +414,23 @@ export default async function StartupPaymentsPage(props: PageProps<"/dashboard/s
                 }
                 meta={
                   <>
-                    Paid <LocalDate ms={p.paidAt!.getTime()} />
+                    {t("screens.payments.copy.paid")} <LocalDate ms={p.paidAt!.getTime()} />
                     {p.proofSubmittedAt && (
                       <>
-                        {" · "}Posted <LocalDate ms={p.proofSubmittedAt.getTime()} />
+                        {" · "}
+                        {t("screens.payments.copy.posted")} <LocalDate ms={p.proofSubmittedAt.getTime()} />
                       </>
                     )}
                     {p.releasedAt && (
                       <>
-                        {" · "}Released <LocalDate ms={p.releasedAt.getTime()} />
+                        {" · "}
+                        {t("screens.payments.copy.releasedOn")} <LocalDate ms={p.releasedAt.getTime()} />
                       </>
                     )}
                     {p.refundedAt && (
                       <>
-                        {" · "}Refunded <LocalDate ms={p.refundedAt.getTime()} />
+                        {" · "}
+                        {t("screens.payments.copy.refundedOn")} <LocalDate ms={p.refundedAt.getTime()} />
                       </>
                     )}
                   </>
@@ -403,14 +441,17 @@ export default async function StartupPaymentsPage(props: PageProps<"/dashboard/s
                     {DEPOSITS_ENABLED && p.depositStatus === null && <RequestDepositButton interestId={p.id} />}
                     <ConfirmActionButton
                       action={refundPaymentAction.bind(null, p.id)}
-                      successMessage="Payment refunded."
-                      title="Cancel and refund?"
-                      description={`${formatCents(p.amountCents!)} goes back to you and ${creator} won't be paid for this collab. Only do this if they never delivered. It can't be undone.`}
-                      confirmLabel={`Refund ${formatCents(p.amountCents!)}`}
-                      pendingLabel="Refunding…"
+                      successMessage={t("screens.payments.copy.paymentRefunded")}
+                      title={t("screens.payments.copy.cancelRefundTitle")}
+                      description={t("screens.payments.copy.cancelRefundBody", {
+                        amount: formatCents(p.amountCents!),
+                        name: creator,
+                      })}
+                      confirmLabel={t("screens.payments.copy.refundAmount", { amount: formatCents(p.amountCents!) })}
+                      pendingLabel={t("screens.payments.copy.refunding")}
                       className={quietButton}
                     >
-                      Creator never delivered? Cancel &amp; refund
+                      {t("screens.payments.copy.neverDeliveredRefund")}
                     </ConfirmActionButton>
                   </div>
                 )}
@@ -429,9 +470,9 @@ export default async function StartupPaymentsPage(props: PageProps<"/dashboard/s
 
       {deposits.length > 0 && (
         <PaymentSection
-          title="Deposits"
+          title={t("screens.payments.deposits")}
           count={deposits.length}
-          description="Refundable, no fee. Return it once the post is live, or keep it if the creator never delivers."
+          description={t("screens.payments.copy.depositsHint")}
         >
           {deposits.map((d) => {
             const creator = d.creator.displayName;
@@ -447,28 +488,31 @@ export default async function StartupPaymentsPage(props: PageProps<"/dashboard/s
                 amount={formatCents(d.depositCents!)}
                 detail={
                   <>
-                    {d.depositStatus === "REQUESTED" && `Waiting for ${creator} to pay it.`}
-                    {d.depositStatus === "HELD" && `Held. Return it once ${creator}'s post is live.`}
-                    {d.depositStatus === "RELEASED" && `Returned to ${creator}.`}
-                    {d.depositStatus === "FORFEITED" && `Kept because ${creator} didn't deliver.`}
+                    {d.depositStatus === "REQUESTED" && t("screens.payments.copy.depositWaiting", { name: creator })}
+                    {d.depositStatus === "HELD" && t("screens.payments.copy.depositHeld", { name: creator })}
+                    {d.depositStatus === "RELEASED" && t("screens.payments.copy.depositReturnedTo", { name: creator })}
+                    {d.depositStatus === "FORFEITED" && t("screens.payments.copy.depositKeptBecause", { name: creator })}
                   </>
                 }
                 meta={
                   <>
-                    Requested <LocalDate ms={d.depositRequestedAt!.getTime()} />
+                    {t("screens.payments.copy.requested")} <LocalDate ms={d.depositRequestedAt!.getTime()} />
                     {d.depositPaidAt && (
                       <>
-                        {" · "}Paid <LocalDate ms={d.depositPaidAt.getTime()} />
+                        {" · "}
+                        {t("screens.payments.copy.paid")} <LocalDate ms={d.depositPaidAt.getTime()} />
                       </>
                     )}
                     {d.depositReleasedAt && (
                       <>
-                        {" · "}Returned <LocalDate ms={d.depositReleasedAt.getTime()} />
+                        {" · "}
+                        {t("screens.payments.copy.returned")} <LocalDate ms={d.depositReleasedAt.getTime()} />
                       </>
                     )}
                     {d.depositForfeitedAt && (
                       <>
-                        {" · "}Kept <LocalDate ms={d.depositForfeitedAt.getTime()} />
+                        {" · "}
+                        {t("screens.payments.copy.kept")} <LocalDate ms={d.depositForfeitedAt.getTime()} />
                       </>
                     )}
                   </>
@@ -478,22 +522,25 @@ export default async function StartupPaymentsPage(props: PageProps<"/dashboard/s
                   <div className="mt-3 flex flex-wrap items-center justify-between gap-x-3 gap-y-2 no-print">
                     <ActionButton
                       action={releaseDepositAction.bind(null, d.id)}
-                      successMessage="Deposit returned."
-                      pendingChildren="Returning…"
+                      successMessage={t("screens.payments.copy.depositReturned")}
+                      pendingChildren={t("screens.payments.copy.returning")}
                       className={primaryButton}
                     >
-                      Return deposit
+                      {t("screens.payments.copy.returnDeposit")}
                     </ActionButton>
                     <ConfirmActionButton
                       action={forfeitDepositAction.bind(null, d.id)}
-                      successMessage="Deposit kept."
-                      title="Keep the deposit?"
-                      description={`${creator} won't get their ${formatCents(d.depositCents!)} back. Only do this if they never delivered. It can't be undone.`}
-                      confirmLabel={`Keep ${formatCents(d.depositCents!)}`}
-                      pendingLabel="Keeping…"
+                      successMessage={t("screens.payments.copy.depositKeptToast")}
+                      title={t("screens.payments.copy.keepDepositTitle")}
+                      description={t("screens.payments.copy.keepDepositBody", {
+                        name: creator,
+                        amount: formatCents(d.depositCents!),
+                      })}
+                      confirmLabel={t("screens.payments.copy.keepAmount", { amount: formatCents(d.depositCents!) })}
+                      pendingLabel={t("screens.payments.copy.keeping")}
                       className={quietButton}
                     >
-                      Creator never delivered? Keep deposit
+                      {t("screens.payments.copy.keepDeposit")}
                     </ConfirmActionButton>
                   </div>
                 )}

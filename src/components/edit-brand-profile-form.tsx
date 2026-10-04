@@ -10,6 +10,8 @@ import { TextareaWithCounter } from "@/components/textarea-with-counter";
 import { useActionToast } from "@/lib/use-action-toast";
 import { useUnsavedChanges } from "@/lib/navigation-blocker";
 import { useFormProblem } from "@/lib/use-form-problem";
+import { useI18n } from "@/components/i18n-provider";
+import { localizeError, nicheLabel } from "@/lib/i18n/labels";
 
 type Props = {
   companyName: string;
@@ -30,11 +32,12 @@ export function EditBrandProfileForm({
   lookingFor,
   socialLinks,
 }: Props) {
+  const { t } = useI18n();
   const [state, formAction, pending] = useActionState(updateBrandProfileAction, undefined);
-  useActionToast(state, "Profile saved.");
+  useActionToast(state, t("screens.settings.profileSaved"));
   const markDirty = useUnsavedChanges(state);
   const { formRef, problem, clearProblem } = useFormProblem();
-  const message = problem ?? state?.error;
+  const message = problem ?? (state?.error ? localizeError(state.error, t) : undefined);
 
   return (
     <form
@@ -48,12 +51,12 @@ export function EditBrandProfileForm({
       className="flex flex-col gap-4"
     >
       <div className="flex flex-col gap-1">
-        <span className="text-sm font-medium">Logo</span>
-        <AvatarUpload name="avatar" initial={avatarUrl} emptyLabel="No logo" />
+        <span className="text-sm font-medium">{t("screens.settings.logo")}</span>
+        <AvatarUpload name="avatar" initial={avatarUrl} emptyLabel={t("screens.settings.noLogo")} />
       </div>
       <div className="flex flex-col gap-1">
         <label htmlFor="companyName" className="text-sm font-medium">
-          Company name
+          {t("screens.settings.companyName")}
         </label>
         <input
           id="companyName"
@@ -66,7 +69,7 @@ export function EditBrandProfileForm({
       </div>
       <div className="flex flex-col gap-1">
         <label htmlFor="website" className="text-sm font-medium">
-          Website
+          {t("screens.settings.website")}
         </label>
         <input
           id="website"
@@ -79,45 +82,45 @@ export function EditBrandProfileForm({
       </div>
       <div className="flex flex-col gap-1">
         <label htmlFor="niche" className="text-sm font-medium">
-          Niche
+          {t("screens.settings.niche")}
         </label>
         <Select id="niche" name="niche" defaultValue={niche} required>
           {NICHES.map((n) => (
             <option key={n} value={n}>
-              {n}
+              {nicheLabel(t, n)}
             </option>
           ))}
         </Select>
       </div>
       <div className="flex flex-col gap-1">
-        <span className="text-sm font-medium">Social links</span>
+        <span className="text-sm font-medium">{t("screens.settings.socialLinks")}</span>
         <SocialLinksPicker name="socialLinks" initial={socialLinks} />
       </div>
 
       <div className="flex flex-col gap-1">
         <label htmlFor="description" className="text-sm font-medium">
-          About your brand
+          {t("screens.settings.aboutBrand")}
         </label>
         <TextareaWithCounter
           id="description"
           name="description"
           rows={4}
           maxLength={2000}
-          placeholder="What does your brand stand for?"
+          placeholder={t("screens.settings.aboutBrandPlaceholder")}
           defaultValue={description}
           className="rounded border border-neutral-300 px-3 py-2.5 dark:border-neutral-700"
         />
       </div>
       <div className="flex flex-col gap-1">
         <label htmlFor="lookingFor" className="text-sm font-medium">
-          Additional requirements
+          {t("screens.settings.requirements")}
         </label>
         <TextareaWithCounter
           id="lookingFor"
           name="lookingFor"
           rows={4}
           maxLength={2000}
-          placeholder="Anything else creators should know before reaching out"
+          placeholder={t("screens.settings.requirementsPlaceholder")}
           defaultValue={lookingFor}
           className="rounded border border-neutral-300 px-3 py-2.5 dark:border-neutral-700"
         />
@@ -132,7 +135,7 @@ export function EditBrandProfileForm({
         disabled={pending}
         className="w-full rounded-full bg-ink px-4 py-2.5 text-sm font-medium text-paper transition hover:bg-graphite disabled:opacity-50 sm:w-auto sm:self-start"
       >
-        {pending ? "Saving…" : "Save"}
+        {pending ? t("common.saving") : t("common.save")}
       </button>
     </form>
   );

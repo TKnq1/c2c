@@ -1,10 +1,19 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useI18n } from "@/components/i18n-provider";
+import type { MessageKey } from "@/lib/i18n/translate";
 
-const STRENGTH_LABELS = ["Very weak", "Weak", "Fair", "Good", "Strong", "Very strong"];
+const STRENGTH_KEYS: MessageKey[] = [
+  "screens.strength.veryWeak",
+  "screens.strength.weak",
+  "screens.strength.fair",
+  "screens.strength.good",
+  "screens.strength.strong",
+  "screens.strength.veryStrong",
+];
 
-function getStrength(pw: string): { score: number; label: string } {
+function getStrength(pw: string): { score: number } {
   let score = 0;
   if (pw.length >= 8) score++;
   if (pw.length >= 12) score++;
@@ -12,13 +21,15 @@ function getStrength(pw: string): { score: number; label: string } {
   if (/\d/.test(pw)) score++;
   if (/[^A-Za-z0-9]/.test(pw)) score++;
 
-  return { score, label: STRENGTH_LABELS[Math.min(score, STRENGTH_LABELS.length - 1)] };
+  return { score };
 }
 
 // A password input paired with a client-only confirm field: strength meter
 // and match check are pure UX — the confirm value is never submitted (no
 // `name`), so the server's schema and validation are untouched.
-export function NewPasswordField({ name, label = "Password" }: { name: string; label?: string }) {
+export function NewPasswordField({ name, label }: { name: string; label?: string }) {
+  const { t } = useI18n();
+  const fieldLabel = label ?? t("screens.auth.password");
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
   const confirmRef = useRef<HTMLInputElement>(null);
@@ -28,13 +39,13 @@ export function NewPasswordField({ name, label = "Password" }: { name: string; l
   const matches = password === confirm;
 
   useEffect(() => {
-    confirmRef.current?.setCustomValidity(showMatch && !matches ? "Passwords don't match." : "");
-  }, [showMatch, matches]);
+    confirmRef.current?.setCustomValidity(showMatch && !matches ? t("screens.settings.passwordsDont") : "");
+  }, [showMatch, matches, t]);
 
   return (
     <div className="flex flex-col gap-1">
       <label htmlFor={fieldId} className="text-sm font-medium">
-        {label}
+        {fieldLabel}
       </label>
       <input
         id={fieldId}
@@ -53,12 +64,12 @@ export function NewPasswordField({ name, label = "Password" }: { name: string; l
               <div key={i} className={`h-1.5 flex-1 rounded-full ${i < strength.score ? "bg-ink" : "bg-fog"}`} />
             ))}
           </div>
-          <span className="text-xs text-stone shrink-0">{strength.label}</span>
+          <span className="text-xs text-stone shrink-0">{t(STRENGTH_KEYS[Math.min(strength.score, STRENGTH_KEYS.length - 1)])}</span>
         </div>
       )}
 
       <label htmlFor={`${fieldId}-confirm`} className="text-sm font-medium mt-2">
-        Confirm {label.toLowerCase()}
+        {t("screens.settings.confirmPassword", { label: fieldLabel })}
       </label>
       <input
         ref={confirmRef}
@@ -71,7 +82,7 @@ export function NewPasswordField({ name, label = "Password" }: { name: string; l
       />
       {showMatch && (
         <p className={`text-xs ${matches ? "text-stone" : "text-ink font-medium"}`}>
-          {matches ? "Passwords match." : "Passwords don't match."}
+          {matches ? t("screens.settings.passwordsMatch") : t("screens.settings.passwordsDont")}
         </p>
       )}
     </div>

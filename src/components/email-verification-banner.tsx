@@ -3,6 +3,7 @@
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "@/lib/toast";
+import { useI18n } from "@/components/i18n-provider";
 
 const SHOWN_KEY = "email-verification-toast-shown";
 
@@ -10,6 +11,7 @@ const SHOWN_KEY = "email-verification-toast-shown";
 // instead of a strip pinned above each page.
 export function EmailVerificationBanner() {
   const router = useRouter();
+  const { t } = useI18n();
 
   useEffect(() => {
     try {
@@ -19,11 +21,11 @@ export function EmailVerificationBanner() {
     } catch {
       // Storage unavailable (private mode etc.) — show it on this mount anyway.
     }
-    toast.info("Your email isn't verified.", {
-      action: { label: "Verify now", onClick: () => router.push("/dashboard/verify-email") },
+    toast.info(t("screens.auth.emailUnverified"), {
+      action: { label: t("screens.auth.verifyNow"), onClick: () => router.push("/dashboard/verify-email") },
       durationMs: 10000,
     });
-  }, [router]);
+  }, [router, t]);
 
   return null;
 }

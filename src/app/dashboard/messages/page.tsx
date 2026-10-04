@@ -6,8 +6,10 @@ import { getConversations } from "@/lib/conversations";
 import { EmptyState } from "@/components/empty-state";
 import { MessagesList } from "@/components/messages-list";
 import { SkeletonCardList } from "@/components/skeleton";
+import { getT } from "@/lib/i18n/server";
 
 export default async function MessagesInboxPage() {
+  const t = await getT();
   const session = await auth();
   if (!session) redirect("/login");
 
@@ -21,8 +23,8 @@ export default async function MessagesInboxPage() {
         {conversations.length === 0 ? (
           <EmptyState
             icon={FiMessageSquare}
-            title="No conversations yet."
-            description="Conversations start once you match with a creator or brand you're interested in."
+            title={t("screens.messages.noneYet")}
+            description={t("screens.messages.noneYetBody")}
           />
         ) : (
           <Suspense fallback={<SkeletonCardList />}>
@@ -36,11 +38,9 @@ export default async function MessagesInboxPage() {
       <div className="hidden h-full items-center justify-center rounded bg-fog lg:flex">
         <EmptyState
           icon={FiMessageSquare}
-          title={conversations.length === 0 ? "No conversations yet." : "Pick a conversation"}
+          title={conversations.length === 0 ? t("screens.messages.noneYet") : t("screens.messages.pick")}
           description={
-            conversations.length === 0
-              ? "Conversations start once you match with a creator or brand you're interested in."
-              : "Choose one on the left to read and reply."
+            conversations.length === 0 ? t("screens.messages.noneYetBody") : t("screens.messages.pickBody")
           }
         />
       </div>

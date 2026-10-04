@@ -3,6 +3,8 @@
 import { useMemo, useState } from "react";
 import { RequestCard } from "@/components/request-card";
 import { Select } from "@/components/select";
+import { useI18n } from "@/components/i18n-provider";
+import type { MessageKey } from "@/lib/i18n/translate";
 
 export type MatchGroup = "open" | "chat" | "paid" | "closed";
 
@@ -14,16 +16,17 @@ export type MatchEntry = React.ComponentProps<typeof RequestCard> & {
   matchedAt: number;
 };
 
-const FILTERS: { value: MatchGroup | "all"; label: string }[] = [
-  { value: "all", label: "All" },
-  { value: "open", label: "Open" },
-  { value: "chat", label: "In chat" },
-  { value: "paid", label: "Paid" },
+const FILTERS: { value: MatchGroup | "all"; label: MessageKey }[] = [
+  { value: "all", label: "screens.matches.all" },
+  { value: "open", label: "screens.matches.open" },
+  { value: "chat", label: "screens.matches.inChat" },
+  { value: "paid", label: "screens.matches.paid" },
 ];
 
 // The creator's matches as a work list: filtered by where each one stands
 // and sorted by date or amount.
 export function MatchesList({ matches }: { matches: MatchEntry[] }) {
+  const { t } = useI18n();
   const [filter, setFilter] = useState<MatchGroup | "all">("all");
   const [sort, setSort] = useState<"newest" | "amount">("newest");
 
@@ -43,7 +46,7 @@ export function MatchesList({ matches }: { matches: MatchEntry[] }) {
   return (
     <div className="flex flex-col gap-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <div role="tablist" aria-label="Filter matches" className="flex gap-1 rounded bg-fog p-1">
+        <div role="tablist" aria-label={t("screens.matches.filter")} className="flex gap-1 rounded bg-fog p-1">
           {FILTERS.map((f) => (
             <button
               key={f.value}
@@ -57,7 +60,7 @@ export function MatchesList({ matches }: { matches: MatchEntry[] }) {
                   : "text-neutral-500 hover:text-ink dark:text-neutral-400"
               }`}
             >
-              {f.label}
+              {t(f.label)}
               <span className="text-xs tabular-nums opacity-60">{counts[f.value] ?? 0}</span>
             </button>
           ))}
@@ -66,16 +69,16 @@ export function MatchesList({ matches }: { matches: MatchEntry[] }) {
           value={sort}
           onChange={(e) => setSort(e.target.value as "newest" | "amount")}
           wrapperClassName="w-44"
-          aria-label="Sort matches"
+          aria-label={t("screens.matches.sort")}
         >
-          <option value="newest">Newest first</option>
-          <option value="amount">Highest amount</option>
+          <option value="newest">{t("screens.matches.newest")}</option>
+          <option value="amount">{t("screens.matches.highest")}</option>
         </Select>
       </div>
 
       {shown.length === 0 ? (
         <p className="rounded bg-fog px-4 py-8 text-center text-sm text-neutral-500 dark:text-neutral-400">
-          Nothing here right now.
+          {t("screens.matches.nothing")}
         </p>
       ) : (
         <div className="divide-y divide-ink/10 overflow-hidden rounded bg-fog">

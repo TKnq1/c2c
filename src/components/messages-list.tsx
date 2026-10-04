@@ -12,6 +12,7 @@ import { formatMessageTimestamp } from "@/lib/format";
 import { SearchInput } from "@/components/search-input";
 import { Avatar } from "@/components/avatar";
 import { EmptyState } from "@/components/empty-state";
+import { useI18n } from "@/components/i18n-provider";
 
 type Conversation = {
   interestId: string;
@@ -25,6 +26,7 @@ type Conversation = {
 // `compact` is the desktop column next to an open thread (see
 // messages/layout.tsx): narrower, and the open conversation is marked.
 export function MessagesList({ conversations, compact = false }: { conversations: Conversation[]; compact?: boolean }) {
+  const { t, locale } = useI18n();
   const pathname = usePathname();
   const [{ q: search, unread }, setParam, setParams] = useUrlState(["q", "unread"]);
   const [filterOpen, setFilterOpen] = useState(false);
@@ -60,8 +62,8 @@ export function MessagesList({ conversations, compact = false }: { conversations
         <SearchInput
           value={search}
           onChange={(e) => setParam("q", e.target.value)}
-          placeholder={compact ? "Search…" : "Search name or request…"}
-          aria-label="Search conversations"
+          placeholder={compact ? t("screens.messages.searchShort") : t("screens.messages.search")}
+          aria-label={t("screens.messages.searchLabel")}
           wrapperClassName="flex-1 min-w-48"
         />
         <div ref={filterRef} className="relative flex shrink-0">
@@ -70,7 +72,7 @@ export function MessagesList({ conversations, compact = false }: { conversations
             onClick={() => setFilterOpen((v) => !v)}
             aria-haspopup="true"
             aria-expanded={filterOpen}
-            aria-label="Filter conversations"
+            aria-label={t("screens.messages.filter")}
             className={`flex h-full items-center gap-1.5 rounded-full border px-3.5 py-2 text-sm font-medium transition ${
               activeFilterCount > 0
                 ? "border-ink bg-ink text-paper"
@@ -101,7 +103,7 @@ export function MessagesList({ conversations, compact = false }: { conversations
                   onChange={(e) => setParam("unread", e.target.checked ? "1" : "")}
                   className="h-4 w-4 shrink-0 appearance-none rounded border border-neutral-300 bg-white checked:border-neutral-900 checked:bg-neutral-900 transition dark:border-neutral-600 dark:bg-neutral-800 dark:checked:border-white dark:checked:bg-white"
                 />
-                Unread only
+                {t("screens.messages.unreadOnly")}
               </label>
             </div>
           )}
@@ -111,8 +113,8 @@ export function MessagesList({ conversations, compact = false }: { conversations
       {filtered.length === 0 ? (
         <EmptyState
           icon={FiMessageSquare}
-          title="No conversations match."
-          action={{ label: "Clear filters", onClick: () => setParams({ q: "", unread: "" }) }}
+          title={t("screens.messages.none")}
+          action={{ label: t("screens.messages.clearFilters"), onClick: () => setParams({ q: "", unread: "" }) }}
         />
       ) : (
         // One grey group, a hairline between conversations, like iOS Messages
@@ -141,7 +143,7 @@ export function MessagesList({ conversations, compact = false }: { conversations
                     <div className="flex flex-col items-end gap-1 shrink-0">
                       {c.lastMessage && (
                         <p className="text-xs text-neutral-500 whitespace-nowrap dark:text-neutral-400">
-                          {formatMessageTimestamp(c.lastMessage.createdAt, timeZone)}
+                          {formatMessageTimestamp(c.lastMessage.createdAt, timeZone, locale)}
                         </p>
                       )}
                       {c.unreadCount > 0 && (
@@ -152,7 +154,7 @@ export function MessagesList({ conversations, compact = false }: { conversations
                     </div>
                   </div>
                   <p className={`text-sm mt-1 truncate ${c.unreadCount > 0 ? "text-neutral-900 font-medium dark:text-neutral-100" : "text-neutral-500 dark:text-neutral-400"}`}>
-                    {c.lastMessage ? `${c.lastMessage.isMine ? "You: " : ""}${c.lastMessage.body}` : "No messages yet. Say hi!"}
+                    {c.lastMessage ? `${c.lastMessage.isMine ? t("screens.messages.you") : ""}${c.lastMessage.body}` : t("screens.messages.emptyThread")}
                   </p>
                 </div>
               </Link>

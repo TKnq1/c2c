@@ -6,13 +6,11 @@ import { NewPasswordField } from "@/components/new-password-field";
 import { PLATFORM_FEE_RATE, PRO_PLATFORM_FEE_RATE, RELEASE_REVIEW_DAYS } from "@/lib/constants";
 
 import type { SignupRole } from "@/lib/signup-role";
+import { useI18n } from "@/components/i18n-provider";
+import { localizeError } from "@/lib/i18n/labels";
 
 export type { SignupRole };
 
-const FEE_NOTE: Record<SignupRole, string> = {
-  STARTUP: `You pay exactly what you offer, held in escrow until the work is live and you've approved it. We take ${PLATFORM_FEE_RATE * 100}% from the creator's payout, ${PRO_PLATFORM_FEE_RATE * 100}% with Pro.`,
-  CREATOR: `Keep ${100 - PLATFORM_FEE_RATE * 100}% of every deal, ${100 - PRO_PLATFORM_FEE_RATE * 100}% when the brand's on Pro. Paid out once the brand approves your post, or automatically after ${RELEASE_REVIEW_DAYS} days.`,
-};
 
 type Props = {
   // Uncontrolled by default (own toggle, own state) — the standalone
@@ -34,7 +32,18 @@ export function SignupForm({ role: controlledRole, onRoleChange, initialRole = n
   const [internalRole, setInternalRole] = useState<SignupRole | null>(initialRole);
   const role = controlledRole ?? internalRole;
   const setRole = onRoleChange ?? setInternalRole;
+  const { t } = useI18n();
   const [state, formAction, pending] = useActionState(signupAction, undefined);
+  const feeNote =
+    role === "STARTUP"
+      ? t("screens.auth.feeBrand", { standard: PLATFORM_FEE_RATE * 100, pro: PRO_PLATFORM_FEE_RATE * 100 })
+      : role === "CREATOR"
+        ? t("screens.auth.feeCreator", {
+            keep: 100 - PLATFORM_FEE_RATE * 100,
+            keepPro: 100 - PRO_PLATFORM_FEE_RATE * 100,
+            days: RELEASE_REVIEW_DAYS,
+          })
+        : t("screens.auth.chooseRole");
 
   return (
     <form action={formAction} className="flex flex-col gap-4">
@@ -47,7 +56,7 @@ export function SignupForm({ role: controlledRole, onRoleChange, initialRole = n
             role === "STARTUP" ? "bg-white text-neutral-900 dark:bg-neutral-900 dark:text-neutral-100" : "text-neutral-500 dark:text-neutral-400"
           }`}
         >
-          I&apos;m a Brand
+          {t("screens.auth.imBrand")}
         </button>
         <button
           type="button"
@@ -57,17 +66,17 @@ export function SignupForm({ role: controlledRole, onRoleChange, initialRole = n
             role === "CREATOR" ? "bg-white text-neutral-900 dark:bg-neutral-900 dark:text-neutral-100" : "text-neutral-500 dark:text-neutral-400"
           }`}
         >
-          I&apos;m a Creator
+          {t("screens.auth.imCreator")}
         </button>
       </div>
       <input type="hidden" name="role" value={role ?? ""} />
       <p className="text-xs text-neutral-400 dark:text-neutral-500">
-        {role ? FEE_NOTE[role] : "Choose the one that fits you. It can't be changed after you sign up."}
+        {feeNote}
       </p>
 
       <div className="flex flex-col gap-1">
         <label htmlFor="email" className="text-sm font-medium">
-          Email
+          {t("screens.auth.email")}
         </label>
         <input
           id="email"
@@ -79,13 +88,13 @@ export function SignupForm({ role: controlledRole, onRoleChange, initialRole = n
       </div>
       <NewPasswordField name="password" />
 
-      {state?.error && <p className="text-sm text-ink">{state.error}</p>}
+      {state?.error && <p className="text-sm text-ink">{localizeError(state.error, t)}</p>}
       <button
         type="submit"
         disabled={pending || !role}
         className="rounded-full bg-ink text-paper px-4 py-2 font-medium hover:bg-graphite transition disabled:opacity-50"
       >
-        {pending ? "Creating account…" : "Create account"}
+        {pending ? t("screens.auth.creating") : t("screens.auth.create")}
       </button>
     </form>
   );

@@ -16,6 +16,8 @@ import {
   IoSettingsOutline,
 } from "react-icons/io5";
 import { Avatar } from "@/components/avatar";
+import { useI18n } from "@/components/i18n-provider";
+import type { MessageKey } from "@/lib/i18n/translate";
 import type { SearchResult } from "@/app/api/search/route";
 
 type Role = "STARTUP" | "CREATOR";
@@ -26,30 +28,29 @@ type Group = { label: string; items: Item[] };
 // (which dispatches this event).
 export const OPEN_COMMAND_PALETTE = "command-palette:open";
 
-const PAGES: Record<Role, Item[]> = {
+const PAGES: Record<Role, { key: string; titleKey: MessageKey; href: string; icon: IconType }[]> = {
   STARTUP: [
-    { key: "p-home", title: "Requests", href: "/dashboard/startup", icon: IoHomeOutline },
-    { key: "p-new", title: "New request", href: "/dashboard/startup/new", icon: IoAddCircleOutline },
-    { key: "p-discover", title: "Discover creators", href: "/dashboard/startup/discover", icon: IoSearchOutline },
-    { key: "p-messages", title: "Messages", href: "/dashboard/messages", icon: IoChatbubbleOutline },
-    { key: "p-payments", title: "Payments", href: "/dashboard/startup/payments", icon: IoCardOutline },
-    { key: "p-notifications", title: "Notifications", href: "/dashboard/notifications", icon: IoNotificationsOutline },
-    { key: "p-settings", title: "Settings", href: "/dashboard/startup/settings", icon: IoSettingsOutline },
+    { key: "p-home", titleKey: "nav.requests", href: "/dashboard/startup", icon: IoHomeOutline },
+    { key: "p-new", titleKey: "nav.newRequest", href: "/dashboard/startup/new", icon: IoAddCircleOutline },
+    { key: "p-discover", titleKey: "screens.search.discoverCreators", href: "/dashboard/startup/discover", icon: IoSearchOutline },
+    { key: "p-messages", titleKey: "nav.messages", href: "/dashboard/messages", icon: IoChatbubbleOutline },
+    { key: "p-payments", titleKey: "nav.payments", href: "/dashboard/startup/payments", icon: IoCardOutline },
+    { key: "p-notifications", titleKey: "nav.notifications", href: "/dashboard/notifications", icon: IoNotificationsOutline },
+    { key: "p-settings", titleKey: "nav.settings", href: "/dashboard/startup/settings", icon: IoSettingsOutline },
   ],
   CREATOR: [
-    { key: "p-home", title: "Feed", href: "/dashboard/creator", icon: IoHomeOutline },
-    { key: "p-discover", title: "Discover brands", href: "/dashboard/creator/discover", icon: IoSearchOutline },
-    { key: "p-matches", title: "Your matches", href: "/dashboard/creator/matches", icon: IoHeartOutline },
-    { key: "p-messages", title: "Messages", href: "/dashboard/messages", icon: IoChatbubbleOutline },
-    { key: "p-payments", title: "Payments", href: "/dashboard/creator/payments", icon: IoCardOutline },
-    { key: "p-notifications", title: "Notifications", href: "/dashboard/notifications", icon: IoNotificationsOutline },
-    { key: "p-settings", title: "Settings", href: "/dashboard/creator/settings", icon: IoSettingsOutline },
+    { key: "p-home", titleKey: "nav.feed", href: "/dashboard/creator", icon: IoHomeOutline },
+    { key: "p-discover", titleKey: "screens.search.discoverBrands", href: "/dashboard/creator/discover", icon: IoSearchOutline },
+    { key: "p-matches", titleKey: "nav.yourMatches", href: "/dashboard/creator/matches", icon: IoHeartOutline },
+    { key: "p-messages", titleKey: "nav.messages", href: "/dashboard/messages", icon: IoChatbubbleOutline },
+    { key: "p-payments", titleKey: "nav.payments", href: "/dashboard/creator/payments", icon: IoCardOutline },
+    { key: "p-notifications", titleKey: "nav.notifications", href: "/dashboard/notifications", icon: IoNotificationsOutline },
+    { key: "p-settings", titleKey: "nav.settings", href: "/dashboard/creator/settings", icon: IoSettingsOutline },
   ],
 };
 
-const GROUP_LABELS: Record<SearchResult["kind"], string> = { person: "", chat: "Chats", request: "Requests" };
-
 export function CommandPalette({ role }: { role: Role }) {
+  const { t } = useI18n();
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
@@ -107,7 +108,9 @@ export function CommandPalette({ role }: { role: Role }) {
 
   const groups = useMemo<Group[]>(() => {
     const q = query.trim().toLowerCase();
-    const pages = PAGES[role].filter((p) => !q || p.title.toLowerCase().includes(q));
+    const pages = PAGES[role]
+      .map((p) => ({ key: p.key, title: t(p.titleKey), href: p.href, icon: p.icon }))
+      .filter((p) => !q || p.title.toLowerCase().includes(q));
     // Short queries don't search; stale results from a longer one don't show.
     const found = q.length >= 2 ? results : [];
     const byKind = (kind: SearchResult["kind"]) =>
@@ -121,12 +124,12 @@ export function CommandPalette({ role }: { role: Role }) {
           ...(r.kind === "request" ? { icon: IoDocumentTextOutline } : { avatar: { url: r.avatarUrl, name: r.title } }),
         }));
     return [
-      { label: role === "STARTUP" ? "Creators" : "Brands", items: byKind("person") },
-      { label: GROUP_LABELS.chat, items: byKind("chat") },
-      { label: GROUP_LABELS.request, items: byKind("request") },
-      { label: "Pages", items: pages },
+      { label: role === "STARTUP" ? t("screens.search.creators") : t("screens.search.brands"), items: byKind("person") },
+      { label: t("screens.search.chats"), items: byKind("chat") },
+      { label: t("nav.requests"), items: byKind("request") },
+      { label: t("screens.search.pages"), items: pages },
     ].filter((g) => g.items.length > 0);
-  }, [query, results, role]);
+  }, [query, results, role, t]);
 
   const flat = groups.flatMap((g) => g.items);
   const current = Math.min(active, Math.max(flat.length - 1, 0));
@@ -149,7 +152,7 @@ export function CommandPalette({ role }: { role: Role }) {
       <div
         role="dialog"
         aria-modal="true"
-        aria-label="Search"
+        aria-label={t("nav.search")}
         className="animate-dropdown-in absolute inset-x-4 top-[12vh] mx-auto flex max-h-[70vh] max-w-xl flex-col overflow-hidden rounded-[20px] bg-background shadow-2xl"
       >
         <div className="flex shrink-0 items-center gap-3 border-b border-ink/10 px-4">
@@ -175,7 +178,7 @@ export function CommandPalette({ role }: { role: Role }) {
             aria-expanded
             aria-controls="command-palette-list"
             aria-activedescendant={flat[current] ? `cp-${flat[current].key}` : undefined}
-            placeholder={role === "STARTUP" ? "Search creators, chats, requests…" : "Search brands, chats…"}
+            placeholder={role === "STARTUP" ? t("screens.search.brandPlaceholder") : t("screens.search.creatorPlaceholder")}
             className="h-14 min-w-0 flex-1 bg-transparent text-base outline-none placeholder:text-neutral-400"
           />
           <kbd className="hidden shrink-0 rounded border border-ink/15 px-1.5 py-0.5 text-[11px] text-neutral-500 sm:inline">Esc</kbd>
@@ -183,7 +186,7 @@ export function CommandPalette({ role }: { role: Role }) {
 
         <div ref={listRef} id="command-palette-list" role="listbox" className="min-h-0 flex-1 overflow-y-auto p-2">
           {groups.length === 0 ? (
-            <p className="px-3 py-8 text-center text-sm text-neutral-500 dark:text-neutral-400">No results for “{query}”.</p>
+            <p className="px-3 py-8 text-center text-sm text-neutral-500 dark:text-neutral-400">{t("screens.search.noResults", { query })}</p>
           ) : (
             groups.map((g) => (
               <div key={g.label} className="mb-1 last:mb-0">

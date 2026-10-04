@@ -13,6 +13,7 @@ import { startConversationAsCreatorAction } from "@/lib/actions/requests";
 import { formatBudget, formatFollowers, formatPostBy } from "@/lib/format";
 import { Avatar } from "@/components/avatar";
 import { Dialog } from "@/components/dialog";
+import { useI18n } from "@/components/i18n-provider";
 import { PlatformIcon } from "@/components/platform-icons";
 import { PhotoStrip, RequestFacts, postByDate, type RequestFactFields } from "@/components/request-card-face";
 
@@ -42,6 +43,7 @@ export function BrandRequestList({
   companyName: string;
   companyAvatarUrl: string | null;
 }) {
+  const { t, locale } = useI18n();
   const [openId, setOpenId] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
   const open = requests.find((r) => r.id === openId) ?? null;
@@ -80,7 +82,7 @@ export function BrandRequestList({
                     {r.postBy && (
                       <span className="inline-flex items-center gap-1">
                         <IoCalendarClearOutline className="h-3 w-3 shrink-0" aria-hidden />
-                        {formatPostBy(postByDate(r.postBy))}
+                        {formatPostBy(postByDate(r.postBy), locale)}
                       </span>
                     )}
                     {r.productIncluded && (
@@ -91,13 +93,13 @@ export function BrandRequestList({
                     )}
                     <span className="inline-flex items-center gap-1">
                       <IoPeopleOutline className="h-3 w-3 shrink-0" aria-hidden />
-                      {formatFollowers(r.minFollowers)} followers
+                      {t("screens.discover.followersCount", { count: formatFollowers(r.minFollowers) })}
                     </span>
                   </span>
                 </span>
                 {(r.interestId || r.matches) && (
                   <span className="hidden shrink-0 rounded-full border border-ink/15 px-2.5 py-1 text-xs font-medium sm:inline">
-                    {r.interestId ? "In chat" : "You match"}
+                    {r.interestId ? t("screens.matches.inChat") : t("screens.discover.youMatch")}
                   </span>
                 )}
                 <IoChevronForward className="h-4 w-4 shrink-0 text-neutral-400" aria-hidden />
@@ -124,19 +126,19 @@ export function BrandRequestList({
             {open.interestId ? (
               <Link href={`/dashboard/messages/${open.interestId}`} className={PRIMARY}>
                 <IoChatbubble className="h-4 w-4" aria-hidden />
-                Open chat
+                {t("screens.requests.openChat")}
               </Link>
             ) : open.matches ? (
               <form action={startConversationAsCreatorAction} onSubmit={() => setPending(true)}>
                 <input type="hidden" name="requestId" value={open.id} />
                 <button type="submit" disabled={pending} className={PRIMARY}>
                   <IoChatbubble className="h-4 w-4" aria-hidden />
-                  {pending ? "Opening chat…" : "Message about this request"}
+                  {pending ? t("screens.requests.openingChat") : t("screens.requests.messageAbout")}
                 </button>
               </form>
             ) : (
               <p className="rounded bg-fog px-4 py-3 text-center text-sm text-neutral-500 dark:text-neutral-400">
-                You don&apos;t meet this request&apos;s requirements yet.
+                {t("screens.requests.requirementsGap")}
               </p>
             )}
           </>

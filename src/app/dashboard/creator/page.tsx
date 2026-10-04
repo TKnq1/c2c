@@ -12,8 +12,10 @@ import { FeedScopeTabs } from "@/components/feed-scope-tabs";
 import { SkeletonCardList } from "@/components/skeleton";
 import { EmptyState } from "@/components/empty-state";
 import { PageTitle } from "@/components/page-title";
+import { getT } from "@/lib/i18n/server";
 
 export default async function CreatorFeedPage(props: PageProps<"/dashboard/creator">) {
+  const t = await getT();
   const session = await auth();
   if (!session || session.user.role !== "CREATOR") redirect("/login");
   const scope = parseFeedScope((await props.searchParams).feed);
@@ -61,7 +63,7 @@ export default async function CreatorFeedPage(props: PageProps<"/dashboard/creat
 
   return (
     <div className="flex flex-col gap-3 md:gap-6">
-      <PageTitle>Feed</PageTitle>
+      <PageTitle>{t("nav.feed")}</PageTitle>
       {/* On a phone the same switch lives in the top bar, in place of "Feed". */}
       <div className="hidden justify-center md:flex">
         <FeedScopeTabs scope={scope} />
@@ -70,16 +72,16 @@ export default async function CreatorFeedPage(props: PageProps<"/dashboard/creat
         scope === "forYou" ? (
           <EmptyState
             icon={FiSearch}
-            title="No requests in your niches yet."
-            description="Check back later, or see everything that fits your reach under All."
-            action={{ label: "Show all requests", href: "/dashboard/creator?feed=all" }}
+            title={t("screens.feed.emptyNiches")}
+            description={t("screens.feed.emptyNichesBody")}
+            action={{ label: t("screens.feed.showAll"), href: "/dashboard/creator?feed=all" }}
           />
         ) : (
           <EmptyState
             icon={FiSearch}
-            title="No matching requests yet."
-            description="Check back later, or browse every brand on Discover in the meantime."
-            action={{ label: "Browse Discover", href: "/dashboard/creator/discover" }}
+            title={t("screens.feed.emptyAll")}
+            description={t("screens.feed.emptyAllBody")}
+            action={{ label: t("screens.feed.browseDiscover"), href: "/dashboard/creator/discover" }}
           />
         )
       ) : (

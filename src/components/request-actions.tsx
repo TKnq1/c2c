@@ -6,12 +6,14 @@ import { IoCopyOutline, IoEllipsisHorizontal, IoLockClosedOutline, IoLockOpenOut
 import { ActionButton } from "@/components/action-button";
 import { closeRequestAction, duplicateRequestAction, reopenRequestAction } from "@/lib/actions/requests";
 import { useExitAnimation } from "@/lib/use-exit-animation";
+import { useI18n } from "@/components/i18n-provider";
 
 const ITEM = "flex w-full items-center gap-3 rounded px-3 py-2 text-left text-sm transition hover:bg-fog disabled:opacity-50";
 
 // A request's actions on its detail page: Edit as the one obvious button,
 // the occasional ones (duplicate, close/reopen) behind a "…" menu.
 export function RequestActions({ requestId, isOpen }: { requestId: string; isOpen: boolean }) {
+  const { t } = useI18n();
   const [open, setOpen] = useState(false);
   const menu = useExitAnimation(open);
   const ref = useRef<HTMLDivElement>(null);
@@ -38,7 +40,7 @@ export function RequestActions({ requestId, isOpen }: { requestId: string; isOpe
         href={`/dashboard/startup/requests/${requestId}/edit`}
         className="rounded-full border border-neutral-300 px-4 py-2 text-sm font-medium transition hover:border-ink dark:border-neutral-700"
       >
-        Edit
+        {t("nav.editRequest")}
       </Link>
       <div ref={ref} className="relative">
         <button
@@ -46,7 +48,7 @@ export function RequestActions({ requestId, isOpen }: { requestId: string; isOpe
           onClick={() => setOpen((v) => !v)}
           aria-haspopup="menu"
           aria-expanded={open}
-          aria-label="More actions"
+          aria-label={t("screens.requests.moreActions")}
           className="flex h-[38px] w-[38px] items-center justify-center rounded-full border border-neutral-300 transition hover:border-ink dark:border-neutral-700"
         >
           <IoEllipsisHorizontal className="h-4 w-4" aria-hidden />
@@ -62,12 +64,12 @@ export function RequestActions({ requestId, isOpen }: { requestId: string; isOpe
             <form action={duplicateRequestAction.bind(null, requestId)}>
               <button type="submit" role="menuitem" className={ITEM}>
                 <IoCopyOutline className="h-4 w-4 shrink-0" aria-hidden />
-                Duplicate
+                {t("screens.requests.duplicate")}
               </button>
             </form>
             <ActionButton
               action={isOpen ? closeRequestAction.bind(null, requestId) : reopenRequestAction.bind(null, requestId)}
-              successMessage={isOpen ? "Request closed." : "Request reopened."}
+              successMessage={isOpen ? t("screens.requests.requestClosed") : t("screens.requests.requestReopened")}
               onSuccess={() => setOpen(false)}
               className={ITEM}
             >
@@ -76,7 +78,7 @@ export function RequestActions({ requestId, isOpen }: { requestId: string; isOpe
               ) : (
                 <IoLockOpenOutline className="h-4 w-4 shrink-0" aria-hidden />
               )}
-              {isOpen ? "Close request" : "Reopen request"}
+              {isOpen ? t("screens.requests.closeRequest") : t("screens.requests.reopenRequest")}
             </ActionButton>
           </div>
         )}

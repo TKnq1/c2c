@@ -13,11 +13,13 @@ import { RequestFacts } from "@/components/request-card-face";
 import { RequestPhotoRow } from "@/components/request-photo-row";
 import { PLATFORM_FEE_RATE, PRO_PLATFORM_FEE_RATE } from "@/lib/constants";
 import { photoUrlsByRequestId, requestPhotoIds } from "@/lib/request-photos";
+import { getT } from "@/lib/i18n/server";
 
 export default async function RequestDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const session = await auth();
   if (!session || session.user.role !== "STARTUP") redirect("/login");
+  const t = await getT();
 
   // The request query doesn't actually need `startup` first — only the
   // ownership check below does — so both run as one round-trip.
@@ -58,7 +60,7 @@ export default async function RequestDetailPage({ params }: { params: Promise<{ 
           className="flex items-center gap-1 self-start text-sm text-neutral-500 transition hover:text-ink dark:text-neutral-400"
         >
           <IoChevronBack className="h-4 w-4" aria-hidden />
-          Requests
+          {t("nav.requests")}
         </Link>
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="min-w-0">
@@ -69,7 +71,7 @@ export default async function RequestDetailPage({ params }: { params: Promise<{ 
                   isOpen ? "border border-ink text-ink" : "bg-ink/10 text-stone"
                 }`}
               >
-                {isOpen ? "Open" : "Closed"}
+                {isOpen ? t("screens.requests.open") : t("screens.requests.closed")}
               </span>
             </h1>
           </div>
@@ -103,11 +105,11 @@ export default async function RequestDetailPage({ params }: { params: Promise<{ 
           />
           <dl className="grid grid-cols-2 gap-3">
             <div className="rounded bg-fog px-4 py-3">
-              <dt className="text-footnote text-neutral-500 dark:text-neutral-400">Interested</dt>
+              <dt className="text-footnote text-neutral-500 dark:text-neutral-400">{t("screens.requests.interested")}</dt>
               <dd className="font-display text-title-2 font-bold tabular-nums">{interestedCreators.length}</dd>
             </div>
             <div className="rounded bg-fog px-4 py-3">
-              <dt className="text-footnote text-neutral-500 dark:text-neutral-400">Contacted</dt>
+              <dt className="text-footnote text-neutral-500 dark:text-neutral-400">{t("screens.requests.contacted")}</dt>
               <dd className="font-display text-title-2 font-bold tabular-nums">{contactedCreators.length}</dd>
             </div>
           </dl>
@@ -115,13 +117,13 @@ export default async function RequestDetailPage({ params }: { params: Promise<{ 
 
         <div className="flex min-w-0 flex-col gap-8 lg:col-start-1">
           <section className="flex flex-col gap-3">
-            <h2 className="font-semibold">Interested creators ({interestedCreators.length})</h2>
+            <h2 className="font-semibold">{t("screens.requests.interestedHeading", { count: interestedCreators.length })}</h2>
             {interestedCreators.length === 0 ? (
               <div className="rounded bg-fog">
                 <EmptyState
                   icon={FiUsers}
-                  title="No creator interest yet."
-                  description="Matching creators will show up here once they express interest."
+                  title={t("screens.requests.noInterest")}
+                  description={t("screens.requests.noInterestBody")}
                 />
               </div>
             ) : (
@@ -135,7 +137,7 @@ export default async function RequestDetailPage({ params }: { params: Promise<{ 
 
           {contactedCreators.length > 0 && (
             <section className="flex flex-col gap-3">
-              <h2 className="font-semibold">Creators you contacted ({contactedCreators.length})</h2>
+              <h2 className="font-semibold">{t("screens.requests.contactedHeading", { count: contactedCreators.length })}</h2>
               <BulkInterestedCreatorsList
                 requestId={request.id}
                 interests={contactedCreators.map(toInterestEntry)}

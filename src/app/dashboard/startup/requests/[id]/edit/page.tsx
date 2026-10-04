@@ -5,11 +5,13 @@ import { brandRating, legacyRequestPhotoUrl, requestPhotoUrl } from "@/lib/reque
 import { RequestForm } from "@/components/request-form";
 import type { PhotoItem } from "@/components/request-photos-input";
 import { PageTitle } from "@/components/page-title";
+import { getT } from "@/lib/i18n/server";
 
 export default async function EditRequestPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const session = await auth();
   if (!session || session.user.role !== "STARTUP") redirect("/login");
+  const t = await getT();
 
   const [startup, request] = await Promise.all([
     prisma.startupProfile.findUniqueOrThrow({
@@ -34,7 +36,7 @@ export default async function EditRequestPage({ params }: { params: Promise<{ id
   return (
     // On phones the header shows the title (see getPageTitle in nav.tsx).
     <div className="flex flex-col gap-6">
-      <PageTitle>Edit request</PageTitle>
+      <PageTitle>{t("nav.editRequest")}</PageTitle>
       <RequestForm
         requestId={request.id}
         brand={{ companyName: startup.companyName, avatarUrl: startup.avatarUrl, rating }}

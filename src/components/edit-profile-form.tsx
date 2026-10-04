@@ -11,6 +11,8 @@ import { TextareaWithCounter } from "@/components/textarea-with-counter";
 import { useActionToast } from "@/lib/use-action-toast";
 import { useUnsavedChanges } from "@/lib/navigation-blocker";
 import { useFormProblem } from "@/lib/use-form-problem";
+import { useI18n } from "@/components/i18n-provider";
+import { contentLanguageLabel, localizeError } from "@/lib/i18n/labels";
 
 type Props = {
   displayName: string;
@@ -29,15 +31,16 @@ export function EditProfileForm({
   bio,
   platforms,
 }: Props) {
+  const { t } = useI18n();
   const [state, formAction, pending] = useActionState(updateCreatorProfileAction, undefined);
   const [nicheDrafts, setNicheDrafts] = useState(niches);
   const [platformDrafts, setPlatformDrafts] = useState<PlatformDraft[]>(() =>
     platforms.map((p) => ({ platform: p.platform, followers: String(p.followerCount), url: p.url ?? "" })),
   );
-  useActionToast(state, "Profile saved.");
+  useActionToast(state, t("screens.settings.profileSaved"));
   const markDirty = useUnsavedChanges(state);
   const { formRef, problem, clearProblem } = useFormProblem();
-  const message = problem ?? state?.error;
+  const message = problem ?? (state?.error ? localizeError(state.error, t) : undefined);
 
   return (
     <form
@@ -51,12 +54,12 @@ export function EditProfileForm({
       className="flex flex-col gap-4"
     >
       <div className="flex flex-col gap-1">
-        <span className="text-sm font-medium">Photo</span>
-        <AvatarUpload name="avatar" initial={avatarUrl} emptyLabel="No photo" />
+        <span className="text-sm font-medium">{t("screens.settings.photo")}</span>
+        <AvatarUpload name="avatar" initial={avatarUrl} emptyLabel={t("screens.settings.noPhoto")} />
       </div>
       <div className="flex flex-col gap-1">
         <label htmlFor="displayName" className="text-sm font-medium">
-          Display name
+          {t("screens.settings.displayName")}
         </label>
         <input
           id="displayName"
@@ -68,43 +71,41 @@ export function EditProfileForm({
         />
       </div>
       <div className="flex flex-col gap-1">
-        <span className="text-sm font-medium">Niches</span>
+        <span className="text-sm font-medium">{t("screens.settings.niches")}</span>
         <p className="text-xs text-neutral-500 dark:text-neutral-400">
-          Up to {MAX_CREATOR_NICHES}. Your Feed&apos;s For you shows requests in them.
+          {t("screens.settings.nichesHint", { max: MAX_CREATOR_NICHES })}
         </p>
         <NicheTilesMulti name="niches" value={nicheDrafts} onChange={setNicheDrafts} />
       </div>
       <div className="flex flex-col gap-1">
         <label htmlFor="contentLanguage" className="text-sm font-medium">
-          Content language
+          {t("screens.settings.contentLanguage")}
         </label>
         <Select id="contentLanguage" name="contentLanguage" defaultValue={contentLanguage ?? "English"} required>
           {LANGUAGES.map((l) => (
             <option key={l} value={l}>
-              {l}
+              {contentLanguageLabel(t, l)}
             </option>
           ))}
         </Select>
       </div>
       <div className="flex flex-col gap-1">
         <label htmlFor="bio" className="text-sm font-medium">
-          About you
+          {t("screens.settings.aboutYou")}
         </label>
         <TextareaWithCounter
           id="bio"
           name="bio"
           rows={4}
           maxLength={2000}
-          placeholder="Tell brands a bit about yourself and your content"
+          placeholder={t("screens.settings.aboutYouPlaceholder")}
           defaultValue={bio ?? ""}
           className="rounded border border-neutral-300 px-3 py-2.5 dark:border-neutral-700"
         />
       </div>
       <div className="flex flex-col gap-1">
-        <span className="text-sm font-medium">Platforms &amp; followers</span>
-        <p className="text-xs text-neutral-500 dark:text-neutral-400">
-          Followers and the link to your profile are required for each platform, so brands can check out your profile directly.
-        </p>
+        <span className="text-sm font-medium">{t("screens.settings.platforms")}</span>
+        <p className="text-xs text-neutral-500 dark:text-neutral-400">{t("screens.settings.platformsHint")}</p>
         <PlatformChips
           name="platforms"
           value={platformDrafts}
@@ -125,7 +126,7 @@ export function EditProfileForm({
         disabled={pending}
         className="w-full rounded-full bg-ink px-4 py-2.5 text-sm font-medium text-paper transition hover:bg-graphite disabled:opacity-50 sm:w-auto sm:self-start"
       >
-        {pending ? "Saving…" : "Save"}
+        {pending ? t("common.saving") : t("common.save")}
       </button>
     </form>
   );

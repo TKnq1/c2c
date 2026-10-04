@@ -6,10 +6,12 @@ import { Logo } from "@/components/logo";
 import { ImprintLink } from "@/components/imprint-link";
 import { WelcomeLogoPreload } from "@/components/welcome-overlay";
 import { canonical } from "@/lib/seo";
+import { getT } from "@/lib/i18n/server";
 
 export const metadata: Metadata = { title: "Log in", alternates: canonical("/login") };
 
-export default function LoginPage() {
+export default async function LoginPage() {
+  const t = await getT();
   return (
     <main className="flex-1 flex items-center justify-center px-6 py-16">
       <DeletedAccountToast />
@@ -19,18 +21,18 @@ export default function LoginPage() {
           <Logo large />
         </div>
         <div className="text-center">
-          <h1 className="font-display text-title-1 font-bold">Welcome back</h1>
-          <p className="text-sm text-neutral-600 mt-1 dark:text-neutral-400">Log in to your account.</p>
+          <h1 className="font-display text-title-1 font-bold">{t("screens.auth.welcome")}</h1>
+          <p className="text-sm text-neutral-600 mt-1 dark:text-neutral-400">{t("screens.auth.loginHint")}</p>
         </div>
         <LoginForm />
         <p className="text-sm text-center text-neutral-600 flex flex-col gap-1 dark:text-neutral-400">
           <Link href="/forgot-password" className="font-medium text-neutral-900 underline dark:text-neutral-100">
-            Forgot password?
+            {t("screens.auth.forgot")}
           </Link>
           <span>
-            Don&apos;t have an account?{" "}
+            {t("screens.auth.noAccount")}{" "}
             <Link href="/signup" className="font-medium text-neutral-900 underline dark:text-neutral-100">
-              Sign up
+              {t("screens.auth.signUp")}
             </Link>
           </span>
         </p>

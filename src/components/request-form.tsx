@@ -10,6 +10,8 @@ import { Switch } from "@/components/switch";
 import { PlatformIcon } from "@/components/platform-icons";
 import { RequestPhotosInput, type PhotoItem } from "@/components/request-photos-input";
 import { RequestCardFace, postByDate, type CardRequest } from "@/components/request-card-face";
+import { useI18n } from "@/components/i18n-provider";
+import { categoryLabel, contentLanguageLabel, nicheLabel, presetLabel } from "@/lib/i18n/labels";
 
 // One-tap starting points for "Content", per platform — the field stays
 // free text for anything else.
@@ -62,6 +64,7 @@ const cents = (value: string) => {
 // Every value lives in state and goes up as a hidden input, since a
 // sheet's contents only exist while it's open.
 export function RequestForm({ requestId, brand, initial }: Props) {
+  const { t, locale } = useI18n();
   const action = requestId ? updateRequestAction.bind(null, requestId) : createRequestAction;
   const [state, formAction, pending] = useActionState(action, undefined);
   const [clientError, setClientError] = useState<string | null>(null);
@@ -90,7 +93,7 @@ export function RequestForm({ requestId, brand, initial }: Props) {
 
   // What creators will see, live, as the form fills in.
   const preview: CardRequest = {
-    title: title.trim() || "Your request's title",
+    title: title.trim() || t("screens.requests.previewTitle"),
     description,
     niche,
     languages,
@@ -113,17 +116,17 @@ export function RequestForm({ requestId, brand, initial }: Props) {
     // The rows aren't native inputs, so check what they'd otherwise have
     // enforced with `required` — the server re-checks everything anyway.
     const missing = !title.trim()
-      ? "Give the request a title."
+      ? t("screens.requests.missingTitle")
       : !description.trim()
-        ? "Add a description: what should creators show, say or avoid?"
+        ? t("screens.requests.missingDescription")
         : !deliverables.trim()
-          ? "Say what should be posted, e.g. 1 Reel + 2 Stories."
+          ? t("screens.requests.missingContent")
           : minCents === null
-            ? "Set a budget."
+            ? t("screens.requests.missingBudget")
             : null;
     const newPhotos = photos.filter((p) => p.kind === "new");
     const tooLarge = newPhotos.reduce((sum, p) => sum + p.file.size, 0) > MAX_UPLOAD_BYTES;
-    setClientError(missing ?? (tooLarge ? "The photos are too large together. Remove one and try again." : null));
+    setClientError(missing ?? (tooLarge ? t("screens.requests.photosTooLarge") : null));
     if (missing || tooLarge) return;
 
     const formData = new FormData(e.currentTarget);
@@ -141,15 +144,15 @@ export function RequestForm({ requestId, brand, initial }: Props) {
     <>
       <form onSubmit={handleSubmit} className="grid grid-cols-[minmax(0,1fr)] gap-8 md:grid-cols-[minmax(0,1fr)_300px] md:items-start">
         <div className="flex flex-col gap-8 md:col-start-1">
-          <Section title="Photos" hint="Up to 5. Hold and drag to reorder. The first one is the cover.">
+          <Section title={t("screens.requests.photos")} hint={t("screens.requests.photosHint")}>
             <RequestPhotosInput photos={photos} onChange={setPhotos} />
           </Section>
 
-          <Section title="The deal">
+          <Section title={t("screens.requests.theDeal")}>
             <div className="rounded bg-fog px-4 pt-4 pb-1">
               <div className="flex flex-col gap-1.5 pb-3">
                 <label htmlFor="title" className="text-sm font-semibold">
-                  Title
+                  {t("screens.requests.title")}
                 </label>
                 <input
                   id="title"
@@ -157,33 +160,33 @@ export function RequestForm({ requestId, brand, initial }: Props) {
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
                   maxLength={120}
-                  placeholder="What do you need?"
+                  placeholder={t("screens.requests.titlePlaceholder")}
                   className={input}
                 />
               </div>
-              <Row label="Description" value={description.trim() || null} onClick={() => setSheet("description")} placeholder="Add details" />
+              <Row label={t("screens.requests.description")} value={description.trim() || null} onClick={() => setSheet("description")} placeholder={t("screens.requests.addDetails")} />
               <Row
-                label="Platform"
+                label={t("screens.requests.platform")}
                 value={platform}
                 icon={<PlatformIcon platform={platform} className="h-3.5 w-3.5 shrink-0" />}
                 onClick={() => setSheet("platform")}
               />
-              <Row label="Content" value={deliverables.trim() || null} onClick={() => setSheet("content")} placeholder="e.g. 1 Reel + 2 Stories" />
-              <Row label="Budget" value={budget} onClick={() => setSheet("budget")} placeholder="Set a range" strong />
-              <Row label="Post by" value={postBy ? formatPostBy(postByDate(postBy)) : null} onClick={() => setSheet("postBy")} placeholder="Pick a date" />
-              <Row label="Product category" value={productCategory} onClick={() => setSheet("category")} />
+              <Row label={t("screens.requests.content")} value={deliverables.trim() ? presetLabel(t, deliverables.trim()) : null} onClick={() => setSheet("content")} placeholder={t("screens.requests.contentPlaceholder")} />
+              <Row label={t("screens.requests.budget")} value={budget} onClick={() => setSheet("budget")} placeholder={t("screens.requests.setRange")} strong />
+              <Row label={t("screens.requests.postBy")} value={postBy ? formatPostBy(postByDate(postBy), locale) : null} onClick={() => setSheet("postBy")} placeholder={t("screens.requests.pickDate")} />
+              <Row label={t("screens.requests.productCategory")} value={categoryLabel(t, productCategory)} onClick={() => setSheet("category")} />
               <div className="flex h-[46px] items-center justify-between gap-4 border-t border-ink/10">
-                <span className="text-sm font-semibold">Product included</span>
-                <Switch checked={productIncluded} onChange={setProductIncluded} label="Product included" />
+                <span className="text-sm font-semibold">{t("screens.requests.productIncluded")}</span>
+                <Switch checked={productIncluded} onChange={setProductIncluded} label={t("screens.requests.productIncluded")} />
               </div>
             </div>
           </Section>
 
-          <Section title="Who it's for">
+          <Section title={t("screens.requests.whoFor")}>
             <div className="rounded bg-fog px-4 py-1">
-              <Row label="Niche" value={niche} onClick={() => setSheet("niche")} first />
-              <Row label="Min. followers" value={(Number(minFollowers) || 0).toLocaleString("en-US")} onClick={() => setSheet("followers")} />
-              <Row label="Language" value={languages.join(", ")} onClick={() => setSheet("languages")} />
+              <Row label={t("screens.requests.niche")} value={nicheLabel(t, niche)} onClick={() => setSheet("niche")} first />
+              <Row label={t("screens.requests.minFollowers")} value={(Number(minFollowers) || 0).toLocaleString(locale)} onClick={() => setSheet("followers")} />
+              <Row label={t("screens.requests.language")} value={languages.map((language) => contentLanguageLabel(t, language)).join(", ")} onClick={() => setSheet("languages")} />
             </div>
           </Section>
 
@@ -202,8 +205,8 @@ export function RequestForm({ requestId, brand, initial }: Props) {
 
         <aside className="flex flex-col gap-3 md:sticky md:top-4 md:col-start-2 md:row-span-2 md:row-start-1">
           <div>
-            <h2 className="font-semibold">Preview</h2>
-            <p className="mt-0.5 text-sm text-neutral-500 dark:text-neutral-400">What creators see in their feed.</p>
+            <h2 className="font-semibold">{t("screens.requests.preview")}</h2>
+            <p className="mt-0.5 text-sm text-neutral-500 dark:text-neutral-400">{t("screens.requests.previewHint")}</p>
           </div>
           {/* Laid out at the Feed card's real size and scaled down, so the
               preview wraps and crops exactly the way a creator's card will. */}
@@ -221,27 +224,27 @@ export function RequestForm({ requestId, brand, initial }: Props) {
             disabled={pending}
             className="w-full rounded-full bg-ink px-4 py-3 font-medium text-paper transition hover:bg-graphite disabled:opacity-50 md:w-auto md:self-start md:px-8"
           >
-            {pending ? "Saving…" : requestId ? "Save changes" : "Post request"}
+            {pending ? t("common.saving") : requestId ? t("screens.requests.saveChanges") : t("screens.requests.post")}
           </button>
         </div>
       </form>
 
       {/* The sheets sit outside the form, so Enter in one of their fields
           can't submit it. */}
-      <Dialog open={sheet === "description"} onClose={close} title="Description">
+      <Dialog open={sheet === "description"} onClose={close} title={t("screens.requests.description")}>
         <textarea
           value={description}
           onChange={(e) => setDescription(e.target.value)}
           rows={6}
           maxLength={2000}
           autoFocus
-          placeholder="What should creators show, say or avoid? Anything they need to know?"
+          placeholder={t("screens.requests.descriptionPlaceholder")}
           className={input}
         />
         <Done onClick={close} />
       </Dialog>
 
-      <Dialog open={sheet === "platform"} onClose={close} title="Platform">
+      <Dialog open={sheet === "platform"} onClose={close} title={t("screens.requests.platform")}>
         <Options>
           {PLATFORMS.map((p) => (
             <Option key={p} selected={p === platform} onClick={() => (setPlatform(p), close())}>
@@ -254,14 +257,14 @@ export function RequestForm({ requestId, brand, initial }: Props) {
         </Options>
       </Dialog>
 
-      <Dialog open={sheet === "content"} onClose={close} title="Content">
+      <Dialog open={sheet === "content"} onClose={close} title={t("screens.requests.content")}>
         <input
           value={deliverables}
           onChange={(e) => setDeliverables(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && close()}
           maxLength={80}
           autoFocus
-          placeholder="What should be posted?"
+          placeholder={t("screens.requests.contentAsk")}
           className={input}
         />
         <div className="flex flex-wrap gap-2">
@@ -272,25 +275,23 @@ export function RequestForm({ requestId, brand, initial }: Props) {
               onClick={() => setDeliverables(preset)}
               className={`rounded-full border px-3 py-1.5 text-sm transition ${deliverables === preset ? "border-ink bg-ink text-paper" : "border-neutral-300 hover:border-neutral-400 dark:border-neutral-700"}`}
             >
-              {preset}
+              {presetLabel(t, preset)}
             </button>
           ))}
         </div>
         <Done onClick={close} />
       </Dialog>
 
-      <Dialog open={sheet === "budget"} onClose={close} title="Budget">
+      <Dialog open={sheet === "budget"} onClose={close} title={t("screens.requests.budget")}>
         <div className="grid grid-cols-2 gap-3">
-          <Euro label="From" value={budgetMin} onChange={setBudgetMin} onEnter={close} autoFocus />
-          <Euro label="To" value={budgetMax} onChange={setBudgetMax} onEnter={close} />
+          <Euro label={t("screens.requests.from")} value={budgetMin} onChange={setBudgetMin} onEnter={close} autoFocus placeholder="200" aria={t("screens.requests.budgetFrom")} />
+          <Euro label={t("screens.requests.to")} value={budgetMax} onChange={setBudgetMax} onEnter={close} placeholder="400" aria={t("screens.requests.budgetTo")} />
         </div>
-        <p className="-mt-2 text-sm text-neutral-500 dark:text-neutral-400">
-          What you&apos;ll pay per creator. Leave &ldquo;To&rdquo; empty for a fixed price.
-        </p>
+        <p className="-mt-2 text-sm text-neutral-500 dark:text-neutral-400">{t("screens.requests.budgetHint")}</p>
         <Done onClick={close} />
       </Dialog>
 
-      <Dialog open={sheet === "postBy"} onClose={close} title="Post by">
+      <Dialog open={sheet === "postBy"} onClose={close} title={t("screens.requests.postBy")}>
         <input
           type="date"
           min={new Date().toISOString().slice(0, 10)}
@@ -298,40 +299,40 @@ export function RequestForm({ requestId, brand, initial }: Props) {
           onChange={(e) => setPostBy(e.target.value)}
           className={input}
         />
-        <p className="-mt-2 text-sm text-neutral-500 dark:text-neutral-400">The day the post should be live by.</p>
+        <p className="-mt-2 text-sm text-neutral-500 dark:text-neutral-400">{t("screens.requests.postByHint")}</p>
         <div className="grid grid-cols-2 gap-3">
           <button
             type="button"
             onClick={() => (setPostBy(""), close())}
             className="rounded-full border border-neutral-300 px-4 py-3 text-sm font-medium transition hover:border-neutral-400 dark:border-neutral-700"
           >
-            No fixed date
+            {t("screens.requests.noFixedDate")}
           </button>
           <Done onClick={close} />
         </div>
       </Dialog>
 
-      <Dialog open={sheet === "category"} onClose={close} title="Product category">
+      <Dialog open={sheet === "category"} onClose={close} title={t("screens.requests.productCategory")}>
         <Options>
           {PRODUCT_CATEGORIES.map((c) => (
             <Option key={c} selected={c === productCategory} onClick={() => (setProductCategory(c), close())}>
-              {c}
+              {categoryLabel(t, c)}
             </Option>
           ))}
         </Options>
       </Dialog>
 
-      <Dialog open={sheet === "niche"} onClose={close} title="Niche">
+      <Dialog open={sheet === "niche"} onClose={close} title={t("screens.requests.niche")}>
         <Options>
           {NICHES.map((n) => (
             <Option key={n} selected={n === niche} onClick={() => (setNiche(n), close())}>
-              {n}
+              {nicheLabel(t, n)}
             </Option>
           ))}
         </Options>
       </Dialog>
 
-      <Dialog open={sheet === "followers"} onClose={close} title="Min. followers">
+      <Dialog open={sheet === "followers"} onClose={close} title={t("screens.requests.minFollowers")}>
         <input
           type="number"
           inputMode="numeric"
@@ -350,15 +351,15 @@ export function RequestForm({ requestId, brand, initial }: Props) {
               onClick={() => setMinFollowers(String(n))}
               className={`rounded-full border px-3 py-1.5 text-sm transition ${Number(minFollowers) === n ? "border-ink bg-ink text-paper" : "border-neutral-300 hover:border-neutral-400 dark:border-neutral-700"}`}
             >
-              {n === 0 ? "Any" : n.toLocaleString("en-US")}
+              {n === 0 ? t("screens.requests.any") : n.toLocaleString(locale)}
             </button>
           ))}
         </div>
-        <p className="-mt-2 text-sm text-neutral-500 dark:text-neutral-400">Creators below this don&apos;t see the request.</p>
+        <p className="-mt-2 text-sm text-neutral-500 dark:text-neutral-400">{t("screens.requests.followersHint")}</p>
         <Done onClick={close} />
       </Dialog>
 
-      <Dialog open={sheet === "languages"} onClose={close} title="Language">
+      <Dialog open={sheet === "languages"} onClose={close} title={t("screens.requests.language")}>
         <Options>
           {LANGUAGES.map((l) => (
             <Option
@@ -369,7 +370,7 @@ export function RequestForm({ requestId, brand, initial }: Props) {
                 setLanguages((prev) => (prev.includes(l) ? (prev.length > 1 ? prev.filter((x) => x !== l) : prev) : [...prev, l]))
               }
             >
-              {l}
+              {contentLanguageLabel(t, l)}
             </Option>
           ))}
         </Options>
@@ -452,9 +453,10 @@ function Option({ selected, onClick, children }: { selected: boolean; onClick: (
 }
 
 function Done({ onClick }: { onClick: () => void }) {
+  const { t } = useI18n();
   return (
     <button type="button" onClick={onClick} className="w-full rounded-full bg-ink px-4 py-3 text-sm font-medium text-paper transition hover:bg-graphite">
-      Done
+      {t("common.done")}
     </button>
   );
 }
@@ -465,12 +467,16 @@ function Euro({
   onChange,
   onEnter,
   autoFocus,
+  placeholder,
+  aria,
 }: {
   label: string;
   value: string;
   onChange: (v: string) => void;
   onEnter: () => void;
   autoFocus?: boolean;
+  placeholder: string;
+  aria: string;
 }) {
   return (
     <div className="relative">
@@ -481,8 +487,8 @@ function Euro({
         onKeyDown={(e) => e.key === "Enter" && onEnter()}
         autoFocus={autoFocus}
         inputMode="decimal"
-        placeholder={label === "From" ? "200" : "400"}
-        aria-label={`Budget ${label.toLowerCase()} (€)`}
+        placeholder={placeholder}
+        aria-label={aria}
         className={`${input} pr-8 pl-12 text-right`}
       />
       <span className="pointer-events-none absolute top-1/2 right-3 -translate-y-1/2 text-sm text-neutral-500 dark:text-neutral-400">€</span>

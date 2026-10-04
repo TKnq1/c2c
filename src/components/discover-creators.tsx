@@ -10,6 +10,8 @@ import { SearchInput } from "@/components/search-input";
 import { CreatorCard } from "@/components/creator-card";
 import { EmptyState } from "@/components/empty-state";
 import { computeRelevanceScore } from "@/lib/relevance";
+import { useI18n } from "@/components/i18n-provider";
+import { contentLanguageLabel, nicheLabel } from "@/lib/i18n/labels";
 
 type CreatorEntry = {
   id: string;
@@ -28,10 +30,10 @@ type CreatorEntry = {
 };
 
 const SORTS = {
-  best: "Best match",
-  followers: "Most followers",
-  rating: "Highest rated",
-  newest: "Newest",
+  best: "screens.discover.bestMatch",
+  followers: "screens.discover.mostFollowers",
+  rating: "screens.discover.highestRated",
+  newest: "screens.discover.newest",
 } as const;
 type SortKey = keyof typeof SORTS;
 
@@ -40,6 +42,7 @@ function maxFollowers(c: CreatorEntry) {
 }
 
 export function DiscoverCreators({ creators }: { creators: CreatorEntry[] }) {
+  const { t } = useI18n();
   const [
     { q: search, niche, platform, language, minFollowers, sort: sortParam, favorites },
     setParam,
@@ -100,29 +103,31 @@ export function DiscoverCreators({ creators }: { creators: CreatorEntry[] }) {
         <SearchInput
           value={search}
           onChange={(e) => setParam("q", e.target.value)}
-          placeholder="Search name, niche, bio…"
-          aria-label="Search creators"
+          placeholder={t("screens.discover.searchCreators")}
+          aria-label={t("screens.discover.searchCreatorsLabel")}
           wrapperClassName="flex-1 min-w-48 lg:col-span-5"
         />
         <MultiSelect
-          label="Niche"
+          label={t("screens.discover.niche")}
           options={NICHES}
           selected={nicheFilters}
           onChange={(vals) => setParam("niche", vals.join(","))}
+          formatOption={(value) => nicheLabel(t, value)}
           wrapperClassName="w-40 lg:w-auto"
         />
         <MultiSelect
-          label="Platform"
+          label={t("screens.discover.platform")}
           options={PLATFORMS}
           selected={platformFilters}
           onChange={(vals) => setParam("platform", vals.join(","))}
           wrapperClassName="w-40 lg:w-auto"
         />
         <MultiSelect
-          label="Language"
+          label={t("screens.discover.language")}
           options={LANGUAGES}
           selected={languages}
           onChange={(vals) => setParam("language", vals.join(","))}
+          formatOption={(value) => contentLanguageLabel(t, value)}
           wrapperClassName="w-40 lg:w-auto"
         />
         <input
@@ -130,26 +135,28 @@ export function DiscoverCreators({ creators }: { creators: CreatorEntry[] }) {
           min={0}
           value={minFollowers}
           onChange={(e) => setParam("minFollowers", e.target.value)}
-          placeholder="Min. followers"
-          aria-label="Minimum followers"
+          placeholder={t("screens.discover.minFollowers")}
+          aria-label={t("screens.discover.minFollowersLabel")}
           className="rounded border border-neutral-300 px-3 py-2.5 w-36 lg:w-auto dark:border-neutral-700"
         />
         <Select
           value={sort}
           onChange={(e) => setParam("sort", e.target.value)}
           wrapperClassName="w-40 lg:w-auto"
-          aria-label="Sort by"
+          aria-label={t("screens.discover.sortBy")}
         >
           {Object.entries(SORTS).map(([key, label]) => (
             <option key={key} value={key}>
-              {label}
+              {t(label)}
             </option>
           ))}
         </Select>
       </div>
 
       <p className="text-sm text-neutral-500 dark:text-neutral-400">
-        {filtered.length} creator{filtered.length === 1 ? "" : "s"}
+        {filtered.length === 1
+          ? t("screens.discover.creatorOne", { count: filtered.length })
+          : t("screens.discover.creatorMany", { count: filtered.length })}
       </p>
 
       <div
@@ -159,9 +166,9 @@ export function DiscoverCreators({ creators }: { creators: CreatorEntry[] }) {
         {filtered.length === 0 ? (
           <EmptyState
             icon={FiSearch}
-            title={favorites === "1" ? "No favorites match your filters." : "No creators match your filters."}
+            title={favorites === "1" ? t("screens.discover.noFavoriteCreators") : t("screens.discover.noCreators")}
             action={{
-              label: "Clear filters",
+              label: t("screens.discover.clearFilters"),
               onClick: () =>
                 setParams({ q: "", niche: "", platform: "", language: "", minFollowers: "", sort: "", favorites: "" }),
             }}

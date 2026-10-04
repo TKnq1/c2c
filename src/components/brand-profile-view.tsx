@@ -13,6 +13,7 @@ import { favoriteStartupAction, unfavoriteStartupAction } from "@/lib/actions/fa
 import { StartConversationAsCreator } from "@/components/start-conversation-as-creator";
 import { BackButton } from "@/components/back-button";
 import { BrandRequestList } from "@/components/brand-request-list";
+import { getLocale, getT } from "@/lib/i18n/server";
 import { ProfileLayout, ProfileSection, ProfileTag } from "@/components/profile-layout";
 import { DEFAULT_NICHE_ICON, NICHE_ICONS } from "@/lib/niche-icons";
 
@@ -81,11 +82,14 @@ export async function BrandProfileView({ id, variant }: { id: string; variant: "
   const interestByRequest = new Map(myInterests.map((i) => [i.requestId, i.id]));
 
   const average = reviews.length ? reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length : 0;
+  const t = await getT();
+  const locale = await getLocale();
   const responseTime = formatResponseTimeShort(
     computeResponseTimeMs(
       conversations.map((c) => c.messages),
       "STARTUP",
     ),
+    locale,
   );
   const NicheIcon = (startup.niche && NICHE_ICONS[startup.niche]) || DEFAULT_NICHE_ICON;
 
@@ -116,37 +120,37 @@ export async function BrandProfileView({ id, variant }: { id: string; variant: "
             </div>
             {myInterests.length === 0 && matchingRequests.length === 0 && (
               <p className="text-xs text-neutral-500 lg:text-center dark:text-neutral-400">
-                You don&apos;t match their open requests yet.
+                {t("screens.discover.noMatchYet")}
               </p>
             )}
           </div>
         }
         stats={[
-          { label: reviews.length ? `${reviews.length} review${reviews.length === 1 ? "" : "s"}` : "Rating", value: reviews.length ? `★ ${average.toFixed(1)}` : "–" },
-          { label: "Collabs done", value: completedCollabs.toLocaleString("en-US") },
-          { label: "Replies in", value: responseTime ?? "–" },
-          { label: "Member since", value: formatMemberSince(startup.user.createdAt) },
+          { label: reviews.length ? (reviews.length === 1 ? t("screens.discover.reviewOne", { count: reviews.length }) : t("screens.discover.reviewMany", { count: reviews.length })) : t("screens.payments.rating"), value: reviews.length ? `★ ${average.toFixed(1)}` : "–" },
+          { label: t("screens.discover.collabsDone"), value: completedCollabs.toLocaleString(locale) },
+          { label: t("screens.discover.repliesIn"), value: responseTime ?? "–" },
+          { label: t("screens.discover.memberSince"), value: formatMemberSince(startup.user.createdAt, locale) },
         ]}
       >
         {startup.description && (
-          <ProfileSection title="About">
+          <ProfileSection title={t("screens.discover.about")}>
             <p className="whitespace-pre-wrap text-sm leading-relaxed text-neutral-700 dark:text-neutral-300">{startup.description}</p>
           </ProfileSection>
         )}
 
         {startup.lookingFor && (
-          <ProfileSection title="What they're looking for">
+          <ProfileSection title={t("screens.discover.lookingFor")}>
             <p className="whitespace-pre-wrap text-sm leading-relaxed text-neutral-700 dark:text-neutral-300">{startup.lookingFor}</p>
           </ProfileSection>
         )}
 
         {(startup.website || startup.socialLinks.length > 0) && (
-          <ProfileSection title="Links">
+          <ProfileSection title={t("screens.discover.links")}>
             <div className="flex flex-wrap gap-2">
               {startup.website && (
                 <a href={startup.website} target="_blank" rel="noopener noreferrer" className={LINK_CHIP}>
                   <PlatformIcon platform="Website" className="h-3.5 w-3.5" />
-                  Website
+                  {t("screens.settings.website")}
                 </a>
               )}
               {startup.socialLinks.map((s) => (
@@ -160,7 +164,7 @@ export async function BrandProfileView({ id, variant }: { id: string; variant: "
         )}
 
         {openRequests.length > 0 && (
-          <ProfileSection title="Open requests" aside={openRequests.length}>
+          <ProfileSection title={t("screens.requests.openRequests")} aside={openRequests.length}>
             <BrandRequestList
               companyName={startup.companyName}
               companyAvatarUrl={startup.avatarUrl}
@@ -186,7 +190,7 @@ export async function BrandProfileView({ id, variant }: { id: string; variant: "
           </ProfileSection>
         )}
 
-        <ProfileSection title="Reviews from creators">
+        <ProfileSection title={t("screens.discover.reviewsCreators")}>
           <ReviewsList reviews={reviews} />
         </ProfileSection>
       </ProfileLayout>

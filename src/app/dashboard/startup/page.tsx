@@ -14,8 +14,10 @@ import { photoUrlsByRequestId, requestPhotoIds } from "@/lib/request-photos";
 import { getUnreadMessageCount } from "@/lib/messages";
 import { OverviewTiles } from "@/components/overview-tiles";
 import { windowStart } from "@/lib/admin-stats";
+import { getT } from "@/lib/i18n/server";
 
 export default async function StartupDashboardPage(props: PageProps<"/dashboard/startup">) {
+  const t = await getT();
   const session = await auth();
   if (!session || session.user.role !== "STARTUP") redirect("/login");
 
@@ -68,37 +70,42 @@ export default async function StartupDashboardPage(props: PageProps<"/dashboard/
           href="/dashboard/startup/new"
           className="rounded-full bg-ink text-paper px-4 py-2 text-sm font-medium hover:bg-graphite transition whitespace-nowrap md:hidden"
         >
-          + New request
+          {t("screens.requests.new")}
         </Link>
       </div>
 
       <OverviewTiles
         tiles={[
           {
-            label: "Interested creators",
+            label: t("screens.requests.interestedCreators"),
             value: interested,
-            hint: interestedThisWeek > 0 ? `${interestedThisWeek} new this week` : "Waiting for an offer",
+            hint: interestedThisWeek > 0 ? t("screens.requests.newThisWeek", { count: interestedThisWeek }) : t("screens.requests.waitingOffer"),
             href: "/dashboard/startup/payments#interested",
             icon: IoPeopleOutline,
           },
           {
-            label: "Unread messages",
+            label: t("screens.requests.unreadMessages"),
             value: unreadMessages,
-            hint: unreadMessages > 0 ? "Reply to keep things moving" : "You're all caught up",
+            hint: unreadMessages > 0 ? t("screens.requests.replyHint") : t("screens.requests.caughtUp"),
             href: "/dashboard/messages",
             icon: IoChatbubblesOutline,
           },
           {
-            label: "Posts to approve",
+            label: t("screens.requests.postsToApprove"),
             value: toApprove,
-            hint: toApprove > 0 ? "Released automatically if you wait" : "Nothing to review",
+            hint: toApprove > 0 ? t("screens.requests.autoRelease") : t("screens.requests.nothingToReview"),
             href: "/dashboard/startup/payments#to-approve",
             icon: IoCheckmarkCircleOutline,
           },
           {
-            label: "Open payments",
+            label: t("screens.requests.openPayments"),
             value: openPayments,
-            hint: toPay > 0 ? `${toPay} accepted, waiting to be paid` : offersToAnswer > 0 ? "Counter-offers to answer" : "Nothing outstanding",
+            hint:
+              toPay > 0
+                ? t("screens.requests.acceptedWaiting", { count: toPay })
+                : offersToAnswer > 0
+                  ? t("screens.requests.counterOffers")
+                  : t("screens.requests.nothingOutstanding"),
             href: toPay > 0 ? "/dashboard/startup/payments#to-pay" : "/dashboard/startup/payments#offers",
             icon: IoWalletOutline,
           },
@@ -113,13 +120,13 @@ export default async function StartupDashboardPage(props: PageProps<"/dashboard/
 
       {requests.length === 0 ? (
         hasAnyRequests ? (
-          <EmptyState icon={FiInbox} title="No requests match this filter." description="Try switching to a different tab above." />
+          <EmptyState icon={FiInbox} title={t("screens.requests.filterEmpty")} description={t("screens.requests.filterEmptyBody")} />
         ) : (
           <EmptyState
             icon={FiInbox}
-            title="No requests yet."
-            description="Post a request so matching creators can find and apply to it."
-            action={{ label: "Create your first request", href: "/dashboard/startup/new" }}
+            title={t("screens.requests.noneYet")}
+            description={t("screens.requests.noneYetBody")}
+            action={{ label: t("screens.requests.createFirst"), href: "/dashboard/startup/new" }}
           />
         )
       ) : (
