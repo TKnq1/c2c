@@ -761,6 +761,72 @@ dialog[data-state="closing"]::backdrop {
   }
 }
 
+/* Launch splash (AppSplash). Hidden unless the inline script in the root
+   layout marked this load with html[data-splash="on"], so without JS it never
+   covers the page. "leaving" is the fade-out, "off" removes it. */
+#app-splash {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  align-items: center;
+  justify-content: center;
+  background: var(--background);
+  transition: opacity 300ms ease-out;
+}
+
+html[data-splash="on"] #app-splash,
+html[data-splash="leaving"] #app-splash {
+  display: flex;
+}
+
+html[data-splash="leaving"] #app-splash {
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* If hydration never happens (script blocked, bundle failed to load), don't
+   leave the page covered for good. */
+html[data-splash="on"] #app-splash {
+  animation: splash-failsafe 0s linear 20s forwards;
+}
+
+@keyframes splash-failsafe {
+  to {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+  }
+}
+
+.app-splash-pop {
+  animation: logo-pop 600ms cubic-bezier(0.34, 1.56, 0.64, 1) both;
+  will-change: transform, opacity;
+}
+
+/* A slow breath once the logo has landed, so a long wait (a database waking
+   up) reads as "loading" and not as a frozen screen. */
+.app-splash-logo {
+  animation: splash-breathe 1400ms ease-in-out 600ms infinite;
+  will-change: transform;
+}
+
+@keyframes splash-breathe {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.07);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .app-splash-pop,
+  .app-splash-logo {
+    animation: none;
+  }
+}
 
 /* Side panels (Discover's profile panel, the notifications panel): slide in
    from the right over a fading backdrop. */
