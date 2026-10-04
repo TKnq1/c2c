@@ -64,7 +64,7 @@ export function PlatformChips({
               type="button"
               onClick={() => toggle(e.platform)}
               aria-label={`Remove ${e.platform}`}
-              className="text-neutral-500 transition hover:text-ink dark:text-neutral-400"
+              className="flex h-11 w-11 items-center justify-center text-neutral-500 transition hover:text-ink dark:text-neutral-400"
             >
               <IoClose className="h-4 w-4" aria-hidden />
             </button>

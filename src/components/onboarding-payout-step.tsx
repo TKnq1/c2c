@@ -29,7 +29,13 @@ export function OnboardingPayoutStep({ onDone, onSkip }: { onDone: () => void; o
           </li>
         ))}
       </ul>
-      <ConnectStripeButton isOnboarded={false} label="Set up payouts" embedClassName="rounded border border-ink/10 bg-paper p-4" onExit={onDone} />
+      <ConnectStripeButton
+        isOnboarded={false}
+        label="Set up payouts"
+        buttonClassName="w-full rounded-full bg-ink px-4 py-3 font-medium text-paper transition hover:bg-graphite disabled:opacity-40"
+        embedClassName="rounded border border-ink/10 bg-paper p-4"
+        onExit={onDone}
+      />
       <SkipButton onClick={onSkip}>I&apos;ll do this later</SkipButton>
     </div>
   );

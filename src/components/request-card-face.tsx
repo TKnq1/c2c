@@ -46,7 +46,7 @@ export function RequestCardFace({ request, photoIndex = 0 }: { request: CardRequ
 
   if (!photo) {
     return (
-      <div className="flex min-h-0 flex-1 flex-col gap-4 px-6 pt-6 pb-8">
+      <div className="flex min-h-0 flex-1 flex-col gap-4 px-6 pt-6 pb-8" style={{ containerType: "size" }}>
         {budget && (
           <p className="flex items-baseline gap-1.5">
             <span className="font-display text-title-2 font-black">{budget}</span>
@@ -56,7 +56,7 @@ export function RequestCardFace({ request, photoIndex = 0 }: { request: CardRequ
         <CardHeader request={request} />
         {/* Fills the space a photo would take instead of leaving it blank. */}
         {request.description && (
-          <p className="line-clamp-[8] min-h-0 overflow-hidden whitespace-pre-line leading-relaxed text-neutral-700 dark:text-neutral-300">
+          <p className="card-blurb line-clamp-[8] min-h-0 overflow-hidden whitespace-pre-line leading-relaxed text-neutral-700 dark:text-neutral-300">
             {request.description}
           </p>
         )}

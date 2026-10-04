@@ -762,6 +762,14 @@ dialog[data-state="closing"]::backdrop {
 }
 
 
+/* A short card (the onboarding tour on a small phone) would squash this
+   into a sliced line. Drop it; the budget, title and chips stay. */
+@container (max-height: 21rem) {
+  .card-blurb {
+    display: none;
+  }
+}
+
 /* Onboarding confetti (Confetti): each piece falls from above the screen,
    drifting sideways and spinning, and ends invisible. */
 .confetti-piece {

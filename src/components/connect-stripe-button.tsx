@@ -41,11 +41,13 @@ export function ConnectStripeButton({
   isOnboarded,
   label = isOnboarded ? "Update payout details" : "Connect Stripe to receive payouts",
   embedClassName = "rounded bg-paper p-4",
+  buttonClassName = "self-start rounded-full bg-ink px-4 py-2.5 text-sm font-medium text-paper transition hover:bg-graphite disabled:opacity-50",
   onExit,
 }: {
   isOnboarded: boolean;
   label?: string;
   embedClassName?: string;
+  buttonClassName?: string;
   // Replaces the page refresh when the embedded form is closed, for a caller
   // (the onboarding wizard) that a refresh would move away from.
   onExit?: () => void;
@@ -100,7 +102,7 @@ export function ConnectStripeButton({
       <button
         type="button"
         onClick={handleOpen}
-        className="rounded-full bg-ink text-paper px-4 py-2.5 text-sm font-medium hover:bg-graphite transition disabled:opacity-50 self-start"
+        className={buttonClassName}
       >
         {label}
       </button>

@@ -165,7 +165,7 @@ export function SkipButton({ onClick, children = "Skip for now" }: { onClick: ()
     <button
       type="button"
       onClick={onClick}
-      className="self-center text-sm text-neutral-500 transition hover:text-ink dark:text-neutral-400"
+      className="self-center px-3 py-2 text-sm text-neutral-500 transition hover:text-ink dark:text-neutral-400"
     >
       {children}
     </button>

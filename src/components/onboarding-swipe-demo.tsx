@@ -83,8 +83,15 @@ export function OnboardingSwipeDemo({ active, onNext, onSkip }: { active: boolea
         description="Right if you're interested, left to pass. Try it on this example."
       />
 
-      <div className="relative">
-        <div ref={deckRef} className="relative mx-auto h-[min(460px,56dvh)] w-full max-w-[340px]">
+      <div className="relative mx-auto w-full max-w-[340px] pt-3">
+        {/* On the card, not behind it: the card paints at z-10, so a label
+            tucked under its top edge only showed as a sliver. The height
+            gives the heading, the buttons and "Skip the tour" room on a
+            short phone instead of pushing them past the fold. */}
+        <span className="absolute top-0 left-1/2 z-20 -translate-x-1/2 -translate-y-1/2 rounded-full bg-ink px-3 py-1 text-xs font-medium text-paper">
+          Example
+        </span>
+        <div ref={deckRef} className="relative h-[min(460px,calc(100dvh-23.5rem))] w-full">
           <SwipeCard
             ref={cardRef}
             request={EXAMPLE}
@@ -93,9 +100,6 @@ export function OnboardingSwipeDemo({ active, onNext, onSkip }: { active: boolea
             onTap={nudge}
           />
         </div>
-        <span className="absolute -top-2 left-1/2 -translate-x-1/2 rounded-full bg-ink px-3 py-1 text-xs font-medium text-paper">
-          Example
-        </span>
       </div>
 
       <div className="flex items-center justify-center gap-6">
