@@ -141,7 +141,7 @@ export function RequestForm({ requestId, brand, initial }: Props) {
     <>
       <form onSubmit={handleSubmit} className="grid grid-cols-[minmax(0,1fr)] gap-8 md:grid-cols-[minmax(0,1fr)_300px] md:items-start">
         <div className="flex flex-col gap-8 md:col-start-1">
-          <Section title="Photos" hint="Up to 5. The first one is the cover.">
+          <Section title="Photos" hint="Up to 5. Hold and drag to reorder. The first one is the cover.">
             <RequestPhotosInput photos={photos} onChange={setPhotos} />
           </Section>
 
