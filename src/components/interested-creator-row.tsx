@@ -9,6 +9,8 @@ import { CollabStatus } from "@/components/collab-status";
 import type { PaymentStage } from "@/components/payment-status-badge";
 import { useUndoableAction } from "@/lib/use-undoable-action";
 import { formatFollowers } from "@/lib/format";
+import { useI18n } from "@/components/i18n-provider";
+import { nicheLabel } from "@/lib/i18n/labels";
 
 type Props = {
   id: string;
@@ -45,6 +47,7 @@ export function InterestedCreatorRow({
   selected,
   onToggleSelect,
 }: Props) {
+  const { t } = useI18n();
   const { pending, trigger } = useUndoableAction(async () => {
     await rejectInterestAction(id);
   });
@@ -58,7 +61,7 @@ export function InterestedCreatorRow({
           type="checkbox"
           checked={!!selected}
           onChange={onToggleSelect}
-          aria-label={`Select ${displayName}`}
+          aria-label={t("screens.requests.select", { title: displayName })}
           className="h-4 w-4 mt-1 shrink-0 appearance-none rounded border border-neutral-300 bg-white checked:border-neutral-900 checked:bg-neutral-900 transition dark:border-neutral-600 dark:bg-neutral-800 dark:checked:border-white dark:checked:bg-white"
         />
       )}
@@ -66,7 +69,7 @@ export function InterestedCreatorRow({
       <div className="flex-1 min-w-0">
         <p className="font-medium">{displayName}</p>
         <p className="text-sm text-neutral-500 flex flex-wrap items-center gap-x-1.5 gap-y-1 dark:text-neutral-400">
-          <span>{niche} ·</span>
+          <span>{nicheLabel(t, niche)} ·</span>
           {platforms.map((p) => (
             <span key={p.platform} className="inline-flex items-center gap-1">
               <PlatformIcon platform={p.platform} className="h-3.5 w-3.5" />
@@ -79,7 +82,7 @@ export function InterestedCreatorRow({
             href={`/dashboard/messages/${id}`}
             className="rounded-full bg-ink text-paper px-3 py-1 text-xs font-medium hover:bg-graphite transition"
           >
-            Message
+            {t("screens.messages.message")}
           </Link>
           <a href={`mailto:${email}`} className="underline text-neutral-500 dark:text-neutral-400">
             {email}
@@ -96,10 +99,10 @@ export function InterestedCreatorRow({
         />
         <button
           type="button"
-          onClick={() => trigger("Creator removed.", "Creator restored.")}
+          onClick={() => trigger(t("screens.ui.creatorRemoved"), t("screens.ui.creatorRestored"))}
           className="mt-2 block text-xs text-neutral-400 hover:text-ink transition dark:text-neutral-500"
         >
-          Not a fit? Remove
+          {t("screens.ui.notAFit")}
         </button>
       </div>
     </div>

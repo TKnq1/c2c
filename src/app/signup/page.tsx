@@ -5,6 +5,7 @@ import { Logo } from "@/components/logo";
 import { ImprintLink } from "@/components/imprint-link";
 import { canonical } from "@/lib/seo";
 import { parseSignupRole } from "@/lib/signup-role";
+import { getT } from "@/lib/i18n/server";
 
 export const metadata: Metadata = {
   title: "Sign up",
@@ -15,6 +16,7 @@ export const metadata: Metadata = {
 // ?role=creator or ?role=brand comes from the landing page, which knows which
 // side the visitor was looking at (see SignupLink).
 export default async function SignupPage(props: PageProps<"/signup">) {
+  const t = await getT();
   const initialRole = parseSignupRole((await props.searchParams).role);
 
   return (
@@ -24,24 +26,24 @@ export default async function SignupPage(props: PageProps<"/signup">) {
           <Logo large />
         </div>
         <div className="text-center">
-          <h1 className="font-display text-title-1 font-bold">Create your account</h1>
-          <p className="text-sm text-neutral-600 mt-1 dark:text-neutral-400">Get started as a brand or a creator.</p>
+          <h1 className="font-display text-title-1 font-bold">{t("screens.ui.createAccount")}</h1>
+          <p className="text-sm text-neutral-600 mt-1 dark:text-neutral-400">{t("screens.ui.getStarted")}</p>
         </div>
         <SignupForm initialRole={initialRole} />
         <p className="text-sm text-center text-neutral-600 dark:text-neutral-400">
-          Already have an account?{" "}
+          {t("screens.ui.alreadyAccount")}{" "}
           <Link href="/login" className="font-medium text-neutral-900 underline dark:text-neutral-100">
-            Log in
+            {t("screens.auth.logIn")}
           </Link>
         </p>
         <p className="text-xs text-center text-neutral-400 dark:text-neutral-500">
-          By signing up you agree to our{" "}
+          {t("screens.ui.agreeLead")}{" "}
           <Link href="/legal/terms" className="underline">
-            Terms
+            {t("screens.settings.terms")}
           </Link>{" "}
-          and{" "}
+          {t("screens.ui.andWord")}{" "}
           <Link href="/legal/privacy" className="underline">
-            Privacy Policy
+            {t("screens.settings.privacy")}
           </Link>
           .
         </p>

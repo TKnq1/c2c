@@ -3,6 +3,7 @@
 import { useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { IoClose, IoOpenOutline } from "react-icons/io5";
+import { useI18n } from "@/components/i18n-provider";
 
 // A route shown as a panel from the right over the page it was opened from
 // (an intercepted route, see discover/@panel). Closing goes back in
@@ -18,6 +19,7 @@ export function SidePanel({
   fullPageHref?: string;
   children: React.ReactNode;
 }) {
+  const { t } = useI18n();
   const router = useRouter();
   const panelRef = useRef<HTMLDivElement>(null);
 
@@ -50,13 +52,13 @@ export function SidePanel({
               className="flex h-10 items-center gap-1.5 rounded-full px-3 text-sm text-neutral-500 transition hover:bg-fog hover:text-ink dark:text-neutral-400"
             >
               <IoOpenOutline className="h-4 w-4" aria-hidden />
-              Open full page
+              {t("screens.ui.openFullPage")}
             </a>
           )}
           <button
             type="button"
             onClick={() => router.back()}
-            aria-label="Close"
+            aria-label={t("common.close")}
             className="flex h-10 w-10 items-center justify-center rounded-full transition hover:bg-fog"
           >
             <IoClose className="h-5 w-5" aria-hidden />

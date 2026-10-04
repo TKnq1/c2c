@@ -8,8 +8,11 @@ import { computeResponseTimeMs, formatResponseTime } from "@/lib/response-time";
 import { DiscoverCreators } from "@/components/discover-creators";
 import { FavoritesOnlyToggle } from "@/components/favorites-only-toggle";
 import { SkeletonTileGrid } from "@/components/skeleton";
+import { getLocale, getT } from "@/lib/i18n/server";
 
 export default async function DiscoverCreatorsPage() {
+  const t = await getT();
+  const locale = await getLocale();
   const session = await auth();
   if (!session || session.user.role !== "STARTUP") redirect("/login");
 
@@ -77,7 +80,7 @@ export default async function DiscoverCreatorsPage() {
       isFavorited: favoritedCreatorIds.has(c.id),
       createdAt: c.createdAt.getTime(),
       responseTimeMs,
-      responseTimeLabel: formatResponseTime(responseTimeMs),
+      responseTimeLabel: formatResponseTime(responseTimeMs, locale),
     };
   });
 
@@ -85,7 +88,7 @@ export default async function DiscoverCreatorsPage() {
     <div className="page-wide flex flex-col gap-6">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h1 className="font-display text-title-1 font-bold">Discover Creators</h1>
+          <h1 className="font-display text-title-1 font-bold">{t("screens.discover.creators")}</h1>
           <p className="text-sm text-neutral-600 mt-1 dark:text-neutral-400">
             Browse creators across every niche and filter down to the right fit.
           </p>

@@ -6,6 +6,7 @@ import { ConfirmActionButton } from "@/components/confirm-action-button";
 import { LocalDate } from "@/components/local-date";
 import { formatCents } from "@/lib/format";
 import { PLATFORM_FEE_RATE, PRO_PLATFORM_FEE_RATE, PRO_SUBSCRIPTION_PRICE_CENTS } from "@/lib/constants";
+import { useI18n } from "@/components/i18n-provider";
 
 // The contents of the Plan card on brand Settings (the card itself is the
 // section's, see SettingsSection).
@@ -20,6 +21,7 @@ export function ProPlanCard({
   // plan without any upgrade offer.
   canPurchase: boolean;
 }) {
+  const { t } = useI18n();
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -27,7 +29,7 @@ export function ProPlanCard({
     setPending(true);
     setError(null);
     const result = await createProCheckoutSessionAction().catch(() => ({
-      error: "Couldn't reach the server. Check your connection and try again.",
+      error: t("screens.settings.serverUnreachable"),
     }));
     if ("error" in result) {
       setError(result.error);
@@ -41,28 +43,34 @@ export function ProPlanCard({
     return (
       <div className="flex flex-col gap-2">
         <div className="flex items-center justify-between gap-2">
-          <p className="font-medium">Pro plan</p>
-          <span className="whitespace-nowrap rounded-full bg-ink px-2.5 py-1 text-xs font-medium text-paper">Active</span>
+          <p className="font-medium">{t("screens.settings.proPlan")}</p>
+          <span className="whitespace-nowrap rounded-full bg-ink px-2.5 py-1 text-xs font-medium text-paper">{t("screens.settings.active")}</span>
         </div>
         <p className="text-sm text-neutral-600 dark:text-neutral-400">
-          {PRO_PLATFORM_FEE_RATE * 100}% platform fee instead of {PLATFORM_FEE_RATE * 100}%, for{" "}
-          {formatCents(PRO_SUBSCRIPTION_PRICE_CENTS)}/month.
+          {t("screens.settings.proFee", {
+            pro: PRO_PLATFORM_FEE_RATE * 100,
+            standard: PLATFORM_FEE_RATE * 100,
+            price: formatCents(PRO_SUBSCRIPTION_PRICE_CENTS),
+          })}
           {proSince && (
             <>
-              {" "}Pro since <LocalDate ms={proSince.getTime()} />.
+              {" "}
+              {t("screens.settings.proSince", { date: "\u0000" }).split("\u0000")[0]}
+              <LocalDate ms={proSince.getTime()} />
+              {t("screens.settings.proSince", { date: "\u0000" }).split("\u0000")[1]}
             </>
           )}
         </p>
         <ConfirmActionButton
           action={cancelProAction}
-          successMessage="Pro cancelled. You're back on the standard rate."
-          title="Cancel Pro?"
-          description={`Your fee goes back to ${PLATFORM_FEE_RATE * 100}% right away. The rest of this billing period isn't refunded.`}
-          confirmLabel="Cancel Pro"
-          pendingLabel="Cancelling…"
+          successMessage={t("screens.settings.proCancelled")}
+          title={t("screens.settings.cancelProTitle")}
+          description={t("screens.settings.cancelProBody", { rate: PLATFORM_FEE_RATE * 100 })}
+          confirmLabel={t("screens.settings.cancelPro")}
+          pendingLabel={t("screens.settings.cancelling")}
           className="self-start text-sm text-neutral-500 transition hover:text-ink dark:text-neutral-400"
         >
-          Cancel Pro
+          {t("screens.settings.cancelPro")}
         </ConfirmActionButton>
       </div>
     );
@@ -72,12 +80,10 @@ export function ProPlanCard({
     return (
       <div className="flex flex-col gap-2">
         <div className="flex items-center justify-between gap-2">
-          <p className="font-medium">Standard plan</p>
-          <span className="text-xs text-neutral-500 dark:text-neutral-400">{PLATFORM_FEE_RATE * 100}% per payment</span>
+          <p className="font-medium">{t("screens.settings.standardPlan")}</p>
+          <span className="text-xs text-neutral-500 dark:text-neutral-400">{t("screens.settings.perPayment", { rate: PLATFORM_FEE_RATE * 100 })}</span>
         </div>
-        <p className="text-sm text-neutral-600 dark:text-neutral-400">
-          A {PLATFORM_FEE_RATE * 100}% platform fee is included in every payment you send.
-        </p>
+        <p className="text-sm text-neutral-600 dark:text-neutral-400">{t("screens.settings.standardFee", { rate: PLATFORM_FEE_RATE * 100 })}</p>
       </div>
     );
   }
@@ -85,13 +91,16 @@ export function ProPlanCard({
   return (
     <div className="flex flex-col gap-2">
       <div className="flex items-center justify-between gap-2">
-        <p className="font-medium">Standard plan</p>
-        <span className="text-xs text-neutral-500 dark:text-neutral-400">{PLATFORM_FEE_RATE * 100}% per payment</span>
+        <p className="font-medium">{t("screens.settings.standardPlan")}</p>
+        <span className="text-xs text-neutral-500 dark:text-neutral-400">{t("screens.settings.perPayment", { rate: PLATFORM_FEE_RATE * 100 })}</span>
       </div>
       <p className="text-sm text-neutral-600 dark:text-neutral-400">
-        Pay {formatCents(PRO_SUBSCRIPTION_PRICE_CENTS)}/month to drop your platform fee from {PLATFORM_FEE_RATE * 100}%
-        to {PRO_PLATFORM_FEE_RATE * 100}% on every payment. Worth it once you&apos;re paying creators more than about{" "}
-        {formatCents(Math.round(PRO_SUBSCRIPTION_PRICE_CENTS / (PLATFORM_FEE_RATE - PRO_PLATFORM_FEE_RATE)))} a month.
+        {t("screens.settings.proPitch", {
+          price: formatCents(PRO_SUBSCRIPTION_PRICE_CENTS),
+          standard: PLATFORM_FEE_RATE * 100,
+          pro: PRO_PLATFORM_FEE_RATE * 100,
+          breakEven: formatCents(Math.round(PRO_SUBSCRIPTION_PRICE_CENTS / (PLATFORM_FEE_RATE - PRO_PLATFORM_FEE_RATE))),
+        })}
       </p>
       <button
         type="button"
@@ -99,7 +108,7 @@ export function ProPlanCard({
         disabled={pending}
         className="mt-1 w-full rounded-full bg-ink px-4 py-2.5 text-sm font-medium text-paper transition hover:bg-graphite disabled:opacity-50 sm:w-auto sm:self-start"
       >
-        {pending ? "Redirecting…" : `Go Pro for ${formatCents(PRO_SUBSCRIPTION_PRICE_CENTS)}/month`}
+        {pending ? t("screens.settings.redirecting") : t("screens.settings.goPro", { price: formatCents(PRO_SUBSCRIPTION_PRICE_CENTS) })}
       </button>
       {error && <p className="text-sm text-ink">{error}</p>}
     </div>

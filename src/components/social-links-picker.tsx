@@ -4,6 +4,7 @@ import { useState } from "react";
 import { PLATFORMS } from "@/lib/constants";
 import { Select } from "@/components/select";
 import { PlatformIcon } from "@/components/platform-icons";
+import { useI18n } from "@/components/i18n-provider";
 
 type SocialLinkEntry = { platform: string; url: string };
 
@@ -14,6 +15,7 @@ export function SocialLinksPicker({
   name: string;
   initial?: SocialLinkEntry[];
 }) {
+  const { t } = useI18n();
   const [entries, setEntries] = useState<SocialLinkEntry[]>(initial);
   const [selectedPlatform, setSelectedPlatform] = useState("");
   const [url, setUrl] = useState("");
@@ -52,7 +54,7 @@ export function SocialLinksPicker({
                 onClick={() => removeEntry(e.platform)}
                 className="text-sm text-neutral-500 hover:text-ink transition shrink-0 dark:text-neutral-400"
               >
-                Remove
+                {t("common.remove")}
               </button>
             </div>
           ))}
@@ -66,7 +68,7 @@ export function SocialLinksPicker({
             onChange={(e) => setSelectedPlatform(e.target.value)}
             wrapperClassName="w-40 shrink-0"
           >
-            <option value="">Platform</option>
+            <option value="">{t("screens.settings.platform")}</option>
             {available.map((p) => (
               <option key={p} value={p}>
                 {p}
@@ -76,7 +78,7 @@ export function SocialLinksPicker({
           <input
             type="url"
             placeholder="https://…"
-            aria-label="Profile URL"
+            aria-label={t("screens.settings.profileUrl")}
             value={url}
             onChange={(e) => setUrl(e.target.value)}
             className="rounded border border-neutral-300 px-3 py-2.5 flex-1 min-w-0 dark:border-neutral-700"
@@ -87,7 +89,7 @@ export function SocialLinksPicker({
             disabled={!selectedPlatform || url.trim() === ""}
             className="rounded-full border border-neutral-300 px-4 py-2 text-sm font-medium hover:border-neutral-400 transition disabled:opacity-50 whitespace-nowrap dark:border-neutral-700 dark:hover:bg-neutral-800/50"
           >
-            + Add
+            + {t("screens.settings.add")}
           </button>
         </div>
       )}

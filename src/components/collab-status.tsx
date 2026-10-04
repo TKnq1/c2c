@@ -1,7 +1,10 @@
+"use client";
+
 import Link from "next/link";
 import type { DepositStatus } from "@prisma/client";
 import { PaymentStatusBadge, type PaymentStage } from "@/components/payment-status-badge";
 import { DepositStatusBadge } from "@/components/deposit-status-badge";
+import { useI18n } from "@/components/i18n-provider";
 import { formatCents } from "@/lib/format";
 
 type Props = {
@@ -27,10 +30,11 @@ export function CollabStatus({
   hasReview,
   paymentsHref,
 }: Props) {
+  const { t } = useI18n();
   if (paymentStage === null && depositStatus === null) {
     return (
       <Link href={paymentsHref} className="text-xs text-neutral-500 hover:underline mt-2 inline-block dark:text-neutral-400">
-        No offer sent yet. Send one
+        {t("screens.ui.noOfferYet")}
       </Link>
     );
   }
@@ -48,34 +52,36 @@ export function CollabStatus({
         <div className="flex items-center gap-2 text-xs">
           <PaymentStatusBadge status={paymentStage} />
           <span className="text-neutral-500 dark:text-neutral-400">
-            {paymentStage === "OFFERED" && `${amount} offered, awaiting response`}
+            {paymentStage === "OFFERED" && t("screens.ui.offeredAwaiting", { amount })}
             {paymentStage === "ACCEPTED" && (
               <>
-                {amount} accepted · {actionLink("Pay to hold it in escrow")}
+                {t("screens.ui.accepted", { amount })} · {actionLink(t("screens.ui.payEscrow"))}
               </>
             )}
             {paymentStage === "HELD" &&
-              `${amount} paid · ${payoutCents !== null ? formatCents(payoutCents) : ""} to creator once they post and you approve`}
+              t("screens.ui.heldUntil", { amount, payout: payoutCents !== null ? formatCents(payoutCents) : "" })}
             {paymentStage === "SUBMITTED" && (
               <>
-                {amount} paid · post submitted · {actionLink("Approve it")}
+                {t("screens.ui.paidSubmitted", { amount })} · {actionLink(t("screens.ui.approveIt"))}
               </>
             )}
-            {paymentStage === "DISPUTED" && `${amount} paid · on hold while we review the problem you reported`}
+            {paymentStage === "DISPUTED" && t("screens.ui.disputed", { amount })}
             {paymentStage === "RELEASED" && (
               <>
-                {amount} paid
-                {!hasReview && <> · {actionLink("Leave a review")}</>}
+                {t("screens.ui.paid", { amount })}
+                {!hasReview && <> · {actionLink(t("screens.ui.leaveReview"))}</>}
               </>
             )}
-            {paymentStage === "REFUNDED" && `${amount} refunded to you`}
+            {paymentStage === "REFUNDED" && t("screens.ui.refundedYou", { amount })}
           </span>
         </div>
       )}
       {depositStatus !== null && (
         <div className="flex items-center gap-2 text-xs">
           <DepositStatusBadge status={depositStatus} />
-          <span className="text-neutral-500 dark:text-neutral-400">{formatCents(depositCents!)} deposit</span>
+          <span className="text-neutral-500 dark:text-neutral-400">
+            {t("screens.ui.depositWord", { amount: formatCents(depositCents!) })}
+          </span>
         </div>
       )}
     </div>

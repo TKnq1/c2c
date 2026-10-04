@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { SignupForm, type SignupRole } from "@/components/signup-form";
 import { LoginForm } from "@/components/login-form";
+import { useI18n } from "@/components/i18n-provider";
 
 type Props = {
   role: SignupRole;
@@ -11,6 +12,7 @@ type Props = {
 };
 
 export function AuthPanel({ role, onRoleChange }: Props) {
+  const { t } = useI18n();
   const [mode, setMode] = useState<"signup" | "login">("signup");
 
   return (
@@ -25,7 +27,7 @@ export function AuthPanel({ role, onRoleChange }: Props) {
               : "border-transparent text-neutral-500 hover:text-ink dark:text-neutral-400"
           }`}
         >
-          Sign up
+          {t("screens.auth.signUp")}
         </button>
         <button
           type="button"
@@ -36,27 +38,25 @@ export function AuthPanel({ role, onRoleChange }: Props) {
               : "border-transparent text-neutral-500 hover:text-ink dark:text-neutral-400"
           }`}
         >
-          Log in
+          {t("screens.auth.logIn")}
         </button>
       </div>
 
       {mode === "signup" ? (
         <>
           <div>
-            <h2 className="font-display text-title-2 font-bold">Create your account</h2>
-            <p className="text-sm text-neutral-600 mt-1 dark:text-neutral-400">
-              Get started as a brand or a creator.
-            </p>
+            <h2 className="font-display text-title-2 font-bold">{t("screens.ui.createAccount")}</h2>
+            <p className="text-sm text-neutral-600 mt-1 dark:text-neutral-400">{t("screens.ui.getStarted")}</p>
           </div>
           <SignupForm role={role} onRoleChange={onRoleChange} />
           <p className="text-xs text-center text-neutral-400 dark:text-neutral-500">
-            By signing up you agree to our{" "}
+            {t("screens.ui.agreeLead")}{" "}
             <Link href="/legal/terms" className="underline">
-              Terms
+              {t("screens.settings.terms")}
             </Link>{" "}
-            and{" "}
+            {t("screens.ui.andWord")}{" "}
             <Link href="/legal/privacy" className="underline">
-              Privacy Policy
+              {t("screens.settings.privacy")}
             </Link>
             .
           </p>
@@ -64,15 +64,15 @@ export function AuthPanel({ role, onRoleChange }: Props) {
       ) : (
         <>
           <div>
-            <h2 className="font-display text-title-2 font-bold">Welcome back</h2>
-            <p className="text-sm text-neutral-600 mt-1 dark:text-neutral-400">Log in to your account.</p>
+            <h2 className="font-display text-title-2 font-bold">{t("screens.auth.welcome")}</h2>
+            <p className="text-sm text-neutral-600 mt-1 dark:text-neutral-400">{t("screens.auth.loginHint")}</p>
           </div>
           <LoginForm />
           <Link
             href="/forgot-password"
             className="text-sm text-center font-medium text-neutral-900 underline dark:text-neutral-100"
           >
-            Forgot password?
+            {t("screens.auth.forgot")}
           </Link>
         </>
       )}

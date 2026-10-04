@@ -7,6 +7,7 @@ import { Dialog } from "@/components/dialog";
 import { toast } from "@/lib/toast";
 import { errorMessage } from "@/lib/error-message";
 import { RELEASE_REVIEW_DAYS } from "@/lib/constants";
+import { useI18n } from "@/components/i18n-provider";
 
 // The creator's side of the approval step: the link to their post, which
 // the brand then approves (or not) within RELEASE_REVIEW_DAYS.
@@ -21,6 +22,7 @@ export function SubmitPostForm({
   defaultUrl?: string;
   onDone?: () => void;
 }) {
+  const { t } = useI18n();
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
@@ -41,11 +43,11 @@ export function SubmitPostForm({
             result = { error: errorMessage(err) };
           }
           if (result?.success) {
-            toast.success(`Post submitted. ${brandName} has ${RELEASE_REVIEW_DAYS} days to approve it.`);
+            toast.success(t("screens.payments.copy.postSubmittedToast", { name: brandName, days: RELEASE_REVIEW_DAYS }));
             onDone?.();
             router.refresh();
           } else {
-            setError(result?.error ?? "Something went wrong.");
+            setError(result?.error ?? t("screens.payments.copy.somethingWrong"));
           }
         });
       }}
@@ -59,7 +61,7 @@ export function SubmitPostForm({
         required
         defaultValue={defaultUrl}
         placeholder="https://www.tiktok.com/@you/video/…"
-        aria-label="Link to your post"
+        aria-label={t("screens.payments.copy.linkToPost")}
         className="rounded border border-neutral-300 bg-transparent px-3 py-2.5 text-base outline-none focus:border-neutral-500 md:text-sm dark:border-neutral-700"
       />
       {error && <p className="text-sm text-ink">{error}</p>}
@@ -68,7 +70,7 @@ export function SubmitPostForm({
         disabled={pending}
         className="rounded-full bg-ink px-4 py-2.5 text-sm font-medium text-paper transition hover:bg-graphite disabled:opacity-50 sm:self-start"
       >
-        {pending ? "Submitting…" : defaultUrl ? "Update link" : "Submit post"}
+        {pending ? t("screens.payments.copy.submitting") : defaultUrl ? t("screens.payments.copy.updateLink") : t("screens.payments.copy.submitPost")}
       </button>
     </form>
   );
@@ -89,17 +91,18 @@ export function SubmitPostButton({
   label: string;
   className: string;
 }) {
+  const { t } = useI18n();
   const [open, setOpen] = useState(false);
   return (
     <>
       <button type="button" onClick={() => setOpen(true)} className={className}>
         {label}
       </button>
-      <Dialog open={open} onClose={() => setOpen(false)} title={defaultUrl ? "Update your post link" : "Submit your post"}>
+      <Dialog open={open} onClose={() => setOpen(false)} title={defaultUrl ? t("screens.payments.copy.updateLinkTitle") : t("screens.payments.copy.submitPostTitle")}>
         <p className="text-sm text-neutral-600 dark:text-neutral-400">
           {defaultUrl
-            ? `${brandName} gets a fresh ${RELEASE_REVIEW_DAYS} days to check the new link.`
-            : `Paste the link to your live post. ${brandName} has ${RELEASE_REVIEW_DAYS} days to approve it or report a problem. If they don't respond, the payment is released to you automatically.`}
+            ? t("screens.payments.copy.freshDays", { name: brandName, days: RELEASE_REVIEW_DAYS })
+            : t("screens.payments.copy.pasteLink", { name: brandName, days: RELEASE_REVIEW_DAYS })}
         </p>
         <SubmitPostForm
           interestId={interestId}

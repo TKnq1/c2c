@@ -6,8 +6,11 @@ import {
   confirmTwoFactorEnrollmentAction,
   disableTwoFactorAction,
 } from "@/lib/actions/two-factor";
+import { useI18n } from "@/components/i18n-provider";
+import { localizeError } from "@/lib/i18n/labels";
 
 export function TwoFactorSettings({ initialEnabled }: { initialEnabled: boolean }) {
+  const { t } = useI18n();
   const [confirmState, confirmFormAction, confirmPending] = useActionState(
     confirmTwoFactorEnrollmentAction,
     undefined,
@@ -25,13 +28,10 @@ export function TwoFactorSettings({ initialEnabled }: { initialEnabled: boolean 
   if (confirmState?.success && confirmState.recoveryCodes && !acknowledged) {
     return (
       <div className="flex flex-col gap-3">
-        <p className="text-sm font-medium text-ink">Two-factor authentication is now enabled.</p>
+        <p className="text-sm font-medium text-ink">{t("screens.settings.twoFactorOn")}</p>
         <div className="rounded bg-paper p-3">
-          <p className="text-sm text-ink font-medium">Save your recovery codes</p>
-          <p className="text-xs text-graphite mt-1">
-            Each code works once, if you ever lose access to your authenticator app. They won&apos;t be shown
-            again.
-          </p>
+          <p className="text-sm text-ink font-medium">{t("screens.settings.saveCodes")}</p>
+          <p className="text-xs text-graphite mt-1">{t("screens.settings.saveCodesHint")}</p>
           <div className="grid grid-cols-2 gap-1.5 mt-3 font-mono text-sm">
             {confirmState.recoveryCodes.map((c) => (
               <span key={c} className="rounded-lg border border-ink/10 bg-paper px-2 py-1 text-center">
@@ -45,7 +45,7 @@ export function TwoFactorSettings({ initialEnabled }: { initialEnabled: boolean 
           onClick={() => setAcknowledged(true)}
           className="self-start rounded-full bg-ink px-4 py-2.5 text-sm font-medium text-paper transition hover:bg-graphite"
         >
-          I&apos;ve saved these
+          {t("screens.settings.savedCodes")}
         </button>
       </div>
     );
@@ -56,15 +56,14 @@ export function TwoFactorSettings({ initialEnabled }: { initialEnabled: boolean 
       return (
         <div className="flex items-center justify-between gap-3">
           <p className="text-sm text-neutral-700 dark:text-neutral-300">
-            <span className="text-ink font-medium">Enabled</span>. An authenticator app is required at
-            login.
+            <span className="text-ink font-medium">{t("screens.settings.enabled")}</span>. {t("screens.settings.twoFactorEnabled")}
           </p>
           <button
             type="button"
             onClick={() => setShowDisableForm(true)}
             className="text-xs text-neutral-400 hover:text-ink transition shrink-0 dark:text-neutral-500"
           >
-            Disable
+            {t("screens.settings.disable")}
           </button>
         </div>
       );
@@ -72,7 +71,7 @@ export function TwoFactorSettings({ initialEnabled }: { initialEnabled: boolean 
     return (
       <form action={disableFormAction} className="flex flex-col gap-2">
         <label htmlFor="disable2faPassword" className="text-sm font-medium">
-          Enter your password to disable 2FA
+          {t("screens.settings.disablePassword")}
         </label>
         <input
           id="disable2faPassword"
@@ -81,21 +80,21 @@ export function TwoFactorSettings({ initialEnabled }: { initialEnabled: boolean 
           required
           className="rounded border border-neutral-300 px-3 py-2.5 dark:border-neutral-700"
         />
-        {disableState?.error && <p className="text-sm text-ink">{disableState.error}</p>}
+        {disableState?.error && <p className="text-sm text-ink">{localizeError(disableState.error, t)}</p>}
         <div className="flex items-center gap-2">
           <button
             type="submit"
             disabled={disablePending}
             className="rounded-full bg-ink px-4 py-2.5 text-sm font-medium text-paper transition hover:bg-graphite disabled:opacity-50"
           >
-            {disablePending ? "Disabling…" : "Disable 2FA"}
+            {disablePending ? t("screens.settings.disabling") : t("screens.settings.disable2fa")}
           </button>
           <button
             type="button"
             onClick={() => setShowDisableForm(false)}
             className="text-sm text-neutral-500 hover:text-neutral-800 transition dark:text-neutral-400 dark:hover:text-neutral-200"
           >
-            Cancel
+            {t("common.cancel")}
           </button>
         </div>
       </form>
@@ -106,15 +105,14 @@ export function TwoFactorSettings({ initialEnabled }: { initialEnabled: boolean 
     return (
       <form action={confirmFormAction} className="flex flex-col gap-3">
         <p className="text-sm text-neutral-600 dark:text-neutral-400">
-          Scan this with an authenticator app (Google Authenticator, Authy, 1Password, …), or enter the key
-          manually.
+          {t("screens.settings.scanHint")}
         </p>
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={enrollData.qrDataUrl} alt="Two-factor authentication QR code" className="w-40 h-40 self-start" />
+        <img src={enrollData.qrDataUrl} alt={t("screens.settings.qrAlt")} className="w-40 h-40 self-start" />
         <p className="text-xs text-neutral-500 font-mono break-all dark:text-neutral-400">{enrollData.secret}</p>
         <div className="flex flex-col gap-1">
           <label htmlFor="totpCode" className="text-sm font-medium">
-            Enter the 6-digit code to confirm
+            {t("screens.settings.enterCode")}
           </label>
           <input
             id="totpCode"
@@ -128,21 +126,21 @@ export function TwoFactorSettings({ initialEnabled }: { initialEnabled: boolean 
             className="rounded border border-neutral-300 px-3 py-2.5 w-32 tracking-widest dark:border-neutral-700"
           />
         </div>
-        {confirmState?.error && <p className="text-sm text-ink">{confirmState.error}</p>}
+        {confirmState?.error && <p className="text-sm text-ink">{localizeError(confirmState.error, t)}</p>}
         <div className="flex items-center gap-2">
           <button
             type="submit"
             disabled={confirmPending}
             className="rounded-full bg-ink px-4 py-2.5 text-sm font-medium text-paper transition hover:bg-graphite disabled:opacity-50"
           >
-            {confirmPending ? "Verifying…" : "Confirm"}
+            {confirmPending ? t("screens.settings.verifying") : t("screens.settings.confirm")}
           </button>
           <button
             type="button"
             onClick={() => setEnrollData(null)}
             className="text-sm text-neutral-500 hover:text-neutral-800 transition dark:text-neutral-400 dark:hover:text-neutral-200"
           >
-            Cancel
+            {t("common.cancel")}
           </button>
         </div>
       </form>
@@ -152,7 +150,7 @@ export function TwoFactorSettings({ initialEnabled }: { initialEnabled: boolean 
   return (
     <div className="flex flex-col gap-2">
       <div className="flex items-center justify-between gap-3">
-        <p className="text-sm text-neutral-600 dark:text-neutral-400">Add an authenticator app as a second step at login.</p>
+        <p className="text-sm text-neutral-600 dark:text-neutral-400">{t("screens.settings.twoFactorHint")}</p>
         <button
           type="button"
           disabled={pendingStart}
@@ -160,13 +158,13 @@ export function TwoFactorSettings({ initialEnabled }: { initialEnabled: boolean 
             setStartError(undefined);
             startTransition(async () => {
               const result = await startTwoFactorEnrollmentAction();
-              if (result.error) setStartError(result.error);
+              if (result.error) setStartError(localizeError(result.error, t));
               else setEnrollData({ secret: result.secret!, qrDataUrl: result.qrDataUrl! });
             });
           }}
           className="shrink-0 rounded-full border border-neutral-300 px-4 py-2 text-sm font-medium transition hover:border-neutral-400 disabled:opacity-50 dark:border-neutral-700"
         >
-          {pendingStart ? "Starting…" : "Enable 2FA"}
+          {pendingStart ? t("screens.settings.starting") : t("screens.settings.enable2fa")}
         </button>
       </div>
       {startError && <p className="text-sm text-ink">{startError}</p>}

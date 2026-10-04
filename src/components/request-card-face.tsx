@@ -7,6 +7,8 @@ import { RatingSummary } from "@/components/stars";
 import { PlatformIcon } from "@/components/platform-icons";
 import { DEFAULT_NICHE_ICON, NICHE_ICONS } from "@/lib/niche-icons";
 import { formatBudget, formatPostBy } from "@/lib/format";
+import { useI18n } from "@/components/i18n-provider";
+import { categoryLabel, contentLanguageLabel, nicheLabel, presetLabel } from "@/lib/i18n/labels";
 
 // Everything a request card shows — the Feed's swipe card, its details
 // sheet, and the live preview on the brand's New request form all draw
@@ -41,8 +43,10 @@ export function postByDate(postBy: string) {
 // bottom — or, without photos, the same on paper with the description
 // filling the space the photo would take.
 export function RequestCardFace({ request, photoIndex = 0 }: { request: CardRequest; photoIndex?: number }) {
+  const { t } = useI18n();
   const photo = request.photos[photoIndex] ?? request.photos[0];
   const budget = formatBudget(request.budgetMinCents, request.budgetMaxCents);
+  const budgetLabel = t("screens.requests.budget");
 
   if (!photo) {
     return (
@@ -50,7 +54,7 @@ export function RequestCardFace({ request, photoIndex = 0 }: { request: CardRequ
         {budget && (
           <p className="flex items-baseline gap-1.5">
             <span className="font-display text-title-2 font-black">{budget}</span>
-            <span className="text-sm text-neutral-500 dark:text-neutral-400">budget</span>
+            <span className="text-sm text-neutral-500 dark:text-neutral-400">{budgetLabel}</span>
           </p>
         )}
         <CardHeader request={request} />
@@ -86,7 +90,7 @@ export function RequestCardFace({ request, photoIndex = 0 }: { request: CardRequ
       {budget && (
         <p className="absolute top-6 left-4 flex items-baseline gap-1 rounded-full bg-white/90 px-3 py-1.5 text-neutral-900 shadow-md">
           <span className="text-base font-black">{budget}</span>
-          <span className="text-xs font-semibold text-neutral-500">budget</span>
+          <span className="text-xs font-semibold text-neutral-500">{budgetLabel}</span>
         </p>
       )}
 
@@ -142,6 +146,7 @@ function CardHeader({ request, light }: { request: CardRequest; light?: boolean 
 // comes with it. Requests from before those existed fall back to their
 // niche and product category so the card never ends up bare.
 function CardChips({ request, light, className = "" }: { request: CardRequest; light?: boolean; className?: string }) {
+  const { t, locale } = useI18n();
   const filled = light ? "bg-white/25 backdrop-blur-sm" : "bg-fog text-neutral-700 dark:text-neutral-300";
   const outlined = light ? "border border-white/40" : "border border-ink/10";
   const chip = "inline-flex items-center gap-1.5 rounded px-2.5 py-1.5";
@@ -160,30 +165,30 @@ function CardChips({ request, light, className = "" }: { request: CardRequest; l
         <>
           <span className={`${chip} ${filled}`}>
             <NicheIcon className="h-3.5 w-3.5 shrink-0" />
-            {request.niche}
+            {nicheLabel(t, request.niche)}
           </span>
           <span className={`${chip} ${outlined}`}>
             <IoCubeOutline className="h-3.5 w-3.5 shrink-0" />
-            {request.productCategory}
+            {categoryLabel(t, request.productCategory)}
           </span>
         </>
       )}
       {request.postBy && (
         <span className={`${chip} ${outlined}`}>
           <IoCalendarClearOutline className="h-3.5 w-3.5 shrink-0" />
-          Post by {formatPostBy(postByDate(request.postBy))}
+          {t("screens.requests.postByValue", { date: formatPostBy(postByDate(request.postBy), locale) })}
         </span>
       )}
       {request.productIncluded && (
         <span className={`${chip} ${outlined}`}>
           <IoGiftOutline className="h-3.5 w-3.5 shrink-0" />
-          Product included
+          {t("screens.requests.productIncluded")}
         </span>
       )}
       {otherLanguages.length > 0 && (
         <span className={`${chip} ${outlined}`}>
           <IoLanguageOutline className="h-3.5 w-3.5 shrink-0" />
-          {request.languages.join(", ")}
+          {request.languages.map((language) => contentLanguageLabel(t, language)).join(", ")}
         </span>
       )}
     </div>
@@ -208,23 +213,29 @@ export type RequestFactFields = Pick<
 // the same order the brand filled them in. Also the brand's own request
 // page, which is why it only needs the request, not the brand.
 export function RequestFacts({ request }: { request: RequestFactFields }) {
+  const { t, locale } = useI18n();
   const budget = formatBudget(request.budgetMinCents, request.budgetMaxCents);
   const rows: [string, React.ReactNode][] = [];
-  if (budget) rows.push(["Budget", <span key="b" className="font-bold">{budget}</span>]);
+  if (budget) rows.push([t("screens.requests.budget"), <span key="b" className="font-bold">{budget}</span>]);
   if (request.platform)
     rows.push([
-      "Platform",
+      t("screens.requests.platform"),
       <span key="p" className="inline-flex items-center gap-1.5">
         <PlatformIcon platform={request.platform} className="h-3.5 w-3.5" />
         {request.platform}
       </span>,
     ]);
-  if (request.deliverables) rows.push(["Content", request.deliverables]);
-  rows.push(["Post by", request.postBy ? formatPostBy(postByDate(request.postBy)) : "Flexible"]);
-  rows.push(["Product", request.productIncluded ? `${request.productCategory} · included` : request.productCategory]);
-  rows.push(["Niche", request.niche]);
-  rows.push(["Language", request.languages.join(", ")]);
-  rows.push(["Min. followers", request.minFollowers.toLocaleString("en-US")]);
+  if (request.deliverables) rows.push([t("screens.requests.content"), presetLabel(t, request.deliverables)]);
+  rows.push([t("screens.requests.postBy"), request.postBy ? formatPostBy(postByDate(request.postBy), locale) : t("screens.requests.flexible")]);
+  rows.push([
+    t("screens.requests.product"),
+    request.productIncluded
+      ? `${categoryLabel(t, request.productCategory)} · ${t("screens.requests.included")}`
+      : categoryLabel(t, request.productCategory),
+  ]);
+  rows.push([t("screens.requests.niche"), nicheLabel(t, request.niche)]);
+  rows.push([t("screens.requests.language"), request.languages.map((language) => contentLanguageLabel(t, language)).join(", ")]);
+  rows.push([t("screens.requests.minFollowers"), request.minFollowers.toLocaleString(locale)]);
 
   return (
     <dl className="rounded bg-fog px-4 text-sm">

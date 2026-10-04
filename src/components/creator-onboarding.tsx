@@ -9,18 +9,20 @@ import { useI18n } from "@/components/i18n-provider";
 import { OnboardingLanguageStep } from "@/components/onboarding-language-step";
 import { OnboardingPhotoStep } from "@/components/onboarding-photo-step";
 import { OnboardingDone } from "@/components/onboarding-done";
-import { OnboardingProfileCard } from "@/components/onboarding-profile-card";
 import { CreatorAha } from "@/components/onboarding-aha";
 import { OnboardingSwipeDemo } from "@/components/onboarding-swipe-demo";
 import { OnboardingPayoutStep, PAYOUTS_AVAILABLE } from "@/components/onboarding-payout-step";
 import { OnboardingPushStep, usePushOffer } from "@/components/onboarding-push-step";
 import {
+  FIELD_CLASS,
   InsightBanner,
   OnboardingProgress,
   StepError,
   StepFooter,
   StepHeading,
   StepPanels,
+  stepActions,
+  stepScreen,
   useStepDone,
 } from "@/components/onboarding-ui";
 import type { MessageKey } from "@/lib/i18n/translate";
@@ -33,7 +35,10 @@ import { trackOnboarding, useTrackStepViews } from "@/lib/use-onboarding-trackin
 // Payouts and notifications are left out when they can't work here.
 const SETUP_STEPS = CREATOR_STEPS.slice(0, 5);
 
-type StepDef = { key: OnboardingStepKey; render: (index: number) => React.ReactNode };
+type StepDef = {
+  key: OnboardingStepKey;
+  render: (index: number) => React.ReactNode;
+};
 
 export function CreatorOnboarding({ emailVerified }: { emailVerified: boolean }) {
   const { t } = useI18n();
@@ -41,8 +46,10 @@ export function CreatorOnboarding({ emailVerified }: { emailVerified: boolean })
   const [displayName, setDisplayName] = useState("");
   const [niches, setNiches] = useState<string[]>([]);
   const [platforms, setPlatforms] = useState<PlatformDraft[]>([]);
-  const [avatar, setAvatar] = useState<string | null>(null);
-  const [insights, setInsights] = useState<{ niches?: OnboardingInsight; platforms?: OnboardingInsight }>({});
+  const [insights, setInsights] = useState<{
+    niches?: OnboardingInsight;
+    platforms?: OnboardingInsight;
+  }>({});
   const [payoutsStarted, setPayoutsStarted] = useState(false);
   const pushOffer = usePushOffer();
 
@@ -99,16 +106,7 @@ export function CreatorOnboarding({ emailVerified }: { emailVerified: boolean })
       render: (i) => (
         <>
           <InsightBanner insight={insights.platforms} />
-          <OnboardingPhotoStep
-            kind="photo"
-            onPreview={setAvatar}
-            onBack={() => back(i)}
-            onDone={() => finish(i)}
-            onSkip={() => {
-              setAvatar(null);
-              finish(i, "skipped");
-            }}
-          />
+          <OnboardingPhotoStep kind="photo" onBack={() => back(i)} onDone={() => finish(i)} onSkip={() => finish(i, "skipped")} />
         </>
       ),
     },
@@ -140,9 +138,7 @@ export function CreatorOnboarding({ emailVerified }: { emailVerified: boolean })
       ? [
           {
             key: "alerts" as const,
-            render: (i: number) => (
-              <OnboardingPushStep role="creator" onDone={() => finish(i)} onSkip={() => finish(i, "skipped")} />
-            ),
+            render: (i: number) => <OnboardingPushStep role="creator" onDone={() => finish(i)} onSkip={() => finish(i, "skipped")} />,
           },
         ]
       : []),
@@ -157,24 +153,13 @@ export function CreatorOnboarding({ emailVerified }: { emailVerified: boolean })
 
   const inSetup = step < SETUP_STEPS.length;
   return (
-    <div className="flex flex-col gap-8">
+    <div className="flex flex-1 flex-col gap-5">
       {inSetup && (
-        <>
-          <OnboardingProgress
-            step={step}
-            total={SETUP_STEPS.length}
-            labels={SETUP_STEPS.map((s) => t(`onboarding.steps.${s.key}` as MessageKey))}
-          />
-          {step > 0 && (
-            <OnboardingProfileCard
-              role="creator"
-              name={name}
-              avatarUrl={avatar}
-              niches={niches}
-              platforms={platforms}
-            />
-          )}
-        </>
+        <OnboardingProgress
+          step={step}
+          total={SETUP_STEPS.length}
+          labels={SETUP_STEPS.map((s) => t(`onboarding.steps.${s.key}` as MessageKey))}
+        />
       )}
       <StepPanels step={step}>{defs.map((d, i) => d.render(i))}</StepPanels>
     </div>
@@ -187,7 +172,7 @@ function NameStep({ value, onChange, onDone }: { value: string; onChange: (v: st
   useStepDone(state, onDone);
 
   return (
-    <form action={formAction} className="flex flex-col gap-6">
+    <form action={formAction} className={stepScreen}>
       <StepHeading title={t("onboarding.name.title")} description={t("onboarding.name.description")} />
       <input
         name="displayName"
@@ -198,10 +183,12 @@ function NameStep({ value, onChange, onDone }: { value: string; onChange: (v: st
         placeholder={t("onboarding.name.placeholder")}
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="rounded border border-neutral-300 px-4 py-3 text-lg dark:border-neutral-700"
+        className={FIELD_CLASS}
       />
       <StepError state={state} />
-      <StepFooter pending={pending} disabled={!value.trim()} />
+      <div className={stepActions}>
+        <StepFooter pending={pending} disabled={!value.trim()} />
+      </div>
     </form>
   );
 }
@@ -222,11 +209,18 @@ function NichesStep({
   useStepDone(state, (s) => onDone(s.insight));
 
   return (
-    <form action={formAction} className="flex flex-col gap-6">
-      <StepHeading title={t("onboarding.niches.title")} description={t("onboarding.niches.description", { max: MAX_CREATOR_NICHES })} />
+    <form action={formAction} className={stepScreen}>
+      <StepHeading
+        title={t("onboarding.niches.title")}
+        description={t("onboarding.niches.description", {
+          max: MAX_CREATOR_NICHES,
+        })}
+      />
       <NicheTilesMulti name="niches" value={value} onChange={onChange} />
       <StepError state={state} />
-      <StepFooter onBack={onBack} pending={pending} disabled={value.length === 0} />
+      <div className={stepActions}>
+        <StepFooter onBack={onBack} pending={pending} disabled={value.length === 0} />
+      </div>
     </form>
   );
 }
@@ -250,14 +244,16 @@ function PlatformsStep({
   const complete = value.length > 0 && value.every((e) => e.followers !== "" && e.url.trim() !== "");
 
   return (
-    <form action={formAction} className="flex flex-col gap-6">
+    <form action={formAction} className={stepScreen}>
       <div>
         <InsightBanner insight={insight} />
         <StepHeading title={t("onboarding.platforms.title")} description={t("onboarding.platforms.description")} />
       </div>
       <PlatformChips name="platforms" value={value} onChange={onChange} />
       <StepError state={state} />
-      <StepFooter onBack={onBack} pending={pending} disabled={!complete} />
+      <div className={stepActions}>
+        <StepFooter onBack={onBack} pending={pending} disabled={!complete} />
+      </div>
     </form>
   );
 }

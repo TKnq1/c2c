@@ -8,6 +8,8 @@ import { bulkCloseRequestsAction } from "@/lib/actions/requests";
 import { toast } from "@/lib/toast";
 import { errorMessage } from "@/lib/error-message";
 import { LocalDate } from "@/components/local-date";
+import { useI18n } from "@/components/i18n-provider";
+import { nicheLabel } from "@/lib/i18n/labels";
 
 type RequestEntry = {
   id: string;
@@ -42,6 +44,7 @@ const COMPARE: Record<SortKey, (a: RequestEntry, b: RequestEntry) => number> = {
 // whose column headers sort it (on top of the order the page's own sort
 // already gave it). Open ones can be selected and closed together.
 export function BulkRequestsList({ requests }: { requests: RequestEntry[] }) {
+  const { t, locale } = useI18n();
   const router = useRouter();
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [closing, setClosing] = useState(false);
@@ -82,7 +85,11 @@ export function BulkRequestsList({ requests }: { requests: RequestEntry[] }) {
     setClosing(true);
     try {
       await bulkCloseRequestsAction([...selected]);
-      toast.success(`${count} request${count === 1 ? "" : "s"} closed.`);
+      toast.success(
+        count === 1
+          ? t("screens.requests.closedOne", { count })
+          : t("screens.requests.closedMany", { count }),
+      );
       setSelected(new Set());
       router.refresh();
     } catch (err) {
@@ -114,13 +121,13 @@ export function BulkRequestsList({ requests }: { requests: RequestEntry[] }) {
     <div className="flex flex-col gap-3">
       {selected.size > 0 && (
         <div className="no-print flex items-center gap-3 rounded bg-ink/10 px-4 py-3">
-          <p className="text-sm font-medium flex-1">{selected.size} selected</p>
+          <p className="text-sm font-medium flex-1">{t("screens.requests.selected", { count: selected.size })}</p>
           <button
             type="button"
             onClick={() => setSelected(new Set())}
             className="text-sm text-neutral-500 hover:text-neutral-900 transition dark:text-neutral-400 dark:hover:text-neutral-100"
           >
-            Clear
+            {t("screens.requests.clearSelection")}
           </button>
           <button
             type="button"
@@ -128,7 +135,7 @@ export function BulkRequestsList({ requests }: { requests: RequestEntry[] }) {
             disabled={closing}
             className="rounded-full bg-ink text-paper px-4 py-2 text-sm font-medium hover:bg-graphite transition disabled:opacity-50"
           >
-            {closing ? "Closing…" : "Close selected"}
+            {closing ? t("screens.requests.closing") : t("screens.requests.closeSelected")}
           </button>
         </div>
       )}
@@ -146,7 +153,7 @@ export function BulkRequestsList({ requests }: { requests: RequestEntry[] }) {
                   type="checkbox"
                   checked={selected.has(r.id)}
                   onChange={() => toggle(r.id)}
-                  aria-label={`Select ${r.title}`}
+                  aria-label={t("screens.requests.select", { title: r.title })}
                   className={CHECKBOX}
                 />
               </div>
@@ -165,14 +172,15 @@ export function BulkRequestsList({ requests }: { requests: RequestEntry[] }) {
                   {r.title}
                   {r.status === "CLOSED" && (
                     <span className="text-xs font-normal rounded bg-paper text-neutral-500 px-2 py-0.5 dark:text-neutral-400">
-                      Closed
+                      {t("screens.requests.closed")}
                     </span>
                   )}
                 </p>
                 <p className="truncate text-footnote text-neutral-500 dark:text-neutral-400">
-                  {r.niche} · {r.budget ? `${r.budget} · ` : ""}Min. {r.minFollowers.toLocaleString("en-US")} followers ·{" "}
+                  {nicheLabel(t, r.niche)} · {r.budget ? `${r.budget} · ` : ""}
+                  {t("screens.requests.minFollowersLine", { count: r.minFollowers.toLocaleString(locale) })} ·{" "}
                   <span className={r.interestCount > 0 ? "font-semibold text-neutral-900 dark:text-neutral-100" : ""}>
-                    {r.interestCount} interested
+                    {t("screens.requests.interestedCount", { count: r.interestCount })}
                   </span>
                 </p>
               </div>
@@ -193,15 +201,15 @@ export function BulkRequestsList({ requests }: { requests: RequestEntry[] }) {
                   checked={allOpenSelected}
                   disabled={openIds.length === 0}
                   onChange={() => setSelected(allOpenSelected ? new Set() : new Set(openIds))}
-                  aria-label="Select all open requests"
+                  aria-label={t("screens.requests.selectAll")}
                   className={CHECKBOX}
                 />
               </th>
-              {header("title", "Request", "left")}
-              {header("status", "Status", "left", "w-28")}
-              {header("interest", "Interested", "right", "w-28")}
-              {header("budget", "Budget", "right", "w-36")}
-              {header("created", "Created", "right", "w-36 pr-4")}
+              {header("title", t("screens.requests.request"), "left")}
+              {header("status", t("screens.requests.status"), "left", "w-28")}
+              {header("interest", t("screens.requests.interested"), "right", "w-28")}
+              {header("budget", t("screens.requests.budget"), "right", "w-36")}
+              {header("created", t("screens.requests.created"), "right", "w-36 pr-4")}
             </tr>
           </thead>
           <tbody className="divide-y divide-ink/10">
@@ -217,7 +225,7 @@ export function BulkRequestsList({ requests }: { requests: RequestEntry[] }) {
                       type="checkbox"
                       checked={selected.has(r.id)}
                       onChange={() => toggle(r.id)}
-                      aria-label={`Select ${r.title}`}
+                      aria-label={t("screens.requests.select", { title: r.title })}
                       className={CHECKBOX}
                     />
                   )}
@@ -237,7 +245,7 @@ export function BulkRequestsList({ requests }: { requests: RequestEntry[] }) {
                         {r.title}
                       </Link>
                       <p className="truncate text-footnote text-neutral-500 dark:text-neutral-400">
-                        {r.niche} · Min. {r.minFollowers.toLocaleString("en-US")} followers
+                        {nicheLabel(t, r.niche)} · {t("screens.requests.minFollowersLine", { count: r.minFollowers.toLocaleString(locale) })}
                       </p>
                     </div>
                   </div>
@@ -248,7 +256,7 @@ export function BulkRequestsList({ requests }: { requests: RequestEntry[] }) {
                       r.status === "OPEN" ? "border border-ink text-ink" : "bg-ink/10"
                     }`}
                   >
-                    {r.status === "OPEN" ? "Open" : "Closed"}
+                    {r.status === "OPEN" ? t("screens.requests.open") : t("screens.requests.closed")}
                   </span>
                 </td>
                 <td className={`px-3 py-3 text-right tabular-nums ${r.interestCount > 0 ? "font-semibold text-ink" : ""}`}>

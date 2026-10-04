@@ -54,13 +54,13 @@ export default async function CreatorSettingsPage() {
 
       <OnboardingChecklist
         items={[
-          { label: "Add your photo", done: !!creator.avatarUrl, href: "#profile" },
-          { label: "Tell brands about yourself", done: !!creator.bio, href: "#profile" },
-          { label: "Add a link to one of your platforms", done: creator.platforms.some((p) => p.url), href: "#profile" },
+          { label: t("screens.settings.checkPhoto"), done: !!creator.avatarUrl, href: "#profile" },
+          { label: t("screens.settings.checkBio"), done: !!creator.bio, href: "#profile" },
+          { label: t("screens.settings.checkPlatform"), done: creator.platforms.some((p) => p.url), href: "#profile" },
         ]}
       />
 
-      <SettingsSection id="profile" title="Profile" description="What brands see when they look at your profile.">
+      <SettingsSection id="profile" title={t("screens.settings.profile")} description={t("screens.settings.profileCreator")}>
         <EditProfileForm
           displayName={creator.displayName}
           avatarUrl={creator.avatarUrl}
@@ -86,21 +86,33 @@ export default async function CreatorSettingsPage() {
         </div>
       </SettingsSection>
 
-      <SettingsSection id="payouts" title="Payouts">
+      <SettingsSection id="payouts" title={t("screens.settings.payouts")}>
         <SettingsRow
-          label={creator.stripeOnboarded ? "Connected" : creator.stripeAccountId ? "Setup not finished" : "Not connected"}
+          label={
+            creator.stripeOnboarded
+              ? t("screens.settings.connected")
+              : creator.stripeAccountId
+                ? t("screens.settings.setupUnfinished")
+                : t("screens.settings.notConnected")
+          }
           hint={
             creator.stripeOnboarded
-              ? "Released payments go to your bank account."
+              ? t("screens.settings.connectedHint")
               : creator.stripeAccountId
-                ? "Stripe hasn't confirmed your payout account yet."
-                : "Connect Stripe so a brand's payment can reach your bank account."
+                ? t("screens.settings.unfinishedHint")
+                : t("screens.settings.notConnectedHint")
           }
         />
         <div>
           <ConnectStripeButton
             isOnboarded={creator.stripeOnboarded}
-            label={creator.stripeOnboarded ? undefined : creator.stripeAccountId ? "Continue setup" : "Connect Stripe"}
+            label={
+              creator.stripeOnboarded
+                ? undefined
+                : creator.stripeAccountId
+                  ? t("screens.settings.continueSetup")
+                  : t("screens.settings.connectStripe")
+            }
             embedClassName="mt-1"
           />
         </div>
@@ -110,19 +122,19 @@ export default async function CreatorSettingsPage() {
         <AppearanceSettings />
       </SettingsSection>
 
-      <SettingsSection id="password" title="Password">
+      <SettingsSection id="password" title={t("screens.settings.password")}>
         <ChangePasswordForm />
       </SettingsSection>
 
-      <SettingsSection id="two-factor" title="Two-factor authentication">
+      <SettingsSection id="two-factor" title={t("screens.settings.twoFactor")}>
         <TwoFactorSettings initialEnabled={user.totpEnabled} />
       </SettingsSection>
 
-      <SettingsSection id="logins" title="Recent logins">
+      <SettingsSection id="logins" title={t("screens.settings.recentLogins")}>
         <LoginActivity userId={session.user.id} />
       </SettingsSection>
 
-      <SettingsSection id="push" title="Notifications">
+      <SettingsSection id="push" title={t("settingsNav.notifications")}>
         <PushNotificationsSettings />
         <NotificationPreferences
           role="CREATOR"
@@ -139,30 +151,30 @@ export default async function CreatorSettingsPage() {
       </SettingsSection>
 
       {session.user.isAdmin && (
-        <SettingsSection id="admin" title="Admin">
-          <SettingsRow label="Admin dashboard" hint="Users, payments, reports and disputes across comtor.">
+        <SettingsSection id="admin" title={t("screens.settings.admin")}>
+          <SettingsRow label={t("nav.admin")} hint={t("screens.settings.adminHint")}>
             <Link
               href="/admin"
               className="shrink-0 rounded-full border border-neutral-300 px-4 py-2 text-sm font-medium transition hover:border-neutral-400 dark:border-neutral-700"
             >
-              Open
+              {t("common.open")}
             </Link>
           </SettingsRow>
         </SettingsSection>
       )}
 
-      <SettingsSection id="data" title="Your data">
-        <SettingsRow label="Export my data" hint="Everything in your account, as a JSON file.">
+      <SettingsSection id="data" title={t("screens.settings.yourData")}>
+        <SettingsRow label={t("screens.settings.exportData")} hint={t("screens.settings.exportHint")}>
           <a
             href="/api/account/export"
             className="shrink-0 rounded-full border border-neutral-300 px-4 py-2 text-sm font-medium transition hover:border-neutral-400 dark:border-neutral-700"
           >
-            Export
+            {t("common.export")}
           </a>
         </SettingsRow>
       </SettingsSection>
 
-      <SettingsSection id="danger" title="Danger zone">
+      <SettingsSection id="danger" title={t("screens.settings.danger")}>
         <DeleteAccountForm />
       </SettingsSection>
 

@@ -1,4 +1,6 @@
 import type { Role } from "@prisma/client";
+import { parseLocale, type Locale } from "@/lib/i18n/locales";
+import { createT } from "@/lib/i18n/translate";
 
 type MessageLike = { senderRole: Role; createdAt: Date };
 
@@ -37,23 +39,25 @@ const HOUR = 60 * MINUTE;
 const DAY = 24 * HOUR;
 
 /** eBay/Vinted-style bucketed label. Null when there's no response history yet. */
-export function formatResponseTime(ms: number | null): string | null {
+export function formatResponseTime(ms: number | null, locale: Locale | string = "en"): string | null {
   if (ms === null) return null;
-  if (ms < 30 * MINUTE) return "Usually responds within minutes";
-  if (ms < HOUR) return "Usually responds within an hour";
-  if (ms < 6 * HOUR) return "Usually responds within a few hours";
-  if (ms < DAY) return "Usually responds within a day";
-  if (ms < 3 * DAY) return "Usually responds within a few days";
-  return "Response time varies";
+  const t = createT(parseLocale(locale));
+  if (ms < 30 * MINUTE) return t("screens.response.minutes");
+  if (ms < HOUR) return t("screens.response.hour");
+  if (ms < 6 * HOUR) return t("screens.response.fewHours");
+  if (ms < DAY) return t("screens.response.day");
+  if (ms < 3 * DAY) return t("screens.response.fewDays");
+  return t("screens.response.varies");
 }
 
 /** The same buckets, short enough for a stat tile ("Replies in …"). */
-export function formatResponseTimeShort(ms: number | null): string | null {
+export function formatResponseTimeShort(ms: number | null, locale: Locale | string = "en"): string | null {
   if (ms === null) return null;
-  if (ms < 30 * MINUTE) return "Minutes";
-  if (ms < HOUR) return "< 1 hour";
-  if (ms < 6 * HOUR) return "Hours";
-  if (ms < DAY) return "< 1 day";
-  if (ms < 3 * DAY) return "Days";
-  return "Varies";
+  const t = createT(parseLocale(locale));
+  if (ms < 30 * MINUTE) return t("screens.response.shortMinutes");
+  if (ms < HOUR) return t("screens.response.shortHour");
+  if (ms < 6 * HOUR) return t("screens.response.shortHours");
+  if (ms < DAY) return t("screens.response.shortDay");
+  if (ms < 3 * DAY) return t("screens.response.shortDays");
+  return t("screens.response.shortVaries");
 }

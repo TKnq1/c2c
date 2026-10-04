@@ -2,6 +2,7 @@
 
 import { useRef, useState } from "react";
 import { resizeImageFile } from "@/lib/resize-image";
+import { useI18n } from "@/components/i18n-provider";
 
 export function AvatarUpload({
   name,
@@ -12,6 +13,7 @@ export function AvatarUpload({
   initial?: string | null;
   emptyLabel?: string;
 }) {
+  const { t } = useI18n();
   const inputRef = useRef<HTMLInputElement>(null);
   const [preview, setPreview] = useState<string | null>(initial ?? null);
   const [removed, setRemoved] = useState(false);
@@ -34,7 +36,7 @@ export function AvatarUpload({
       if (inputRef.current) inputRef.current.files = dt.files;
       setPreview(dataUrl);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Couldn't read that image.");
+      setError(err instanceof Error ? err.message : t("screens.settings.imageReadError"));
     }
   }
 
@@ -63,7 +65,7 @@ export function AvatarUpload({
       )}
       <div className="flex flex-col items-start gap-1.5">
         <label className="rounded-full border border-neutral-300 px-4 py-2 text-sm font-medium hover:border-neutral-400 transition cursor-pointer dark:border-neutral-700 dark:hover:bg-neutral-800/50">
-          Choose image
+          {t("screens.settings.chooseImage")}
           <input
             ref={inputRef}
             type="file"
@@ -79,7 +81,7 @@ export function AvatarUpload({
             onClick={handleRemove}
             className="text-xs text-neutral-500 hover:text-ink transition dark:text-neutral-400"
           >
-            Remove
+            {t("common.remove")}
           </button>
         )}
         {error && <p className="text-xs text-ink">{error}</p>}

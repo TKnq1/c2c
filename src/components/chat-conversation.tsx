@@ -8,6 +8,8 @@ import { dayKey, formatDayLabel, formatMessageTime } from "@/lib/format";
 import { toast } from "@/lib/toast";
 import { haptic } from "@/lib/haptics";
 import { ChatOfferCard, MakeOfferButton, type ChatOffer } from "@/components/chat-offer";
+import { useI18n } from "@/components/i18n-provider";
+import type { Locale } from "@/lib/i18n/locales";
 
 export type ChatMessage = { id: string; body: string; createdAt: number; isMine: boolean; read: boolean };
 export type ChatEvent = { at: number; label: string; href?: string };
@@ -86,6 +88,7 @@ function buildFeed(
   offer: ChatOffer | null,
   unread: UnreadAtOpen,
   timeZone: string,
+  locale: Locale,
 ): FeedItem[] {
   let lastSentMineIndex = -1;
   messages.forEach((m, i) => {
@@ -128,7 +131,7 @@ function buildFeed(
   for (const entry of entries) {
     const day = dayKey(entry.at, timeZone);
     if (day !== currentDay) {
-      feed.push({ kind: "day", key: `day-${day}`, label: formatDayLabel(entry.at, timeZone) });
+      feed.push({ kind: "day", key: `day-${day}`, label: formatDayLabel(entry.at, timeZone, locale) });
       currentDay = day;
     }
     if (unread && entry.item.key === unread.firstId) {
@@ -171,6 +174,7 @@ export function ChatConversation({
   blockedNotice: string | null;
 }) {
   const timeZone = useViewerTimeZone();
+  const { t, locale } = useI18n();
   const [optimisticMessages, addOptimisticMessage] = useOptimistic<FeedMessage[], FeedMessage>(
     messages,
     (current, message) => [...current, message],
@@ -188,7 +192,7 @@ export function ChatConversation({
     return unread.length > 0 ? { firstId: unread[0].id, count: unread.length } : null;
   });
   const [initialKeys] = useState(
-    () => new Set(buildFeed(messages, events, offer, unreadAtOpen, timeZone).map((item) => item.key)),
+    () => new Set(buildFeed(messages, events, offer, unreadAtOpen, timeZone, locale).map((item) => item.key)),
   );
   const [initiallyReadIds] = useState(() => new Set(messages.filter((m) => m.read).map((m) => m.id)));
 
@@ -206,7 +210,7 @@ export function ChatConversation({
   const [seenLastId, setSeenLastId] = useState(lastId);
   const showNewMessagePill = !atBottom && !lastIsMine && lastId !== seenLastId;
 
-  const feed = buildFeed(optimisticMessages, events, offer, unreadAtOpen, timeZone);
+  const feed = buildFeed(optimisticMessages, events, offer, unreadAtOpen, timeZone, locale);
 
   // Opening the thread lands on the first unread message (divider near the
   // top) when there is one, otherwise on the newest. After that it only
@@ -300,7 +304,7 @@ export function ChatConversation({
       try {
         result = await sendMessageAction(interestId, undefined, formData);
       } catch {
-        result = { error: "Couldn't send. Check your connection and try again." };
+        result = { error: t("screens.ui.sendFailed") };
       }
       if (result?.error) {
         toast.error(result.error);
@@ -349,7 +353,9 @@ export function ChatConversation({
                   <div key={item.key} ref={unreadDividerRef} className="flex items-center gap-3 py-2">
                     <span className="h-px flex-1 bg-ink/15" />
                     <span className="text-[11px] font-medium text-neutral-500 dark:text-neutral-400">
-                      {item.count} unread message{item.count === 1 ? "" : "s"}
+                      {item.count === 1
+                        ? t("screens.messages.unreadOne", { count: item.count })
+                        : t("screens.messages.unreadMany", { count: item.count })}
                     </span>
                     <span className="h-px flex-1 bg-ink/15" />
                   </div>
@@ -357,7 +363,7 @@ export function ChatConversation({
               }
 
               if (item.kind === "event") {
-                const text = `${item.event.label} · ${formatMessageTime(item.event.at, timeZone)}`;
+                const text = `${item.event.label} · ${formatMessageTime(item.event.at, timeZone, locale)}`;
                 return (
                   <p
                     key={item.key}
@@ -380,7 +386,7 @@ export function ChatConversation({
                     key={item.key}
                     interestId={interestId}
                     offer={item.offer}
-                    timeLabel={formatMessageTime(item.offer.at, timeZone)}
+                    timeLabel={formatMessageTime(item.offer.at, timeZone, locale)}
                     isNew={isNew}
                   />
                 );
@@ -412,9 +418,9 @@ export function ChatConversation({
                           m.isMine ? "text-neutral-300 dark:text-neutral-500" : "text-neutral-500 dark:text-neutral-400"
                         }`}
                       >
-                        {m.pending ? "Sending…" : formatMessageTime(m.createdAt, timeZone)}
+                        {m.pending ? t("screens.messages.sending") : formatMessageTime(m.createdAt, timeZone, locale)}
                         {item.seen && (
-                          <span className={initiallyReadIds.has(m.id) ? "" : "animate-fade-in"}> · Seen</span>
+                          <span className={initiallyReadIds.has(m.id) ? "" : "animate-fade-in"}> · {t("screens.ui.seen")}</span>
                         )}
                       </p>
                     )}
@@ -425,7 +431,7 @@ export function ChatConversation({
 
             {optimisticMessages.length === 0 && (
               <p className="px-6 pt-2 text-center text-sm text-neutral-500 dark:text-neutral-400">
-                No messages yet. Say hi! This conversation is about &ldquo;{requestTitle}&rdquo;.
+                {t("screens.messages.emptyAbout", { title: requestTitle })}
               </p>
             )}
           </div>
@@ -438,7 +444,7 @@ export function ChatConversation({
             className="animate-pop-in absolute bottom-3 left-1/2 flex -translate-x-1/2 items-center gap-1 rounded-full bg-ink px-3 py-1.5 text-xs font-medium text-paper shadow-lg"
           >
             <IoArrowDown className="h-3.5 w-3.5" />
-            New message
+            {t("screens.messages.newMessage")}
           </button>
         )}
       </div>
@@ -469,14 +475,14 @@ export function ChatConversation({
                 onKeyDown={handleKeyDown}
                 rows={1}
                 maxLength={2000}
-                placeholder="Message…"
-                aria-label="Message"
+                placeholder={t("screens.messages.placeholder")}
+                aria-label={t("screens.messages.message")}
                 className="max-h-[140px] flex-1 resize-none rounded-[20px] border border-neutral-300 bg-transparent px-4 py-2 text-base leading-6 md:text-sm md:leading-6 dark:border-neutral-700"
               />
               <button
                 type="submit"
                 disabled={!draft.trim()}
-                aria-label="Send message"
+                aria-label={t("screens.messages.send")}
                 // Keeps focus — and the phone keyboard — in the textarea
                 // instead of handing it to the button on tap.
                 onMouseDown={(e) => e.preventDefault()}

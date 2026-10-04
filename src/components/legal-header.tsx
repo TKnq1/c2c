@@ -4,17 +4,20 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { IoChevronBack, IoChevronForward } from "react-icons/io5";
 import { hasNavigatedInApp } from "@/lib/in-app-navigation";
+import { useI18n } from "@/components/i18n-provider";
+import type { MessageKey } from "@/lib/i18n/translate";
 
-const TITLES: Record<string, string> = {
-  "/legal/imprint": "Imprint",
-  "/legal/privacy": "Privacy Policy",
-  "/legal/terms": "Terms",
+const TITLES: Record<string, MessageKey> = {
+  "/legal/imprint": "screens.settings.imprint",
+  "/legal/privacy": "screens.settings.privacy",
+  "/legal/terms": "screens.settings.terms",
 };
 
 // The legal pages' header, shaped like the app's own (see Nav): back on the
 // left, the title centered. Back goes wherever the page was opened from —
 // Settings, usually — and home when it was opened directly.
 export function LegalHeader() {
+  const { t } = useI18n();
   const pathname = usePathname();
   const router = useRouter();
 
@@ -29,13 +32,13 @@ export function LegalHeader() {
         <button
           type="button"
           onClick={back}
-          aria-label="Back"
+          aria-label={t("common.back")}
           className="flex h-10 w-10 items-center justify-center rounded-full transition hover:bg-fog"
         >
           <IoChevronBack className="h-6 w-6" />
         </button>
         <span className="absolute left-1/2 -translate-x-1/2 whitespace-nowrap font-display text-headline font-bold">
-          {TITLES[pathname] ?? "Legal"}
+          {TITLES[pathname] ? t(TITLES[pathname]) : t("screens.ui.legal")}
         </span>
       </div>
     </header>
@@ -44,13 +47,14 @@ export function LegalHeader() {
 
 // Under each legal page: the other two, so none of them is a dead end.
 export function LegalOtherDocs() {
+  const { t } = useI18n();
   const pathname = usePathname();
   const docs = Object.entries(TITLES).filter(([href]) => href !== pathname);
   return (
-    <nav aria-label="Other legal pages" className="flex flex-col divide-y divide-ink/10 rounded bg-fog px-4">
+    <nav aria-label={t("screens.ui.otherLegal")} className="flex flex-col divide-y divide-ink/10 rounded bg-fog px-4">
       {docs.map(([href, label]) => (
         <Link key={href} href={href} className="flex items-center justify-between gap-3 py-3 text-sm font-medium">
-          {label}
+          {t(label)}
           <IoChevronForward className="h-4 w-4 text-neutral-400" />
         </Link>
       ))}

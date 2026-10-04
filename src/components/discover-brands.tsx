@@ -10,6 +10,8 @@ import { SearchInput } from "@/components/search-input";
 import { BrandCard } from "@/components/brand-card";
 import { EmptyState } from "@/components/empty-state";
 import { computeRelevanceScore } from "@/lib/relevance";
+import { useI18n } from "@/components/i18n-provider";
+import { nicheLabel } from "@/lib/i18n/labels";
 
 type BrandEntry = {
   id: string;
@@ -29,6 +31,7 @@ type BrandEntry = {
 };
 
 export function DiscoverBrands({ brands }: { brands: BrandEntry[] }) {
+  const { t } = useI18n();
   const [{ q: search, niche, favorites }, setParam, setParams] = useUrlState(["q", "niche", "favorites"]);
   const niches = useMemo(() => (niche ? niche.split(",") : []), [niche]);
   const [filterOpen, setFilterOpen] = useState(false);
@@ -87,8 +90,8 @@ export function DiscoverBrands({ brands }: { brands: BrandEntry[] }) {
         <SearchInput
           value={search}
           onChange={(e) => setParam("q", e.target.value)}
-          placeholder="Search company, niche, description…"
-          aria-label="Search brands"
+          placeholder={t("screens.discover.searchBrands")}
+          aria-label={t("screens.discover.searchBrandsLabel")}
           wrapperClassName="flex-1 min-w-40"
         />
         <div ref={filterRef} className="relative flex shrink-0">
@@ -97,7 +100,7 @@ export function DiscoverBrands({ brands }: { brands: BrandEntry[] }) {
             onClick={() => setFilterOpen((v) => !v)}
             aria-haspopup="true"
             aria-expanded={filterOpen}
-            aria-label="Filter brands"
+            aria-label={t("screens.discover.filterBrands")}
             className={`flex h-full items-center gap-1.5 rounded-full border px-3.5 py-2 text-sm font-medium transition ${
               activeFilterCount > 0
                 ? "border-ink bg-ink text-paper"
@@ -105,7 +108,7 @@ export function DiscoverBrands({ brands }: { brands: BrandEntry[] }) {
             }`}
           >
             <IoFilterOutline className="h-4 w-4" />
-            Filter
+            {t("screens.discover.filter")}
             {activeFilterCount > 0 && (
               <span className="flex h-4 min-w-4 items-center justify-center rounded-full bg-paper px-1 text-[10px] font-semibold text-ink">
                 {activeFilterCount}
@@ -128,10 +131,10 @@ export function DiscoverBrands({ brands }: { brands: BrandEntry[] }) {
                   onChange={(e) => setParam("favorites", e.target.checked ? "1" : "")}
                   className="h-4 w-4 shrink-0 appearance-none rounded border border-neutral-300 bg-white checked:border-neutral-900 checked:bg-neutral-900 transition dark:border-neutral-600 dark:bg-neutral-800 dark:checked:border-white dark:checked:bg-white"
                 />
-                Favorites only
+                {t("screens.discover.favorites")}
               </label>
               <div className="my-1 border-t border-ink/10" />
-              <p className="px-3 pt-1 pb-1 text-xs font-medium text-neutral-400 dark:text-neutral-500">Niche</p>
+              <p className="px-3 pt-1 pb-1 text-xs font-medium text-neutral-400 dark:text-neutral-500">{t("screens.discover.niche")}</p>
               {NICHES.map((n) => (
                 <label
                   key={n}
@@ -143,7 +146,7 @@ export function DiscoverBrands({ brands }: { brands: BrandEntry[] }) {
                     onChange={() => toggleNiche(n)}
                     className="h-4 w-4 shrink-0 appearance-none rounded border border-neutral-300 bg-white checked:border-neutral-900 checked:bg-neutral-900 transition dark:border-neutral-600 dark:bg-neutral-800 dark:checked:border-white dark:checked:bg-white"
                   />
-                  {n}
+                  {nicheLabel(t, n)}
                 </label>
               ))}
             </div>
@@ -152,14 +155,16 @@ export function DiscoverBrands({ brands }: { brands: BrandEntry[] }) {
       </div>
 
       <p className="text-sm text-neutral-500 dark:text-neutral-400">
-        {filtered.length} brand{filtered.length === 1 ? "" : "s"}
+        {filtered.length === 1
+          ? t("screens.discover.brandOne", { count: filtered.length })
+          : t("screens.discover.brandMany", { count: filtered.length })}
       </p>
 
       {filtered.length === 0 ? (
         <EmptyState
           icon={FiSearch}
-          title={favorites === "1" ? "No favorites match your filters." : "No brands match your filters."}
-          action={{ label: "Clear filters", onClick: () => setParams({ q: "", niche: "", favorites: "" }) }}
+          title={favorites === "1" ? t("screens.discover.noFavoriteBrands") : t("screens.discover.noBrands")}
+          action={{ label: t("screens.discover.clearFilters"), onClick: () => setParams({ q: "", niche: "", favorites: "" }) }}
         />
       ) : (
         <div className="grid grid-cols-2 gap-x-3 gap-y-5 sm:grid-cols-3 xl:grid-cols-4">

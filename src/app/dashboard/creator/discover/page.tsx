@@ -8,8 +8,11 @@ import { photoUrlsByRequestId, requestPhotoIds } from "@/lib/request-photos";
 import { DiscoverBrands } from "@/components/discover-brands";
 import { SkeletonTileGrid } from "@/components/skeleton";
 import { PageTitle } from "@/components/page-title";
+import { getLocale, getT } from "@/lib/i18n/server";
 
 export default async function DiscoverBrandsPage() {
+  const t = await getT();
+  const locale = await getLocale();
   const session = await auth();
   if (!session || session.user.role !== "CREATOR") redirect("/login");
 
@@ -88,7 +91,7 @@ export default async function DiscoverBrandsPage() {
       isFavorited: favoritedStartupIds.has(b.id),
       createdAt: b.createdAt.getTime(),
       responseTimeMs,
-      responseTimeLabel: formatResponseTime(responseTimeMs),
+      responseTimeLabel: formatResponseTime(responseTimeMs, locale),
     };
   });
 
@@ -96,9 +99,7 @@ export default async function DiscoverBrandsPage() {
     <div className="page-wide flex flex-col gap-6">
       {/* The favorites-only toggle lives in DiscoverBrands' own search row,
           next to the search input, rather than sitting alone up here. */}
-      <PageTitle description="Browse brands across every niche and see what they're looking for.">
-        Discover Brands
-      </PageTitle>
+      <PageTitle description={t("screens.discover.brandsHint")}>{t("screens.discover.brands")}</PageTitle>
       <Suspense fallback={<SkeletonTileGrid />}>
         <DiscoverBrands brands={brandsWithRatings} />
       </Suspense>

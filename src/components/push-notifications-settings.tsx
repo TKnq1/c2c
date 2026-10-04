@@ -10,6 +10,7 @@ import {
 import { toast } from "@/lib/toast";
 import { SettingsRow } from "@/components/settings-section";
 import { Switch } from "@/components/switch";
+import { useI18n } from "@/components/i18n-provider";
 import {
   disableNativePush,
   enableNativePush,
@@ -31,6 +32,7 @@ export function PushNotificationsSettings() {
 
 // Store apps: APNs/FCM through @capacitor/push-notifications.
 function NativePushSettings() {
+  const { t } = useI18n();
   const [subscribed, setSubscribed] = useState(false);
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | undefined>();
@@ -48,18 +50,18 @@ function NativePushSettings() {
       if (!next) {
         await disableNativePush();
         setSubscribed(false);
-        toast.success("Push notifications disabled.");
+        toast.success(t("screens.settings.pushDisabled"));
         return;
       }
       const result = await enableNativePush();
       if (result === "denied") {
-        setError("Notifications are off for comtor. Turn them on in your phone's Settings app, then try again.");
+        setError(t("screens.settings.pushDeniedPhone"));
         return;
       }
       setSubscribed(true);
-      toast.success("Push notifications enabled.");
+      toast.success(t("screens.settings.pushEnabled"));
     } catch {
-      setError("Couldn't change push notifications. Try again.");
+      setError(t("screens.settings.pushChangeFailed"));
     } finally {
       setPending(false);
     }
@@ -67,16 +69,17 @@ function NativePushSettings() {
 
   return (
     <SettingsRow
-      label="Push notifications"
-      hint={error ?? (subscribed ? "On for this device." : "Get notified on this phone about new messages and payments.")}
+      label={t("screens.settings.push")}
+      hint={error ?? (subscribed ? t("screens.settings.pushOn") : t("screens.settings.pushOffPhone"))}
     >
-      <Switch checked={subscribed} onChange={toggle} disabled={pending} label="Push notifications" />
+      <Switch checked={subscribed} onChange={toggle} disabled={pending} label={t("screens.settings.push")} />
     </SettingsRow>
   );
 }
 
 // Browsers: Web Push through the service worker.
 function WebPushSettings() {
+  const { t } = useI18n();
   const [supported, setSupported] = useState(false);
   const [subscribed, setSubscribed] = useState(false);
   const [pending, setPending] = useState(false);
@@ -95,13 +98,13 @@ function WebPushSettings() {
     setPending(true);
     try {
       if ((await enableWebPush()) === "denied") {
-        setError("Notifications were blocked. Enable them in your browser's site settings to turn this on.");
+        setError(t("screens.settings.pushDeniedBrowser"));
         return;
       }
       setSubscribed(true);
-      toast.success("Push notifications enabled.");
+      toast.success(t("screens.settings.pushEnabled"));
     } catch {
-      setError("Couldn't enable push notifications.");
+      setError(t("screens.settings.pushEnableFailed"));
     } finally {
       setPending(false);
     }
@@ -113,9 +116,9 @@ function WebPushSettings() {
     try {
       await disableWebPush();
       setSubscribed(false);
-      toast.success("Push notifications disabled.");
+      toast.success(t("screens.settings.pushDisabled"));
     } catch {
-      setError("Couldn't turn push notifications off. Try again.");
+      setError(t("screens.settings.pushDisableFailed"));
     } finally {
       setPending(false);
     }
@@ -123,20 +126,20 @@ function WebPushSettings() {
 
   if (!supported) {
     return (
-      <SettingsRow label="Push notifications" hint="Not supported in this browser. Add comtor to your home screen to get them." />
+      <SettingsRow label={t("screens.settings.push")} hint={t("screens.settings.pushUnsupported")} />
     );
   }
 
   return (
     <SettingsRow
-      label="Push notifications"
-      hint={error ?? (subscribed ? "On for this device." : "Get notified on this device, even when the app is closed.")}
+      label={t("screens.settings.push")}
+      hint={error ?? (subscribed ? t("screens.settings.pushOn") : t("screens.settings.pushOffDevice"))}
     >
       <Switch
         checked={subscribed}
         onChange={(next) => (next ? subscribe() : unsubscribe())}
         disabled={pending}
-        label="Push notifications"
+        label={t("screens.settings.push")}
       />
     </SettingsRow>
   );

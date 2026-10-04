@@ -4,10 +4,9 @@ import { useLayoutEffect, useState } from "react";
 import { getPreferredTheme, setTheme } from "@/lib/theme";
 import { playSound, setSoundsEnabled, soundsEnabled } from "@/lib/sounds";
 import { useI18n } from "@/components/i18n-provider";
-import { Select } from "@/components/select";
+import { LanguageChoices } from "@/components/language-choices";
 import { SettingsRow } from "@/components/settings-section";
 import { Switch } from "@/components/switch";
-import { APP_LOCALES, type Locale } from "@/lib/i18n/locales";
 
 // Live switches, not form fields with a Save button — dark mode should
 // apply the instant you flip it, the same way it always has from the nav
@@ -41,21 +40,13 @@ export function AppearanceSettings() {
 
   return (
     <>
-      <SettingsRow label={t("settings.language")} hint={t("settings.languageHint")}>
-        <Select
-          aria-label={t("settings.language")}
-          value={locale}
-          wrapperClassName="w-40 shrink-0"
-          className="py-2 text-sm"
-          onChange={(e) => setLocale(e.target.value as Locale)}
-        >
-          {APP_LOCALES.map((item) => (
-            <option key={item.id} value={item.id}>
-              {item.native}
-            </option>
-          ))}
-        </Select>
-      </SettingsRow>
+      <div className="flex flex-col gap-3 border-b border-ink/10 pb-3">
+        <div>
+          <p className="text-sm font-medium">{t("settings.language")}</p>
+          <p className="text-sm text-neutral-500 dark:text-neutral-400">{t("settings.languageHint")}</p>
+        </div>
+        <LanguageChoices value={locale} onChange={setLocale} label={t("settings.language")} />
+      </div>
       <SettingsRow label={t("settings.darkMode")} hint={t("settings.darkModeHint")}>
         <Switch checked={dark} onChange={toggleDark} label={t("settings.darkMode")} />
       </SettingsRow>

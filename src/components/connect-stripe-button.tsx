@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { loadConnectAndInitialize, type StripeConnectInstance } from "@stripe/connect-js";
 import { ConnectComponentsProvider, ConnectAccountOnboarding } from "@stripe/react-connect-js";
 import { createEmbeddedOnboardingSessionAction } from "@/lib/actions/stripe-connect";
+import { useI18n } from "@/components/i18n-provider";
 
 // Embedded, not a redirect to a stripe.com page — see
 // createEmbeddedOnboardingSessionAction. Reads the color scheme once at
@@ -39,7 +40,7 @@ function buildConnectInstance(): StripeConnectInstance {
 // the embed would just be a box in a box.
 export function ConnectStripeButton({
   isOnboarded,
-  label = isOnboarded ? "Update payout details" : "Connect Stripe to receive payouts",
+  label,
   embedClassName = "rounded bg-paper p-4",
   buttonClassName = "self-start rounded-full bg-ink px-4 py-2.5 text-sm font-medium text-paper transition hover:bg-graphite disabled:opacity-50",
   onExit,
@@ -52,6 +53,8 @@ export function ConnectStripeButton({
   // (the onboarding wizard) that a refresh would move away from.
   onExit?: () => void;
 }) {
+  const { t } = useI18n();
+  const buttonLabel = label ?? (isOnboarded ? t("screens.settings.updatePayouts") : t("screens.settings.connectStripePayouts"));
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [connectInstance, setConnectInstance] = useState<StripeConnectInstance | null>(null);
@@ -60,16 +63,16 @@ export function ConnectStripeButton({
   const handleOpen = useCallback(() => {
     setError(null);
     if (!process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY) {
-      setError("Stripe isn't configured yet (missing publishable key).");
+      setError(t("screens.settings.stripeMissing"));
       return;
     }
     try {
       setConnectInstance(buildConnectInstance());
       setOpen(true);
     } catch {
-      setError("Couldn't start Stripe onboarding. Please try again.");
+      setError(t("screens.settings.stripeFailed"));
     }
-  }, []);
+  }, [t]);
 
   const handleExit = useCallback(() => {
     setOpen(false);
@@ -89,7 +92,7 @@ export function ConnectStripeButton({
         <ConnectComponentsProvider connectInstance={connectInstance}>
           <ConnectAccountOnboarding
             onExit={handleExit}
-            onLoadError={() => setError("Couldn't load Stripe onboarding. Please try again.")}
+            onLoadError={() => setError(t("screens.settings.stripeFailed"))}
           />
         </ConnectComponentsProvider>
         {error && <p className="text-sm text-ink mt-2">{error}</p>}
@@ -104,7 +107,7 @@ export function ConnectStripeButton({
         onClick={handleOpen}
         className={buttonClassName}
       >
-        {label}
+        {buttonLabel}
       </button>
       {error && <p className="text-sm text-ink">{error}</p>}
     </div>

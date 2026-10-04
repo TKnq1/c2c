@@ -1,6 +1,10 @@
+"use client";
+
 import { DiscoverTile } from "@/components/discover-tile";
 import { FavoriteButton } from "@/components/favorite-button";
 import { favoriteStartupAction, unfavoriteStartupAction } from "@/lib/actions/favorites";
+import { useI18n } from "@/components/i18n-provider";
+import { nicheLabel } from "@/lib/i18n/labels";
 import { isRecentlyCreated } from "@/lib/format";
 
 type Props = {
@@ -29,7 +33,8 @@ export function BrandCard({
   createdAt,
   onFavoriteToggle,
 }: Props) {
-  const facts = [niche, rating.count > 0 ? `★ ${rating.average.toFixed(1)} (${rating.count})` : null]
+  const { t } = useI18n();
+  const facts = [niche ? nicheLabel(t, niche) : null, rating.count > 0 ? `★ ${rating.average.toFixed(1)} (${rating.count})` : null]
     .filter(Boolean)
     .join(" · ");
 
@@ -40,7 +45,7 @@ export function BrandCard({
       name={companyName}
       avatarUrl={avatarUrl}
       showAvatar
-      facts={facts || "Brand"}
+      facts={facts || t("screens.ui.brand")}
       isNew={isRecentlyCreated(createdAt)}
       favorite={
         <FavoriteButton

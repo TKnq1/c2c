@@ -1,3 +1,6 @@
+import { parseLocale, type Locale } from "@/lib/i18n/locales";
+import { createT } from "@/lib/i18n/translate";
+
 // EUR to match the actual Stripe Checkout/Connect currency (see
 // src/lib/actions/payments.ts) — a mismatch here would mean an amount
 // displayed as e.g. "$250" is really charged as €250.
@@ -69,16 +72,39 @@ function daysAgo(ms: number, timeZone: string): number {
 // past week, then a date ("Sep 28", with the year once it's not this
 // year's). `now` is passed in rather than read here so a component can
 // hold it steady through hydration (see RelativeTime).
-export function formatRelativeTime(ms: number, now: number, timeZone: string): string {
+export function dateLocale(locale?: string): string {
+  switch (parseLocale(locale)) {
+    case "de":
+      return "de-DE";
+    case "fr":
+      return "fr-FR";
+    case "es":
+      return "es-ES";
+    case "it":
+      return "it-IT";
+    case "pt":
+      return "pt-PT";
+    case "nl":
+      return "nl-NL";
+    case "pl":
+      return "pl-PL";
+    default:
+      return "en-US";
+  }
+}
+
+export function formatRelativeTime(ms: number, now: number, timeZone: string, locale: Locale | string = "en"): string {
+  const t = createT(parseLocale(locale));
   const minutes = Math.floor((now - ms) / 60_000);
-  if (minutes < 1) return "Just now";
-  if (minutes < 60) return `${minutes} min ago`;
+  if (minutes < 1) return t("screens.time.justNow");
+  if (minutes < 60) return t("screens.time.minAgo", { count: minutes });
   const days = calendarDaysBetween(ms, now, timeZone);
-  if (days <= 0) return `${Math.floor(minutes / 60)} h ago`;
-  if (days === 1) return "Yesterday";
-  if (days < 7) return new Date(ms).toLocaleDateString("en-US", { timeZone, weekday: "long" });
+  if (days <= 0) return t("screens.time.hAgo", { count: Math.floor(minutes / 60) });
+  if (days === 1) return t("screens.time.yesterday");
+  const lang = dateLocale(locale);
+  if (days < 7) return new Date(ms).toLocaleDateString(lang, { timeZone, weekday: "long" });
   const sameYear = dayKey(ms, timeZone).slice(0, 4) === dayKey(now, timeZone).slice(0, 4);
-  return new Date(ms).toLocaleDateString("en-US", {
+  return new Date(ms).toLocaleDateString(lang, {
     timeZone,
     month: "short",
     day: "numeric",
@@ -86,28 +112,31 @@ export function formatRelativeTime(ms: number, now: number, timeZone: string): s
   });
 }
 
-export function formatMessageTime(ms: number, timeZone: string): string {
-  return new Date(ms).toLocaleTimeString("en-US", { timeZone, hour: "numeric", minute: "2-digit" });
+export function formatMessageTime(ms: number, timeZone: string, locale: Locale | string = "en"): string {
+  return new Date(ms).toLocaleTimeString(dateLocale(locale), { timeZone, hour: "numeric", minute: "2-digit" });
 }
 
 // A bare time (e.g. "12:59 PM") only reads as "just now" for something
 // actually sent today — for anything older it would misleadingly look
 // fresh, so this steps down to a weekday, then a full date, the way
 // WhatsApp/Telegram inbox previews do.
-export function formatMessageTimestamp(ms: number, timeZone: string): string {
+export function formatMessageTimestamp(ms: number, timeZone: string, locale: Locale | string = "en"): string {
   const diff = daysAgo(ms, timeZone);
-  if (diff <= 0) return formatMessageTime(ms, timeZone);
-  if (diff < 7) return new Date(ms).toLocaleDateString("en-US", { timeZone, weekday: "short" });
-  return new Date(ms).toLocaleDateString("en-US", { timeZone });
+  const lang = dateLocale(locale);
+  if (diff <= 0) return formatMessageTime(ms, timeZone, locale);
+  if (diff < 7) return new Date(ms).toLocaleDateString(lang, { timeZone, weekday: "short" });
+  return new Date(ms).toLocaleDateString(lang, { timeZone });
 }
 
 // The divider between days inside a conversation.
-export function formatDayLabel(ms: number, timeZone: string): string {
+export function formatDayLabel(ms: number, timeZone: string, locale: Locale | string = "en"): string {
   const diff = daysAgo(ms, timeZone);
-  if (diff <= 0) return "Today";
-  if (diff === 1) return "Yesterday";
-  if (diff < 7) return new Date(ms).toLocaleDateString("en-US", { timeZone, weekday: "long" });
-  return new Date(ms).toLocaleDateString("en-US", { timeZone, month: "short", day: "numeric", year: "numeric" });
+  const t = createT(parseLocale(locale));
+  const lang = dateLocale(locale);
+  if (diff <= 0) return t("screens.time.today");
+  if (diff === 1) return t("screens.time.yesterday");
+  if (diff < 7) return new Date(ms).toLocaleDateString(lang, { timeZone, weekday: "long" });
+  return new Date(ms).toLocaleDateString(lang, { timeZone, month: "short", day: "numeric", year: "numeric" });
 }
 
 // A request's budget, in the same German money format as formatCents but
@@ -122,9 +151,9 @@ export function formatBudget(minCents: number | null, maxCents: number | null): 
 // "Oct 15" for a request's post-by date — stored as a plain calendar day
 // (midnight UTC), so it's formatted in UTC too or it would slip a day west
 // of Greenwich. The year only shows when it isn't this one.
-export function formatPostBy(date: Date): string {
+export function formatPostBy(date: Date, locale: Locale | string = "en"): string {
   const sameYear = date.getUTCFullYear() === new Date().getUTCFullYear();
-  return date.toLocaleDateString("en-US", {
+  return date.toLocaleDateString(dateLocale(locale), {
     month: "short",
     day: "numeric",
     ...(sameYear ? {} : { year: "numeric" }),
@@ -134,6 +163,6 @@ export function formatPostBy(date: Date): string {
 
 // "Oct 2026" — when an account was created, for "Member since" on profiles.
 // UTC, so the server render and the client agree on the month.
-export function formatMemberSince(date: Date): string {
-  return date.toLocaleDateString("en-US", { month: "short", year: "numeric", timeZone: "UTC" });
+export function formatMemberSince(date: Date, locale: Locale | string = "en"): string {
+  return date.toLocaleDateString(dateLocale(locale), { month: "short", year: "numeric", timeZone: "UTC" });
 }

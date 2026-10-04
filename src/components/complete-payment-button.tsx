@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { createCheckoutSessionAction } from "@/lib/actions/payments";
+import { useI18n } from "@/components/i18n-provider";
 
 const DEFAULT_BUTTON_CLASS =
   "rounded-full bg-ink text-paper px-4 py-2.5 text-sm font-medium hover:bg-graphite transition disabled:opacity-50 sm:self-start";
@@ -15,6 +16,7 @@ export function CompletePaymentButton({
   label: string;
   className?: string;
 }) {
+  const { t } = useI18n();
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -24,7 +26,7 @@ export function CompletePaymentButton({
     // A dropped connection rejects rather than returning { error } — without
     // this the button would sit on "Redirecting…" forever.
     const result = await createCheckoutSessionAction(interestId).catch(() => ({
-      error: "Couldn't reach the server. Check your connection and try again.",
+      error: t("screens.settings.serverUnreachable"),
     }));
     if ("error" in result) {
       setError(result.error);
@@ -37,7 +39,7 @@ export function CompletePaymentButton({
   return (
     <div className="flex flex-col gap-1 mt-2">
       <button type="button" onClick={handleClick} disabled={pending} className={className}>
-        {pending ? "Redirecting…" : label}
+        {pending ? t("screens.settings.redirecting") : label}
       </button>
       {error && <p className="text-sm text-ink">{error}</p>}
     </div>

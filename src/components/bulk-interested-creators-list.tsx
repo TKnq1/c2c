@@ -8,6 +8,7 @@ import { InterestedCreatorRow } from "@/components/interested-creator-row";
 import type { PaymentStage } from "@/components/payment-status-badge";
 import { toast } from "@/lib/toast";
 import { errorMessage } from "@/lib/error-message";
+import { useI18n } from "@/components/i18n-provider";
 
 type InterestEntry = {
   id: string;
@@ -34,6 +35,7 @@ export function BulkInterestedCreatorsList({
   interests: InterestEntry[];
   feeRatePercent: number;
 }) {
+  const { t } = useI18n();
   const router = useRouter();
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [sending, setSending] = useState(false);
@@ -53,7 +55,11 @@ export function BulkInterestedCreatorsList({
     setSending(true);
     try {
       const result = await bulkSendOfferAction(requestId, [...selected], formData);
-      toast.success(`Offer sent to ${result.count} creator${result.count === 1 ? "" : "s"}.`);
+      toast.success(
+        result.count === 1
+          ? t("screens.requests.offerSentOne", { count: result.count })
+          : t("screens.requests.offerSentMany", { count: result.count }),
+      );
       setSelected(new Set());
       router.refresh();
     } catch (err) {
@@ -71,18 +77,17 @@ export function BulkInterestedCreatorsList({
           className="no-print flex flex-col gap-2 rounded bg-ink/10 px-4 py-3"
         >
           <div className="flex items-center gap-3">
-            <p className="text-sm font-medium flex-1">{selected.size} selected</p>
+            <p className="text-sm font-medium flex-1">{t("screens.requests.selected", { count: selected.size })}</p>
             <button
               type="button"
               onClick={() => setSelected(new Set())}
               className="text-sm text-neutral-500 hover:text-neutral-900 transition dark:text-neutral-400 dark:hover:text-neutral-100"
             >
-              Clear
+              {t("screens.requests.clearSelection")}
             </button>
           </div>
           <p className="text-xs text-neutral-500 dark:text-neutral-400">
-            Same offer to everyone selected. Funds only move once each creator accepts, and we hold{" "}
-            {feeRatePercent}% of every accepted offer as our platform fee.
+            {t("screens.requests.bulkOfferHint", { fee: feeRatePercent })}
           </p>
           <div className="flex items-center gap-2 flex-wrap">
             <span className="text-sm text-neutral-600 dark:text-neutral-400">€</span>
@@ -92,7 +97,7 @@ export function BulkInterestedCreatorsList({
               step="0.01"
               min="1"
               placeholder="250.00"
-              aria-label="Offer amount in euros"
+              aria-label={t("screens.requests.offerAmount")}
               required
               className="rounded border border-neutral-300 bg-paper px-3 py-2.5 w-32 dark:border-neutral-700"
             />
@@ -101,7 +106,7 @@ export function BulkInterestedCreatorsList({
               disabled={sending}
               className="rounded-full bg-ink text-paper px-4 py-2 text-sm font-medium hover:bg-graphite transition disabled:opacity-50 shrink-0 whitespace-nowrap"
             >
-              {sending ? "Sending…" : `Send offer to ${selected.size}`}
+              {sending ? t("screens.requests.sendingOffers") : t("screens.requests.sendOfferTo", { count: selected.size })}
             </button>
           </div>
         </form>
@@ -115,7 +120,7 @@ export function BulkInterestedCreatorsList({
           }
           className="no-print self-start text-xs text-neutral-500 hover:text-neutral-900 transition dark:text-neutral-400 dark:hover:text-neutral-100"
         >
-          Select all not yet offered ({offerable})
+          {t("screens.requests.selectNotOffered", { count: offerable })}
         </button>
       )}
 

@@ -1,3 +1,5 @@
+import { screens } from "@/lib/i18n/messages/screens-en";
+
 // Source catalog. Every other locale must carry the same keys.
 export const en = {
   common: {
@@ -6,6 +8,13 @@ export const en = {
     saving: "Saving…",
     skip: "Skip for now",
     close: "Close",
+    save: "Save",
+    cancel: "Cancel",
+    done: "Done",
+    delete: "Delete",
+    remove: "Remove",
+    open: "Open",
+    export: "Export",
   },
   nav: {
     requests: "Requests",
@@ -163,6 +172,7 @@ export const en = {
       has: "has",
       have: "have",
       established: "{count} of them {verb} 10K+ followers on a platform.",
+      deal: "{deliverables} on {platform}",
     },
     swipe: {
       title: "Swipe to decide",
@@ -219,6 +229,7 @@ export const en = {
       goDashboard: "Go to dashboard",
     },
   },
+  screens,
 } as const;
 
 export type Messages = typeof en;

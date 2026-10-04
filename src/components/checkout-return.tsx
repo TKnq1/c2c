@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useI18n } from "@/components/i18n-provider";
 import { toast } from "@/lib/toast";
 
 const POLL_MS = 2000;
@@ -15,15 +16,16 @@ const GIVE_UP_MS = 30_000;
 // the brand looking at a Pay button for money that already went through.
 export function CheckoutReturn({ status, waiting }: { status: string | undefined; waiting: boolean }) {
   const router = useRouter();
+  const { t } = useI18n();
   const [gaveUp, setGaveUp] = useState(false);
   const toasted = useRef(false);
 
   useEffect(() => {
     if (toasted.current || (status !== "success" && status !== "cancelled")) return;
     toasted.current = true;
-    if (status === "success") toast.success("Payment complete. It's held in escrow until the creator posts.");
-    else toast.info("Payment cancelled. Nothing was charged.");
-  }, [status]);
+    if (status === "success") toast.success(t("screens.payments.paymentComplete"));
+    else toast.info(t("screens.payments.paymentCancelled"));
+  }, [status, t]);
 
   const polling = waiting && !gaveUp;
   useEffect(() => {

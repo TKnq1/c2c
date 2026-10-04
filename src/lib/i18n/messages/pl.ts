@@ -1,4 +1,5 @@
 import type { Catalog } from "@/lib/i18n/messages/types";
+import { screensPl as screens } from "@/lib/i18n/messages/screens-pl";
 
 export const pl: Catalog = {
   common: {
@@ -7,6 +8,13 @@ export const pl: Catalog = {
     saving: "Zapisywanie…",
     skip: "Pomiń na razie",
     close: "Zamknij",
+    save: "Zapisz",
+    cancel: "Anuluj",
+    done: "Gotowe",
+    delete: "Usuń",
+    remove: "Usuń",
+    open: "Otwórz",
+    export: "Eksportuj",
   },
   nav: {
     requests: "Zlecenia",
@@ -164,6 +172,7 @@ export const pl: Catalog = {
       has: "ma",
       have: "ma",
       established: "{count} z nich {verb} ponad 10 tys. obserwujących na platformie.",
+      deal: "{deliverables} na {platform}",
     },
     swipe: {
       title: "Przesuń, żeby zdecydować",
@@ -217,4 +226,5 @@ export const pl: Catalog = {
       goDashboard: "Przejdź do panelu",
     },
   },
+  screens,
 };

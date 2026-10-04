@@ -6,6 +6,8 @@ import { Avatar } from "@/components/avatar";
 import { ActionButton } from "@/components/action-button";
 import { useUndoableAction } from "@/lib/use-undoable-action";
 import { LocalDate } from "@/components/local-date";
+import { useI18n } from "@/components/i18n-provider";
+import { presetLabel } from "@/lib/i18n/labels";
 
 type Props = {
   id: string;
@@ -53,6 +55,7 @@ export function RequestCard({
   matchedAt,
   canWithdraw = true,
 }: Props) {
+  const { t, locale } = useI18n();
   const { pending, trigger } = useUndoableAction(async () => {
     await withdrawInterestAction(interestId!);
   });
@@ -60,8 +63,10 @@ export function RequestCard({
   if (pending) return null;
 
   const details = [
-    platform && deliverables ? deliverables : `Min. ${minFollowers.toLocaleString("en-US")} followers`,
-    postBy ? `Post by ${postBy}` : null,
+    platform && deliverables
+      ? presetLabel(t, deliverables)
+      : t("screens.requests.minFollowersLine", { count: minFollowers.toLocaleString(locale) }),
+    postBy ? t("screens.requests.postByValue", { date: postBy }) : null,
   ]
     .filter(Boolean)
     .join(" · ");
@@ -95,7 +100,7 @@ export function RequestCard({
             {details}
           </p>
           {contactedByStartup && (
-            <p className="text-footnote text-neutral-500 dark:text-neutral-400">{companyName} reached out to you.</p>
+            <p className="text-footnote text-neutral-500 dark:text-neutral-400">{t("screens.ui.reachedOut", { name: companyName })}</p>
           )}
           {stage && (
             <span
@@ -138,29 +143,29 @@ export function RequestCard({
               href={`/dashboard/messages/${interestId}`}
               className="rounded-full bg-ink px-4 py-1.5 text-sm font-medium text-paper transition hover:bg-graphite"
             >
-              Message
+              {t("screens.messages.message")}
             </Link>
             {canWithdraw && (
               <button
                 type="button"
                 onClick={() =>
                   contactedByStartup
-                    ? trigger("Declined.", "Restored.")
-                    : trigger("Interest withdrawn.", "Interest restored.")
+                    ? trigger(t("screens.ui.declined"), t("screens.ui.restored"))
+                    : trigger(t("screens.ui.interestWithdrawn"), t("screens.ui.interestRestored"))
                 }
                 className="text-sm text-neutral-500 transition hover:text-ink dark:text-neutral-400"
               >
-                {contactedByStartup ? "Decline" : "Withdraw interest"}
+                {contactedByStartup ? t("screens.payments.copy.decline") : t("screens.ui.withdrawInterest")}
               </button>
             )}
           </div>
         ) : (
           <ActionButton
             action={expressInterestAction.bind(null, id)}
-            successMessage="Interest sent."
+            successMessage={t("screens.ui.interestSent")}
             className="mt-2 self-start rounded-full bg-ink px-4 py-1.5 text-sm font-medium text-paper transition hover:bg-graphite disabled:opacity-50 md:mt-0 md:self-center"
           >
-            I&apos;m interested
+            {t("screens.ui.imInterested")}
           </ActionButton>
         )}
       </div>

@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useExitAnimation } from "@/lib/use-exit-animation";
+import { useI18n } from "@/components/i18n-provider";
 
 type Props = {
   label: string;
@@ -9,13 +10,16 @@ type Props = {
   selected: string[];
   onChange: (selected: string[]) => void;
   wrapperClassName?: string;
+  formatOption?: (value: string) => string;
 };
 
 // Same markup and classes as <Select> (native single-value dropdown) so the
 // two sit flush in a filter row — just a checkbox panel instead of the
 // native options list, since a plain <select> can't hold more than one
 // value.
-export function MultiSelect({ label, options, selected, onChange, wrapperClassName = "" }: Props) {
+export function MultiSelect({ label, options, selected, onChange, wrapperClassName = "", formatOption }: Props) {
+  const { t } = useI18n();
+  const show = formatOption ?? ((value: string) => value);
   const [open, setOpen] = useState(false);
   const panel = useExitAnimation(open);
   const ref = useRef<HTMLDivElement>(null);
@@ -34,7 +38,7 @@ export function MultiSelect({ label, options, selected, onChange, wrapperClassNa
   }
 
   const buttonLabel =
-    selected.length === 0 ? label : selected.length === 1 ? selected[0] : `${selected.length} selected`;
+    selected.length === 0 ? label : selected.length === 1 ? show(selected[0]) : t("screens.requests.selected", { count: selected.length });
 
   return (
     <div ref={ref} className={`relative ${wrapperClassName}`}>
@@ -83,7 +87,7 @@ export function MultiSelect({ label, options, selected, onChange, wrapperClassNa
                 onChange={() => toggle(o)}
                 className="h-4 w-4 shrink-0 appearance-none rounded border border-neutral-300 bg-white checked:border-neutral-900 checked:bg-neutral-900 transition dark:border-neutral-600 dark:bg-neutral-800 dark:checked:border-white dark:checked:bg-white"
               />
-              {o}
+              {show(o)}
             </label>
           ))}
         </div>

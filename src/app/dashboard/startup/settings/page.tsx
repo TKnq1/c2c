@@ -57,13 +57,13 @@ export default async function StartupSettingsPage() {
 
       <OnboardingChecklist
         items={[
-          { label: "Add your logo", done: !!startup.avatarUrl, href: "#profile" },
-          { label: "Tell creators about your brand", done: !!startup.description, href: "#profile" },
-          { label: "Post your first request", done: requestCount > 0, href: "/dashboard/startup/new" },
+          { label: t("screens.settings.checkLogo"), done: !!startup.avatarUrl, href: "#profile" },
+          { label: t("screens.settings.checkBrand"), done: !!startup.description, href: "#profile" },
+          { label: t("screens.settings.checkRequest"), done: requestCount > 0, href: "/dashboard/startup/new" },
         ]}
       />
 
-      <SettingsSection id="profile" title="Profile" description="What creators see when they look at your brand.">
+      <SettingsSection id="profile" title={t("screens.settings.profile")} description={t("screens.settings.profileBrand")}>
         <EditBrandProfileForm
           companyName={startup.companyName}
           avatarUrl={startup.avatarUrl}
@@ -82,7 +82,7 @@ export default async function StartupSettingsPage() {
         </div>
       </SettingsSection>
 
-      <SettingsSection id="plan" title="Plan">
+      <SettingsSection id="plan" title={t("screens.settings.plan")}>
         <ProPlanCard
           key={String(startup.isPro)}
           isPro={startup.isPro}
@@ -95,19 +95,19 @@ export default async function StartupSettingsPage() {
         <AppearanceSettings />
       </SettingsSection>
 
-      <SettingsSection id="password" title="Password">
+      <SettingsSection id="password" title={t("screens.settings.password")}>
         <ChangePasswordForm />
       </SettingsSection>
 
-      <SettingsSection id="two-factor" title="Two-factor authentication">
+      <SettingsSection id="two-factor" title={t("screens.settings.twoFactor")}>
         <TwoFactorSettings initialEnabled={user.totpEnabled} />
       </SettingsSection>
 
-      <SettingsSection id="logins" title="Recent logins">
+      <SettingsSection id="logins" title={t("screens.settings.recentLogins")}>
         <LoginActivity userId={session.user.id} />
       </SettingsSection>
 
-      <SettingsSection id="push" title="Notifications">
+      <SettingsSection id="push" title={t("settingsNav.notifications")}>
         <PushNotificationsSettings />
         <NotificationPreferences
           role="STARTUP"
@@ -124,30 +124,30 @@ export default async function StartupSettingsPage() {
       </SettingsSection>
 
       {session.user.isAdmin && (
-        <SettingsSection id="admin" title="Admin">
-          <SettingsRow label="Admin dashboard" hint="Users, payments, reports and disputes across comtor.">
+        <SettingsSection id="admin" title={t("screens.settings.admin")}>
+          <SettingsRow label={t("nav.admin")} hint={t("screens.settings.adminHint")}>
             <Link
               href="/admin"
               className="shrink-0 rounded-full border border-neutral-300 px-4 py-2 text-sm font-medium transition hover:border-neutral-400 dark:border-neutral-700"
             >
-              Open
+              {t("common.open")}
             </Link>
           </SettingsRow>
         </SettingsSection>
       )}
 
-      <SettingsSection id="data" title="Your data">
-        <SettingsRow label="Export my data" hint="Everything in your account, as a JSON file.">
+      <SettingsSection id="data" title={t("screens.settings.yourData")}>
+        <SettingsRow label={t("screens.settings.exportData")} hint={t("screens.settings.exportHint")}>
           <a
             href="/api/account/export"
             className="shrink-0 rounded-full border border-neutral-300 px-4 py-2 text-sm font-medium transition hover:border-neutral-400 dark:border-neutral-700"
           >
-            Export
+            {t("common.export")}
           </a>
         </SettingsRow>
       </SettingsSection>
 
-      <SettingsSection id="danger" title="Danger zone">
+      <SettingsSection id="danger" title={t("screens.settings.danger")}>
         <DeleteAccountForm />
       </SettingsSection>
 

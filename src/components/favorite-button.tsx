@@ -6,6 +6,7 @@ import { FaStar } from "react-icons/fa";
 import { toast } from "@/lib/toast";
 import { haptic } from "@/lib/haptics";
 import { errorMessage } from "@/lib/error-message";
+import { useI18n } from "@/components/i18n-provider";
 
 export function FavoriteButton({
   id,
@@ -27,6 +28,7 @@ export function FavoriteButton({
   // "overlay" sits on a photo (Discover's tiles): smaller, on a light disc.
   variant?: "default" | "overlay";
 }) {
+  const { t } = useI18n();
   const [favorited, setFavorited] = useState(initialFavorited);
   // Not component state on purpose — this only guards against a double-fire
   // mid-request, it isn't something the button should ever visibly show
@@ -52,10 +54,10 @@ export function FavoriteButton({
     try {
       if (next) {
         await favoriteAction(id);
-        toast.success("Saved to favorites.");
+        toast.success(t("screens.discover.save"));
       } else {
         await unfavoriteAction(id);
-        toast.success("Removed from favorites.");
+        toast.success(t("screens.discover.unsave"));
       }
     } catch (err) {
       setFavorited(!next);
@@ -71,8 +73,8 @@ export function FavoriteButton({
       type="button"
       onClick={toggle}
       aria-pressed={favorited}
-      aria-label={favorited ? "Remove from favorites" : "Save to favorites"}
-      title={favorited ? "Remove from favorites" : "Save to favorites"}
+      aria-label={favorited ? t("screens.discover.unsave") : t("screens.discover.save")}
+      title={favorited ? t("screens.discover.unsave") : t("screens.discover.save")}
       className={
         variant === "overlay"
           ? `flex h-8 w-8 shrink-0 items-center justify-center rounded-full shadow-sm transition ${

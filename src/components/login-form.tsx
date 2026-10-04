@@ -2,8 +2,11 @@
 
 import { useActionState, useEffect, useState, startTransition } from "react";
 import { checkLoginAction, completeLoginAction } from "@/lib/actions/auth";
+import { useI18n } from "@/components/i18n-provider";
+import { localizeError } from "@/lib/i18n/labels";
 
 export function LoginForm() {
+  const { t } = useI18n();
   const [credentials, setCredentials] = useState<{ email: string; password: string } | null>(null);
   const [useRecoveryCode, setUseRecoveryCode] = useState(false);
 
@@ -34,7 +37,7 @@ export function LoginForm() {
         <input type="hidden" name="role" value={checkState.role ?? ""} />
         <div className="flex flex-col gap-1">
           <label htmlFor="code" className="text-sm font-medium">
-            {useRecoveryCode ? "Recovery code" : "Authentication code"}
+            {useRecoveryCode ? t("screens.auth.recoveryCode") : t("screens.auth.authCode")}
           </label>
           <input
             id="code"
@@ -52,15 +55,15 @@ export function LoginForm() {
           onClick={() => setUseRecoveryCode((v) => !v)}
           className="text-xs text-neutral-500 underline self-start dark:text-neutral-400"
         >
-          {useRecoveryCode ? "Use authentication code instead" : "Use a recovery code instead"}
+          {useRecoveryCode ? t("screens.auth.useAuthCode") : t("screens.auth.useRecovery")}
         </button>
-        {completeState?.error && <p className="text-sm text-ink">{completeState.error}</p>}
+        {completeState?.error && <p className="text-sm text-ink">{localizeError(completeState.error, t)}</p>}
         <button
           type="submit"
           disabled={completePending}
           className="rounded-full bg-ink text-paper px-4 py-2 font-medium hover:bg-graphite transition disabled:opacity-50"
         >
-          {completePending ? "Verifying…" : "Verify"}
+          {completePending ? t("screens.settings.verifying") : t("screens.auth.verify")}
         </button>
       </form>
     );
@@ -76,7 +79,7 @@ export function LoginForm() {
     >
       <div className="flex flex-col gap-1">
         <label htmlFor="email" className="text-sm font-medium">
-          Email
+          {t("screens.auth.email")}
         </label>
         <input
           id="email"
@@ -88,7 +91,7 @@ export function LoginForm() {
       </div>
       <div className="flex flex-col gap-1">
         <label htmlFor="password" className="text-sm font-medium">
-          Password
+          {t("screens.auth.password")}
         </label>
         <input
           id="password"
@@ -100,14 +103,14 @@ export function LoginForm() {
         />
       </div>
       {(checkState?.error || completeState?.error) && (
-        <p className="text-sm text-ink">{checkState?.error ?? completeState?.error}</p>
+        <p className="text-sm text-ink">{localizeError(checkState?.error ?? completeState?.error ?? "", t)}</p>
       )}
       <button
         type="submit"
         disabled={checkPending || completePending}
         className="rounded-full bg-ink text-paper px-4 py-2 font-medium hover:bg-graphite transition disabled:opacity-50"
       >
-        {checkPending || completePending ? "Logging in…" : "Log in"}
+        {checkPending || completePending ? t("screens.auth.loggingIn") : t("screens.auth.logIn")}
       </button>
     </form>
   );

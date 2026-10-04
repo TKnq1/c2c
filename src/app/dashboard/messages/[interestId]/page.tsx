@@ -14,11 +14,13 @@ import { buildCollabTimeline } from "@/lib/collab-timeline";
 import { chatThreadVersion } from "@/lib/chat-version";
 import { DEPOSITS_ENABLED, PLATFORM_FEE_RATE, PRO_PLATFORM_FEE_RATE } from "@/lib/constants";
 import { ChatInfoPanel } from "@/components/chat-info-panel";
+import { getT } from "@/lib/i18n/server";
 
 export default async function MessageThreadPage({ params }: { params: Promise<{ interestId: string }> }) {
   const { interestId } = await params;
   const session = await auth();
   if (!session) redirect("/login");
+  const t = await getT();
 
   const interest = await prisma.interest.findUnique({
     where: { id: interestId },
@@ -58,9 +60,9 @@ export default async function MessageThreadPage({ params }: { params: Promise<{ 
     hasBlocked(session.user.id, other.userId),
   ]);
   const blockedNotice = blockedByMe
-    ? `You blocked ${other.name}. Unblock them from the ⋯ menu to message again.`
+    ? t("screens.messages.blockedByYou", { name: other.name })
     : blockedEitherWay
-      ? `You can't message ${other.name} anymore.`
+      ? t("screens.messages.blockedEither", { name: other.name })
       : null;
 
   const latestUnreadId =
@@ -120,7 +122,7 @@ export default async function MessageThreadPage({ params }: { params: Promise<{ 
           <Link
             href="/dashboard/messages"
             transitionTypes={["nav-back"]}
-            aria-label="Back to messages"
+            aria-label={t("screens.messages.back")}
             // Desktop has the list right next to the thread, no way back needed.
             className="-ml-1 flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-ink transition hover:bg-fog md:ml-0 lg:hidden"
           >
@@ -154,7 +156,7 @@ export default async function MessageThreadPage({ params }: { params: Promise<{ 
             isMine: m.senderRole === session.user.role,
             read: m.read,
           }))}
-          events={buildCollabTimeline(interest)
+          events={buildCollabTimeline(interest, t)
             .filter((e) => e.type !== "offer")
             .map((e) => ({ at: e.at.getTime(), label: e.label, href: e.href }))}
         />
@@ -175,7 +177,7 @@ export default async function MessageThreadPage({ params }: { params: Promise<{ 
         }}
         offer={offer}
         makeOffer={makeOffer}
-        waitingOn={`No offer yet. ${other.name} sends one once you've agreed on the content.`}
+        waitingOn={t("screens.messages.waitingOn", { name: other.name })}
         deposit={
           DEPOSITS_ENABLED && interest.depositStatus && interest.depositCents
             ? { status: interest.depositStatus, amountCents: interest.depositCents }

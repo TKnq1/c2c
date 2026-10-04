@@ -1,12 +1,14 @@
 import Link from "next/link";
 import { FiCheck } from "react-icons/fi";
+import { getT } from "@/lib/i18n/server";
 
 type Item = { label: string; done: boolean; href: string };
 
 // Lives in Settings, not dismissible — it should keep showing on every
 // visit until the account is actually finished, not just once until
 // someone clicks it away.
-export function OnboardingChecklist({ items }: { items: Item[] }) {
+export async function OnboardingChecklist({ items }: { items: Item[] }) {
+  const t = await getT();
   const allDone = items.every((i) => i.done);
   if (allDone) return null;
 
@@ -15,7 +17,7 @@ export function OnboardingChecklist({ items }: { items: Item[] }) {
   return (
     <div className="flex flex-col gap-3 rounded bg-fog p-4">
       <p className="text-sm font-medium">
-        Finish setting up your account ({doneCount}/{items.length})
+        {t("screens.settings.checklist", { done: doneCount, total: items.length })}
       </p>
       <div className="flex flex-col gap-2">
         {items.map((item) => (

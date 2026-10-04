@@ -8,6 +8,7 @@ import { Dialog } from "@/components/dialog";
 import { TextareaWithCounter } from "@/components/textarea-with-counter";
 import { toast } from "@/lib/toast";
 import { errorMessage } from "@/lib/error-message";
+import { useI18n } from "@/components/i18n-provider";
 
 // The brand's side of the approval step, once the creator has submitted
 // their post: release the money now, or put it on hold for us to review.
@@ -21,6 +22,7 @@ export function PaymentApprovalButtons({
   creatorName: string;
   payoutLabel: string;
 }) {
+  const { t } = useI18n();
   const [reportOpen, setReportOpen] = useState(false);
 
   return (
@@ -28,24 +30,24 @@ export function PaymentApprovalButtons({
       <div className="mt-3 flex flex-col gap-2 no-print">
         <ConfirmActionButton
           action={approvePaymentAction.bind(null, interestId)}
-          successMessage={`Payment released to ${creatorName}.`}
-          title="Approve and release?"
-          description={`${creatorName} gets ${payoutLabel} right away. Only approve if the post is live and matches what you agreed. This can't be undone.`}
-          confirmLabel="Approve & release"
-          pendingLabel="Releasing…"
+          successMessage={t("screens.payments.copy.releasedToName", { name: creatorName })}
+          title={t("screens.payments.copy.approveTitle")}
+          description={t("screens.payments.copy.approveBody", { name: creatorName, payout: payoutLabel })}
+          confirmLabel={t("screens.payments.copy.approveRelease")}
+          pendingLabel={t("screens.payments.copy.releasing")}
           className="w-full rounded-full bg-ink px-4 py-2.5 text-sm font-medium text-paper transition hover:bg-graphite sm:w-auto sm:self-start"
         >
-          Approve & release
+          {t("screens.payments.copy.approveRelease")}
         </ConfirmActionButton>
         <button
           type="button"
           onClick={() => setReportOpen(true)}
           className="text-xs text-neutral-500 transition hover:text-ink sm:self-start dark:text-neutral-400"
         >
-          Problem with the post? Report it
+          {t("screens.payments.copy.reportIt")}
         </button>
       </div>
-      <Dialog open={reportOpen} onClose={() => setReportOpen(false)} title="Report a problem">
+      <Dialog open={reportOpen} onClose={() => setReportOpen(false)} title={t("screens.payments.copy.reportTitle")}>
         <ReportProblemForm interestId={interestId} creatorName={creatorName} onDone={() => setReportOpen(false)} />
       </Dialog>
     </>
@@ -61,6 +63,7 @@ function ReportProblemForm({
   creatorName: string;
   onDone: () => void;
 }) {
+  const { t } = useI18n();
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
@@ -81,19 +84,18 @@ function ReportProblemForm({
             result = { error: errorMessage(err) };
           }
           if (result?.success) {
-            toast.success("Problem reported. The payment is on hold while we look into it.");
+            toast.success(t("screens.payments.copy.problemReported"));
             onDone();
             router.refresh();
           } else {
-            setError(result?.error ?? "Something went wrong.");
+            setError(result?.error ?? t("screens.payments.copy.somethingWrong"));
           }
         });
       }}
       className="flex flex-col gap-3"
     >
       <p className="text-sm text-neutral-600 dark:text-neutral-400">
-        The payment stays on hold (nothing goes to {creatorName}) while we look at the post and talk to you both.
-        Then we either release it or refund you.
+        {t("screens.payments.copy.reportBody", { name: creatorName })}
       </p>
       {/* text-base on phones: iOS zooms into any field under 16px on focus. */}
       <TextareaWithCounter
@@ -102,8 +104,8 @@ function ReportProblemForm({
         maxLength={1000}
         required
         autoFocus
-        placeholder="What's wrong? E.g. the post was taken down, or it's not what we agreed on."
-        aria-label="What's wrong with the post"
+        placeholder={t("screens.payments.copy.whatsWrong")}
+        aria-label={t("screens.payments.copy.whatsWrongLabel")}
         className="resize-none rounded border border-neutral-300 bg-transparent px-3 py-2.5 text-base outline-none focus:border-neutral-500 md:text-sm dark:border-neutral-700"
       />
       {error && <p className="text-sm text-ink">{error}</p>}
@@ -112,7 +114,7 @@ function ReportProblemForm({
         disabled={pending}
         className="rounded-full bg-ink px-4 py-2.5 text-sm font-medium text-paper transition hover:bg-graphite disabled:opacity-50"
       >
-        {pending ? "Reporting…" : "Report problem"}
+        {pending ? t("screens.payments.copy.reporting") : t("screens.payments.copy.reportProblem")}
       </button>
     </form>
   );

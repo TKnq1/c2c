@@ -14,11 +14,13 @@ import { getPendingPaymentActionCount } from "@/lib/payments";
 import { isOnboardingComplete } from "@/lib/onboarding";
 import type { Metadata } from "next";
 import { NO_INDEX } from "@/lib/seo";
+import { getT } from "@/lib/i18n/server";
 
 // The signed-in app: never in search, whatever links to it.
 export const metadata: Metadata = { robots: NO_INDEX };
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
+  const t = await getT();
   const session = await auth();
   if (!session) redirect("/login");
 
@@ -60,7 +62,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
         href="#main-content"
         className="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:top-2 focus:left-2 focus:rounded-lg focus:bg-neutral-900 focus:text-white focus:px-4 focus:py-2 focus:text-sm focus:font-medium"
       >
-        Skip to content
+        {t("screens.ui.skipToContent")}
       </a>
       <Suspense fallback={null}>
         <WelcomeOverlay />

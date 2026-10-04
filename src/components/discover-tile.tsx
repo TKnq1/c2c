@@ -1,5 +1,8 @@
+"use client";
+
 import Link from "next/link";
 import { Avatar } from "@/components/avatar";
+import { useI18n } from "@/components/i18n-provider";
 
 // One tile in Discover's photo grid: a picture first (a brand's latest
 // request photo, or a creator's own photo), then the name and one grey line
@@ -26,6 +29,7 @@ export function DiscoverTile({
   isNew: boolean;
   favorite: React.ReactNode;
 }) {
+  const { t } = useI18n();
   // A drawn graphic (the generated initials logos are SVG) isn't a photo:
   // stretched over the 4:5 tile it turns into a giant cropped circle. Shown
   // like a missing photo instead, as the round avatar in the middle.
@@ -57,7 +61,7 @@ export function DiscoverTile({
           )}
           {isNew && (
             <span className="absolute left-2 top-2 rounded bg-ink px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-paper">
-              New
+              {t("screens.discover.new")}
             </span>
           )}
         </div>

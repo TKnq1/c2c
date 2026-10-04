@@ -4,6 +4,7 @@ import { submitReviewAction } from "@/lib/actions/reviews";
 import { StarRatingInput } from "@/components/star-rating-input";
 import { TextareaWithCounter } from "@/components/textarea-with-counter";
 import { useToastFormAction } from "@/lib/use-toast-form-action";
+import { useI18n } from "@/components/i18n-provider";
 
 type Props = {
   interestId: string;
@@ -11,9 +12,10 @@ type Props = {
 };
 
 export function ReviewForm({ interestId, initial }: Props) {
+  const { t } = useI18n();
   const [state, formAction, pending] = useToastFormAction(
     submitReviewAction.bind(null, interestId),
-    "Review saved.",
+    t("screens.payments.copy.reviewSaved"),
   );
 
   return (
@@ -26,15 +28,15 @@ export function ReviewForm({ interestId, initial }: Props) {
       }}
       className="mt-3 flex flex-col gap-2 rounded bg-paper p-3 no-print"
     >
-      <span className="text-sm font-medium">{initial ? "Your review" : "Leave a review"}</span>
+      <span className="text-sm font-medium">{initial ? t("screens.payments.copy.yourReview") : t("screens.payments.copy.leaveReview")}</span>
       <StarRatingInput name="rating" defaultValue={initial?.rating ?? 5} />
       {/* text-base on phones: iOS zooms into any field under 16px on focus. */}
       <TextareaWithCounter
         name="comment"
         rows={2}
         maxLength={1000}
-        placeholder="Optional comment"
-        aria-label="Comment"
+        placeholder={t("screens.payments.copy.optionalComment")}
+        aria-label={t("screens.payments.copy.comment")}
         defaultValue={initial?.comment ?? ""}
         className="resize-none rounded border border-neutral-300 bg-background px-3 py-2 text-base outline-none focus:border-neutral-500 md:text-sm dark:border-neutral-700"
       />
@@ -44,7 +46,7 @@ export function ReviewForm({ interestId, initial }: Props) {
         disabled={pending}
         className="self-start rounded-full bg-ink px-4 py-2 text-sm font-medium text-paper transition hover:bg-graphite disabled:opacity-50"
       >
-        {pending ? "Saving…" : initial ? "Update review" : "Submit review"}
+        {pending ? t("common.saving") : initial ? t("screens.payments.copy.updateReview") : t("screens.payments.copy.submitReview")}
       </button>
     </form>
   );

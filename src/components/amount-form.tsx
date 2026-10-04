@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "@/lib/toast";
 import { errorMessage } from "@/lib/error-message";
+import { useI18n } from "@/components/i18n-provider";
 
 type AmountActionState = { error?: string; success?: boolean } | undefined;
 
@@ -13,10 +14,10 @@ export function AmountForm({
   action,
   hint,
   submitLabel,
-  pendingLabel = "Sending…",
+  pendingLabel,
   successMessage,
   placeholder = "250.00",
-  label = "Amount in euros",
+  label,
   onDone,
 }: {
   action: (prevState: AmountActionState, formData: FormData) => Promise<AmountActionState>;
@@ -28,7 +29,10 @@ export function AmountForm({
   label?: string;
   onDone: () => void;
 }) {
+  const { t } = useI18n();
   const router = useRouter();
+  const amountLabel = label ?? t("screens.ui.amountEuros");
+  const pendingText = pendingLabel ?? t("screens.messages.sending");
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
 
@@ -54,7 +58,7 @@ export function AmountForm({
             // actions don't touch the chat, for one).
             router.refresh();
           } else {
-            setError(result?.error ?? "Something went wrong.");
+            setError(result?.error ?? t("screens.payments.copy.somethingWrong"));
           }
         });
       }}
@@ -73,7 +77,7 @@ export function AmountForm({
           required
           autoFocus
           placeholder={placeholder}
-          aria-label={label}
+          aria-label={amountLabel}
           className="w-full bg-transparent py-2.5 text-base outline-none md:text-sm"
         />
       </label>
@@ -83,7 +87,7 @@ export function AmountForm({
         disabled={pending}
         className="rounded-full bg-ink px-4 py-2.5 text-sm font-medium text-paper transition hover:bg-graphite disabled:opacity-50"
       >
-        {pending ? pendingLabel : submitLabel}
+        {pending ? pendingText : submitLabel}
       </button>
     </form>
   );

@@ -13,6 +13,7 @@ import { StartConversationAsStartup } from "@/components/start-conversation-as-s
 import { formatFollowers, formatMemberSince } from "@/lib/format";
 import { BackButton } from "@/components/back-button";
 import { ProfileLayout, ProfileSection, ProfileTag } from "@/components/profile-layout";
+import { getLocale, getT } from "@/lib/i18n/server";
 import { DEFAULT_NICHE_ICON, NICHE_ICONS } from "@/lib/niche-icons";
 
 // The profile itself, shared by its own page and by the panel Discover
@@ -64,11 +65,14 @@ export async function CreatorProfileView({ id, variant }: { id: string; variant:
       where: { creatorId: creator.id, paymentStatus: "RELEASED" },
     }),
   ]);
+  const t = await getT();
+  const locale = await getLocale();
   const responseTime = formatResponseTimeShort(
     computeResponseTimeMs(
       conversations.map((c) => c.messages),
       "CREATOR",
     ),
+    locale,
   );
   const totalReach = creator.platforms.reduce((sum, p) => sum + p.followerCount, 0);
 
@@ -120,23 +124,27 @@ export async function CreatorProfileView({ id, variant }: { id: string; variant:
         }
         stats={[
           {
-            label: reviews.length ? `${reviews.length} review${reviews.length === 1 ? "" : "s"}` : "Rating",
+            label: reviews.length
+              ? reviews.length === 1
+                ? t("screens.discover.reviewOne", { count: reviews.length })
+                : t("screens.discover.reviewMany", { count: reviews.length })
+              : t("screens.payments.rating"),
             value: reviews.length ? `★ ${average.toFixed(1)}` : "–",
           },
-          { label: "Collabs done", value: completedCollabs.toLocaleString("en-US") },
-          { label: "Replies in", value: responseTime ?? "–" },
-          { label: "Member since", value: formatMemberSince(creator.user.createdAt) },
+          { label: t("screens.discover.collabsDone"), value: completedCollabs.toLocaleString(locale) },
+          { label: t("screens.discover.repliesIn"), value: responseTime ?? "–" },
+          { label: t("screens.discover.memberSince"), value: formatMemberSince(creator.user.createdAt, locale) },
         ]}
       >
         {creator.bio && (
-          <ProfileSection title="About">
+          <ProfileSection title={t("screens.discover.about")}>
             <p className="whitespace-pre-wrap text-sm leading-relaxed text-neutral-700 dark:text-neutral-300">{creator.bio}</p>
           </ProfileSection>
         )}
 
-        <ProfileSection title="Platforms" aside={totalReach > 0 ? `${formatFollowers(totalReach)} total reach` : undefined}>
+        <ProfileSection title={t("screens.discover.platforms")} aside={totalReach > 0 ? t("screens.discover.totalReach", { count: formatFollowers(totalReach) }) : undefined}>
           {creator.platforms.length === 0 ? (
-            <p className="text-sm text-neutral-500 dark:text-neutral-400">No platforms listed.</p>
+            <p className="text-sm text-neutral-500 dark:text-neutral-400">{t("screens.discover.noPlatforms")}</p>
           ) : (
             <ul className="grid gap-2 sm:grid-cols-2">
               {creator.platforms.map((p) => {
@@ -146,7 +154,7 @@ export async function CreatorProfileView({ id, variant }: { id: string; variant:
                     <span className="min-w-0 flex-1">
                       <span className="block text-sm font-semibold">{p.platform}</span>
                       <span className="block text-footnote text-neutral-500 tabular-nums dark:text-neutral-400">
-                        {p.followerCount.toLocaleString("en-US")} followers
+                        {t("screens.discover.followersCount", { count: p.followerCount.toLocaleString(locale) })}
                       </span>
                     </span>
                     {p.url && <IoArrowForward className="h-4 w-4 shrink-0 -rotate-45 text-neutral-400" aria-hidden />}
@@ -160,7 +168,7 @@ export async function CreatorProfileView({ id, variant }: { id: string; variant:
                         href={p.url}
                         target="_blank"
                         rel="noopener noreferrer"
-                        aria-label={`${creator.displayName} on ${p.platform}`}
+                        aria-label={t("screens.discover.onPlatform", { name: creator.displayName, platform: p.platform })}
                         className="flex items-center gap-3 rounded bg-fog px-4 py-3 transition hover:bg-ink/5"
                       >
                         {body}
@@ -175,7 +183,7 @@ export async function CreatorProfileView({ id, variant }: { id: string; variant:
           )}
         </ProfileSection>
 
-        <ProfileSection title="Reviews from brands">
+        <ProfileSection title={t("screens.discover.reviewsBrands")}>
           <ReviewsList reviews={reviews} />
         </ProfileSection>
       </ProfileLayout>

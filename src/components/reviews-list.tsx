@@ -1,11 +1,13 @@
 import { Stars } from "@/components/stars";
 import { RelativeTime } from "@/components/relative-time";
+import { getT } from "@/lib/i18n/server";
 
 type ReviewEntry = { id: string; rating: number; comment: string | null; createdAt: Date };
 
-export function ReviewsList({ reviews }: { reviews: ReviewEntry[] }) {
+export async function ReviewsList({ reviews }: { reviews: ReviewEntry[] }) {
+  const t = await getT();
   if (reviews.length === 0) {
-    return <p className="text-sm text-neutral-500 dark:text-neutral-400">No reviews yet.</p>;
+    return <p className="text-sm text-neutral-500 dark:text-neutral-400">{t("screens.ui.noReviews")}</p>;
   }
 
   return (

@@ -5,12 +5,14 @@ import { getConversations } from "@/lib/conversations";
 import { MessagesList } from "@/components/messages-list";
 import { SkeletonCardList } from "@/components/skeleton";
 import { PageTitle } from "@/components/page-title";
+import { getT } from "@/lib/i18n/server";
 
 // From lg up Messages is two columns, like a desktop mail or chat app: the
 // conversation list stays on the left and the inbox page or an open thread
 // fills the right. Below lg the list column isn't rendered at all and each
 // page is full width, as before.
 export default async function MessagesLayout({ children }: { children: React.ReactNode }) {
+  const t = await getT();
   const session = await auth();
   if (!session) redirect("/login");
 
@@ -23,9 +25,9 @@ export default async function MessagesLayout({ children }: { children: React.Rea
     <div className="page-wide group flex flex-col gap-6 has-[.chat-thread]:h-full lg:h-full">
       {/* Above the inbox from md, and above both columns on desktop; a
           thread on a tablet has its own header instead. */}
-      <PageTitle className="md:group-has-[.chat-thread]:max-lg:sr-only">Messages</PageTitle>
+      <PageTitle className="md:group-has-[.chat-thread]:max-lg:sr-only">{t("nav.messages")}</PageTitle>
       <div className="min-h-0 flex-1 lg:grid lg:grid-cols-[minmax(0,20rem)_minmax(0,1fr)] lg:gap-6">
-        <aside aria-label="Conversations" className="hidden min-h-0 overflow-y-auto lg:block">
+        <aside aria-label={t("nav.messages")} className="hidden min-h-0 overflow-y-auto lg:block">
           {conversations.length > 0 && (
             <Suspense fallback={<SkeletonCardList />}>
               <MessagesList conversations={conversations} compact />

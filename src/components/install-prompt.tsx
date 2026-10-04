@@ -3,6 +3,7 @@
 import { useLayoutEffect, useState } from "react";
 import { FiX } from "react-icons/fi";
 import { Capacitor } from "@capacitor/core";
+import { useI18n } from "@/components/i18n-provider";
 
 const DISMISS_KEY = "install-prompt-dismissed";
 
@@ -25,6 +26,7 @@ function isStandalone() {
 // /sw.js) since Chrome's install criteria and the offline fallback in
 // sw.js both need it active before someone would ever see this banner.
 export function InstallPrompt() {
+  const { t } = useI18n();
   const [visible, setVisible] = useState(false);
   const [isIOS, setIsIOS] = useState(false);
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
@@ -90,21 +92,21 @@ export function InstallPrompt() {
         <p className="text-center">
           {isIOS ? (
             <>
-              Install comtor: tap Share, then <strong className="font-semibold">Add to Home Screen</strong>.
+              {t("screens.ui.installIosLead")} <strong className="font-semibold">{t("screens.ui.installAddHome")}</strong>.
             </>
           ) : (
-            "Install comtor for quicker access and a full-screen view."
+            t("screens.ui.installOther")
           )}
         </p>
         {!isIOS && (
           <button type="button" onClick={install} className="shrink-0 underline font-medium">
-            Install
+            {t("screens.ui.install")}
           </button>
         )}
         <button
           type="button"
           onClick={dismiss}
-          aria-label="Dismiss"
+          aria-label={t("screens.ui.dismiss")}
           className="shrink-0 text-stone hover:text-ink transition"
         >
           <FiX className="h-4 w-4" />

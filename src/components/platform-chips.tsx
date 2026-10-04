@@ -3,6 +3,7 @@
 import { IoClose } from "react-icons/io5";
 import { PLATFORMS } from "@/lib/constants";
 import { PlatformIcon } from "@/components/platform-icons";
+import { useI18n } from "@/components/i18n-provider";
 
 export type PlatformDraft = { platform: string; followers: string; url: string };
 
@@ -23,6 +24,7 @@ export function PlatformChips({
   value: PlatformDraft[];
   onChange: (entries: PlatformDraft[]) => void;
 }) {
+  const { t } = useI18n();
   const selected = new Set(value.map((e) => e.platform));
   const serialized = value.map((e) => ({ platform: e.platform, followerCount: Number(e.followers), url: e.url.trim() }));
 
@@ -56,14 +58,14 @@ export function PlatformChips({
       </div>
 
       {value.map((e) => (
-        <div key={e.platform} className="animate-stagger-fade-in flex flex-col gap-2 rounded border border-ink/10 p-3">
+        <div key={e.platform} className="animate-stagger-fade-in flex flex-col gap-2 rounded bg-fog p-3">
           <div className="flex items-center gap-2">
             <PlatformIcon platform={e.platform} className="h-4 w-4 shrink-0" />
             <span className="flex-1 text-sm font-medium">{e.platform}</span>
             <button
               type="button"
               onClick={() => toggle(e.platform)}
-              aria-label={`Remove ${e.platform}`}
+              aria-label={t("screens.settings.removePlatform", { name: e.platform })}
               className="flex h-11 w-11 items-center justify-center text-neutral-500 transition hover:text-ink dark:text-neutral-400"
             >
               <IoClose className="h-4 w-4" aria-hidden />
@@ -72,39 +74,37 @@ export function PlatformChips({
           <div className="flex gap-2">
             <label className="flex w-32 shrink-0 flex-col gap-1 text-xs font-medium">
               <span>
-                Followers <span aria-hidden>*</span>
+                {t("screens.settings.followers")} <span aria-hidden>*</span>
               </span>
               <input
                 type="number"
                 inputMode="numeric"
                 min={0}
                 required
-                placeholder="e.g. 12000"
-                aria-label={`${e.platform} followers`}
+                placeholder={t("screens.ui.followersExample")}
+                aria-label={t("screens.settings.followersOf", { name: e.platform })}
                 value={e.followers}
                 onChange={(ev) => update(e.platform, { followers: ev.target.value })}
-                className="rounded border border-neutral-300 bg-background px-3 py-2.5 text-base font-normal dark:border-neutral-700"
+                className="rounded border border-neutral-300 bg-background px-3 py-3 text-base font-normal dark:border-neutral-700"
               />
             </label>
             <label className="flex min-w-0 flex-1 flex-col gap-1 text-xs font-medium">
               <span>
-                Profile link <span aria-hidden>*</span>
+                {t("screens.settings.profileLink")} <span aria-hidden>*</span>
               </span>
               <input
                 type="url"
                 required
                 placeholder="https://"
-                aria-label={`${e.platform} profile link`}
+                aria-label={t("screens.settings.linkOf", { name: e.platform })}
                 value={e.url}
                 onChange={(ev) => update(e.platform, { url: ev.target.value })}
-                className="min-w-0 rounded border border-neutral-300 bg-background px-3 py-2.5 text-base font-normal dark:border-neutral-700"
+                className="min-w-0 rounded border border-neutral-300 bg-background px-3 py-3 text-base font-normal dark:border-neutral-700"
               />
             </label>
           </div>
-          {e.url.trim() === "" && (
-            <p className="text-xs font-medium text-ink">
-              The link to your {e.platform} profile is required. Brands open it from your profile.
-            </p>
+          {e.followers !== "" && e.url.trim() === "" && (
+            <p className="text-xs font-medium text-ink">{t("screens.settings.linkRequired", { name: e.platform })}</p>
           )}
         </div>
       ))}
