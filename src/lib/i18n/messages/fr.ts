@@ -76,6 +76,15 @@ export const fr: Catalog = {
       title: "Dans quelle langue veux-tu l’app ?",
       description: "Tu pourras la changer à tout moment dans les réglages.",
     },
+    card: {
+      seeYouBrands: "Ce que les marques verront",
+      seeYouCreators: "Ce que les créateurs verront",
+      yourName: "Ton nom",
+      yourCompany: "Ton entreprise",
+      yourNiches: "Tes niches",
+      yourNiche: "Ta niche",
+      yourReach: "Ton audience",
+    },
     name: {
       title: "Comment doit-on t’appeler ?",
       description: "Ton nom affiché, visible par les marques avec lesquelles tu matches.",

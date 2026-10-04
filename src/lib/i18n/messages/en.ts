@@ -75,6 +75,15 @@ export const en = {
       title: "Which language do you want the app in?",
       description: "You can change this anytime in Settings.",
     },
+    card: {
+      seeYouBrands: "How brands will see you",
+      seeYouCreators: "How creators will see you",
+      yourName: "Your name",
+      yourCompany: "Your company",
+      yourNiches: "Your niches",
+      yourNiche: "Your niche",
+      yourReach: "Your reach",
+    },
     name: {
       title: "What should we call you?",
       description: "Your display name, shown to brands you match with.",

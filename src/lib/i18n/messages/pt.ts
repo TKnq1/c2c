@@ -76,6 +76,15 @@ export const pt: Catalog = {
       title: "Em que idioma queres a app?",
       description: "Podes mudar isto quando quiseres nas Definições.",
     },
+    card: {
+      seeYouBrands: "Como as marcas te vão ver",
+      seeYouCreators: "Como os criadores te vão ver",
+      yourName: "O teu nome",
+      yourCompany: "A tua empresa",
+      yourNiches: "Os teus nichos",
+      yourNiche: "O teu nicho",
+      yourReach: "O teu alcance",
+    },
     name: {
       title: "Como te devemos tratar?",
       description: "O nome que as marcas veem quando há correspondência.",

@@ -76,6 +76,15 @@ export const nl: Catalog = {
       title: "In welke taal wil je de app?",
       description: "Je kunt dit altijd wijzigen in Instellingen.",
     },
+    card: {
+      seeYouBrands: "Zo zien merken je",
+      seeYouCreators: "Zo zien creators je",
+      yourName: "Je naam",
+      yourCompany: "Je bedrijf",
+      yourNiches: "Je niches",
+      yourNiche: "Je niche",
+      yourReach: "Je bereik",
+    },
     name: {
       title: "Hoe mogen we je noemen?",
       description: "Je weergavenaam, zichtbaar voor merken waarmee je matcht.",
