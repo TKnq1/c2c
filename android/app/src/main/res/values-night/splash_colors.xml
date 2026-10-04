@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Same as --paper's dark value in src/app/globals.css. -->
+    <!-- Same as the dark value of the paper colour in src/app/globals.css. -->
     <color name="splash_background">#1E1E1E</color>
 </resources>
