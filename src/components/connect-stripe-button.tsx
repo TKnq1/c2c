@@ -41,10 +41,14 @@ export function ConnectStripeButton({
   isOnboarded,
   label = isOnboarded ? "Update payout details" : "Connect Stripe to receive payouts",
   embedClassName = "rounded bg-paper p-4",
+  onExit,
 }: {
   isOnboarded: boolean;
   label?: string;
   embedClassName?: string;
+  // Replaces the page refresh when the embedded form is closed, for a caller
+  // (the onboarding wizard) that a refresh would move away from.
+  onExit?: () => void;
 }) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
@@ -67,11 +71,15 @@ export function ConnectStripeButton({
 
   const handleExit = useCallback(() => {
     setOpen(false);
+    if (onExit) {
+      onExit();
+      return;
+    }
     // stripeOnboarded flips via the account.updated webhook, not
     // synchronously — refresh so a status change already processed by the
     // time the creator exits shows up without a manual reload.
     router.refresh();
-  }, [router]);
+  }, [router, onExit]);
 
   if (open && connectInstance) {
     return (

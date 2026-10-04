@@ -4,31 +4,29 @@ import { useActionState, useRef, useState } from "react";
 import { IoCameraOutline } from "react-icons/io5";
 import { saveOnboardingPhotoAction } from "@/lib/actions/onboarding";
 import { resizeImageFile } from "@/lib/resize-image";
-import { Avatar } from "@/components/avatar";
-import { DEFAULT_NICHE_ICON, NICHE_ICONS } from "@/lib/niche-icons";
-import { StepError, StepFooter, StepHeading, useStepDone } from "@/components/onboarding-ui";
+import { SkipButton, StepError, StepFooter, StepHeading, useStepDone } from "@/components/onboarding-ui";
 
-// Optional photo (creators) or logo (brands), with a live preview of how the
-// profile shows up to the other side. Skipping goes straight on.
+// Optional photo (creators) or logo (brands). The wizard's profile card
+// above shows it as soon as one is picked (onPreview). Skipping goes
+// straight on.
 export function OnboardingPhotoStep({
   kind,
-  name,
-  niches,
+  onPreview,
   onBack,
   onDone,
+  onSkip,
 }: {
   kind: "photo" | "logo";
-  name: string;
-  niches: string[];
+  onPreview: (dataUrl: string | null) => void;
   onBack: () => void;
   onDone: () => void;
+  onSkip: () => void;
 }) {
   const [state, formAction, pending] = useActionState(saveOnboardingPhotoAction, undefined);
   useStepDone(state, onDone);
   const inputRef = useRef<HTMLInputElement>(null);
   const [preview, setPreview] = useState<string | null>(null);
   const [readError, setReadError] = useState<string | null>(null);
-  const NicheIcon = NICHE_ICONS[niches[0]] ?? DEFAULT_NICHE_ICON;
   const noun = kind === "logo" ? "logo" : "photo";
 
   async function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
@@ -43,6 +41,7 @@ export function OnboardingPhotoStep({
       dt.items.add(resized);
       if (inputRef.current) inputRef.current.files = dt.files;
       setPreview(dataUrl);
+      onPreview(dataUrl);
     } catch (err) {
       setReadError(err instanceof Error ? err.message : "Couldn't read that image.");
     }
@@ -54,8 +53,8 @@ export function OnboardingPhotoStep({
         title={kind === "logo" ? "Add your logo" : "Add a profile photo"}
         description={
           kind === "logo"
-            ? "Creators are far more likely to reply to a brand they recognize."
-            : "Brands are far more likely to reach out to a face they can see."
+            ? "A logo makes your brand easy to recognise when creators scroll through requests."
+            : "A real face makes your profile feel like a person, not a placeholder."
         }
       />
 
@@ -78,35 +77,11 @@ export function OnboardingPhotoStep({
         )}
       </label>
 
-      <div className="flex flex-col gap-2">
-        <p className="text-center text-xs text-neutral-500 dark:text-neutral-400">
-          How {kind === "logo" ? "creators" : "brands"} will see you
-        </p>
-        <div className="flex items-center gap-3 rounded bg-fog px-4 py-3">
-          <Avatar src={preview} name={name || "?"} size={44} />
-          <div className="min-w-0">
-            <p className="truncate font-semibold">{name}</p>
-            {niches.length > 0 && (
-              <p className="flex items-center gap-1.5 text-footnote text-neutral-500 dark:text-neutral-400">
-                <NicheIcon className="h-3.5 w-3.5 shrink-0" aria-hidden />
-                {niches.join(", ")}
-              </p>
-            )}
-          </div>
-        </div>
-      </div>
-
       {readError && <p className="text-sm text-ink">{readError}</p>}
       <StepError state={state} />
       <div className="flex flex-col gap-3">
         <StepFooter onBack={onBack} pending={pending} disabled={!preview} />
-        <button
-          type="button"
-          onClick={onDone}
-          className="self-center text-sm text-neutral-500 transition hover:text-ink dark:text-neutral-400"
-        >
-          Skip for now
-        </button>
+        <SkipButton onClick={onSkip} />
       </div>
     </form>
   );

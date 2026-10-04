@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { IconType } from "react-icons";
-import { FiAlertTriangle, FiCreditCard, FiFileText, FiGrid, FiMail, FiSend, FiUsers } from "react-icons/fi";
+import { FiAlertTriangle, FiCreditCard, FiFileText, FiGrid, FiMail, FiSend, FiTrendingUp, FiUsers } from "react-icons/fi";
 
 type Item = { href: string; label: string; icon: IconType; badge?: number };
 
@@ -18,6 +18,7 @@ export function AdminNav({ attentionCount }: { attentionCount: number }) {
     { href: "/admin/requests", label: "Requests", icon: FiFileText },
     { href: "/admin/payments", label: "Payments", icon: FiCreditCard },
     { href: "/admin/moderation", label: "Moderation", icon: FiAlertTriangle, badge: attentionCount },
+    { href: "/admin/onboarding", label: "Onboarding", icon: FiTrendingUp },
     { href: "/admin/waitlist", label: "Waitlist", icon: FiMail },
     { href: "/admin/email", label: "Email", icon: FiSend },
   ];
