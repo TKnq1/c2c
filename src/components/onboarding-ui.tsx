@@ -2,8 +2,10 @@
 
 import { Children, useEffect, useRef, useState } from "react";
 import { IoSparkles } from "react-icons/io5";
+import { useI18n } from "@/components/i18n-provider";
 import type { OnboardingState } from "@/lib/actions/onboarding";
-import { insightMessage, type OnboardingInsight } from "@/lib/onboarding-flow";
+import { localizedInsight } from "@/lib/i18n/insight";
+import type { OnboardingInsight } from "@/lib/onboarding-flow";
 
 // Shared pieces of the brand and creator onboarding wizards.
 
@@ -13,6 +15,8 @@ const SECONDARY_BUTTON =
   "rounded-full border border-neutral-300 px-5 py-3 font-medium text-neutral-600 transition hover:border-ink dark:border-neutral-700 dark:text-neutral-400";
 
 export function OnboardingProgress({ step, total, labels }: { step: number; total: number; labels?: string[] }) {
+  const { t } = useI18n();
+  const current = Math.min(step + 1, total);
   return (
     <div>
       <div className="flex items-center gap-1.5" aria-hidden>
@@ -26,7 +30,7 @@ export function OnboardingProgress({ step, total, labels }: { step: number; tota
         ))}
       </div>
       <p className="mt-2 text-xs text-neutral-500 dark:text-neutral-400">
-        Step {Math.min(step + 1, total)} of {total}
+        {t("onboarding.progress", { current, total })}
         {labels?.[step] && ` · ${labels[step]}`}
       </p>
     </div>
@@ -83,22 +87,23 @@ export function StepFooter({
   onBack,
   pending,
   disabled,
-  label = "Continue",
+  label,
 }: {
   onBack?: () => void;
   pending: boolean;
   disabled?: boolean;
   label?: string;
 }) {
+  const { t } = useI18n();
   return (
     <div className="flex gap-2 pt-2">
       {onBack && (
         <button type="button" onClick={onBack} className={SECONDARY_BUTTON}>
-          Back
+          {t("common.back")}
         </button>
       )}
       <button type="submit" disabled={pending || disabled} className={PRIMARY_BUTTON}>
-        {pending ? "Saving…" : label}
+        {pending ? t("common.saving") : (label ?? t("common.continue"))}
       </button>
     </div>
   );
@@ -143,7 +148,8 @@ export function useCountUp(target: number | null, durationMs = 900): number {
 // What the step just before found out, e.g. "4 open requests in Beauty from
 // 2 brands." Shown at the top of the next step.
 export function InsightBanner({ insight }: { insight: OnboardingInsight | undefined }) {
-  const message = insight ? insightMessage(insight) : null;
+  const { t } = useI18n();
+  const message = insight ? localizedInsight(insight, t) : null;
   const shown = useCountUp(message?.count ?? null);
   if (!message) return null;
   return (
@@ -160,14 +166,15 @@ export function InsightBanner({ insight }: { insight: OnboardingInsight | undefi
   );
 }
 
-export function SkipButton({ onClick, children = "Skip for now" }: { onClick: () => void; children?: React.ReactNode }) {
+export function SkipButton({ onClick, children }: { onClick: () => void; children?: React.ReactNode }) {
+  const { t } = useI18n();
   return (
     <button
       type="button"
       onClick={onClick}
       className="self-center px-3 py-2 text-sm text-neutral-500 transition hover:text-ink dark:text-neutral-400"
     >
-      {children}
+      {children ?? t("common.skip")}
     </button>
   );
 }

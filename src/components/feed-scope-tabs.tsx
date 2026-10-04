@@ -2,11 +2,13 @@
 
 import { useState, useTransition } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { useI18n } from "@/components/i18n-provider";
 import { parseFeedScope, type FeedScope } from "@/lib/feed-scope";
+import type { MessageKey } from "@/lib/i18n/translate";
 
-const TABS: { scope: FeedScope; label: string; href: string }[] = [
-  { scope: "forYou", label: "For you", href: "/dashboard/creator" },
-  { scope: "all", label: "All", href: "/dashboard/creator?feed=all" },
+const TABS: { scope: FeedScope; label: MessageKey; href: string }[] = [
+  { scope: "forYou", label: "feed.forYou", href: "/dashboard/creator" },
+  { scope: "all", label: "feed.all", href: "/dashboard/creator?feed=all" },
 ];
 
 // For you (requests in the creator's niches) or All (everything their reach
@@ -27,12 +29,13 @@ export function FeedScopeTabs({ scope, variant = "page" }: { scope: FeedScope; v
     startTransition(() => router.replace(next.href, { scroll: false }));
   }
 
+  const { t } = useI18n();
   const header = variant === "header";
 
   return (
     <div
       role="tablist"
-      aria-label="Feed"
+      aria-label={t("feed.label")}
       className={
         header
           ? "flex gap-0.5 rounded-full bg-fog p-0.5"
@@ -54,7 +57,7 @@ export function FeedScopeTabs({ scope, variant = "page" }: { scope: FeedScope; v
               : "text-neutral-500 hover:text-ink dark:text-neutral-400"
           }`}
         >
-          {tab.label}
+          {t(tab.label)}
         </button>
       ))}
     </div>

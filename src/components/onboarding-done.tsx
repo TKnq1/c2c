@@ -1,4 +1,7 @@
+"use client";
+
 import Link from "next/link";
+import { useI18n } from "@/components/i18n-provider";
 import type { IconType } from "react-icons";
 import {
   IoCheckmark,
@@ -26,28 +29,50 @@ export function OnboardingDone({
   // need to point at it again.
   payoutsStarted: boolean;
 }) {
+  const { t } = useI18n();
   const settings = role === "brand" ? "/dashboard/startup/settings" : "/dashboard/creator/settings";
   const steps: NextStep[] = [
     ...(emailVerified
       ? []
-      : [{ href: "/dashboard/verify-email", icon: IoMailOutline, title: "Verify your email", description: "So you don't miss offers and messages." }]),
+      : [
+          {
+            href: "/dashboard/verify-email",
+            icon: IoMailOutline,
+            title: t("onboarding.done.verifyTitle"),
+            description: t("onboarding.done.verifyBody"),
+          },
+        ]),
     ...(role === "brand"
-      ? [{ href: "/dashboard/startup/discover", icon: IoSearchOutline, title: "Browse creators", description: "Find people in your niche and reach out." }]
+      ? [
+          {
+            href: "/dashboard/startup/discover",
+            icon: IoSearchOutline,
+            title: t("onboarding.done.browseTitle"),
+            description: t("onboarding.done.browseBody"),
+          },
+        ]
       : payoutsStarted
         ? []
-        : [{ href: `${settings}#payouts`, icon: IoWalletOutline, title: "Set up payouts", description: "Needed before a brand can pay you." }]),
+        : [
+            {
+              href: `${settings}#payouts`,
+              icon: IoWalletOutline,
+              title: t("onboarding.done.payoutsTitle"),
+              description: t("onboarding.done.payoutsBody"),
+            },
+          ]),
     {
       href: `${settings}#profile`,
       icon: IoPersonOutline,
-      title: "Complete your profile",
-      description: role === "brand" ? "A short description, website and links." : "A short bio and your content language.",
+      title: t("onboarding.done.profileTitle"),
+      description: role === "brand" ? t("onboarding.done.profileBrand") : t("onboarding.done.profileCreator"),
     },
   ];
   const primary =
     role === "brand"
-      ? { href: "/dashboard/startup/new", label: "Post your first request" }
-      : { href: "/dashboard/creator", label: "Go to my feed" };
-  const secondary = role === "brand" ? { href: "/dashboard/startup", label: "Go to dashboard" } : null;
+      ? { href: "/dashboard/startup/new", label: t("onboarding.done.postFirst") }
+      : { href: "/dashboard/creator", label: t("onboarding.done.goFeed") };
+  const secondary = role === "brand" ? { href: "/dashboard/startup", label: t("onboarding.done.goDashboard") } : null;
 
   return (
     <div className="flex flex-col gap-8">
@@ -56,11 +81,9 @@ export function OnboardingDone({
           <IoCheckmark className="h-8 w-8" aria-hidden />
         </span>
         <div>
-          <h1 className="font-display text-title-1 font-bold text-balance">You&apos;re all set, {name}</h1>
+          <h1 className="font-display text-title-1 font-bold text-balance">{t("onboarding.done.allSet", { name })}</h1>
           <p className="mt-1.5 text-neutral-600 dark:text-neutral-400">
-            {role === "brand"
-              ? "Post a request and matching creators will find it in their feed."
-              : "Your feed is ready with requests that match your niches and reach."}
+            {role === "brand" ? t("onboarding.done.brandBody") : t("onboarding.done.creatorBody")}
           </p>
         </div>
       </div>

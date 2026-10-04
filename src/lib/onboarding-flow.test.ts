@@ -55,8 +55,8 @@ describe("insightMessage", () => {
 
 describe("onboardingStepKeys", () => {
   it("lists the steps in order for each role", () => {
-    expect(onboardingStepKeys("CREATOR").slice(0, 4)).toEqual(["name", "niches", "platforms", "photo"]);
-    expect(onboardingStepKeys("STARTUP")[0]).toBe("company");
+    expect(onboardingStepKeys("CREATOR").slice(0, 5)).toEqual(["language", "name", "niches", "platforms", "photo"]);
+    expect(onboardingStepKeys("STARTUP").slice(0, 4)).toEqual(["language", "company", "niche", "logo"]);
     expect(new Set(onboardingStepKeys("CREATOR")).size).toBe(onboardingStepKeys("CREATOR").length);
   });
 });
@@ -73,7 +73,18 @@ describe("buildFunnel", () => {
       { step: "photo", kind: "completed", count: 1 },
       { step: "done", kind: "viewed", count: 5 },
     ]);
-    expect(rows.map((r) => r.key)).toEqual(["name", "niches", "platforms", "photo", "matches", "swipe", "payouts", "alerts", "done"]);
+    expect(rows.map((r) => r.key)).toEqual([
+      "language",
+      "name",
+      "niches",
+      "platforms",
+      "photo",
+      "matches",
+      "swipe",
+      "payouts",
+      "alerts",
+      "done",
+    ]);
     expect(rows.find((r) => r.key === "name")).toMatchObject({ viewed: 10, completed: 9, droppedOut: 1 });
     expect(rows.find((r) => r.key === "niches")?.droppedOut).toBe(3);
     expect(rows.find((r) => r.key === "photo")).toMatchObject({ skipped: 4, droppedOut: 1 });
@@ -82,6 +93,14 @@ describe("buildFunnel", () => {
   });
 
   it("uses the brand steps for brands", () => {
-    expect(buildFunnel("STARTUP", []).map((r) => r.key)).toEqual(["company", "niche", "logo", "creators", "alerts", "done"]);
+    expect(buildFunnel("STARTUP", []).map((r) => r.key)).toEqual([
+      "language",
+      "company",
+      "niche",
+      "logo",
+      "creators",
+      "alerts",
+      "done",
+    ]);
   });
 });

@@ -17,6 +17,7 @@ declare module "next-auth" {
     id: string;
     role: Role;
     isAdmin: boolean;
+    locale?: string;
   }
 }
 

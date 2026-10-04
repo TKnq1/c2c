@@ -46,6 +46,10 @@ model User {
   notifyDeposits    Boolean @default(true)
   notifyNewCreators Boolean @default(true)
 
+  // The language of the app itself. Separate from the content languages a
+  // creator or a request uses for matching.
+  locale String @default("en")
+
   startupProfile          StartupProfile?
   creatorProfile          CreatorProfile?
   notifications           Notification[]

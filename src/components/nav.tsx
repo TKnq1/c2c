@@ -22,9 +22,9 @@ import {
   IoSearchOutline,
   IoSettings,
   IoSettingsOutline,
-  IoShieldCheckmark,
-  IoShieldCheckmarkOutline,
 } from "react-icons/io5";
+import { useI18n } from "@/components/i18n-provider";
+import type { MessageKey } from "@/lib/i18n/translate";
 import { FeedHeaderToggle, FeedScopeTabs } from "@/components/feed-scope-tabs";
 import { Logo } from "@/components/logo";
 import { SidebarTooltip } from "@/components/sidebar-tooltip";
@@ -35,19 +35,20 @@ import type { Me } from "@/app/api/me/route";
 import { useNavigationBlocker } from "@/lib/navigation-blocker";
 import { isTextField, resetPageScroll } from "@/lib/keyboard";
 
-const TAB_ICONS: Record<string, { outline: IconType; filled: IconType }> = {
-  Requests: { outline: IoHomeOutline, filled: IoHome },
-  Feed: { outline: IoHomeOutline, filled: IoHome },
-  Discover: { outline: IoSearchOutline, filled: IoSearch },
-  Messages: { outline: IoChatbubbleOutline, filled: IoChatbubble },
-  Payments: { outline: IoCardOutline, filled: IoCard },
-  Settings: { outline: IoSettingsOutline, filled: IoSettings },
-  Matches: { outline: IoHeartOutline, filled: IoHeart },
-  Notifications: { outline: IoNotificationsOutline, filled: IoNotifications },
-  Admin: { outline: IoShieldCheckmarkOutline, filled: IoShieldCheckmark },
+type NavId = "requests" | "feed" | "discover" | "messages" | "payments" | "settings" | "matches" | "notifications";
+
+const TAB_ICONS: Record<NavId, { outline: IconType; filled: IconType }> = {
+  requests: { outline: IoHomeOutline, filled: IoHome },
+  feed: { outline: IoHomeOutline, filled: IoHome },
+  discover: { outline: IoSearchOutline, filled: IoSearch },
+  messages: { outline: IoChatbubbleOutline, filled: IoChatbubble },
+  payments: { outline: IoCardOutline, filled: IoCard },
+  settings: { outline: IoSettingsOutline, filled: IoSettings },
+  matches: { outline: IoHeartOutline, filled: IoHeart },
+  notifications: { outline: IoNotificationsOutline, filled: IoNotifications },
 };
 
-type NavLink = { href: string; label: string; badge: number };
+type NavLink = { href: string; id: NavId; label: string; badge: number };
 
 // Longest href wins so e.g. /dashboard/startup/discover/xyz matches
 // "Discover" rather than falling through to the more general "Requests"
@@ -76,14 +77,14 @@ function wantsNav(pathname: string) {
 // heading size). Exact-match only — /dashboard/creator/discover/[id] falls
 // through to null and shows the startup's own name instead, same as any
 // other route without an entry here.
-function getPageTitle(pathname: string) {
-  if (pathname === "/dashboard/creator" || pathname === "/dev-swipe-demo") return "Feed";
-  if (pathname === "/dashboard/creator/discover") return "Discover";
-  if (pathname === "/dashboard/messages") return "Messages";
-  if (pathname === "/dashboard/creator/payments" || pathname === "/dashboard/startup/payments") return "Payments";
-  if (pathname === "/dashboard/startup/new") return "New request";
-  if (/^\/dashboard\/startup\/requests\/[^/]+\/edit$/.test(pathname)) return "Edit request";
-  if (pathname === "/dashboard/creator/settings" || pathname === "/dashboard/startup/settings") return "Settings";
+function pageTitleKey(pathname: string): MessageKey | null {
+  if (pathname === "/dashboard/creator" || pathname === "/dev-swipe-demo") return "nav.feed";
+  if (pathname === "/dashboard/creator/discover") return "nav.discover";
+  if (pathname === "/dashboard/messages") return "nav.messages";
+  if (pathname === "/dashboard/creator/payments" || pathname === "/dashboard/startup/payments") return "nav.payments";
+  if (pathname === "/dashboard/startup/new") return "nav.newRequest";
+  if (/^\/dashboard\/startup\/requests\/[^/]+\/edit$/.test(pathname)) return "nav.editRequest";
+  if (pathname === "/dashboard/creator/settings" || pathname === "/dashboard/startup/settings") return "nav.settings";
   return null;
 }
 
@@ -97,6 +98,7 @@ function getPageTitle(pathname: string) {
 // role and badge counts client-side (dashboard/layout.tsx no longer has a
 // way to hand them down as props from up here) and updates in place.
 export function Nav() {
+  const { t } = useI18n();
   const pathname = usePathname();
   const { isBlocked } = useNavigationBlocker();
   const [role, setRole] = useState<Role | null>(null);
@@ -195,7 +197,7 @@ export function Nav() {
   }, [showNav, pathname, countsVersion]);
 
   const onNavigate = (e: { preventDefault: () => void }) => {
-    if (isBlocked && !window.confirm("You have unsaved changes. Leave without saving?")) {
+    if (isBlocked && !window.confirm(t("nav.leaveUnsaved"))) {
       e.preventDefault();
     }
   };
@@ -208,18 +210,18 @@ export function Nav() {
   const links: NavLink[] =
     role === "STARTUP"
       ? [
-          { href: "/dashboard/startup", label: "Requests", badge: 0 },
-          { href: "/dashboard/startup/discover", label: "Discover", badge: 0 },
-          { href: "/dashboard/messages", label: "Messages", badge: unreadMessages },
-          { href: "/dashboard/startup/payments", label: "Payments", badge: pendingPayments },
-          { href: "/dashboard/startup/settings", label: "Settings", badge: 0 },
+          { href: "/dashboard/startup", id: "requests", label: t("nav.requests"), badge: 0 },
+          { href: "/dashboard/startup/discover", id: "discover", label: t("nav.discover"), badge: 0 },
+          { href: "/dashboard/messages", id: "messages", label: t("nav.messages"), badge: unreadMessages },
+          { href: "/dashboard/startup/payments", id: "payments", label: t("nav.payments"), badge: pendingPayments },
+          { href: "/dashboard/startup/settings", id: "settings", label: t("nav.settings"), badge: 0 },
         ]
       : [
-          { href: "/dashboard/creator", label: "Feed", badge: 0 },
-          { href: "/dashboard/creator/discover", label: "Discover", badge: 0 },
-          { href: "/dashboard/messages", label: "Messages", badge: unreadMessages },
-          { href: "/dashboard/creator/payments", label: "Payments", badge: pendingPayments },
-          { href: "/dashboard/creator/settings", label: "Settings", badge: 0 },
+          { href: "/dashboard/creator", id: "feed", label: t("nav.feed"), badge: 0 },
+          { href: "/dashboard/creator/discover", id: "discover", label: t("nav.discover"), badge: 0 },
+          { href: "/dashboard/messages", id: "messages", label: t("nav.messages"), badge: unreadMessages },
+          { href: "/dashboard/creator/payments", id: "payments", label: t("nav.payments"), badge: pendingPayments },
+          { href: "/dashboard/creator/settings", id: "settings", label: t("nav.settings"), badge: 0 },
         ];
 
   const activeHref = activeHrefFor(links, pathname);
@@ -229,7 +231,8 @@ export function Nav() {
   // thread has its own "← Messages" back link). Left alone on desktop,
   // which was never cramped in the first place.
   const hideOnMobile = pathname.startsWith("/dashboard/messages/");
-  const pageTitle = getPageTitle(pathname);
+  const titleKey = pageTitleKey(pathname);
+  const pageTitle = titleKey ? t(titleKey) : null;
   // The heart is the way into Your matches, so it only shows where you're
   // doing the matching — the Feed you swipe in, and Discover. On Messages,
   // Payments, Settings or the matches page itself it was just clutter.
@@ -294,14 +297,14 @@ export function Nav() {
           app-style, instead of behind a hamburger drawer. Frosted like the
           header: the page scrolls on underneath it. */}
       <nav
-        aria-label="Main"
+        aria-label={t("nav.main")}
         className={`app-tabbar md:hidden fixed inset-x-0 bottom-0 z-40 rounded-t-[20px] border-t border-ink/10 bg-background/80 pb-[var(--bar-bottom)] backdrop-blur-xl backdrop-saturate-150 no-print ${
           hideOnMobile ? "hidden" : ""
         }`}
       >
         <div className="flex items-stretch">
           {links.map((l) => {
-            const icons = TAB_ICONS[l.label] ?? { outline: IoSearchOutline, filled: IoSearch };
+            const icons = TAB_ICONS[l.id];
             const isActive = l.href === activeHref;
             const Outline = icons.outline;
             const Filled = icons.filled;
@@ -371,15 +374,16 @@ function Sidebar({
   unreadCount: number;
   onNavigate: (e: { preventDefault: () => void }) => void;
 }) {
-  const [home, discover, ...rest] = links.filter((l) => l.label !== "Settings");
-  const settings = links.find((l) => l.label === "Settings")!;
+  const { t } = useI18n();
+  const [home, discover, ...rest] = links.filter((l) => l.id !== "settings");
+  const settings = links.find((l) => l.id === "settings")!;
   const main: NavLink[] = [
     home,
     discover,
     // Right after Discover, where the matching happens.
-    ...(role === "CREATOR" ? [{ href: "/dashboard/creator/matches", label: "Matches", badge: 0 }] : []),
+    ...(role === "CREATOR" ? [{ href: "/dashboard/creator/matches", id: "matches" as const, label: t("nav.matches"), badge: 0 }] : []),
     ...rest,
-    { href: "/dashboard/notifications", label: "Notifications", badge: unreadCount },
+    { href: "/dashboard/notifications", id: "notifications" as const, label: t("nav.notifications"), badge: unreadCount },
   ];
   const activeHref = activeHrefFor([...main, settings], pathname);
 
@@ -392,24 +396,24 @@ function Sidebar({
       <button
         type="button"
         onClick={() => window.dispatchEvent(new Event(OPEN_COMMAND_PALETTE))}
-        aria-label="Search (⌘K)"
+        aria-label={t("nav.searchShortcut")}
         className="group relative mb-4 flex h-10 shrink-0 items-center justify-center gap-3 rounded border border-ink/10 px-3 text-sm text-neutral-500 transition hover:border-ink/30 hover:text-ink lg:justify-start dark:text-neutral-400"
       >
         <IoSearch className="h-5 w-5 shrink-0" aria-hidden />
-        <span className="hidden flex-1 text-left lg:inline">Search</span>
+        <span className="hidden flex-1 text-left lg:inline">{t("nav.search")}</span>
         <kbd className="hidden rounded border border-ink/15 px-1.5 text-[11px] lg:inline">⌘K</kbd>
-        <SidebarTooltip label="Search  ⌘K" />
+        <SidebarTooltip label={t("nav.searchTooltip")} />
       </button>
 
-      <nav aria-label="Main" className="flex flex-col gap-1">
+      <nav aria-label={t("nav.main")} className="flex flex-col gap-1">
         {main.map((l) =>
-          l.label === "Notifications" ? (
+          l.id === "notifications" ? (
             // Opens the latest ones in a panel instead of leaving the page.
             <NotificationsPanelButton
               key={l.href}
               unreadCount={l.badge}
-              icon={TAB_ICONS.Notifications.outline}
-              activeIcon={TAB_ICONS.Notifications.filled}
+              icon={TAB_ICONS.notifications.outline}
+              activeIcon={TAB_ICONS.notifications.filled}
               active={l.href === activeHref}
             />
           ) : (
@@ -423,12 +427,12 @@ function Sidebar({
           href="/dashboard/startup/new"
           onNavigate={onNavigate}
           prefetch={false}
-          aria-label="New request"
+          aria-label={t("nav.newRequest")}
           className="group relative mt-5 flex h-11 shrink-0 items-center justify-center gap-2 rounded-full bg-ink text-sm font-medium text-paper transition hover:bg-graphite lg:px-4"
         >
           <IoAdd className="h-5 w-5" aria-hidden />
-          <span className="hidden lg:inline">New request</span>
-          <SidebarTooltip label="New request" />
+          <span className="hidden lg:inline">{t("nav.newRequest")}</span>
+          <SidebarTooltip label={t("nav.newRequest")} />
         </Link>
       )}
 
@@ -454,7 +458,8 @@ function SidebarLink({
   active: boolean;
   onNavigate: (e: { preventDefault: () => void }) => void;
 }) {
-  const icons = TAB_ICONS[link.label] ?? { outline: IoSearchOutline, filled: IoSearch };
+  const { t } = useI18n();
+  const icons = TAB_ICONS[link.id];
   const Icon = active ? icons.filled : icons.outline;
   const badge = link.badge > 9 ? "9+" : String(link.badge);
 
@@ -469,7 +474,7 @@ function SidebarLink({
       prefetch={false}
       aria-current={active ? "page" : undefined}
       // The written-out label is display:none on tablets, so the name comes from here.
-      aria-label={link.badge > 0 ? `${link.label} (${link.badge} new)` : link.label}
+      aria-label={link.badge > 0 ? t("nav.badgeNew", { label: link.label, count: link.badge }) : link.label}
       className={`group relative flex h-11 items-center justify-center gap-3.5 rounded px-3 text-sm transition lg:justify-start ${
         active ? "bg-fog font-semibold text-ink" : "text-graphite hover:bg-fog hover:text-ink"
       }`}
@@ -494,13 +499,14 @@ function SidebarLink({
 }
 
 function MatchesLink({ onNavigate }: { onNavigate: (e: { preventDefault: () => void }) => void }) {
+  const { t } = useI18n();
   return (
     <Link
       href="/dashboard/creator/matches"
       onNavigate={onNavigate}
       prefetch={false}
       className="flex items-center text-graphite hover:text-ink transition"
-      aria-label="Your matches"
+      aria-label={t("nav.yourMatches")}
     >
       <FiHeart className="h-5 w-5 md:h-4 md:w-4" />
     </Link>
@@ -514,13 +520,15 @@ function NotificationsLink({
   unreadCount: number;
   onNavigate: (e: { preventDefault: () => void }) => void;
 }) {
+  const { t } = useI18n();
+  const label = unreadCount > 0 ? t("nav.notificationsNew", { count: unreadCount }) : t("nav.notifications");
   return (
     <Link
       href="/dashboard/notifications"
       onNavigate={onNavigate}
       prefetch={false}
       className="relative flex items-center text-graphite hover:text-ink transition"
-      aria-label="Notifications"
+      aria-label={label}
     >
       <FiBell className="h-5 w-5 md:h-4 md:w-4" />
       {unreadCount > 0 && (

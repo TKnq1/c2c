@@ -1,7 +1,9 @@
 import { Suspense } from "react";
 import type { Metadata, Viewport } from "next";
 import { Lato } from "next/font/google";
+import { I18nProvider } from "@/components/i18n-provider";
 import { Nav } from "@/components/nav";
+import { getLocale } from "@/lib/i18n/server";
 import { NativePushBridge } from "@/components/native-push-bridge";
 import { NativeBackButton } from "@/components/native-back-button";
 import { InAppNavigationMarker } from "@/lib/in-app-navigation";
@@ -82,10 +84,11 @@ const ORGANIZATION_JSON_LD = {
   description: SITE_DESCRIPTION,
 };
 
-export default function RootLayout({ children }: LayoutProps<"/">) {
+export default async function RootLayout({ children }: LayoutProps<"/">) {
+  const locale = await getLocale();
   return (
     <html
-      lang="en"
+      lang={locale}
       className={`${lato.variable} h-full antialiased scroll-smooth`}
       // Tells the router to switch scroll-smooth off while it scrolls to
       // the top on a navigation — a tab change shouldn't glide.
@@ -119,6 +122,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         />
       </head>
       <body className="min-h-full flex flex-col">
+        <I18nProvider locale={locale}>
         <AppSplash />
         <Suspense fallback={null}>
           <TopLoadingBar />
@@ -144,6 +148,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           <NativePushBridge />
           <NativeBackButton />
         </NavigationBlockerProvider>
+        </I18nProvider>
       </body>
     </html>
   );
