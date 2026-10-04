@@ -62,7 +62,10 @@ export default async function CreatorFeedPage(props: PageProps<"/dashboard/creat
   return (
     <div className="flex flex-col gap-3 md:gap-6">
       <PageTitle>Feed</PageTitle>
-      <FeedScopeTabs scope={scope} />
+      {/* On a phone the same switch lives in the top bar, in place of "Feed". */}
+      <div className="hidden justify-center md:flex">
+        <FeedScopeTabs scope={scope} />
+      </div>
       {matching.length === 0 ? (
         scope === "forYou" ? (
           <EmptyState

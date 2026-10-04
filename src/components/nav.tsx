@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useLayoutEffect, useState } from "react";
+import { Suspense, useEffect, useLayoutEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { Role } from "@prisma/client";
@@ -25,6 +25,7 @@ import {
   IoShieldCheckmark,
   IoShieldCheckmarkOutline,
 } from "react-icons/io5";
+import { FeedHeaderToggle, FeedScopeTabs } from "@/components/feed-scope-tabs";
 import { Logo } from "@/components/logo";
 import { SidebarTooltip } from "@/components/sidebar-tooltip";
 import { NotificationsPanelButton } from "@/components/notifications-panel";
@@ -250,15 +251,25 @@ export function Nav() {
           <Link href={base} onNavigate={onNavigate} className="shrink-0">
             <Logo />
           </Link>
-          {pageTitle && (
-            // Centered on the bar itself, not just in the leftover space
-            // next to the logo — absolute + left-1/2/-translate-x-1/2 so
-            // it's dead-center regardless of how wide the logo or the
-            // icons on the other side are, instead of drifting off-center
-            // the way it would inside the same flex row as either side.
-            <span className="absolute left-1/2 -translate-x-1/2 whitespace-nowrap font-display text-headline font-bold">
-              {pageTitle}
+          {pathname === "/dashboard/creator" ? (
+            // The Feed title's spot: For you / All, centered the same way
+            // the title is on every other page.
+            <span className="absolute left-1/2 -translate-x-1/2">
+              <Suspense fallback={<FeedScopeTabs scope="forYou" variant="header" />}>
+                <FeedHeaderToggle />
+              </Suspense>
             </span>
+          ) : (
+            pageTitle && (
+              // Centered on the bar itself, not just in the leftover space
+              // next to the logo — absolute + left-1/2/-translate-x-1/2 so
+              // it's dead-center regardless of how wide the logo or the
+              // icons on the other side are, instead of drifting off-center
+              // the way it would inside the same flex row as either side.
+              <span className="absolute left-1/2 -translate-x-1/2 whitespace-nowrap font-display text-headline font-bold">
+                {pageTitle}
+              </span>
+            )
           )}
 
           <div className="flex items-center gap-4">
