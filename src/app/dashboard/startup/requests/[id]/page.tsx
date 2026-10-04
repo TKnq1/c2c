@@ -82,14 +82,17 @@ export default async function RequestDetailPage({ params }: { params: Promise<{ 
       <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_20rem]">
         <section className="flex min-w-0 flex-col gap-5 lg:col-start-1">
           {photos.length > 0 && (
-            <div className="-mx-6 flex snap-x snap-mandatory gap-2 overflow-x-auto px-6 md:mx-0 md:px-0" style={{ scrollbarWidth: "none" }}>
+            // Wrapped, so the page's own scroll reaches every photo. The old
+            // sideways strip hid the rest: no scrollbar, and the wheel never
+            // moved it.
+            <div className="grid min-w-0 grid-cols-[repeat(auto-fill,minmax(9.5rem,1fr))] gap-2">
               {photos.map((url, i) => (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
                   key={url}
                   src={url}
                   alt={`Photo ${i + 1}`}
-                  className="aspect-[4/5] w-44 shrink-0 snap-start rounded object-cover md:w-52"
+                  className="aspect-[4/5] w-full rounded object-cover"
                 />
               ))}
             </div>
