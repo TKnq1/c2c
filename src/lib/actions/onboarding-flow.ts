@@ -3,10 +3,12 @@
 import { z } from "zod";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { creatorFeedWhere } from "@/lib/feed-scope";
+import { creatorFeedWhere, type FeedCreator } from "@/lib/feed-scope";
 import { getMutualBlockedUserIds } from "@/lib/moderation";
 import { formatBudget } from "@/lib/format";
-import { ONBOARDING_EVENT_KINDS, onboardingStepKeys } from "@/lib/onboarding-flow";
+import { brandNicheCreatorsInsight, nicheRequestsInsight, reachRequestsInsight } from "@/lib/onboarding-insights";
+import { ONBOARDING_EVENT_KINDS, onboardingStepKeys, type OnboardingInsight } from "@/lib/onboarding-flow";
+import { onboardingNicheSchema, onboardingNichesSchema, onboardingPlatformsSchema } from "@/lib/validation";
 
 const trackSchema = z.object({ step: z.string().max(32), kind: z.enum(ONBOARDING_EVENT_KINDS) });
 
@@ -47,21 +49,7 @@ export type CreatorMatchesResult =
     }
   | { error: string };
 
-// The creator's "aha": what is waiting in their feed, from the same query
-// the Feed runs. Biggest budgets first, since that is what makes someone
-// look twice.
-export async function getCreatorMatchesAction(): Promise<CreatorMatchesResult> {
-  const session = await auth();
-  if (!session || session.user.role !== "CREATOR") return { error: "Not authorized." };
-
-  const [creator, blockedUserIds] = await Promise.all([
-    prisma.creatorProfile.findUniqueOrThrow({
-      where: { userId: session.user.id },
-      select: { niches: true, contentLanguage: true, platforms: { select: { followerCount: true } } },
-    }),
-    getMutualBlockedUserIds(session.user.id),
-  ]);
-
+async function queryCreatorMatches(creator: FeedCreator, blockedUserIds: string[]): Promise<CreatorMatchesResult> {
   const forYou = creatorFeedWhere(creator, blockedUserIds, "forYou");
   const [matches, fitsReach, top] = await Promise.all([
     prisma.request.count({ where: forYou }),
@@ -99,6 +87,24 @@ export async function getCreatorMatchesAction(): Promise<CreatorMatchesResult> {
   };
 }
 
+// The creator's "aha": what is waiting in their feed, from the same query
+// the Feed runs. Biggest budgets first, since that is what makes someone
+// look twice.
+export async function getCreatorMatchesAction(): Promise<CreatorMatchesResult> {
+  const session = await auth();
+  if (!session || session.user.role !== "CREATOR") return { error: "Not authorized." };
+
+  const [creator, blockedUserIds] = await Promise.all([
+    prisma.creatorProfile.findUniqueOrThrow({
+      where: { userId: session.user.id },
+      select: { niches: true, contentLanguage: true, platforms: { select: { followerCount: true } } },
+    }),
+    getMutualBlockedUserIds(session.user.id),
+  ]);
+
+  return queryCreatorMatches(creator, blockedUserIds);
+}
+
 export type BrandCreatorsResult =
   | {
       niche: string;
@@ -122,6 +128,10 @@ export async function getBrandCreatorsAction(): Promise<BrandCreatorsResult> {
   const niche = profile.niche;
   if (!niche) return { error: "Choose a niche first." };
 
+  return queryBrandCreators(niche, blockedUserIds);
+}
+
+async function queryBrandCreators(niche: string, blockedUserIds: string[]): Promise<BrandCreatorsResult> {
   const inNiche = { niches: { has: niche }, userId: { notIn: blockedUserIds }, user: { suspendedAt: null } };
   const [creators, established, sample] = await Promise.all([
     prisma.creatorProfile.count({ where: inNiche }),
@@ -135,4 +145,52 @@ export async function getBrandCreatorsAction(): Promise<BrandCreatorsResult> {
   ]);
 
   return { niche, creators, established, sample };
+}
+
+// The same numbers the logged-in wizard reads off the profile, computed
+// from answers that only exist in the browser until the account step.
+export async function previewNicheInsightAction(niches: string[]): Promise<OnboardingInsight | null> {
+  const parsed = onboardingNichesSchema.safeParse({ niches: niches.join(",") });
+  if (!parsed.success) return null;
+  return nicheRequestsInsight(parsed.data.niches).catch(() => null);
+}
+
+export async function previewReachInsightAction(input: {
+  niches: string[];
+  platforms: { followerCount: number }[];
+}): Promise<OnboardingInsight | null> {
+  const niches = onboardingNichesSchema.safeParse({ niches: input.niches.join(",") });
+  const counts = input.platforms.map((p) => p.followerCount);
+  const countsOk = counts.length > 0 && counts.length <= 8 && counts.every((n) => Number.isInteger(n) && n >= 0 && n <= 1_000_000_000);
+  if (!niches.success || !countsOk) return null;
+  return reachRequestsInsight({
+    niches: niches.data.niches,
+    contentLanguage: null,
+    platforms: counts.map((followerCount) => ({ followerCount })),
+  }).catch(() => null);
+}
+
+export async function previewCreatorMatchesAction(input: {
+  niches: string[];
+  platforms: { platform: string; followerCount: number; url: string }[];
+}): Promise<CreatorMatchesResult> {
+  const niches = onboardingNichesSchema.safeParse({ niches: input.niches.join(",") });
+  const platforms = onboardingPlatformsSchema.safeParse({ platforms: JSON.stringify(input.platforms) });
+  if (!niches.success || !platforms.success) return { error: "Not authorized." };
+  return queryCreatorMatches(
+    { niches: niches.data.niches, contentLanguage: null, platforms: platforms.data.platforms },
+    [],
+  );
+}
+
+export async function previewBrandNicheInsightAction(niche: string): Promise<OnboardingInsight | null> {
+  const parsed = onboardingNicheSchema.safeParse({ niche });
+  if (!parsed.success) return null;
+  return brandNicheCreatorsInsight(parsed.data.niche).catch(() => null);
+}
+
+export async function previewBrandCreatorsAction(niche: string): Promise<BrandCreatorsResult> {
+  const parsed = onboardingNicheSchema.safeParse({ niche });
+  if (!parsed.success) return { error: "Choose a niche first." };
+  return queryBrandCreators(parsed.data.niche, []);
 }

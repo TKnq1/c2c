@@ -1,0 +1,129 @@
+"use client";
+
+import { useActionState } from "react";
+import Link from "next/link";
+import { signupFromDraftAction } from "@/lib/actions/onboarding-signup";
+import { NewPasswordField } from "@/components/new-password-field";
+import { useI18n } from "@/components/i18n-provider";
+import { FIELD_CLASS, StepError, StepFooter, StepHeading, stepActions, stepScreen, useStepDone } from "@/components/onboarding-ui";
+import type { OnboardingState } from "@/lib/actions/onboarding";
+import { localizeError } from "@/lib/i18n/labels";
+import { PLATFORM_FEE_RATE, PRO_PLATFORM_FEE_RATE, RELEASE_REVIEW_DAYS } from "@/lib/constants";
+import type { PlatformDraft } from "@/components/platform-chips";
+import type { SignupRole } from "@/lib/signup-role";
+
+function fileFromDataUrl(dataUrl: string): File | null {
+  try {
+    const match = /^data:(image\/[a-zA-Z0-9.+-]+);base64,([A-Za-z0-9+/=\s]+)$/.exec(dataUrl);
+    if (!match) return null;
+    const binary = atob(match[2].replace(/\s/g, ""));
+    const bytes = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+    return new File([bytes], "avatar.jpg", { type: match[1] });
+  } catch {
+    return null;
+  }
+}
+
+// Email and password, after the person has already seen what they'd get.
+// The draft is posted with them and saved in the same request.
+export function OnboardingAccountStep({
+  role,
+  displayName,
+  niches,
+  platforms,
+  companyName,
+  niche,
+  photoDataUrl,
+  onBack,
+  onDone,
+}: {
+  role: SignupRole;
+  displayName: string;
+  niches: string[];
+  platforms: PlatformDraft[];
+  companyName: string;
+  niche: string;
+  photoDataUrl: string | null;
+  onBack: () => void;
+  onDone: () => void;
+}) {
+  const { t } = useI18n();
+  const [state, submit, pending] = useActionState(async (prev: OnboardingState, formData: FormData) => {
+    formData.set("role", role);
+    if (role === "CREATOR") {
+      formData.set("displayName", displayName.trim());
+      formData.set("niches", niches.join(","));
+      formData.set(
+        "platforms",
+        JSON.stringify(
+          platforms.map((p) => ({ platform: p.platform, followerCount: Number(p.followers), url: p.url.trim() })),
+        ),
+      );
+    } else {
+      formData.set("companyName", companyName.trim());
+      formData.set("niche", niche);
+    }
+    if (photoDataUrl) {
+      const file = fileFromDataUrl(photoDataUrl);
+      if (file) formData.set("avatar", file);
+    }
+    return signupFromDraftAction(prev, formData);
+  }, undefined);
+  useStepDone(state, onDone);
+
+  const fee =
+    role === "STARTUP"
+      ? t("screens.auth.feeBrand", { standard: PLATFORM_FEE_RATE * 100, pro: PRO_PLATFORM_FEE_RATE * 100 })
+      : t("screens.auth.feeCreator", {
+          keep: 100 - PLATFORM_FEE_RATE * 100,
+          keepPro: 100 - PRO_PLATFORM_FEE_RATE * 100,
+          days: RELEASE_REVIEW_DAYS,
+        });
+
+  return (
+    <form action={submit} className={stepScreen}>
+      <StepHeading
+        title={t("onboarding.account.title")}
+        description={role === "STARTUP" ? t("onboarding.account.brandDescription") : t("onboarding.account.description")}
+      />
+      <div className="flex flex-col gap-3">
+        <label className="flex flex-col gap-1">
+          <span className="text-sm font-medium">{t("screens.auth.email")}</span>
+          <input
+            name="email"
+            type="email"
+            required
+            autoFocus
+            autoComplete="email"
+            inputMode="email"
+            className={FIELD_CLASS}
+          />
+        </label>
+        <NewPasswordField name="password" className="px-4 py-4 text-lg" />
+        <p className="text-xs text-neutral-500 dark:text-neutral-400">{fee}</p>
+      </div>
+      {state?.error && <StepError state={{ error: localizeError(state.error, t) }} />}
+      <div className={stepActions}>
+        <StepFooter onBack={onBack} pending={pending} label={t("screens.auth.create")} />
+        <p className="text-center text-sm text-neutral-600 dark:text-neutral-400">
+          {t("screens.ui.alreadyAccount")}{" "}
+          <Link href="/login" className="font-medium text-ink underline">
+            {t("screens.auth.logIn")}
+          </Link>
+        </p>
+        <p className="text-center text-xs text-neutral-400 dark:text-neutral-500">
+          {t("screens.ui.agreeLead")}{" "}
+          <Link href="/legal/terms" className="underline">
+            {t("screens.settings.terms")}
+          </Link>{" "}
+          {t("screens.ui.andWord")}{" "}
+          <Link href="/legal/privacy" className="underline">
+            {t("screens.settings.privacy")}
+          </Link>
+          .
+        </p>
+      </div>
+    </form>
+  );
+}

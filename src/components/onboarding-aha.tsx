@@ -71,14 +71,28 @@ function BigNumber({ value, label }: { value: number; label: string }) {
   );
 }
 
-export function CreatorAha({ active, name, onNext }: { active: boolean; name: string; onNext: () => void }) {
+export function CreatorAha({
+  active,
+  name,
+  onNext,
+  load = getCreatorMatchesAction,
+  guest = false,
+}: {
+  active: boolean;
+  name: string;
+  onNext: () => void;
+  load?: () => Promise<CreatorMatchesResult>;
+  guest?: boolean;
+}) {
   const { t } = useI18n();
-  const { data, failed } = useAhaData<CreatorMatchesResult>(active, getCreatorMatchesAction);
+  const { data, failed } = useAhaData<CreatorMatchesResult>(active, load);
 
   if (failed || (data && "error" in data)) {
     return (
       <div className={stepScreen}>
-        <p className="text-neutral-600 dark:text-neutral-400">{t("onboarding.aha.loadFailedCreator")}</p>
+        <p className="text-neutral-600 dark:text-neutral-400">
+          {t(guest ? "onboarding.aha.loadFailedCreatorGuest" : "onboarding.aha.loadFailedCreator")}
+        </p>
         <div className={stepActions}>
           <button type="button" onClick={onNext} className={`${PRIMARY_BUTTON} w-full`}>
             {t("common.continue")}
@@ -181,14 +195,26 @@ function Trust({ keep }: { keep: number }) {
   );
 }
 
-export function BrandAha({ active, onNext }: { active: boolean; onNext: () => void }) {
+export function BrandAha({
+  active,
+  onNext,
+  load = getBrandCreatorsAction,
+  guest = false,
+}: {
+  active: boolean;
+  onNext: () => void;
+  load?: () => Promise<BrandCreatorsResult>;
+  guest?: boolean;
+}) {
   const { t } = useI18n();
-  const { data, failed } = useAhaData<BrandCreatorsResult>(active, getBrandCreatorsAction);
+  const { data, failed } = useAhaData<BrandCreatorsResult>(active, load);
 
   if (failed || (data && "error" in data)) {
     return (
       <div className={stepScreen}>
-        <p className="text-neutral-600 dark:text-neutral-400">{t("onboarding.aha.loadFailedBrand")}</p>
+        <p className="text-neutral-600 dark:text-neutral-400">
+          {t(guest ? "onboarding.aha.loadFailedBrandGuest" : "onboarding.aha.loadFailedBrand")}
+        </p>
         <div className={stepActions}>
           <button type="button" onClick={onNext} className={`${PRIMARY_BUTTON} w-full`}>
             {t("common.continue")}

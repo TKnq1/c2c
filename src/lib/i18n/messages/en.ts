@@ -79,6 +79,19 @@ export const en = {
       company: "Your company",
       niche: "Niche",
       logo: "Logo",
+      account: "Account",
+      matches: "Matches",
+      swipe: "How it works",
+      creators: "Creators",
+    },
+    role: {
+      title: "Are you a creator or a brand?",
+      description: "You'll see what fits you first. The account comes at the end.",
+    },
+    account: {
+      title: "Create your account",
+      description: "Your matches stay with you. All it takes is an email and a password.",
+      brandDescription: "Your creators stay with you. All it takes is an email and a password.",
     },
     language: {
       title: "Which language do you want the app in?",
@@ -151,6 +164,8 @@ export const en = {
       lookingCreators: "Finding creators in your niche…",
       loadFailedCreator: "Your profile is saved. We couldn't load your matches just now, they'll be waiting in your feed.",
       loadFailedBrand: "Your profile is saved. Creators in your niche are waiting on Discover.",
+      loadFailedCreatorGuest: "We couldn't load your matches just now. They'll be waiting in your feed once your account is ready.",
+      loadFailedBrandGuest: "We couldn't load creators just now. They'll be on Discover.",
       earlyCreator: "You're early, {name}",
       earlyReach:
         "Nothing in your niches yet, but {count} open {requests} elsewhere fit your reach. You'll find {them} under All in your feed.",
