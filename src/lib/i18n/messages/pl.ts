@@ -172,6 +172,7 @@ export const pl: Catalog = {
       has: "ma",
       have: "ma",
       established: "{count} z nich {verb} ponad 10 tys. obserwujących na platformie.",
+      deal: "{deliverables} na {platform}",
     },
     swipe: {
       title: "Przesuń, żeby zdecydować",

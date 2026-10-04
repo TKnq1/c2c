@@ -3,6 +3,7 @@
 import { useI18n } from "@/components/i18n-provider";
 import { Avatar } from "@/components/avatar";
 import { PlatformIcon } from "@/components/platform-icons";
+import { nicheLabel } from "@/lib/i18n/labels";
 import { DEFAULT_NICHE_ICON, NICHE_ICONS } from "@/lib/niche-icons";
 import { formatFollowers } from "@/lib/format";
 
@@ -31,21 +32,19 @@ export function OnboardingProfileCard({
   const seeYou = role === "creator" ? t("onboarding.card.seeYouBrands") : t("onboarding.card.seeYouCreators");
 
   return (
-    <section aria-label={seeYou} className="rounded bg-fog px-4 py-3.5">
-      <p className="mb-2.5 text-xs font-medium tracking-wide text-neutral-500 uppercase dark:text-neutral-400">
-        {seeYou}
-      </p>
-      <div className="flex items-center gap-3">
+    <section aria-label={seeYou} className="rounded border border-ink/10 px-3 py-3">
+      <p className="text-[11px] font-medium tracking-wide text-neutral-500 uppercase dark:text-neutral-400">{seeYou}</p>
+      <div className="mt-2.5 flex items-center gap-3">
         <div key={avatarUrl ?? "none"} className={avatarUrl ? "animate-pop-in" : undefined}>
-          <Avatar src={avatarUrl} name={trimmed || "?"} size={48} />
+          <Avatar src={avatarUrl} name={trimmed || "?"} size={44} />
         </div>
         <div className="min-w-0 flex-1">
           {trimmed ? (
             <p className="truncate font-semibold">{trimmed}</p>
           ) : (
-            <Placeholder width="w-32" label={role === "creator" ? t("onboarding.card.yourName") : t("onboarding.card.yourCompany")} />
+            <Placeholder width="w-28" label={role === "creator" ? t("onboarding.card.yourName") : t("onboarding.card.yourCompany")} />
           )}
-          <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1">
+          <div className="mt-1 flex flex-wrap items-center gap-x-2.5 gap-y-1">
             {niches.length > 0 ? (
               niches.map((niche) => {
                 const Icon = NICHE_ICONS[niche] ?? DEFAULT_NICHE_ICON;
@@ -55,7 +54,7 @@ export function OnboardingProfileCard({
                     className="animate-pop-in inline-flex items-center gap-1 text-footnote text-neutral-600 dark:text-neutral-400"
                   >
                     <Icon className="h-3.5 w-3.5 shrink-0" aria-hidden />
-                    {niche}
+                    {nicheLabel(t, niche)}
                   </span>
                 );
               })
@@ -67,19 +66,19 @@ export function OnboardingProfileCard({
       </div>
 
       {role === "creator" && (
-        <div className="mt-3 flex flex-wrap gap-2 border-t border-ink/10 pt-3">
+        <div className="mt-2.5 flex flex-wrap gap-1.5">
           {reach.length > 0 ? (
             reach.map((p) => (
               <span
                 key={p.platform}
-                className="animate-pop-in inline-flex items-center gap-1.5 rounded-full border border-ink/10 px-2.5 py-1 text-footnote"
+                className="animate-pop-in inline-flex items-center gap-1.5 rounded-full bg-fog px-2.5 py-1 text-footnote"
               >
                 <PlatformIcon platform={p.platform} className="h-3.5 w-3.5 shrink-0" />
                 <span className="font-semibold tabular-nums">{formatFollowers(Number(p.followers))}</span>
               </span>
             ))
           ) : (
-            <Placeholder width="w-28" label={t("onboarding.card.yourReach")} />
+            <Placeholder width="w-24" label={t("onboarding.card.yourReach")} />
           )}
         </div>
       )}
@@ -91,7 +90,9 @@ export function OnboardingProfileCard({
 // rather than as a broken layout.
 function Placeholder({ width, label }: { width: string; label: string }) {
   return (
-    <span className={`inline-flex h-5 ${width} min-w-fit items-center whitespace-nowrap rounded border border-dashed border-neutral-300 px-2 text-xs text-neutral-400 dark:border-neutral-700 dark:text-neutral-500`}>
+    <span
+      className={`inline-flex h-5 ${width} min-w-fit items-center whitespace-nowrap rounded border border-dashed border-neutral-300 px-2 text-xs text-neutral-400 dark:border-neutral-700 dark:text-neutral-500`}
+    >
       {label}
     </span>
   );

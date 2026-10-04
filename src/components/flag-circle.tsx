@@ -68,10 +68,19 @@ const FLAG: Record<Locale, ReactNode> = {
 
 // A round flag, so a white band (France, Italy, Poland) still has an edge
 // on a white page. Decorative: the language name next to it is the label.
-export function FlagCircle({ locale, className = "" }: { locale: Locale; className?: string }) {
+export function FlagCircle({
+  locale,
+  className = "",
+  ring = "text-black/15 dark:text-white/25",
+}: {
+  locale: Locale;
+  className?: string;
+  /** Stroke color of the hairline ring. Replaces the default so a selected tile can lighten it. */
+  ring?: string;
+}) {
   const clipId = `flag-${useId().replace(/:/g, "")}`;
   return (
-    <svg viewBox="0 0 32 32" className={`h-6 w-6 shrink-0 text-black/15 dark:text-white/25 ${className}`} aria-hidden>
+    <svg viewBox="0 0 32 32" className={`h-6 w-6 shrink-0 ${ring} ${className}`} aria-hidden>
       <defs>
         <clipPath id={clipId}>
           <circle cx="16" cy="16" r="16" />

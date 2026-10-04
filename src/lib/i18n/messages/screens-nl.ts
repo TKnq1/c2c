@@ -17,7 +17,7 @@ export const screensNl: DeepString<typeof screens> = {
     nichesPicked: "{count} van {max} gekozen",
     contentLanguage: "Taal van je content", aboutYou: "Over jou", aboutYouPlaceholder: "Vertel merken kort iets over jezelf en je content",
     platforms: "Platforms en volgers", platformsHint: "Volgers en de link naar je profiel zijn per platform verplicht, zodat merken je direct kunnen bekijken.",
-    followers: "Volgers", profileLink: "Profiellink", removePlatform: "{name} verwijderen", followersOf: "Volgers op {name}", linkOf: "Profiellink op {name}",
+    followers: "Volgers", profileLink: "Profiellink", removePlatform: "{name} verwijderen", followersOf: "Volgers op {name}", linkOf: "Profiellink op {name}", linkRequired: "De link naar je {name}-profiel is verplicht. Merken openen die vanuit je profiel.",
     profileSaved: "Profiel opgeslagen.", companyName: "Bedrijfsnaam", website: "Website", niche: "Niche", socialLinks: "Sociale links",
     aboutBrand: "Over je merk", aboutBrandPlaceholder: "Waar staat je merk voor?", requirements: "Extra eisen", requirementsPlaceholder: "Wat creators verder moeten weten voordat ze contact opnemen",
     platform: "Platform", profileUrl: "Profiel-URL", add: "Toevoegen", copyLink: "Profiellink kopiëren", linkCopied: "Link gekopieerd.",

@@ -172,6 +172,7 @@ export const it: Catalog = {
       has: "ha",
       have: "hanno",
       established: "{count} di loro {verb} oltre 10.000 follower su una piattaforma.",
+      deal: "{deliverables} su {platform}",
     },
     swipe: {
       title: "Scorri per decidere",

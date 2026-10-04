@@ -58,7 +58,7 @@ export function PlatformChips({
       </div>
 
       {value.map((e) => (
-        <div key={e.platform} className="animate-stagger-fade-in flex flex-col gap-2 rounded border border-ink/10 p-3">
+        <div key={e.platform} className="animate-stagger-fade-in flex flex-col gap-2 rounded bg-fog p-3">
           <div className="flex items-center gap-2">
             <PlatformIcon platform={e.platform} className="h-4 w-4 shrink-0" />
             <span className="flex-1 text-sm font-medium">{e.platform}</span>
@@ -85,7 +85,7 @@ export function PlatformChips({
                 aria-label={t("screens.settings.followersOf", { name: e.platform })}
                 value={e.followers}
                 onChange={(ev) => update(e.platform, { followers: ev.target.value })}
-                className="rounded border border-neutral-300 bg-background px-3 py-2.5 text-base font-normal dark:border-neutral-700"
+                className="rounded border border-neutral-300 bg-background px-3 py-3 text-base font-normal dark:border-neutral-700"
               />
             </label>
             <label className="flex min-w-0 flex-1 flex-col gap-1 text-xs font-medium">
@@ -99,14 +99,12 @@ export function PlatformChips({
                 aria-label={t("screens.settings.linkOf", { name: e.platform })}
                 value={e.url}
                 onChange={(ev) => update(e.platform, { url: ev.target.value })}
-                className="min-w-0 rounded border border-neutral-300 bg-background px-3 py-2.5 text-base font-normal dark:border-neutral-700"
+                className="min-w-0 rounded border border-neutral-300 bg-background px-3 py-3 text-base font-normal dark:border-neutral-700"
               />
             </label>
           </div>
-          {e.url.trim() === "" && (
-            <p className="text-xs font-medium text-ink">
-              The link to your {e.platform} profile is required. Brands open it from your profile.
-            </p>
+          {e.followers !== "" && e.url.trim() === "" && (
+            <p className="text-xs font-medium text-ink">{t("screens.settings.linkRequired", { name: e.platform })}</p>
           )}
         </div>
       ))}

@@ -172,6 +172,7 @@ export const de: Catalog = {
       has: "hat",
       have: "haben",
       established: "{count} davon {verb} über 10.000 Follower auf einer Plattform.",
+      deal: "{deliverables} auf {platform}",
     },
     swipe: {
       title: "Wischen zum Entscheiden",

@@ -11,18 +11,28 @@ import { unlockSounds } from "@/lib/sounds";
 // Shared pieces of the brand and creator onboarding wizards.
 
 export const PRIMARY_BUTTON =
-  "flex-1 rounded-full bg-ink px-4 py-3 font-medium text-paper transition hover:bg-graphite disabled:opacity-40 disabled:hover:bg-ink";
+  "flex-1 rounded-full bg-ink px-4 py-3.5 font-medium text-paper transition hover:bg-graphite disabled:opacity-40 disabled:hover:bg-ink";
 const SECONDARY_BUTTON =
-  "rounded-full border border-neutral-300 px-5 py-3 font-medium text-neutral-600 transition hover:border-ink dark:border-neutral-700 dark:text-neutral-400";
+  "rounded-full border border-neutral-300 px-5 py-3.5 font-medium text-neutral-600 transition hover:border-ink dark:border-neutral-700 dark:text-neutral-400";
+
+// One step is a column: the question, the answer, then the action. On a
+// phone the action sits on the bottom edge; on a wider screen it follows
+// the answer, because the column is no longer the whole screen.
+export const stepScreen = "flex flex-1 flex-col gap-5";
+export const stepActions = "mt-auto flex flex-col gap-3 pt-2 sm:mt-0";
+
+export const FIELD_CLASS =
+  "w-full rounded border border-neutral-300 bg-background px-4 py-4 text-lg font-medium outline-none transition placeholder:font-normal placeholder:text-neutral-400 focus:border-ink dark:border-neutral-700";
 
 export function OnboardingProgress({ step, total, labels }: { step: number; total: number; labels?: string[] }) {
   const { t } = useI18n();
   const current = Math.min(step + 1, total);
+  const label = labels?.[step];
   return (
     <div>
       <div className="flex items-center gap-1.5" aria-hidden>
         {Array.from({ length: total }, (_, i) => (
-          <div key={i} className="h-1 flex-1 overflow-hidden rounded-full bg-fog">
+          <div key={i} className="h-1.5 flex-1 overflow-hidden rounded-full bg-fog">
             <div
               className="h-full rounded-full bg-ink transition-[width] duration-500 ease-out"
               style={{ width: i <= step ? "100%" : "0%" }}
@@ -30,9 +40,9 @@ export function OnboardingProgress({ step, total, labels }: { step: number; tota
           </div>
         ))}
       </div>
-      <p className="mt-2 text-xs text-neutral-500 dark:text-neutral-400">
-        {t("onboarding.progress", { current, total })}
-        {labels?.[step] && ` · ${labels[step]}`}
+      <p className="mt-2.5 flex items-baseline justify-between gap-3 text-xs">
+        {label ? <span className="font-medium text-ink">{label}</span> : <span />}
+        <span className="shrink-0 tabular-nums text-neutral-500 dark:text-neutral-400">{t("onboarding.progress", { current, total })}</span>
       </p>
     </div>
   );
@@ -56,9 +66,9 @@ export function StepPanels({ step, children }: { step: number; children: React.R
   }, [step]);
 
   return (
-    <div ref={ref}>
+    <div ref={ref} className="flex flex-1 flex-col">
       {Children.toArray(children).map((child, i) => (
-        <div key={i} hidden={i !== step} className="animate-stagger-fade-in">
+        <div key={i} className={i === step ? "flex flex-1 flex-col animate-stagger-fade-in" : "hidden"}>
           {child}
         </div>
       ))}
@@ -66,11 +76,11 @@ export function StepPanels({ step, children }: { step: number; children: React.R
   );
 }
 
-export function StepHeading({ title, description }: { title: string; description: string }) {
+export function StepHeading({ title, description, align = "left" }: { title: string; description: string; align?: "left" | "center" }) {
   return (
-    <div>
+    <div className={align === "center" ? "text-center" : undefined}>
       <h1 className="font-display text-title-1 font-bold text-balance">{title}</h1>
-      <p className="mt-1.5 text-neutral-600 dark:text-neutral-400">{description}</p>
+      <p className="mt-2 text-pretty text-neutral-600 dark:text-neutral-400">{description}</p>
     </div>
   );
 }
@@ -97,7 +107,7 @@ export function StepFooter({
 }) {
   const { t } = useI18n();
   return (
-    <div className="flex gap-2 pt-2">
+    <div className="flex gap-2">
       {onBack && (
         <button type="button" onClick={onBack} className={SECONDARY_BUTTON}>
           {t("common.back")}
@@ -156,7 +166,7 @@ export function InsightBanner({ insight }: { insight: OnboardingInsight | undefi
   return (
     <p
       role="status"
-      className="animate-stagger-fade-in mb-6 flex items-start gap-3 rounded bg-fog px-4 py-3 text-sm text-neutral-700 dark:text-neutral-300"
+      className="animate-stagger-fade-in mb-4 flex items-start gap-3 rounded bg-fog px-4 py-3.5 text-sm text-neutral-700 dark:text-neutral-300"
     >
       <IoSparkles className="mt-0.5 h-4 w-4 shrink-0 text-amber-500" aria-hidden />
       <span>

@@ -5,7 +5,7 @@ import { IoCameraOutline } from "react-icons/io5";
 import { saveOnboardingPhotoAction } from "@/lib/actions/onboarding";
 import { resizeImageFile } from "@/lib/resize-image";
 import { useI18n } from "@/components/i18n-provider";
-import { SkipButton, StepError, StepFooter, StepHeading, useStepDone } from "@/components/onboarding-ui";
+import { SkipButton, StepError, StepFooter, StepHeading, stepActions, stepScreen, useStepDone } from "@/components/onboarding-ui";
 
 // Optional photo (creators) or logo (brands). The wizard's profile card
 // above shows it as soon as one is picked (onPreview). Skipping goes
@@ -41,7 +41,9 @@ export function OnboardingPhotoStep({
     try {
       // Same as AvatarUpload: submit the resized copy instead of the original.
       const { blob, dataUrl } = await resizeImageFile(file);
-      const resized = new File([blob], file.name.replace(/\.\w+$/, ".jpg"), { type: "image/jpeg" });
+      const resized = new File([blob], file.name.replace(/\.\w+$/, ".jpg"), {
+        type: "image/jpeg",
+      });
       const dt = new DataTransfer();
       dt.items.add(resized);
       if (inputRef.current) inputRef.current.files = dt.files;
@@ -53,31 +55,33 @@ export function OnboardingPhotoStep({
   }
 
   return (
-    <form action={formAction} className="flex flex-col gap-6">
+    <form action={formAction} className={stepScreen}>
       <StepHeading title={title} description={description} />
 
-      <label className="group relative mx-auto cursor-pointer">
-        <input ref={inputRef} type="file" name="avatar" accept="image/*" onChange={handleChange} className="sr-only" />
-        {preview ? (
-          // Data-URI preview of the picked file; nothing for next/image to do.
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={preview} alt="" className="h-32 w-32 rounded-full border border-ink/10 bg-white object-cover" />
-        ) : (
-          <span className="flex h-32 w-32 flex-col items-center justify-center gap-1 rounded-full border-2 border-dashed border-neutral-300 text-neutral-500 transition group-hover:border-ink group-hover:text-ink dark:border-neutral-700 dark:text-neutral-400">
-            <IoCameraOutline className="h-7 w-7" aria-hidden />
-            <span className="text-xs font-medium">{choose}</span>
-          </span>
-        )}
-        {preview && (
-          <span className="absolute right-0 bottom-0 flex h-9 w-9 items-center justify-center rounded-full border-2 border-background bg-ink text-paper">
-            <IoCameraOutline className="h-4 w-4" aria-label={change} />
-          </span>
-        )}
-      </label>
+      <div className="flex flex-1 items-center justify-center sm:flex-none sm:py-2">
+        <label className="group relative cursor-pointer">
+          <input ref={inputRef} type="file" name="avatar" accept="image/*" onChange={handleChange} className="sr-only" />
+          {preview ? (
+            // Data-URI preview of the picked file; nothing for next/image to do.
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={preview} alt="" className="h-44 w-44 rounded-full border border-ink/10 bg-white object-cover" />
+          ) : (
+            <span className="flex h-44 w-44 flex-col items-center justify-center gap-2 rounded-full border-2 border-dashed border-neutral-400 bg-fog text-neutral-600 transition group-hover:border-ink group-hover:text-ink dark:border-neutral-600 dark:text-neutral-300">
+              <IoCameraOutline className="h-8 w-8" aria-hidden />
+              <span className="text-sm font-medium">{choose}</span>
+            </span>
+          )}
+          {preview && (
+            <span className="absolute right-1 bottom-1 flex h-10 w-10 items-center justify-center rounded-full border-2 border-background bg-ink text-paper">
+              <IoCameraOutline className="h-4 w-4" aria-label={change} />
+            </span>
+          )}
+        </label>
+      </div>
 
       {readError && <p className="text-sm text-ink">{readError}</p>}
       <StepError state={state} />
-      <div className="flex flex-col gap-3">
+      <div className={stepActions}>
         <StepFooter onBack={onBack} pending={pending} disabled={!preview} />
         <SkipButton onClick={onSkip} />
       </div>

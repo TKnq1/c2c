@@ -97,6 +97,7 @@ export const screensDe: DeepString<typeof screens> = {
     removePlatform: "{name} entfernen",
     followersOf: "Follower auf {name}",
     linkOf: "Profil-Link auf {name}",
+    linkRequired: "Der Link zu deinem {name}-Profil ist nötig. Marken öffnen ihn über dein Profil.",
     profileSaved: "Profil gespeichert.",
     companyName: "Firmenname",
     website: "Website",

@@ -17,7 +17,7 @@ export const screensPt: DeepString<typeof screens> = {
     nichesPicked: "{count} de {max} escolhidos",
     contentLanguage: "Idioma do conteúdo", aboutYou: "Sobre ti", aboutYouPlaceholder: "Conta às marcas um pouco sobre ti e o teu conteúdo",
     platforms: "Plataformas e seguidores", platformsHint: "Seguidores e a ligação do perfil são obrigatórios em cada plataforma, para as marcas te poderem ver.",
-    followers: "Seguidores", profileLink: "Ligação do perfil", removePlatform: "Remover {name}", followersOf: "Seguidores de {name}", linkOf: "Ligação do perfil {name}",
+    followers: "Seguidores", profileLink: "Ligação do perfil", removePlatform: "Remover {name}", followersOf: "Seguidores de {name}", linkOf: "Ligação do perfil {name}", linkRequired: "A ligação para o teu perfil de {name} é obrigatória. As marcas abrem-na a partir do teu perfil.",
     profileSaved: "Perfil guardado.", companyName: "Nome da empresa", website: "Site", niche: "Nicho", socialLinks: "Ligações sociais",
     aboutBrand: "Sobre a tua marca", aboutBrandPlaceholder: "O que representa a tua marca?", requirements: "Outros requisitos", requirementsPlaceholder: "O que mais os criadores devem saber antes de te contactarem",
     platform: "Plataforma", profileUrl: "URL do perfil", add: "Adicionar", copyLink: "Copiar ligação do perfil", linkCopied: "Ligação copiada.",

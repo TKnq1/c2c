@@ -3,16 +3,14 @@
 import Link from "next/link";
 import { useI18n } from "@/components/i18n-provider";
 import type { IconType } from "react-icons";
-import {
-  IoCheckmark,
-  IoChevronForward,
-  IoMailOutline,
-  IoPersonOutline,
-  IoSearchOutline,
-  IoWalletOutline,
-} from "react-icons/io5";
+import { IoCheckmark, IoChevronForward, IoMailOutline, IoPersonOutline, IoSearchOutline, IoWalletOutline } from "react-icons/io5";
 
-type NextStep = { href: string; icon: IconType; title: string; description: string };
+type NextStep = {
+  href: string;
+  icon: IconType;
+  title: string;
+  description: string;
+};
 
 // The wizard's last screen: what to do next, with the main thing as the
 // button and the rest as a short list.
@@ -70,25 +68,28 @@ export function OnboardingDone({
   ];
   const primary =
     role === "brand"
-      ? { href: "/dashboard/startup/new", label: t("onboarding.done.postFirst") }
+      ? {
+          href: "/dashboard/startup/new",
+          label: t("onboarding.done.postFirst"),
+        }
       : { href: "/dashboard/creator", label: t("onboarding.done.goFeed") };
   const secondary = role === "brand" ? { href: "/dashboard/startup", label: t("onboarding.done.goDashboard") } : null;
 
   return (
-    <div className="flex flex-col gap-8">
-      <div className="flex flex-col items-center gap-4 text-center">
+    <div className="flex flex-1 flex-col gap-5">
+      <div className="flex flex-1 flex-col items-center justify-center gap-4 py-4 text-center sm:flex-none sm:py-2">
         <span className="animate-pop-in flex h-16 w-16 items-center justify-center rounded-full bg-ink text-paper">
           <IoCheckmark className="h-8 w-8" aria-hidden />
         </span>
         <div>
           <h1 className="font-display text-title-1 font-bold text-balance">{t("onboarding.done.allSet", { name })}</h1>
-          <p className="mt-1.5 text-neutral-600 dark:text-neutral-400">
+          <p className="mt-2 text-pretty text-neutral-600 dark:text-neutral-400">
             {role === "brand" ? t("onboarding.done.brandBody") : t("onboarding.done.creatorBody")}
           </p>
         </div>
       </div>
 
-      <ul className="rounded bg-fog">
+      <ul className="overflow-hidden rounded bg-fog">
         {steps.map((s, i) => (
           <li
             key={s.title}
@@ -96,7 +97,9 @@ export function OnboardingDone({
             style={{ animationDelay: `${150 + i * 70}ms` }}
           >
             <Link href={s.href} className="flex items-center gap-3 px-4 py-3.5 transition hover:bg-ink/5">
-              <s.icon className="h-5 w-5 shrink-0 text-neutral-600 dark:text-neutral-400" aria-hidden />
+              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-background">
+                <s.icon className="h-5 w-5 text-neutral-700 dark:text-neutral-300" aria-hidden />
+              </span>
               <span className="min-w-0 flex-1">
                 <span className="block text-sm font-semibold">{s.title}</span>
                 <span className="block text-footnote text-neutral-500 dark:text-neutral-400">{s.description}</span>
@@ -107,15 +110,15 @@ export function OnboardingDone({
         ))}
       </ul>
 
-      <div className="flex flex-col items-center gap-3">
+      <div className="mt-auto flex flex-col items-center gap-3 pt-2 sm:mt-0">
         <Link
           href={primary.href}
-          className="w-full rounded-full bg-ink px-4 py-3 text-center font-medium text-paper transition hover:bg-graphite"
+          className="w-full rounded-full bg-ink px-4 py-3.5 text-center font-medium text-paper transition hover:bg-graphite"
         >
           {primary.label}
         </Link>
         {secondary && (
-          <Link href={secondary.href} className="text-sm text-neutral-500 transition hover:text-ink dark:text-neutral-400">
+          <Link href={secondary.href} className="px-3 py-2 text-sm text-neutral-500 transition hover:text-ink dark:text-neutral-400">
             {secondary.label}
           </Link>
         )}

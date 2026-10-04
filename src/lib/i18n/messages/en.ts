@@ -172,6 +172,7 @@ export const en = {
       has: "has",
       have: "have",
       established: "{count} of them {verb} 10K+ followers on a platform.",
+      deal: "{deliverables} on {platform}",
     },
     swipe: {
       title: "Swipe to decide",

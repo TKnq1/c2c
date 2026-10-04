@@ -172,6 +172,7 @@ export const pt: Catalog = {
       has: "tem",
       have: "têm",
       established: "{count} deles {verb} mais de 10 mil seguidores numa plataforma.",
+      deal: "{deliverables} no {platform}",
     },
     swipe: {
       title: "Desliza para decidir",

@@ -41,7 +41,8 @@ export type CreatorMatchesResult =
         companyAvatarUrl: string | null;
         niche: string;
         budget: string | null;
-        deal: string | null;
+        platform: string | null;
+        deliverables: string | null;
       }[];
     }
   | { error: string };
@@ -92,7 +93,8 @@ export async function getCreatorMatchesAction(): Promise<CreatorMatchesResult> {
       companyAvatarUrl: r.startup.avatarUrl,
       niche: r.niche,
       budget: formatBudget(r.budgetMinCents, r.budgetMaxCents),
-      deal: r.platform && r.deliverables ? `${r.deliverables} on ${r.platform}` : null,
+      platform: r.platform,
+      deliverables: r.deliverables,
     })),
   };
 }

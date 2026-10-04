@@ -97,6 +97,7 @@ export const screens = {
     removePlatform: "Remove {name}",
     followersOf: "{name} followers",
     linkOf: "{name} profile link",
+    linkRequired: "The link to your {name} profile is required. Brands open it from your profile.",
     profileSaved: "Profile saved.",
     companyName: "Company name",
     website: "Website",

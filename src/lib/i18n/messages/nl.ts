@@ -172,6 +172,7 @@ export const nl: Catalog = {
       has: "heeft",
       have: "hebben",
       established: "{count} van hen {verb} meer dan 10.000 volgers op een platform.",
+      deal: "{deliverables} op {platform}",
     },
     swipe: {
       title: "Veeg om te kiezen",

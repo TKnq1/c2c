@@ -34,6 +34,7 @@ export const screensFr: DeepString<typeof screens> = {
     removePlatform: "Retirer {name}",
     followersOf: "Abonnés {name}",
     linkOf: "Lien du profil {name}",
+    linkRequired: "Le lien vers ton profil {name} est obligatoire. Les marques l’ouvrent depuis ton profil.",
     profileSaved: "Profil enregistré.",
     companyName: "Nom de l’entreprise",
     website: "Site web",

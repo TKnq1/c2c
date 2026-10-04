@@ -17,7 +17,7 @@ export const screensPl: DeepString<typeof screens> = {
     nichesPicked: "{count} z {max} wybranych",
     contentLanguage: "Język treści", aboutYou: "O tobie", aboutYouPlaceholder: "Opowiedz markom krótko o sobie i swoich treściach",
     platforms: "Platformy i obserwujący", platformsHint: "Liczba obserwujących i link do profilu są wymagane na każdej platformie, żeby marki mogły cię zobaczyć.",
-    followers: "Obserwujący", profileLink: "Link do profilu", removePlatform: "Usuń {name}", followersOf: "Obserwujący na {name}", linkOf: "Link do profilu na {name}",
+    followers: "Obserwujący", profileLink: "Link do profilu", removePlatform: "Usuń {name}", followersOf: "Obserwujący na {name}", linkOf: "Link do profilu na {name}", linkRequired: "Link do twojego profilu na {name} jest wymagany. Marki otwierają go z twojego profilu.",
     profileSaved: "Profil zapisany.", companyName: "Nazwa firmy", website: "Strona", niche: "Nisza", socialLinks: "Linki społecznościowe",
     aboutBrand: "O twojej marce", aboutBrandPlaceholder: "Za czym stoi twoja marka?", requirements: "Dodatkowe wymagania", requirementsPlaceholder: "Co jeszcze twórcy powinni wiedzieć, zanim napiszą",
     platform: "Platforma", profileUrl: "Adres profilu", add: "Dodaj", copyLink: "Kopiuj link do profilu", linkCopied: "Link skopiowany.",

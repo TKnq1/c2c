@@ -172,6 +172,7 @@ export const fr: Catalog = {
       has: "a",
       have: "ont",
       established: "{count} d’entre eux {verb} plus de 10 000 abonnés sur une plateforme.",
+      deal: "{deliverables} sur {platform}",
     },
     swipe: {
       title: "Glisse pour décider",

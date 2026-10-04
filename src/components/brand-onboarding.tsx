@@ -11,12 +11,15 @@ import { OnboardingProfileCard } from "@/components/onboarding-profile-card";
 import { BrandAha } from "@/components/onboarding-aha";
 import { OnboardingPushStep, usePushOffer } from "@/components/onboarding-push-step";
 import {
+  FIELD_CLASS,
   InsightBanner,
   OnboardingProgress,
   StepError,
   StepFooter,
   StepHeading,
   StepPanels,
+  stepActions,
+  stepScreen,
   useStepDone,
 } from "@/components/onboarding-ui";
 import type { MessageKey } from "@/lib/i18n/translate";
@@ -29,7 +32,10 @@ import { trackOnboarding, useTrackStepViews } from "@/lib/use-onboarding-trackin
 // the "all set" screen.
 const SETUP_STEPS = BRAND_STEPS.slice(0, 4);
 
-type StepDef = { key: OnboardingStepKey; render: (index: number) => React.ReactNode };
+type StepDef = {
+  key: OnboardingStepKey;
+  render: (index: number) => React.ReactNode;
+};
 
 export function BrandOnboarding({ emailVerified }: { emailVerified: boolean }) {
   const { t } = useI18n();
@@ -97,9 +103,7 @@ export function BrandOnboarding({ emailVerified }: { emailVerified: boolean }) {
       ? [
           {
             key: "alerts" as const,
-            render: (i: number) => (
-              <OnboardingPushStep role="brand" onDone={() => finish(i)} onSkip={() => finish(i, "skipped")} />
-            ),
+            render: (i: number) => <OnboardingPushStep role="brand" onDone={() => finish(i)} onSkip={() => finish(i, "skipped")} />,
           },
         ]
       : []),
@@ -114,7 +118,7 @@ export function BrandOnboarding({ emailVerified }: { emailVerified: boolean }) {
 
   const inSetup = step < SETUP_STEPS.length;
   return (
-    <div className="flex flex-col gap-8">
+    <div className="flex flex-1 flex-col gap-5">
       {inSetup && (
         <>
           <OnboardingProgress
@@ -136,7 +140,7 @@ function CompanyNameStep({ value, onChange, onDone }: { value: string; onChange:
   useStepDone(state, onDone);
 
   return (
-    <form action={formAction} className="flex flex-col gap-6">
+    <form action={formAction} className={stepScreen}>
       <StepHeading title={t("onboarding.company.title")} description={t("onboarding.company.description")} />
       <input
         name="companyName"
@@ -147,10 +151,12 @@ function CompanyNameStep({ value, onChange, onDone }: { value: string; onChange:
         placeholder={t("onboarding.company.placeholder")}
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="rounded border border-neutral-300 px-4 py-3 text-lg dark:border-neutral-700"
+        className={FIELD_CLASS}
       />
       <StepError state={state} />
-      <StepFooter pending={pending} disabled={!value.trim()} />
+      <div className={stepActions}>
+        <StepFooter pending={pending} disabled={!value.trim()} />
+      </div>
     </form>
   );
 }
@@ -171,11 +177,13 @@ function NicheStep({
   useStepDone(state, (s) => onDone(s.insight));
 
   return (
-    <form action={formAction} className="flex flex-col gap-6">
+    <form action={formAction} className={stepScreen}>
       <StepHeading title={t("onboarding.brandNiche.title")} description={t("onboarding.brandNiche.description")} />
       <NicheTiles name="niche" value={value} onChange={onChange} />
       <StepError state={state} />
-      <StepFooter onBack={onBack} pending={pending} disabled={!value} />
+      <div className={stepActions}>
+        <StepFooter onBack={onBack} pending={pending} disabled={!value} />
+      </div>
     </form>
   );
 }
