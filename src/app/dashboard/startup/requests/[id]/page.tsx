@@ -10,6 +10,7 @@ import { paymentStage } from "@/components/payment-status-badge";
 import { EmptyState } from "@/components/empty-state";
 import { RequestActions } from "@/components/request-actions";
 import { RequestFacts } from "@/components/request-card-face";
+import { RequestPhotoRow } from "@/components/request-photo-row";
 import { PLATFORM_FEE_RATE, PRO_PLATFORM_FEE_RATE } from "@/lib/constants";
 import { photoUrlsByRequestId, requestPhotoIds } from "@/lib/request-photos";
 
@@ -81,22 +82,7 @@ export default async function RequestDetailPage({ params }: { params: Promise<{ 
           description and before the creators. */}
       <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_20rem]">
         <section className="flex min-w-0 flex-col gap-5 lg:col-start-1">
-          {photos.length > 0 && (
-            // Wrapped, so the page's own scroll reaches every photo. The old
-            // sideways strip hid the rest: no scrollbar, and the wheel never
-            // moved it.
-            <div className="grid min-w-0 grid-cols-[repeat(auto-fill,minmax(9.5rem,1fr))] gap-2">
-              {photos.map((url, i) => (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  key={url}
-                  src={url}
-                  alt={`Photo ${i + 1}`}
-                  className="aspect-[4/5] w-full rounded object-cover"
-                />
-              ))}
-            </div>
-          )}
+          <RequestPhotoRow photos={photos} />
           <p className="whitespace-pre-wrap leading-relaxed text-neutral-700 dark:text-neutral-300">{request.description}</p>
         </section>
 
