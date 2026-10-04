@@ -9,7 +9,7 @@ import { useLandingRole } from "@/components/landing/landing-role";
 export function SignupLink({ className, children }: { className?: string; children: React.ReactNode }) {
   const side = useLandingRole() ?? "creator";
   return (
-    <Link href={`/signup?role=${side}`} className={className}>
+    <Link href={`/onboarding?role=${side}`} className={className}>
       {children}
     </Link>
   );

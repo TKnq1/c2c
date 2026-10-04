@@ -9,6 +9,7 @@ export const CREATOR_STEPS = [
   { key: "photo", label: "Photo" },
   { key: "matches", label: "Your matches" },
   { key: "swipe", label: "How it works" },
+  { key: "account", label: "Account" },
   { key: "payouts", label: "Payouts" },
   { key: "alerts", label: "Notifications" },
   { key: "done", label: "All set" },
@@ -20,6 +21,7 @@ export const BRAND_STEPS = [
   { key: "niche", label: "Niche" },
   { key: "logo", label: "Logo" },
   { key: "creators", label: "Your creators" },
+  { key: "account", label: "Account" },
   { key: "alerts", label: "Notifications" },
   { key: "done", label: "All set" },
 ] as const;

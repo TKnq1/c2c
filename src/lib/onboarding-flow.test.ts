@@ -81,6 +81,7 @@ describe("buildFunnel", () => {
       "photo",
       "matches",
       "swipe",
+      "account",
       "payouts",
       "alerts",
       "done",
@@ -99,6 +100,7 @@ describe("buildFunnel", () => {
       "niche",
       "logo",
       "creators",
+      "account",
       "alerts",
       "done",
     ]);

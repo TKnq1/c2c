@@ -2,8 +2,8 @@
 
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { notify } from "@/lib/notifications";
 import { processAvatarUpload } from "@/lib/avatar-upload";
+import { notifyBrandsAboutCreator } from "@/lib/onboarding-notify";
 import { creatorNicheColumns } from "@/lib/creator-niches";
 import type { OnboardingInsight } from "@/lib/onboarding-flow";
 import { brandNicheCreatorsInsight, nicheRequestsInsight, reachRequestsInsight } from "@/lib/onboarding-insights";
@@ -139,20 +139,8 @@ export async function savePlatformsAction(
     platforms: parsed.data.platforms.map((p) => ({ followerCount: p.followerCount })),
   }).catch(() => undefined);
   // Brands hear about a new creator once, not again on every resubmit.
-  const matchingRequests = alreadyHadPlatforms > 0 ? [] : await prisma.request.findMany({
-    where: { niche: { in: creator.niches }, minFollowers: { lte: maxFollowers }, status: "OPEN" },
-    include: { startup: true },
-  });
-  const notifiedStartupIds = new Set<string>();
-  for (const r of matchingRequests) {
-    if (notifiedStartupIds.has(r.startupId)) continue;
-    notifiedStartupIds.add(r.startupId);
-    await notify(
-      r.startup.userId,
-      `New ${r.niche} creator joined: ${creator.displayName}`,
-      `/dashboard/startup/discover/${creator.id}`,
-      "newCreators",
-    );
+  if (alreadyHadPlatforms === 0) {
+    await notifyBrandsAboutCreator(creator, maxFollowers);
   }
 
   // See saveBrandNicheAction on why there's no revalidatePath.

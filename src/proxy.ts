@@ -81,6 +81,10 @@ export default auth((req) => {
 
   const isAdminPath = pathname.startsWith("/admin");
   const isOnboardingPath = pathname.startsWith("/onboarding");
+  // Guests walk the wizard before they have an account. The page itself
+  // sends a logged-in person on once their profile is already complete.
+  if (isOnboardingPath && !req.auth) return;
+
   if (!pathname.startsWith("/dashboard") && !isAdminPath && !isOnboardingPath) return;
 
   if (!req.auth) {
