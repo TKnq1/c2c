@@ -79,6 +79,19 @@ export const it: Catalog = {
       company: "La tua azienda",
       niche: "Nicchia",
       logo: "Logo",
+      account: "Account",
+      matches: "Match",
+      swipe: "Swipe",
+      creators: "Creator",
+    },
+    role: {
+      title: "Sei un creator o un brand?",
+      description: "Prima vedi cosa fa per te. L’account arriva alla fine.",
+    },
+    account: {
+      title: "Crea il tuo account",
+      description: "I tuoi match restano con te. Ti servono solo un’email e una password.",
+      brandDescription: "I tuoi creator restano con te. Ti servono solo un’email e una password.",
     },
     language: {
       title: "In che lingua vuoi l’app?",
@@ -151,6 +164,8 @@ export const it: Catalog = {
       lookingCreators: "Cerchiamo creator nella tua nicchia…",
       loadFailedCreator: "Il profilo è salvato. Non siamo riusciti a caricare i match, ti aspettano nel feed.",
       loadFailedBrand: "Il profilo è salvato. I creator della tua nicchia ti aspettano in Scopri.",
+      loadFailedCreatorGuest: "Non siamo riusciti a caricare i match. Ti aspetteranno nel feed appena l’account è pronto.",
+      loadFailedBrandGuest: "Non siamo riusciti a caricare i creator. Li trovi in Scopri.",
       earlyCreator: "Sei in anticipo, {name}",
       earlyReach:
         "Ancora niente nelle tue nicchie, ma {count} {requests} aperte altrove rientrano nella tua copertura. Le trovi sotto Tutto nel feed.",

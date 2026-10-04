@@ -79,6 +79,19 @@ export const nl: Catalog = {
       company: "Je bedrijf",
       niche: "Niche",
       logo: "Logo",
+      account: "Account",
+      matches: "Matches",
+      swipe: "Swipen",
+      creators: "Creators",
+    },
+    role: {
+      title: "Ben je creator of merk?",
+      description: "Je ziet eerst wat bij je past. Het account komt aan het eind.",
+    },
+    account: {
+      title: "Maak je account",
+      description: "Je matches blijven van jou. Je hebt alleen een e-mail en een wachtwoord nodig.",
+      brandDescription: "Je creators blijven van jou. Je hebt alleen een e-mail en een wachtwoord nodig.",
     },
     language: {
       title: "In welke taal wil je de app?",
@@ -151,6 +164,8 @@ export const nl: Catalog = {
       lookingCreators: "Creators in je niche zoeken…",
       loadFailedCreator: "Je profiel is opgeslagen. Je matches konden nu niet geladen worden, ze wachten in je feed.",
       loadFailedBrand: "Je profiel is opgeslagen. Creators in je niche wachten bij Ontdekken.",
+      loadFailedCreatorGuest: "Je matches konden nu niet geladen worden. Ze wachten in je feed zodra je account klaar is.",
+      loadFailedBrandGuest: "Creators konden nu niet geladen worden. Je vindt ze bij Ontdekken.",
       earlyCreator: "Je bent er vroeg bij, {name}",
       earlyReach:
         "Nog niets in je niches, maar {count} open {requests} elders passen bij je bereik. Je vindt {them} onder Alles in je feed.",

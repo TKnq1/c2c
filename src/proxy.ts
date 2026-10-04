@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { hasAdminAccess } from "@/lib/admin-access";
+import { parseSignupRole } from "@/lib/signup-role";
 
 // Pre-launch gate — flip to false once setup is finished and the site is
 // ready for real signups. While on, EVERYTHING is off-limits — login and
@@ -79,8 +80,22 @@ export default auth((req) => {
     return NextResponse.redirect(new URL("/dashboard", req.url));
   }
 
+  // The account is created inside onboarding. A real redirect here, so the
+  // signup page never has to render.
+  if (pathname === "/signup") {
+    const role = parseSignupRole(req.nextUrl.searchParams.get("role") ?? undefined);
+    const url = new URL("/onboarding", req.url);
+    if (role === "STARTUP") url.searchParams.set("role", "brand");
+    else if (role === "CREATOR") url.searchParams.set("role", "creator");
+    return NextResponse.redirect(url);
+  }
+
   const isAdminPath = pathname.startsWith("/admin");
   const isOnboardingPath = pathname.startsWith("/onboarding");
+  // Guests walk the wizard before they have an account. The page itself
+  // sends a logged-in person on once their profile is already complete.
+  if (isOnboardingPath && !req.auth) return;
+
   if (!pathname.startsWith("/dashboard") && !isAdminPath && !isOnboardingPath) return;
 
   if (!req.auth) {

@@ -15,18 +15,24 @@ export function OnboardingPhotoStep({
   onBack,
   onDone,
   onSkip,
+  deferUpload = false,
+  initialPreview = null,
 }: {
   kind: "photo" | "logo";
   onPreview?: (dataUrl: string | null) => void;
   onBack: () => void;
   onDone: () => void;
   onSkip: () => void;
+  // Guest wizard: keep the resized picture in the browser and upload it
+  // with the account, once that account exists.
+  deferUpload?: boolean;
+  initialPreview?: string | null;
 }) {
   const { t } = useI18n();
   const [state, formAction, pending] = useActionState(saveOnboardingPhotoAction, undefined);
   useStepDone(state, onDone);
   const inputRef = useRef<HTMLInputElement>(null);
-  const [preview, setPreview] = useState<string | null>(null);
+  const [preview, setPreview] = useState<string | null>(initialPreview);
   const [readError, setReadError] = useState<string | null>(null);
   const title = kind === "logo" ? t("onboarding.logo.title") : t("onboarding.photo.title");
   const description = kind === "logo" ? t("onboarding.logo.description") : t("onboarding.photo.description");
@@ -53,8 +59,13 @@ export function OnboardingPhotoStep({
     }
   }
 
+  function keepLocally(e: React.FormEvent) {
+    e.preventDefault();
+    if (preview) onDone();
+  }
+
   return (
-    <form action={formAction} className={stepScreen}>
+    <form action={deferUpload ? undefined : formAction} onSubmit={deferUpload ? keepLocally : undefined} className={stepScreen}>
       <StepHeading title={title} description={description} />
 
       <div className="flex flex-1 items-center justify-center sm:flex-none sm:py-2">
@@ -81,8 +92,14 @@ export function OnboardingPhotoStep({
       {readError && <p className="text-sm text-ink">{readError}</p>}
       <StepError state={state} />
       <div className={stepActions}>
-        <StepFooter onBack={onBack} pending={pending} disabled={!preview} />
-        <SkipButton onClick={onSkip} />
+        <StepFooter onBack={onBack} pending={deferUpload ? false : pending} disabled={!preview} />
+        <SkipButton
+          onClick={() => {
+            setPreview(null);
+            onPreview?.(null);
+            onSkip();
+          }}
+        />
       </div>
     </form>
   );

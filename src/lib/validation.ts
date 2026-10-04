@@ -107,6 +107,19 @@ export const onboardingPlatformsSchema = z.object({
   platforms: platformsField,
 });
 
+// Guest onboarding: the account is created only after the profile answers
+// exist, so this one submit writes both.
+export const guestCreatorSignupSchema = signupSchema.extend({
+  displayName: onboardingDisplayNameSchema.shape.displayName,
+  niches: nichesField,
+  platforms: platformsField,
+});
+
+export const guestBrandSignupSchema = signupSchema.extend({
+  companyName: onboardingCompanyNameSchema.shape.companyName,
+  niche: nicheEnum,
+});
+
 // The form posts languages as one comma-joined hidden input (same encoding
 // the language filter already uses in the URL) rather than repeated form
 // keys, so the existing Object.fromEntries(formData) call sites don't need
