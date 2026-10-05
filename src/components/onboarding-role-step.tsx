@@ -1,7 +1,7 @@
 "use client";
 
 import { useI18n } from "@/components/i18n-provider";
-import { StepHeading, stepScreen } from "@/components/onboarding-ui";
+import { StepHeading, stepActions, stepScreen } from "@/components/onboarding-ui";
 import type { SignupRole } from "@/lib/signup-role";
 
 // Same shape as the other onboarding steps: a question, then two choices.
@@ -10,7 +10,7 @@ export function OnboardingRoleStep({ onChoose }: { onChoose: (role: SignupRole) 
   return (
     <div className={stepScreen}>
       <StepHeading title={t("onboarding.role.title")} description={t("onboarding.role.description")} />
-      <div className="mt-auto flex flex-col gap-3">
+      <div className={stepActions}>
         <button
           type="button"
           onClick={() => onChoose("CREATOR")}
