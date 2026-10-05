@@ -125,11 +125,10 @@ function CrowdLine({
   return (
     <p
       data-for={side}
-      className="lp-rise mt-5 text-[15px] font-medium text-neutral-800 md:text-base dark:text-neutral-200"
+      className="lp-rise mt-4 text-[19px] leading-snug text-neutral-800 md:text-[22px] dark:text-neutral-200"
       style={delay(300)}
     >
-      <span className="font-display text-[1.65rem] font-black tabular-nums tracking-tight">{count.toLocaleString("en-US")}</span>{" "}
-      {word} already here
+      <span className="font-semibold tabular-nums">{count.toLocaleString("en-US")}</span> {word} already here
     </p>
   );
 }

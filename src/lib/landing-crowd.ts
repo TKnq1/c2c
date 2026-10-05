@@ -1,15 +1,11 @@
 import { prisma } from "@/lib/prisma";
 
-// People who finished enough of onboarding to have a name. A fresh account
-// still has the empty placeholder, so it isn't "already here" yet.
+// Every account of that side, including one that just signed up. Suspended
+// accounts are gone from the product, so they are not "already here".
 export async function landingCrowd() {
   const [brands, creators] = await Promise.all([
-    prisma.startupProfile.count({
-      where: { companyName: { not: "" }, user: { suspendedAt: null, role: "STARTUP" } },
-    }),
-    prisma.creatorProfile.count({
-      where: { displayName: { not: "" }, user: { suspendedAt: null, role: "CREATOR" } },
-    }),
+    prisma.user.count({ where: { role: "STARTUP", suspendedAt: null } }),
+    prisma.user.count({ where: { role: "CREATOR", suspendedAt: null } }),
   ]);
   return { brands, creators };
 }
