@@ -315,15 +315,20 @@ export const SwipeCard = forwardRef<SwipeCardHandle, {
   const pastPassThreshold = exiting === "left" || (drag.dragging && thresholdSide === "pass");
 
   return (
+    // The drag lives on the outer box. The rounded clip is a child, because
+    // a transform on the same element as the radius lets the photo (and its
+    // blur) paint a sliver past the curve.
     <div
       ref={cardElRef}
-      className="absolute inset-0 flex select-none flex-col overflow-hidden rounded-b-[28px] border border-ink/10 bg-paper shadow-xl"
+      className="absolute inset-0"
       style={style}
       onPointerDown={handlePointerDown}
       onPointerMove={handlePointerMove}
       onPointerUp={handlePointerUp}
       onPointerCancel={handlePointerUp}
     >
+      <div className="h-full rounded-b-[28px] shadow-xl">
+      <div className="flex h-full select-none flex-col overflow-hidden rounded-b-[28px] bg-paper ring-1 ring-ink/10 ring-inset [clip-path:inset(0_round_0_0_28px_28px)]">
       {isTop && (
         <>
           {/* Both stay mounted the whole time and only opacity moves —
@@ -396,6 +401,8 @@ export const SwipeCard = forwardRef<SwipeCardHandle, {
             </button>
           </div>
         </Dialog>
+      </div>
+      </div>
       </div>
     </div>
   );

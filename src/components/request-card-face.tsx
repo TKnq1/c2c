@@ -74,8 +74,10 @@ export function RequestCardFace({ request, photoIndex = 0 }: { request: CardRequ
     // overlay on top of it. A size container, so the blurred copy below can
     // be exactly the card's size (100cqh) whatever the photo's shape.
     <div className="relative min-h-0 flex-1" style={{ containerType: "size" }}>
+      {/* Scaled a hair so the photo covers the curve. The card clips it,
+          otherwise a sliver of the picture sits outside the radius. */}
       {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src={photo} alt="" draggable={false} className="absolute inset-0 h-full w-full select-none object-cover" />
+      <img src={photo} alt="" draggable={false} className="absolute inset-0 h-full w-full origin-center scale-[1.03] select-none object-cover" />
 
       {request.photos.length > 1 && (
         <div className="pointer-events-none absolute inset-x-3 top-2.5 flex gap-1">
