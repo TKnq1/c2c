@@ -78,7 +78,7 @@ describe("marketingWelcomeEmail", () => {
     const brand = marketingWelcomeEmail("https://www.comtor.app/?for=brands", "STARTUP", "A note for brands", "Glow", 3);
     const one = marketingWelcomeEmail("https://www.comtor.app/?for=creators", "CREATOR", "A note from comtor", "Mia", 1);
     expect(creator.subject).toBe("A note from comtor");
-    expect(creator.text).toContain("Mia, earn money posting TikToks.");
+    expect(creator.text).toContain("Mia, earn money posting on social media.");
     expect(creator.text).toContain("See paid deals");
     expect(creator.text).toContain("24 brands already here");
     expect(creator.html).not.toContain("mock-creator");

@@ -89,8 +89,8 @@ export function marketingWelcomeEmail(
   if (role === "CREATOR") {
     return render({
       subject,
-      preview: "Earn money posting TikToks.",
-      heading: who ? `${who}, earn money posting TikToks.` : "Earn money posting TikToks.",
+      preview: "Earn money posting on social media.",
+      heading: who ? `${who}, earn money posting on social media.` : "Earn money posting on social media.",
       body: "comtor is where brands post a paid deal and you swipe the ones you want. The budget is on the card, they pay before you post, and you keep 90%.",
       steps: [
         {
