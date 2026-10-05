@@ -4,7 +4,7 @@ import { useState, useTransition } from "react";
 import type { OutreachSide } from "@prisma/client";
 import { addOutreachAddressAction, removeOutreachAddressAction, sendOutreachAction } from "@/lib/actions/outreach";
 
-type Address = { id: string; email: string };
+type Address = { id: string; name: string; email: string };
 
 export function OutreachList({
   side,
@@ -17,6 +17,7 @@ export function OutreachList({
   blurb: string;
   addresses: Address[];
 }) {
+  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [subject, setSubject] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -29,9 +30,12 @@ export function OutreachList({
     setError(null);
     setStatus(null);
     startTransition(async () => {
-      const result = await addOutreachAddressAction(side, email);
+      const result = await addOutreachAddressAction(side, name, email);
       if (result.error) setError(result.error);
-      else setEmail("");
+      else {
+        setName("");
+        setEmail("");
+      }
     });
   };
 
@@ -76,27 +80,42 @@ export function OutreachList({
         <p className="mt-1 text-sm text-neutral-600 dark:text-neutral-400">{blurb}</p>
       </div>
 
-      <form onSubmit={add} className="flex flex-col gap-2 sm:flex-row">
-        <label className="sr-only" htmlFor={`email-${side}`}>
-          Email
+      <form onSubmit={add} className="flex flex-col gap-2">
+        <label className="sr-only" htmlFor={`name-${side}`}>
+          Name
         </label>
         <input
-          id={`email-${side}`}
-          type="email"
+          id={`name-${side}`}
+          type="text"
           required
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          placeholder="name@email.com"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          placeholder="Mia"
           autoComplete="off"
           className="w-full rounded border border-neutral-300 bg-background px-3 py-2.5 text-lg outline-none focus:border-ink dark:border-neutral-700"
         />
-        <button
-          type="submit"
-          disabled={pending}
-          className="shrink-0 rounded-full border border-ink px-4 py-2.5 text-sm font-medium transition hover:bg-fog disabled:opacity-50"
-        >
-          Add
-        </button>
+        <div className="flex flex-col gap-2 sm:flex-row">
+          <label className="sr-only" htmlFor={`email-${side}`}>
+            Email
+          </label>
+          <input
+            id={`email-${side}`}
+            type="email"
+            required
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="name@email.com"
+            autoComplete="off"
+            className="w-full rounded border border-neutral-300 bg-background px-3 py-2.5 text-lg outline-none focus:border-ink dark:border-neutral-700"
+          />
+          <button
+            type="submit"
+            disabled={pending}
+            className="shrink-0 rounded-full border border-ink px-4 py-2.5 text-sm font-medium transition hover:bg-fog disabled:opacity-50"
+          >
+            Add
+          </button>
+        </div>
       </form>
 
       {addresses.length === 0 ? (
@@ -105,7 +124,10 @@ export function OutreachList({
         <ul className="rounded bg-fog">
           {addresses.map((row) => (
             <li key={row.id} className="flex items-center justify-between gap-3 px-3 py-2.5 [&+&]:border-t [&+&]:border-ink/10">
-              <span className="min-w-0 truncate text-sm">{row.email}</span>
+              <span className="min-w-0">
+                <span className="block truncate text-sm font-medium">{row.name}</span>
+                <span className="block truncate text-footnote text-neutral-500">{row.email}</span>
+              </span>
               <button
                 type="button"
                 onClick={() => remove(row.id)}
