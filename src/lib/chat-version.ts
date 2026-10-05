@@ -19,6 +19,9 @@ export function chatThreadVersion(t: {
   disputedAt: Date | null;
   reviewCount: number;
   blocked: boolean;
+  // A counter with the same amount still adds a row, so the count has to
+  // move the version even when amountCents doesn't.
+  offerEventCount: number;
 }): string {
   return [
     t.messageCount,
@@ -31,5 +34,6 @@ export function chatThreadVersion(t: {
     t.disputedAt?.getTime() ?? "",
     t.reviewCount,
     t.blocked ? 1 : 0,
+    t.offerEventCount,
   ].join("|");
 }

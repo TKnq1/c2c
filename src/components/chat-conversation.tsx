@@ -7,7 +7,7 @@ import { useViewerTimeZone } from "@/lib/use-viewer-time-zone";
 import { dayKey, formatDayLabel, formatMessageTime } from "@/lib/format";
 import { toast } from "@/lib/toast";
 import { haptic } from "@/lib/haptics";
-import { ChatOfferCard, MakeOfferButton, type ChatOffer } from "@/components/chat-offer";
+import { ChatOfferCard, MakeOfferButton, OfferHistoryCard, type ChatOffer, type ChatOfferTurn } from "@/components/chat-offer";
 import { useI18n } from "@/components/i18n-provider";
 import type { Locale } from "@/lib/i18n/locales";
 
@@ -21,6 +21,7 @@ type FeedItem =
   | { kind: "unread"; key: string; count: number }
   | { kind: "event"; key: string; event: ChatEvent }
   | { kind: "offer"; key: string; offer: ChatOffer }
+  | { kind: "turn"; key: string; turn: ChatOfferTurn }
   | { kind: "message"; key: string; message: FeedMessage; seen: boolean; groupStart: boolean; groupEnd: boolean };
 
 type UnreadAtOpen = { firstId: string; count: number } | null;
@@ -86,6 +87,7 @@ function buildFeed(
   messages: FeedMessage[],
   events: ChatEvent[],
   offer: ChatOffer | null,
+  turns: ChatOfferTurn[],
   unread: UnreadAtOpen,
   timeZone: string,
   locale: Locale,
@@ -124,6 +126,11 @@ function buildFeed(
           },
         ]
       : []),
+    ...turns.map((turn) => ({
+      sortAt: turn.at,
+      at: turn.at,
+      item: { kind: "turn" as const, key: `turn-${turn.id}`, turn },
+    })),
   ].sort((a, b) => a.sortAt - b.sortAt);
 
   const feed: FeedItem[] = [];
@@ -161,6 +168,7 @@ export function ChatConversation({
   messages,
   events,
   offer,
+  offerTurns,
   makeOffer,
   requestTitle,
   blockedNotice,
@@ -169,6 +177,7 @@ export function ChatConversation({
   messages: ChatMessage[];
   events: ChatEvent[];
   offer: ChatOffer | null;
+  offerTurns: ChatOfferTurn[];
   makeOffer: { feeRatePercent: number } | null;
   requestTitle: string;
   blockedNotice: string | null;
@@ -192,7 +201,7 @@ export function ChatConversation({
     return unread.length > 0 ? { firstId: unread[0].id, count: unread.length } : null;
   });
   const [initialKeys] = useState(
-    () => new Set(buildFeed(messages, events, offer, unreadAtOpen, timeZone, locale).map((item) => item.key)),
+    () => new Set(buildFeed(messages, events, offer, offerTurns, unreadAtOpen, timeZone, locale).map((item) => item.key)),
   );
   const [initiallyReadIds] = useState(() => new Set(messages.filter((m) => m.read).map((m) => m.id)));
 
@@ -210,7 +219,7 @@ export function ChatConversation({
   const [seenLastId, setSeenLastId] = useState(lastId);
   const showNewMessagePill = !atBottom && !lastIsMine && lastId !== seenLastId;
 
-  const feed = buildFeed(optimisticMessages, events, offer, unreadAtOpen, timeZone, locale);
+  const feed = buildFeed(optimisticMessages, events, offer, offerTurns, unreadAtOpen, timeZone, locale);
 
   // Opening the thread lands on the first unread message (divider near the
   // top) when there is one, otherwise on the newest. After that it only
@@ -377,6 +386,17 @@ export function ChatConversation({
                       text
                     )}
                   </p>
+                );
+              }
+
+              if (item.kind === "turn") {
+                return (
+                  <OfferHistoryCard
+                    key={item.key}
+                    turn={item.turn}
+                    timeLabel={formatMessageTime(item.turn.at, timeZone, locale)}
+                    isNew={isNew}
+                  />
                 );
               }
 

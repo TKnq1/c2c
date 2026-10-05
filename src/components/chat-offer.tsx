@@ -25,6 +25,16 @@ import { Spinner } from "@/components/spinner";
 import { formatCents } from "@/lib/format";
 import { RELEASE_REVIEW_MS } from "@/lib/constants";
 
+export type ChatOfferTurn = {
+  id: string;
+  at: number;
+  isMine: boolean;
+  isCounter: boolean;
+  amountCents: number;
+  outcome: "SUPERSEDED" | "DECLINED" | "WITHDRAWN";
+  otherPartyName: string;
+};
+
 export type ChatOffer = {
   at: number;
   status: PaymentStatus;
@@ -41,6 +51,9 @@ export type ChatOffer = {
   disputed: boolean;
   // Creator side only: whether payouts are set up, which submitting a post needs.
   payoutsReady: boolean;
+  // True when this proposal replaced an earlier one. The first amount in a
+  // thread is an offer; everything after it is a counter-offer.
+  isCounter?: boolean;
 };
 
 const primaryButton =
@@ -54,6 +67,37 @@ const acceptButton =
   "flex-1 rounded-full bg-ink px-4 py-2 text-sm font-medium text-paper transition hover:bg-graphite disabled:cursor-wait";
 const pillButton =
   "inline-flex items-center gap-1.5 rounded-full border border-neutral-300 px-3.5 py-1.5 text-sm font-medium transition hover:border-neutral-400 dark:border-neutral-700";
+
+// A proposal that is no longer the one on the table: countered, declined,
+// or withdrawn. It stays in the thread, on the side of whoever made it,
+// so the negotiation reads top to bottom instead of only the latest amount.
+export function OfferHistoryCard({ turn, timeLabel, isNew }: { turn: ChatOfferTurn; timeLabel: string; isNew: boolean }) {
+  const { t } = useI18n();
+  const eyebrow = turn.isMine
+    ? t(turn.isCounter ? "screens.payments.copy.yourCounter" : "screens.payments.copy.yourOffer")
+    : t(turn.isCounter ? "screens.payments.copy.theirCounter" : "screens.payments.copy.theirOffer", { name: turn.otherPartyName });
+  const status =
+    turn.outcome === "SUPERSEDED"
+      ? t("screens.payments.copy.offerReplaced")
+      : turn.outcome === "DECLINED"
+        ? t("screens.payments.copy.offerWasDeclined")
+        : t("screens.payments.copy.offerWasWithdrawn");
+
+  return (
+    <div
+      className={`my-2 flex ${turn.isMine ? "origin-bottom-right justify-end" : "origin-bottom-left justify-start"} ${isNew ? "animate-bubble-in" : ""}`}
+    >
+      <div className="w-[80%] max-w-xs rounded-[18px] border border-ink/10 bg-fog px-3.5 py-3">
+        <p className="text-[11px] font-medium uppercase tracking-wide text-neutral-500 dark:text-neutral-400">{eyebrow}</p>
+        <p className="mt-0.5 text-xl font-bold tabular-nums text-neutral-700 dark:text-neutral-300">{formatCents(turn.amountCents)}</p>
+        <div className="mt-1 flex items-center justify-between gap-2">
+          <span className="text-xs text-neutral-500 dark:text-neutral-400">{status}</span>
+          {timeLabel && <span className="text-[11px] text-neutral-500 dark:text-neutral-400">{timeLabel}</span>}
+        </div>
+      </div>
+    </div>
+  );
+}
 
 // The current offer as a card in the conversation itself — the way Vinted
 // shows one — instead of a panel pinned above it. It sits on the side of
@@ -93,7 +137,7 @@ export function ChatOfferCard({
   switch (offer.status) {
     case "OFFERED":
       if (isMine) {
-        eyebrow = t("screens.payments.copy.yourOffer");
+        eyebrow = t(offer.isCounter ? "screens.payments.copy.yourCounter" : "screens.payments.copy.yourOffer");
         detail = payout && (isBrand ? t("screens.payments.copy.wouldGet", { name: other, payout, fee }) : t("screens.payments.copy.youdGet", { payout, fee }));
         actions = (
           <div className="mt-3 flex items-center justify-between gap-2">
@@ -109,7 +153,7 @@ export function ChatOfferCard({
           </div>
         );
       } else {
-        eyebrow = t("screens.payments.copy.theirOffer", { name: other });
+        eyebrow = t(offer.isCounter ? "screens.payments.copy.theirCounter" : "screens.payments.copy.theirOffer", { name: other });
         detail = payout && (isBrand ? t("screens.payments.copy.wouldGet", { name: other, payout, fee }) : t("screens.payments.copy.youdGet", { payout, fee }));
         actions = <OfferResponseButtons interestId={interestId} otherPartyName={other} />;
       }
