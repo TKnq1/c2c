@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { hasAdminAccess } from "@/lib/admin-access";
 import { confirmAdminPassword, requireAdmin } from "@/lib/admin-guard";
+import { anonymiseAccount, hasPaymentRecords, moneyInFlight } from "@/lib/account-deletion";
 import { audit } from "@/lib/audit";
 import { prisma } from "@/lib/prisma";
 import { sendEmail } from "@/lib/email";
@@ -107,9 +108,10 @@ export async function sendTestEmailAction(): Promise<{ error?: string; to?: stri
   return result.ok ? { to, id: result.id } : { error: result.error };
 }
 
-// Deletes an account with everything that belongs to it (profile, requests,
-// interests, messages, reviews, notifications: all cascade, the same as an
-// account's own "Delete account"). For test accounts and clean-ups. It
+// Deletes an account the way the account's own "Delete account" does (see
+// account-deletion.ts): money still in flight blocks it, an account with
+// payment records is anonymised so those records stay, anything else goes
+// with everything that belongs to it. For test accounts and clean-ups. It
 // refuses what shouldn't go this way: yourself, other admins, and any
 // account with a Stripe connection or a payment through Stripe, since those
 // leave money or a subscription behind in Stripe that this wouldn't touch.
@@ -151,8 +153,14 @@ export async function deleteUserAction(userId: string, password: string): Promis
     return { error: "This account is connected to Stripe or has payments through it. Deleting it here would leave those behind in Stripe." };
   }
 
-  await audit(session.user.id, "user.delete", userId, { email: user.email, role: user.role });
-  await prisma.user.delete({ where: { id: userId } });
+  if ((await moneyInFlight(userId)) > 0) {
+    return { error: "A payment is still in progress for this account. It has to be finished or cancelled first." };
+  }
+
+  const anonymise = await hasPaymentRecords(userId);
+  await audit(session.user.id, "user.delete", userId, { email: user.email, role: user.role, anonymised: anonymise });
+  if (anonymise) await anonymiseAccount(userId, user.role);
+  else await prisma.user.delete({ where: { id: userId } });
   revalidateAdmin();
   return {};
 }
