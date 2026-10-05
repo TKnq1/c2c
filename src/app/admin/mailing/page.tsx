@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { requireAdminSession } from "@/lib/admin-session";
 import { OutreachList } from "@/components/admin/outreach-list";
+import { SentMailings } from "@/components/admin/sent-mailings";
 import { outreachStats } from "@/lib/outreach-tracking";
 
 export default async function AdminMailingPage() {
@@ -18,14 +19,29 @@ export default async function AdminMailingPage() {
   }));
   const creators = listed.filter((row) => row.side === "CREATOR");
   const brands = listed.filter((row) => row.side === "STARTUP");
+  const mailings = await prisma.outreachMailing.findMany({
+    orderBy: { createdAt: "desc" },
+    include: {
+      deliveries: {
+        orderBy: { sentAt: "asc" },
+        select: {
+          id: true,
+          recipientName: true,
+          recipientEmail: true,
+          openCount: true,
+          clickCount: true,
+        },
+      },
+    },
+  });
 
   return (
     <div className="flex flex-col gap-6">
       <div>
         <h1 className="font-display text-title-1 font-bold">Mailing</h1>
         <p className="mt-1 max-w-2xl text-sm text-neutral-600 dark:text-neutral-400">
-          Two lists. Each row is a name and an email. You write the subject. The headline uses their name. Opened
-          counts when the images load, so it can fire without anyone reading. Clicked is the button.
+          Creators and brands are who you can write to. Sent is every mail that already went out, and who got it.
+          Opened counts when the images load, so it can fire without anyone reading. Clicked is the button.
         </p>
       </div>
       <div className="grid gap-6 lg:grid-cols-2">
@@ -42,6 +58,21 @@ export default async function AdminMailingPage() {
           addresses={brands}
         />
       </div>
+      <SentMailings
+        mailings={mailings.map((mailing) => ({
+          id: mailing.id,
+          side: mailing.side,
+          subject: mailing.subject,
+          createdAt: mailing.createdAt.getTime(),
+          recipients: mailing.deliveries.map((delivery) => ({
+            id: delivery.id,
+            name: delivery.recipientName,
+            email: delivery.recipientEmail,
+            openCount: delivery.openCount,
+            clickCount: delivery.clickCount,
+          })),
+        }))}
+      />
     </div>
   );
 }

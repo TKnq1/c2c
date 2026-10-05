@@ -64,6 +64,7 @@ export async function sendOutreachAction(
   const url = marketingEntryUrl(side);
   const crowd = await landingCrowd();
   const count = side === "CREATOR" ? crowd.brands : crowd.creators;
+  const mailing = await prisma.outreachMailing.create({ data: { side, subject: subject.data } });
   const failed: { email: string; error: string }[] = [];
   let sent = 0;
   for (const row of rows) {
@@ -71,10 +72,17 @@ export async function sendOutreachAction(
     const result = await sendEmail({ to: row.email, ...message });
     if (result.ok) {
       sent += 1;
-      if (result.id) {
-        await prisma.outreachDelivery.create({ data: { addressId: row.id, resendId: result.id } });
-      }
+      await prisma.outreachDelivery.create({
+        data: {
+          mailingId: mailing.id,
+          addressId: row.id,
+          recipientName: row.name,
+          recipientEmail: row.email,
+          resendId: result.id || `untracked_${mailing.id}_${row.id}`,
+        },
+      });
     } else failed.push({ email: row.email, error: result.error });
   }
+  if (sent === 0) await prisma.outreachMailing.delete({ where: { id: mailing.id } });
   return { sent, failed };
 }
