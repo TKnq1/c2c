@@ -46,26 +46,28 @@ export function welcomeEmail(url: string, role: "CREATOR" | "STARTUP"): Email {
   });
 }
 
-// A marketing note to people who already have an account. Separate from
+// A marketing note for people who may never have opened comtor. The subject
+// is whatever the admin typed. The body says what the product is, because
+// the inbox is the first time many of them hear of it. Separate from
 // welcomeEmail, which is the sign-up mail and carries the verify link.
-export function marketingWelcomeEmail(url: string, role: "CREATOR" | "STARTUP"): Email {
+export function marketingWelcomeEmail(url: string, role: "CREATOR" | "STARTUP", subject: string): Email {
   if (role === "CREATOR") {
     return render({
-      subject: "You're in on comtor",
-      preview: "Brands are posting deals. The budget is on the card.",
-      heading: "You're in.",
-      body: "Brands are already posting deals, with the budget on the card. Swipe right on the ones you want. The money is in before you post, and you keep 90%.",
-      action: { label: "Open your feed", url },
-      note: "You're getting this because you have a comtor creator account.",
+      subject,
+      preview: "Brands post paid deals. You swipe. The budget is on the card.",
+      heading: "This is comtor.",
+      body: "comtor is where brands post paid deals and creators swipe through them. Every card shows the budget, what to post, and whether the product is included. Swipe right if you want the deal. The brand pays before you post, and you keep 90%.",
+      action: { label: "See the deals", url },
+      note: "You're getting this because comtor has your email as a creator.",
     });
   }
   return render({
-    subject: "Creators are on comtor",
-    preview: "Post a request. Creators who fit come to you.",
-    heading: "Creators are here.",
-    body: "Post a request with the budget and what to post. Creators who fit swipe right, and your money stays held until you've approved the post.",
-    action: { label: "Post a request", url },
-    note: "You're getting this because you have a comtor brand account.",
+    subject,
+    preview: "Post a paid deal. Creators who fit swipe right and come to you.",
+    heading: "This is comtor.",
+    body: "comtor is where you post a paid deal and creators swipe on it. You set the budget, the platform, and what to post. Creators in that niche see it as a card. The ones who want it swipe right and come to you. You pay when you agree, and the money is held until you've approved the post.",
+    action: { label: "Post a deal", url },
+    note: "You're getting this because comtor has your email as a brand.",
   });
 }
 

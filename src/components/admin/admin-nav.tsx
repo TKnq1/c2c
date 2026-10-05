@@ -21,6 +21,7 @@ export function AdminNav({ attentionCount }: { attentionCount: number }) {
     { href: "/admin/onboarding", label: "Onboarding", icon: FiTrendingUp },
     { href: "/admin/waitlist", label: "Waitlist", icon: FiMail },
     { href: "/admin/email", label: "Email", icon: FiSend },
+    { href: "/admin/mailing", label: "Mailing", icon: FiMail },
   ];
   const isActive = (href: string) => (href === "/admin" ? pathname === "/admin" : pathname.startsWith(href));
 

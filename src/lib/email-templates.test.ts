@@ -73,11 +73,13 @@ describe("welcomeEmail", () => {
 
 describe("marketingWelcomeEmail", () => {
   it("speaks to creators and brands separately", () => {
-    const creator = marketingWelcomeEmail("https://www.comtor.app/dashboard/creator", "CREATOR");
-    const brand = marketingWelcomeEmail("https://www.comtor.app/dashboard/startup/new", "STARTUP");
-    expect(creator.subject).toBe("You're in on comtor");
-    expect(creator.text).toContain("Open your feed");
-    expect(brand.text).toContain("Post a request");
+    const creator = marketingWelcomeEmail("https://www.comtor.app/dashboard/creator", "CREATOR", "A note from comtor");
+    const brand = marketingWelcomeEmail("https://www.comtor.app/dashboard/startup/new", "STARTUP", "A note for brands");
+    expect(creator.subject).toBe("A note from comtor");
+    expect(creator.text).toContain("This is comtor.");
+    expect(creator.text).toContain("swipe");
+    expect(brand.subject).toBe("A note for brands");
+    expect(brand.text).toContain("Post a deal");
     expect(brand.html).toContain("https://www.comtor.app/dashboard/startup/new");
   });
 });
