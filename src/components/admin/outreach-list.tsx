@@ -81,11 +81,17 @@ export function OutreachList({
     }
     setError(null);
     startTransition(async () => {
-      const result = await sendOutreachAction(
-        side,
-        subject,
-        selected.map((row) => row.id),
-      );
+      let result: Awaited<ReturnType<typeof sendOutreachAction>>;
+      try {
+        result = await sendOutreachAction(
+          side,
+          subject,
+          selected.map((row) => row.id),
+        );
+      } catch {
+        setError("Sending failed. Try a smaller group, then send again.");
+        return;
+      }
       if (result.error) {
         setError(result.error);
         return;
