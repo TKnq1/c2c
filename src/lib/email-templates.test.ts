@@ -78,6 +78,8 @@ describe("marketingWelcomeEmail", () => {
     expect(creator.subject).toBe("A note from comtor");
     expect(creator.text).toContain("Mia, brand collabs just got easier.");
     expect(creator.text).toContain("See paid deals");
+    expect(creator.text).toContain("300 €");
+    expect(creator.html).toContain("Summer glow set");
     expect(creator.html).toContain("/email/band-mark.jpg");
     expect(creator.html).not.toContain("mark-white.png");
     expect(brand.subject).toBe("A note for brands");

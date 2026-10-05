@@ -28,6 +28,8 @@ type Content = {
   body: string;
   // The black panel uses the large faint mark instead of the small logo.
   watermark?: boolean;
+  // One example deal, drawn as a card. Not a phone screenshot.
+  example?: { caption: string; image: string; title: string; amount: string; meta: string };
   action: { label: string; url: string };
   // Under the button: how long the link works, what to do if this wasn't you.
   note: string;
@@ -63,6 +65,13 @@ export function marketingWelcomeEmail(url: string, role: "CREATOR" | "STARTUP", 
       heading: who ? `${who}, brand collabs just got easier.` : "Brand collabs, made easier.",
       body: "Brands post a paid deal. You swipe the ones you want. The budget is on the card, they pay before you post, and you keep 90%.",
       watermark: true,
+      example: {
+        caption: "A deal, as it shows up for you.",
+        image: `${SITE_URL}/landing/serum-orange.jpg`,
+        title: "Summer glow set",
+        amount: "300 €",
+        meta: "1 Reel · Instagram",
+      },
       action: { label: "See paid deals", url },
       note: "You're getting this because comtor has your email as a creator.",
     });
@@ -71,8 +80,15 @@ export function marketingWelcomeEmail(url: string, role: "CREATOR" | "STARTUP", 
     subject,
     preview: "Find the right creators for your product.",
     heading: who ? `${who}, find the right creators for your product.` : "Find the right creators for your product.",
-    body: "Post the product, the budget, and what to make. Creators who fit swipe right and come to you. You pay when you agree, and the money waits until the post is live.",
-    watermark: true,
+      body: "Post the product, the budget, and what to make. Creators who fit swipe right and come to you. You pay when you agree, and the money waits until the post is live.",
+      watermark: true,
+      example: {
+        caption: "Your request, as creators see it.",
+        image: `${SITE_URL}/landing/serum-orange.jpg`,
+        title: "Summer glow set",
+        amount: "300 €",
+        meta: "1 Reel · Instagram",
+      },
     action: { label: "Post your first deal", url },
     note: "You're getting this because comtor has your email as a brand.",
   });
@@ -244,6 +260,23 @@ ${logo}
 ${c.lead ? `<p class="ink" style="margin:0 0 10px;font-family:${FONT};font-size:18px;line-height:1.35;font-weight:700;color:${INK};">${escapeHtml(c.lead)}</p>` : ""}
 <p class="text" style="margin:0;font-family:${FONT};font-size:16px;line-height:1.55;color:${TEXT};">${escapeHtml(c.body)}</p>
 </td></tr>
+${
+  c.example
+    ? `<tr><td class="px" style="padding:20px 32px 0;">
+<p class="muted" style="margin:0 0 8px;font-family:${FONT};font-size:13px;line-height:1.4;color:${MUTED};">${escapeHtml(c.example.caption)}</p>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr>
+<td class="panel" style="border-radius:4px;background-color:${FOG};overflow:hidden;">
+<img src="${escapeHtml(c.example.image)}" width="456" height="180" alt="" style="display:block;width:100%;height:180px;object-fit:cover;border:0;">
+<div style="padding:14px 16px 16px;">
+<p class="ink" style="margin:0;font-family:${FONT};font-size:22px;line-height:1.1;font-weight:900;color:${INK};">${escapeHtml(c.example.amount)}</p>
+<p class="text" style="margin:6px 0 0;font-family:${FONT};font-size:15px;line-height:1.4;font-weight:700;color:${TEXT};">${escapeHtml(c.example.meta)}</p>
+<p class="muted" style="margin:4px 0 0;font-family:${FONT};font-size:14px;line-height:1.4;color:${MUTED};">${escapeHtml(c.example.title)}</p>
+</div>
+</td>
+</tr></table>
+</td></tr>`
+    : ""
+}
 <tr><td class="px" style="padding:28px 32px 0;">
 <table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
 <td class="btn" style="border-radius:999px;background-color:${INK};mso-padding-alt:14px 28px;">
@@ -282,6 +315,7 @@ ${c.lead ? `<p class="ink" style="margin:0 0 10px;font-family:${FONT};font-size:
     ...(c.lead ? [c.lead, ""] : []),
     c.body,
     "",
+    ...(c.example ? [`${c.example.caption} ${c.example.title}, ${c.example.amount}, ${c.example.meta}.`, ""] : []),
     `${c.action.label}: ${c.action.url}`,
     "",
     c.note,
