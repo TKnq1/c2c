@@ -194,8 +194,10 @@ function Toast({ children }: { children: React.ReactNode }) {
 function FeedCard({ request }: { request: typeof ODD_BLOOM }) {
   return (
     <div className="relative mt-3 h-[440px]">
-      <div className="absolute inset-0 flex flex-col overflow-hidden rounded-b-[28px] border border-ink/10 bg-paper shadow-xl">
-        <RequestCardFace request={request} />
+      <div className="absolute inset-0 rounded-b-[28px] shadow-xl">
+        <div className="flex h-full flex-col overflow-hidden rounded-b-[28px] bg-paper ring-1 ring-ink/10 ring-inset [clip-path:inset(0_round_0_0_28px_28px)]">
+          <RequestCardFace request={request} />
+        </div>
       </div>
     </div>
   );

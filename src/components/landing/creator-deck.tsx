@@ -77,17 +77,31 @@ export function CreatorDeck({ onTop }: { onTop: (photo: PhotoKey) => void }) {
           className={`relative mt-3 flex-1 ${touched ? "" : "lp-nudge"}`}
           onPointerDownCapture={() => setTouched(true)}
         >
-          {stack.slice(0, 3).map((card, i) => (
+          {/* Cards waiting behind are clipped to the front card's rounded
+              shape, so their photos don't stick out of the bottom corners.
+              The front card stays outside that clip so a swipe can leave. */}
+          <div className="pointer-events-none absolute inset-0 overflow-hidden rounded-b-[28px]">
+            {stack.slice(1, 3).map((card, i) => (
+              <SwipeCard
+                key={card.id}
+                request={card}
+                stackIndex={i + 1}
+                onSwipe={() => {}}
+                onTap={wiggle}
+              />
+            ))}
+          </div>
+          {stack[0] && (
             <SwipeCard
-              key={card.id}
-              ref={i === 0 ? topRef : undefined}
-              request={card}
-              stackIndex={i}
-              onSwipe={(direction) => handleSwipe(card, direction)}
-              restoredFrom={card.id === restored ? "left" : undefined}
+              key={stack[0].id}
+              ref={topRef}
+              request={stack[0]}
+              stackIndex={0}
+              onSwipe={(direction) => handleSwipe(stack[0], direction)}
+              restoredFrom={stack[0].id === restored ? "left" : undefined}
               onTap={wiggle}
             />
-          ))}
+          )}
         </div>
         <div className="grid shrink-0 grid-cols-5 items-center py-3">
           <div aria-hidden="true" />
