@@ -4,6 +4,7 @@ import { stripe } from "@/lib/stripe";
 import { prisma } from "@/lib/prisma";
 import { notify } from "@/lib/notifications";
 import { formatCents } from "@/lib/format";
+import { flagForReview } from "@/lib/moderation";
 
 // Fulfillment lives here, not on the checkout return page — a brand can pay
 // successfully and never make it back to our site (closed tab, lost
@@ -53,6 +54,18 @@ export async function POST(req: Request) {
       // either way there's nothing left to do.
       if (!interest || interest.paymentStatus !== "ACCEPTED") break;
 
+      // The session was created for exactly this amount (createCheckoutSessionAction). If what was
+      // paid isn't that, nothing is marked as held: a person looks at it.
+      if (checkoutSession.amount_total !== interest.amountCents || checkoutSession.currency !== "eur") {
+        console.error("Checkout amount mismatch", { interestId: interest.id, session: checkoutSession.id });
+        await flagForReview(
+          interest.request.startup.userId,
+          "Payment amount mismatch",
+          `Checkout ${checkoutSession.id} for interest ${interest.id}: paid ${checkoutSession.amount_total} ${checkoutSession.currency}, expected ${interest.amountCents} eur.`,
+        );
+        break;
+      }
+
       // releaseHeldPayment's transfer needs a Charge id (source_transaction
       // only accepts ch_..., see .agents/skills/connect-recommend/references/
       // charge-patterns.md) — the session only carries the PaymentIntent id,
@@ -62,14 +75,13 @@ export async function POST(req: Request) {
       const paymentIntent = paymentIntentId ? await stripe.paymentIntents.retrieve(paymentIntentId) : null;
       const chargeId = typeof paymentIntent?.latest_charge === "string" ? paymentIntent.latest_charge : null;
 
-      await prisma.interest.update({
-        where: { id: interest.id },
-        data: {
-          paymentStatus: "HELD",
-          paidAt: new Date(),
-          stripeChargeId: chargeId,
-        },
+      // Only one of two parallel deliveries (completed and async_payment_succeeded can both fire) gets to
+      // flip the row, and so only one notifies.
+      const claimed = await prisma.interest.updateMany({
+        where: { id: interest.id, paymentStatus: "ACCEPTED" },
+        data: { paymentStatus: "HELD", paidAt: new Date(), stripeChargeId: chargeId },
       });
+      if (claimed.count === 0) break;
 
       await notify(
         interest.creator.userId,

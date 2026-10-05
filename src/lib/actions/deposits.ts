@@ -67,6 +67,9 @@ export async function requestDepositAction(
 // Creator pays the exact requested deposit — a plain confirm, not a form,
 // since the brand already fixed the amount.
 export async function payDepositAction(interestId: string) {
+  // See DEPOSITS_ENABLED: paying one only flips a status and moves no money, so none of the
+  // deposit steps are reachable while it's off, whatever rows exist.
+  if (!DEPOSITS_ENABLED) throw new Error("Deposits aren't available.");
   const session = await auth();
   if (!session || session.user.role !== "CREATOR") {
     throw new Error("Not authorized.");
@@ -104,6 +107,9 @@ export async function payDepositAction(interestId: string) {
 
 // Brand confirms the content was posted — returns the held deposit in full.
 export async function releaseDepositAction(interestId: string) {
+  // See DEPOSITS_ENABLED: paying one only flips a status and moves no money, so none of the
+  // deposit steps are reachable while it's off, whatever rows exist.
+  if (!DEPOSITS_ENABLED) throw new Error("Deposits aren't available.");
   const session = await auth();
   if (!session || session.user.role !== "STARTUP") {
     throw new Error("Not authorized.");
@@ -143,6 +149,9 @@ export async function releaseDepositAction(interestId: string) {
 // of returning it. Same honor-system trust level as every other escrow
 // decision here: neither side's claim is independently verified.
 export async function forfeitDepositAction(interestId: string) {
+  // See DEPOSITS_ENABLED: paying one only flips a status and moves no money, so none of the
+  // deposit steps are reachable while it's off, whatever rows exist.
+  if (!DEPOSITS_ENABLED) throw new Error("Deposits aren't available.");
   const session = await auth();
   if (!session || session.user.role !== "STARTUP") {
     throw new Error("Not authorized.");

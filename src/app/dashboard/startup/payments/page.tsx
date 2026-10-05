@@ -277,7 +277,7 @@ export default async function StartupPaymentsPage(props: PageProps<"/dashboard/s
                     </ActionButton>
                   </div>
                 ) : (
-                  <OfferResponseButtons interestId={i.id} otherPartyName={creator} />
+                  <OfferResponseButtons interestId={i.id} otherPartyName={creator} amountCents={i.amountCents ?? 0} />
                 )}
               </PaymentRow>
             );

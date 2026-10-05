@@ -157,7 +157,7 @@ export function ChatOfferCard({
       } else {
         eyebrow = t(offer.isCounter ? "screens.payments.copy.theirCounter" : "screens.payments.copy.theirOffer", { name: other });
         detail = payout && (isBrand ? t("screens.payments.copy.wouldGet", { name: other, payout, fee }) : t("screens.payments.copy.youdGet", { payout, fee }));
-        actions = <OfferResponseButtons interestId={interestId} otherPartyName={other} />;
+        actions = <OfferResponseButtons interestId={interestId} otherPartyName={other} amountCents={offer.amountCents} />;
       }
       break;
 
@@ -298,7 +298,16 @@ export function ChatOfferCard({
 // Accept / Counter / Decline for an offer that's waiting on the viewer —
 // the same three wherever an offer can be answered: its card in the chat,
 // and its row in Payments.
-export function OfferResponseButtons({ interestId, otherPartyName }: { interestId: string; otherPartyName: string }) {
+export function OfferResponseButtons({
+  interestId,
+  otherPartyName,
+  amountCents,
+}: {
+  interestId: string;
+  otherPartyName: string;
+  // The amount of the offer shown next to the buttons. The answer is only taken if it's still that offer.
+  amountCents: number;
+}) {
   const { t } = useI18n();
   const router = useRouter();
   const [counterOpen, setCounterOpen] = useState(false);
@@ -307,7 +316,7 @@ export function OfferResponseButtons({ interestId, otherPartyName }: { interestI
     <>
       <div className="mt-3 flex gap-2">
         <ActionButton
-          action={acceptOfferAction.bind(null, interestId)}
+          action={acceptOfferAction.bind(null, interestId, amountCents)}
           successMessage={t("screens.payments.copy.offerAcceptedToast")}
           onSuccess={() => router.refresh()}
           className={acceptButton}
@@ -328,7 +337,7 @@ export function OfferResponseButtons({ interestId, otherPartyName }: { interestI
       </div>
       <div className="mt-2 flex justify-center">
         <ConfirmActionButton
-          action={declineOfferAction.bind(null, interestId)}
+          action={declineOfferAction.bind(null, interestId, amountCents)}
           successMessage={t("screens.payments.copy.offerDeclined")}
           title={t("screens.payments.copy.declineTitle")}
           description={t("screens.payments.copy.declineBody", { name: otherPartyName })}
@@ -341,7 +350,7 @@ export function OfferResponseButtons({ interestId, otherPartyName }: { interestI
       </div>
       <Dialog open={counterOpen} onClose={() => setCounterOpen(false)} title={t("screens.payments.copy.counterTitle")}>
         <AmountForm
-          action={counterOfferAction.bind(null, interestId)}
+          action={counterOfferAction.bind(null, interestId, amountCents)}
           hint={t("screens.payments.copy.counterHint", { name: otherPartyName })}
           submitLabel={t("screens.payments.copy.sendCounter")}
           successMessage={t("screens.payments.copy.counterSent")}
