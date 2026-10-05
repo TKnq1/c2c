@@ -78,15 +78,14 @@ describe("marketingWelcomeEmail", () => {
     const brand = marketingWelcomeEmail("https://www.comtor.app/onboarding?role=brand", "STARTUP", "A note for brands", "Glow", 3);
     const one = marketingWelcomeEmail("https://www.comtor.app/onboarding?role=creator", "CREATOR", "A note from comtor", "Mia", 1);
     expect(creator.subject).toBe("A note from comtor");
-    expect(creator.text).toContain("Mia, brand collabs just got easier.");
+    expect(creator.text).toContain("Mia, earn money posting TikToks.");
     expect(creator.text).toContain("See paid deals");
     expect(creator.text).toContain("24 brands already here");
     expect(creator.html).not.toContain("mock-creator");
     expect(brand.text).toContain("3 creators already here");
     expect(one.text).toContain("1 brand already here");
-    expect(creator.html).toContain("/email/icons/swipe.png");
-    expect(creator.html).not.toContain("/landing/icons/");
-    expect(brand.html).toContain("/email/icons/megaphone.png");
+    expect(creator.html).toContain("/landing/icons/swipe.png");
+    expect(brand.html).toContain("/landing/icons/megaphone.png");
     expect(creator.text).toContain("comtor is where brands post a paid deal");
     expect(creator.text).toContain("1. Swipe a deal.");
     expect(creator.text).toContain("You keep 90%");
@@ -100,7 +99,7 @@ describe("marketingWelcomeEmail", () => {
     expect(creator.html).not.toContain("Button not working");
     expect(creator.html.split('href="https://www.comtor.app/onboarding?role=creator"')).toHaveLength(2);
     expect(brand.subject).toBe("A note for brands");
-    expect(brand.text).toContain("Glow, find the right creators for your product.");
+    expect(brand.text).toContain("Glow, grow your brand with content creators.");
     expect(brand.text).toContain("Post your first deal");
     expect(brand.html).toContain("https://www.comtor.app/onboarding?role=brand");
   });
