@@ -323,11 +323,9 @@ function render(c: Content): Email {
   const aside = c.aside
     ? `<p class="ink" style="margin:${steps ? "18px" : "0"} 0 0;font-family:${FONT};font-size:16px;line-height:1.5;font-weight:700;color:${INK};">${escapeHtml(c.aside)}</p>`
     : "";
-  const crowdRow = c.crowd
-    ? `<tr><td class="px" align="center" style="padding:28px 32px 0;">
-<p class="ink" style="margin:0;font-family:${FONT};font-size:56px;line-height:1;font-weight:900;letter-spacing:-0.04em;color:${INK};text-align:center;">${c.crowd.count.toLocaleString("en-US")}</p>
-<p class="text" style="margin:8px 0 0;font-family:${FONT};font-size:16px;line-height:1.4;color:${TEXT};text-align:center;">${escapeHtml(c.crowd.label)}</p>
-</td></tr>`
+  const crowdBlock = c.crowd
+    ? `<p class="ink" style="margin:0;font-family:${FONT};font-size:56px;line-height:1;font-weight:900;letter-spacing:-0.04em;color:${INK};text-align:center;">${c.crowd.count.toLocaleString("en-US")}</p>
+<p class="text" style="margin:8px 0 ${stepsTable ? "22px" : "0"};font-family:${FONT};font-size:16px;line-height:1.4;color:${TEXT};text-align:center;">${escapeHtml(c.crowd.label)}</p>`
     : "";
   const hintRow = c.hint
     ? `<tr><td class="px" align="center" style="padding:14px 32px 0;">
@@ -384,10 +382,10 @@ ${wordmark}
 </td>
 </tr></table>
 </td></tr>
-${crowdRow}
 <tr><td class="px" style="padding:28px 32px 0;">
 ${c.lead ? `<p class="ink" style="margin:0 0 10px;font-family:${FONT};font-size:18px;line-height:1.35;font-weight:700;color:${INK};">${escapeHtml(c.lead)}</p>` : ""}
-${c.body ? `<p class="text" style="margin:0 0 ${stepsTable ? "22px" : "0"};font-family:${FONT};font-size:16px;line-height:1.55;color:${TEXT};">${escapeHtml(c.body)}</p>` : ""}
+${c.body ? `<p class="text" style="margin:0 0 ${crowdBlock || stepsTable ? "22px" : "0"};font-family:${FONT};font-size:16px;line-height:1.55;color:${TEXT};">${escapeHtml(c.body)}</p>` : ""}
+${crowdBlock}
 ${stepsTable}
 ${aside}
 </td></tr>
@@ -414,9 +412,9 @@ ${footerNote}<p class="muted" style="margin:0;font-family:${FONT};font-size:12px
   const text = [
     c.heading,
     "",
-    ...(c.crowd ? [`${c.crowd.count.toLocaleString("en-US")} ${c.crowd.label}`, ""] : []),
     ...(c.lead ? [c.lead, ""] : []),
     ...(c.body ? [c.body, ""] : []),
+    ...(c.crowd ? [`${c.crowd.count.toLocaleString("en-US")} ${c.crowd.label}`, ""] : []),
     ...(c.steps?.map((step, index) => `${index + 1}. ${step.title}\n${step.text}`) ?? []),
     ...(c.steps?.length ? [""] : []),
     ...(c.aside ? [c.aside, ""] : []),

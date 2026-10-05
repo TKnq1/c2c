@@ -87,6 +87,7 @@ describe("marketingWelcomeEmail", () => {
     expect(creator.html).toContain("/email/icons/swipe.png");
     expect(brand.html).toContain("/email/icons/megaphone.png");
     expect(creator.text).toContain("comtor is where brands post a paid deal");
+    expect(creator.text.indexOf("comtor is where brands")).toBeLessThan(creator.text.indexOf("24 brands already here"));
     expect(creator.text).toContain("1. Swipe a deal.");
     expect(creator.text).toContain("You keep 90%");
     expect(creator.text).toContain("No more DMs about your rate.");
