@@ -23,6 +23,8 @@ type Content = {
   // The grey line an inbox shows after the subject.
   preview: string;
   heading: string;
+  // A short line above the body, a step heavier than the paragraph.
+  lead?: string;
   body: string;
   action: { label: string; url: string };
   // Under the button: how long the link works, what to do if this wasn't you.
@@ -54,8 +56,9 @@ export function marketingWelcomeEmail(url: string, role: "CREATOR" | "STARTUP", 
   if (role === "CREATOR") {
     return render({
       subject,
-      preview: "Brands post paid deals. You swipe. The budget is on the card.",
+      preview: "Brand collabs, made easier.",
       heading: "This is comtor.",
+      lead: "Brand collabs, made easier.",
       body: "comtor is where brands post paid deals and creators swipe through them. Every card shows the budget, what to post, and whether the product is included. Swipe right if you want the deal. The brand pays before you post, and you keep 90%.",
       action: { label: "See the deals", url },
       note: "You're getting this because comtor has your email as a creator.",
@@ -63,9 +66,10 @@ export function marketingWelcomeEmail(url: string, role: "CREATOR" | "STARTUP", 
   }
   return render({
     subject,
-    preview: "Post a paid deal. Creators who fit swipe right and come to you.",
-    heading: "This is comtor.",
-    body: "comtor is where you post a paid deal and creators swipe on it. You set the budget, the platform, and what to post. Creators in that niche see it as a card. The ones who want it swipe right and come to you. You pay when you agree, and the money is held until you've approved the post.",
+      preview: "Find the right creators for your product.",
+      heading: "This is comtor.",
+      lead: "Find the right creators for your product.",
+      body: "comtor is where you post a paid deal and creators swipe on it. You set the budget, the platform, and what to post. Creators in that niche see it as a card. The ones who want it swipe right and come to you. You pay when you agree, and the money is held until you've approved the post.",
     action: { label: "Post a deal", url },
     note: "You're getting this because comtor has your email as a brand.",
   });
@@ -227,6 +231,7 @@ ${FONT_FACES}
 </tr></table>
 </td></tr>
 <tr><td class="px" style="padding:24px 32px 0;">
+${c.lead ? `<p class="ink" style="margin:0 0 10px;font-family:${FONT};font-size:18px;line-height:1.35;font-weight:700;color:${INK};">${escapeHtml(c.lead)}</p>` : ""}
 <p class="text" style="margin:0;font-family:${FONT};font-size:16px;line-height:1.55;color:${TEXT};">${escapeHtml(c.body)}</p>
 </td></tr>
 <tr><td class="px" style="padding:28px 32px 0;">
@@ -264,6 +269,7 @@ ${FONT_FACES}
   const text = [
     c.heading,
     "",
+    ...(c.lead ? [c.lead, ""] : []),
     c.body,
     "",
     `${c.action.label}: ${c.action.url}`,
