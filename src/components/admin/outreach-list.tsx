@@ -29,7 +29,6 @@ export function OutreachList({
   const [subject, setSubject] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [status, setStatus] = useState<string | null>(null);
-  const [confirm, setConfirm] = useState(false);
   const [open, setOpen] = useState(false);
   const [picked, setPicked] = useState<Set<string>>(() => new Set());
   const [pending, startTransition] = useTransition();
@@ -37,7 +36,7 @@ export function OutreachList({
   const selected = addresses.filter((row) => picked.has(row.id));
 
   const toggle = (id: string) => {
-    setConfirm(false);
+    setError(null);
     setPicked((current) => {
       const next = new Set(current);
       if (next.has(id)) next.delete(id);
@@ -70,13 +69,17 @@ export function OutreachList({
   };
 
   const send = () => {
-    if (!confirm) {
-      setConfirm(true);
+    setStatus(null);
+    if (selected.length === 0) {
+      setError("Mark the addresses you want to send to.");
+      setOpen(true);
+      return;
+    }
+    if (subject.trim().length < 3) {
+      setError("Write a subject of at least 3 characters.");
       return;
     }
     setError(null);
-    setStatus(null);
-    setConfirm(false);
     startTransition(async () => {
       const result = await sendOutreachAction(
         side,
@@ -196,7 +199,7 @@ export function OutreachList({
           value={subject}
           onChange={(e) => {
             setSubject(e.target.value);
-            setConfirm(false);
+            setError(null);
           }}
           placeholder="What the inbox shows"
           maxLength={120}
@@ -207,16 +210,10 @@ export function OutreachList({
       <button
         type="button"
         onClick={send}
-        disabled={pending || selected.length === 0}
+        disabled={pending}
         className="rounded-full bg-ink px-4 py-2.5 text-sm font-medium text-paper transition hover:bg-graphite disabled:opacity-50"
       >
-        {pending
-          ? "Sending…"
-          : selected.length === 0
-            ? "Mark who gets this"
-            : confirm
-              ? `Send now to ${selected.length}`
-              : `Send to ${selected.length}`}
+        {pending ? "Sending…" : selected.length === 0 ? "Send" : `Send to ${selected.length}`}
       </button>
 
       {error && (
