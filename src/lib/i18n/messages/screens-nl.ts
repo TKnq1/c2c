@@ -340,7 +340,7 @@ export const screensNl: DeepString<typeof screens> = {
     profileSave: "Profiel opslaan lukte niet. Probeer het opnieuw.", currentPassword: "Het huidige wachtwoord klopt niet.",
     badLogin: "E-mail of wachtwoord klopt niet.", badCredentials: "Vul een geldig e-mailadres en wachtwoord in (min. 8 tekens).",
     suspended: "Dit account is geschorst. Neem contact op via het impressum als je denkt dat dit een vergissing is.",
-    badCode: "Code klopt niet. Probeer het opnieuw.", emailTaken: "Dit e-mailadres is al geregistreerd.", fillFields: "Vul alle velden goed in.", notAuthorized: "Niet gemachtigd.",
+    badCode: "Code klopt niet. Probeer het opnieuw.", emailTaken: "Dit e-mailadres is al geregistreerd.", fillFields: "Vul alle velden goed in.", acceptTerms: "Ga akkoord met de voorwaarden en het privacybeleid.", notAuthorized: "Niet gemachtigd.",
   },
   ui: {
     seen: "Gezien",
@@ -430,6 +430,7 @@ export const screensNl: DeepString<typeof screens> = {
     getStarted: "Begin als merk of als creator.",
     alreadyAccount: "Heb je al een account?",
     agreeLead: "Door je aan te melden ga je akkoord met onze",
+    agreeCheck: "Ik heb gelezen en ga akkoord met de",
     andWord: "en",
     resetTitle: "Wachtwoord resetten",
     resetHint: "Vul het e-mailadres van je account in.",

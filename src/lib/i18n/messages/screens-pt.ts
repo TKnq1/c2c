@@ -340,7 +340,7 @@ export const screensPt: DeepString<typeof screens> = {
     profileSave: "Não foi possível guardar o perfil. Tenta de novo.", currentPassword: "A palavra-passe atual está incorreta.",
     badLogin: "Email ou palavra-passe incorretos.", badCredentials: "Introduz um email válido e uma palavra-passe (mín. 8 caracteres).",
     suspended: "Esta conta foi suspensa. Contacta-nos pela informação legal se achas que é um erro.",
-    badCode: "Código incorreto. Tenta de novo.", emailTaken: "Este email já está registado.", fillFields: "Preenche todos os campos corretamente.", notAuthorized: "Sem autorização.",
+    badCode: "Código incorreto. Tenta de novo.", emailTaken: "Este email já está registado.", fillFields: "Preenche todos os campos corretamente.", acceptTerms: "Aceita os termos e a política de privacidade.", notAuthorized: "Sem autorização.",
   },
   ui: {
     seen: "Visto",
@@ -430,6 +430,7 @@ export const screensPt: DeepString<typeof screens> = {
     getStarted: "Começa como marca ou como criador.",
     alreadyAccount: "Já tens conta?",
     agreeLead: "Ao criares conta aceitas os nossos",
+    agreeCheck: "Li e aceito os",
     andWord: "e",
     resetTitle: "Repor a palavra-passe",
     resetHint: "Introduz o e-mail da tua conta.",

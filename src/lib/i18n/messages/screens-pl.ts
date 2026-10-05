@@ -340,7 +340,7 @@ export const screensPl: DeepString<typeof screens> = {
     profileSave: "Nie udało się zapisać profilu. Spróbuj ponownie.", currentPassword: "Obecne hasło jest nieprawidłowe.",
     badLogin: "Nieprawidłowy e-mail albo hasło.", badCredentials: "Podaj prawidłowy e-mail i hasło (min. 8 znaków).",
     suspended: "To konto zostało zawieszone. Napisz do nas przez notę prawną, jeśli to pomyłka.",
-    badCode: "Nieprawidłowy kod. Spróbuj ponownie.", emailTaken: "Ten e-mail jest już zarejestrowany.", fillFields: "Wypełnij wszystkie pola poprawnie.", notAuthorized: "Brak uprawnień.",
+    badCode: "Nieprawidłowy kod. Spróbuj ponownie.", emailTaken: "Ten e-mail jest już zarejestrowany.", fillFields: "Wypełnij wszystkie pola poprawnie.", acceptTerms: "Zaakceptuj regulamin i politykę prywatności.", notAuthorized: "Brak uprawnień.",
   },
   ui: {
     seen: "Widziane",
@@ -430,6 +430,7 @@ export const screensPl: DeepString<typeof screens> = {
     getStarted: "Zacznij jako marka albo twórca.",
     alreadyAccount: "Masz już konto?",
     agreeLead: "Rejestrując się, akceptujesz nasze",
+    agreeCheck: "Przeczytałem i akceptuję",
     andWord: "oraz",
     resetTitle: "Zresetuj hasło",
     resetHint: "Podaj e-mail konta.",

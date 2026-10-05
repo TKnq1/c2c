@@ -104,6 +104,7 @@ export async function completeLoginAction(_prevState: ActionState, formData: For
 // name/niche/platforms) is collected right after by the onboarding wizard
 // at /onboarding, so this step alone is enough to get someone signed in.
 export async function signupAction(_prevState: ActionState, formData: FormData): Promise<ActionState> {
+  if (formData.get("terms") !== "yes") return { error: "Please accept the terms and the privacy policy." };
   const parsed = signupSchema.safeParse(Object.fromEntries(formData));
   if (!parsed.success) {
     return { error: "Please fill in all fields correctly." };

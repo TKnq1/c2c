@@ -63,6 +63,7 @@ export async function signupFromDraftAction(_prevState: OnboardingState, formDat
           niche: field(formData, "niche"),
         })
       : null;
+  if (field(formData, "terms") !== "yes") return { error: "Please accept the terms and the privacy policy." };
   if (!creatorParsed?.success && !brandParsed?.success) return { error: "Please fill in all fields correctly." };
   const account = creatorParsed?.success ? creatorParsed.data : brandParsed?.success ? brandParsed.data : null;
   if (!account) return { error: "Please fill in all fields correctly." };

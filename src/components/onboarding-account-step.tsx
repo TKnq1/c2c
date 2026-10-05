@@ -8,6 +8,7 @@ import { useI18n } from "@/components/i18n-provider";
 import { FIELD_CLASS, StepError, StepFooter, StepHeading, stepActions, stepScreen, useStepDone } from "@/components/onboarding-ui";
 import type { OnboardingState } from "@/lib/actions/onboarding";
 import { localizeError } from "@/lib/i18n/labels";
+import { TermsConsent } from "@/components/terms-consent";
 import { PLATFORM_FEE_RATE, PRO_PLATFORM_FEE_RATE, RELEASE_REVIEW_DAYS } from "@/lib/constants";
 import type { PlatformDraft } from "@/components/platform-chips";
 import type { SignupRole } from "@/lib/signup-role";
@@ -112,17 +113,7 @@ export function OnboardingAccountStep({
             {t("screens.auth.logIn")}
           </Link>
         </p>
-        <p className="text-center text-xs text-neutral-400 dark:text-neutral-500">
-          {t("screens.ui.agreeLead")}{" "}
-          <Link href="/legal/terms" className="underline">
-            {t("screens.settings.terms")}
-          </Link>{" "}
-          {t("screens.ui.andWord")}{" "}
-          <Link href="/legal/privacy" className="underline">
-            {t("screens.settings.privacy")}
-          </Link>
-          .
-        </p>
+        <TermsConsent />
       </div>
     </form>
   );

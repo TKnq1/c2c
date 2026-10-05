@@ -41,6 +41,8 @@ type Content = {
   action: { label: string; url: string };
   // Under the button: how long the link works, what to do if this wasn't you.
   note: string;
+  // A link that takes this address off the outreach list.
+  optOut?: string;
 };
 
 // The first email after sign-up: a welcome with the verification link in
@@ -81,6 +83,7 @@ export function marketingWelcomeEmail(
   subject: string,
   name: string,
   crowd: number,
+  optOut?: string,
 ): Email {
   const who = name.trim();
   if (role === "CREATOR") {
@@ -116,7 +119,8 @@ export function marketingWelcomeEmail(
       watermark: true,
       invite: true,
       action: { label: "See paid deals", url },
-      note: "You're getting this because comtor has your email as a creator.",
+      note: "This is a note to a business contact. It is not for a private person.",
+      optOut,
     });
   }
   return render({
@@ -151,7 +155,8 @@ export function marketingWelcomeEmail(
     watermark: true,
     invite: true,
     action: { label: "Post your first deal", url },
-    note: "You're getting this because comtor has your email as a brand.",
+    note: "This is a note to a business contact. It is not for a private person.",
+    optOut,
   });
 }
 
@@ -299,7 +304,11 @@ function render(c: Content): Email {
 </tr></table>
 </td></tr>`;
   const footerNote = c.invite
-    ? `<p class="muted" style="margin:0 0 12px;font-family:${FONT};font-size:13px;line-height:1.55;color:${MUTED};">${escapeHtml(c.note)}</p>`
+    ? `<p class="muted" style="margin:0 0 12px;font-family:${FONT};font-size:13px;line-height:1.55;color:${MUTED};">${escapeHtml(c.note)}</p>${
+        c.optOut
+          ? `<p class="muted" style="margin:0 0 12px;font-family:${FONT};font-size:13px;line-height:1.55;color:${MUTED};"><a class="muted" href="${escapeHtml(c.optOut)}" target="_blank" style="color:${MUTED};text-decoration:underline;">Stop these emails</a></p>`
+          : ""
+      }`
     : "";
   const steps = (c.steps ?? [])
     .map((step, index) => {
@@ -426,6 +435,7 @@ ${footerNote}<p class="muted" style="margin:0;font-family:${FONT};font-size:12px
     "",
     ...(c.hint ? [c.hint, ""] : []),
     c.note,
+    ...(c.optOut ? [`Stop these emails: ${c.optOut}`] : []),
     "",
     "-- ",
     "comtor · Brands meet the right creators.",
