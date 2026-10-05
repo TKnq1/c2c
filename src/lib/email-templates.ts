@@ -64,10 +64,10 @@ export function welcomeEmail(url: string, role: "CREATOR" | "STARTUP"): Email {
 // is whatever the admin typed. The body says what the product is, because
 // the inbox is the first time many of them hear of it. Separate from
 // welcomeEmail, which is the sign-up mail and carries the verify link.
-// Cold outreach has no account yet, so the button opens onboarding with the
-// side already chosen. /dashboard would only bounce them to the login page.
+// The button opens the landing page on the matching side (?for= is what the
+// page itself uses to show creators or brands).
 export function marketingEntryUrl(role: "CREATOR" | "STARTUP"): string {
-  return `${SITE_URL}/onboarding?role=${role === "CREATOR" ? "creator" : "brand"}`;
+  return `${SITE_URL}/?for=${role === "CREATOR" ? "creators" : "brands"}`;
 }
 
 function crowdLine(count: number, singular: string, plural: string) {
@@ -112,7 +112,7 @@ export function marketingWelcomeEmail(
         },
       ],
       crowd: crowdLine(crowd, "brand", "brands"),
-      hint: "About two minutes. No call. Your account comes at the end.",
+      hint: "Have a look first. Signing up is on the page.",
       watermark: true,
       invite: true,
       action: { label: "See paid deals", url },
@@ -147,7 +147,7 @@ export function marketingWelcomeEmail(
       },
     ],
     crowd: crowdLine(crowd, "creator", "creators"),
-    hint: "About two minutes. No call. Your account comes at the end.",
+    hint: "Have a look first. Signing up is on the page.",
     watermark: true,
     invite: true,
     action: { label: "Post your first deal", url },

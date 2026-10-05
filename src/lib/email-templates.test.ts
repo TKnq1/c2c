@@ -74,9 +74,9 @@ describe("welcomeEmail", () => {
 
 describe("marketingWelcomeEmail", () => {
   it("speaks to creators and brands separately", () => {
-    const creator = marketingWelcomeEmail("https://www.comtor.app/onboarding?role=creator", "CREATOR", "A note from comtor", "Mia", 24);
-    const brand = marketingWelcomeEmail("https://www.comtor.app/onboarding?role=brand", "STARTUP", "A note for brands", "Glow", 3);
-    const one = marketingWelcomeEmail("https://www.comtor.app/onboarding?role=creator", "CREATOR", "A note from comtor", "Mia", 1);
+    const creator = marketingWelcomeEmail("https://www.comtor.app/?for=creators", "CREATOR", "A note from comtor", "Mia", 24);
+    const brand = marketingWelcomeEmail("https://www.comtor.app/?for=brands", "STARTUP", "A note for brands", "Glow", 3);
+    const one = marketingWelcomeEmail("https://www.comtor.app/?for=creators", "CREATOR", "A note from comtor", "Mia", 1);
     expect(creator.subject).toBe("A note from comtor");
     expect(creator.text).toContain("Mia, earn money posting TikToks.");
     expect(creator.text).toContain("See paid deals");
@@ -91,23 +91,23 @@ describe("marketingWelcomeEmail", () => {
     expect(creator.text).toContain("1. Swipe a deal.");
     expect(creator.text).toContain("You keep 90%");
     expect(creator.text).toContain("No more DMs about your rate.");
-    expect(creator.text).toContain("About two minutes.");
+    expect(creator.text).toContain("Signing up is on the page.");
     expect(brand.text).toContain("Creators in your niche swipe right.");
     expect(brand.text).toContain("No subscription:");
     expect(brand.text).toContain("3% on Pro.");
     expect(creator.html).toContain("/email/band-mark.jpg");
     expect(creator.html).not.toContain("mark-white.png");
     expect(creator.html).not.toContain("Button not working");
-    expect(creator.html.split('href="https://www.comtor.app/onboarding?role=creator"')).toHaveLength(2);
+    expect(creator.html.split('href="https://www.comtor.app/?for=creators"')).toHaveLength(2);
     expect(brand.subject).toBe("A note for brands");
     expect(brand.text).toContain("Glow, grow your brand with content creators.");
     expect(brand.text).toContain("Post your first deal");
-    expect(brand.html).toContain("https://www.comtor.app/onboarding?role=brand");
+    expect(brand.html).toContain("https://www.comtor.app/?for=brands");
   });
 
-  it("opens onboarding for someone who has no account yet", () => {
-    expect(marketingEntryUrl("CREATOR")).toContain("/onboarding?role=creator");
-    expect(marketingEntryUrl("STARTUP")).toContain("/onboarding?role=brand");
+  it("opens the landing page on the matching side", () => {
+    expect(marketingEntryUrl("CREATOR")).toContain("/?for=creators");
+    expect(marketingEntryUrl("STARTUP")).toContain("/?for=brands");
   });
 });
 
