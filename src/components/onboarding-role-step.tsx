@@ -10,7 +10,7 @@ export function OnboardingRoleStep({ onChoose }: { onChoose: (role: SignupRole) 
   return (
     <div className={stepScreen}>
       <StepHeading title={t("onboarding.role.title")} description={t("onboarding.role.description")} />
-      <div className="flex flex-col gap-3">
+      <div className="mt-auto flex flex-col gap-3">
         <button
           type="button"
           onClick={() => onChoose("CREATOR")}

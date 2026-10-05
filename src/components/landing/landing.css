@@ -272,6 +272,11 @@ html[data-lp-js] .lp-reveal:not(.is-in) .lp-pop {
   animation: lp-count 1800ms cubic-bezier(0.16, 1, 0.3, 1) 700ms both;
 }
 
+/* The hero's "already here" number, counting up as the page arrives. */
+.lp-count-in {
+  animation: lp-count 1600ms cubic-bezier(0.16, 1, 0.3, 1) 400ms both;
+}
+
 @keyframes lp-count {
   to {
     --lp-n: var(--lp-to);
@@ -288,7 +293,8 @@ html[data-lp-js] .lp-reveal:not(.is-in) .lp-pop {
   .lp-nudge,
   .lp-toast,
   .lp-cycle > *,
-  .is-in .lp-count {
+  .is-in .lp-count,
+  .lp-count-in {
     animation: none !important;
   }
 

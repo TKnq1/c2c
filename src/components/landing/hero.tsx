@@ -128,7 +128,8 @@ function CrowdLine({
       className="lp-rise mt-4 text-[19px] leading-snug text-neutral-800 md:text-[22px] dark:text-neutral-200"
       style={delay(300)}
     >
-      <span className="font-semibold tabular-nums">{count.toLocaleString("en-US")}</span> {word} already here
+      <span className="lp-count lp-count-in font-semibold tabular-nums" style={{ "--lp-to": count } as React.CSSProperties} />{" "}
+      {word} already here
     </p>
   );
 }
