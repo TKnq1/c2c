@@ -3,7 +3,7 @@
 import { IoCashOutline, IoLockClosedOutline, IoTimeOutline } from "react-icons/io5";
 import { ConnectStripeButton } from "@/components/connect-stripe-button";
 import { useI18n } from "@/components/i18n-provider";
-import { SkipButton, StepHeading, stepActions, stepScreen } from "@/components/onboarding-ui";
+import { BackButton, SkipButton, StepHeading, stepActions, stepScreen } from "@/components/onboarding-ui";
 
 // Whether the step can work at all: without Stripe's publishable key the
 // embedded form can't load, so the wizard leaves the step out.
@@ -18,7 +18,7 @@ const POINTS = [
 // Right after the matches: while the pull of "these are waiting for me" is at
 // its strongest, ask for the one thing that stops a brand from paying.
 // Skippable; Settings and the Payments page have the same button.
-export function OnboardingPayoutStep({ onDone, onSkip }: { onDone: () => void; onSkip: () => void }) {
+export function OnboardingPayoutStep({ onBack, onDone, onSkip }: { onBack: () => void; onDone: () => void; onSkip: () => void }) {
   const { t } = useI18n();
   return (
     <div className={stepScreen}>
@@ -37,6 +37,9 @@ export function OnboardingPayoutStep({ onDone, onSkip }: { onDone: () => void; o
         ))}
       </ul>
       <div className={stepActions}>
+        <div className="flex gap-2">
+          <BackButton onClick={onBack} />
+          <div className="min-w-0 flex-1">
         <ConnectStripeButton
           isOnboarded={false}
           label={t("onboarding.payout.setup")}
@@ -44,6 +47,8 @@ export function OnboardingPayoutStep({ onDone, onSkip }: { onDone: () => void; o
           embedClassName="rounded border border-ink/10 bg-paper p-4"
           onExit={onDone}
         />
+          </div>
+        </div>
         <SkipButton onClick={onSkip}>{t("onboarding.payout.later")}</SkipButton>
       </div>
     </div>

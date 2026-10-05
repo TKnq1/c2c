@@ -94,6 +94,15 @@ export function StepError({ state }: { state: OnboardingState }) {
   );
 }
 
+export function BackButton({ onClick }: { onClick: () => void }) {
+  const { t } = useI18n();
+  return (
+    <button type="button" onClick={onClick} className={SECONDARY_BUTTON}>
+      {t("common.back")}
+    </button>
+  );
+}
+
 export function StepFooter({
   onBack,
   pending,
@@ -108,11 +117,7 @@ export function StepFooter({
   const { t } = useI18n();
   return (
     <div className="flex gap-2">
-      {onBack && (
-        <button type="button" onClick={onBack} className={SECONDARY_BUTTON}>
-          {t("common.back")}
-        </button>
-      )}
+      {onBack && <BackButton onClick={onBack} />}
       <button type="submit" disabled={pending || disabled} onClick={unlockSounds} className={PRIMARY_BUTTON}>
         {pending ? t("common.saving") : (label ?? t("common.continue"))}
       </button>

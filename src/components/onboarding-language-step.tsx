@@ -13,9 +13,10 @@ function chosenLocale(): Locale | null {
   return isLocale(value) ? value : null;
 }
 
-// First step for both roles, before a name exists, so everything after it
-// is already in the chosen language. No Back: there is nothing behind it.
-export function OnboardingLanguageStep({ onDone }: { onDone: () => void }) {
+// First question inside the wizard, before a name exists, so everything
+// after it is already in the chosen language. Guests can go back to the
+// creator/brand choice; someone who already has an account cannot.
+export function OnboardingLanguageStep({ onDone, onBack }: { onDone: () => void; onBack?: () => void }) {
   const { locale, setLocale, t } = useI18n();
   const [picked, setPicked] = useState<Locale>(locale);
   const [pending, setPending] = useState(false);
@@ -47,7 +48,7 @@ export function OnboardingLanguageStep({ onDone }: { onDone: () => void }) {
       <StepHeading title={t("onboarding.language.title")} description={t("onboarding.language.description")} />
       <LanguageChoices value={picked} onChange={setPicked} label={t("settings.language")} />
       <div className={stepActions}>
-        <StepFooter pending={pending} />
+        <StepFooter onBack={onBack} pending={pending} />
       </div>
     </form>
   );

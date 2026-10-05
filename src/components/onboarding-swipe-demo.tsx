@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { FiHeart, FiX } from "react-icons/fi";
 import { SwipeCard, type SwipeCardHandle, type SwipeRequest } from "@/components/swipe-card";
 import { useI18n } from "@/components/i18n-provider";
-import { PRIMARY_BUTTON, SkipButton, StepHeading, stepActions, stepScreen } from "@/components/onboarding-ui";
+import { BackButton, PRIMARY_BUTTON, SkipButton, StepHeading, stepActions, stepScreen } from "@/components/onboarding-ui";
 
 // Made up and labelled as such on screen: swiping it sends nothing.
 const EXAMPLE: SwipeRequest = {
@@ -31,7 +31,17 @@ const EXAMPLE: SwipeRequest = {
 
 // Teaches the one gesture the Feed is built on, on a made-up card, before
 // the real feed shows up.
-export function OnboardingSwipeDemo({ active, onNext, onSkip }: { active: boolean; onNext: () => void; onSkip: () => void }) {
+export function OnboardingSwipeDemo({
+  active,
+  onBack,
+  onNext,
+  onSkip,
+}: {
+  active: boolean;
+  onBack: () => void;
+  onNext: () => void;
+  onSkip: () => void;
+}) {
   const { t } = useI18n();
   const [outcome, setOutcome] = useState<"left" | "right" | null>(null);
   const cardRef = useRef<SwipeCardHandle>(null);
@@ -73,9 +83,12 @@ export function OnboardingSwipeDemo({ active, onNext, onSkip }: { active: boolea
         <StepHeading title={message.title} description={message.description} />
         <p className="rounded bg-fog px-4 py-3.5 text-sm text-neutral-700 dark:text-neutral-300">{t("onboarding.swipe.recap")}</p>
         <div className={stepActions}>
-          <button type="button" onClick={onNext} className={`${PRIMARY_BUTTON} w-full`}>
-            {t("common.continue")}
-          </button>
+          <div className="flex gap-2">
+            <BackButton onClick={() => setOutcome(null)} />
+            <button type="button" onClick={onNext} className={PRIMARY_BUTTON}>
+              {t("common.continue")}
+            </button>
+          </div>
         </div>
       </div>
     );
@@ -116,7 +129,10 @@ export function OnboardingSwipeDemo({ active, onNext, onSkip }: { active: boolea
         </button>
       </div>
 
-      <SkipButton onClick={onSkip}>{t("onboarding.swipe.skipTour")}</SkipButton>
+      <div className="flex items-center justify-between">
+        <BackButton onClick={onBack} />
+        <SkipButton onClick={onSkip}>{t("onboarding.swipe.skipTour")}</SkipButton>
+      </div>
     </div>
   );
 }

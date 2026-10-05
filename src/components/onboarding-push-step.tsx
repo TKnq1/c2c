@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { IoNotificationsOutline } from "react-icons/io5";
 import { useI18n } from "@/components/i18n-provider";
-import { PRIMARY_BUTTON, SkipButton, StepHeading, stepActions, stepScreen } from "@/components/onboarding-ui";
+import { BackButton, PRIMARY_BUTTON, SkipButton, StepHeading, stepActions, stepScreen } from "@/components/onboarding-ui";
 import { enableNativePush, isNativeApp, nativePushPermission } from "@/lib/native-push-client";
 import { browserSupportsWebPush, currentWebPushSubscription, enableWebPush } from "@/lib/web-push-client";
 import { toast } from "@/lib/toast";
@@ -45,7 +45,17 @@ export function usePushOffer(): boolean {
 // Asked at the end, after the person has seen what the app is for, and with
 // a reason in their own terms. The browser's or phone's permission prompt
 // only opens from the button.
-export function OnboardingPushStep({ role, onDone, onSkip }: { role: "creator" | "brand"; onDone: () => void; onSkip: () => void }) {
+export function OnboardingPushStep({
+  role,
+  onBack,
+  onDone,
+  onSkip,
+}: {
+  role: "creator" | "brand";
+  onBack: () => void;
+  onDone: () => void;
+  onSkip: () => void;
+}) {
   const { t } = useI18n();
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -86,9 +96,12 @@ export function OnboardingPushStep({ role, onDone, onSkip }: { role: "creator" |
         </p>
       )}
       <div className={stepActions}>
-        <button type="button" onClick={turnOn} disabled={pending} className={`${PRIMARY_BUTTON} w-full`}>
-          {pending ? t("onboarding.push.turningOn") : t("onboarding.push.turnOn")}
-        </button>
+        <div className="flex gap-2">
+          <BackButton onClick={onBack} />
+          <button type="button" onClick={turnOn} disabled={pending} className={PRIMARY_BUTTON}>
+            {pending ? t("onboarding.push.turningOn") : t("onboarding.push.turnOn")}
+          </button>
+        </div>
         <SkipButton onClick={error ? onDone : onSkip}>{error ? t("common.continue") : t("onboarding.push.notNow")}</SkipButton>
       </div>
     </div>

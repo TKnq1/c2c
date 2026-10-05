@@ -40,7 +40,15 @@ type StepDef = {
   render: (index: number) => React.ReactNode;
 };
 
-export function BrandOnboarding({ emailVerified, mode = "account" }: { emailVerified: boolean; mode?: "guest" | "account" }) {
+export function BrandOnboarding({
+  emailVerified,
+  mode = "account",
+  onLeave,
+}: {
+  emailVerified: boolean;
+  mode?: "guest" | "account";
+  onLeave?: () => void;
+}) {
   const { t } = useI18n();
   const guest = mode === "guest";
   const [step, setStep] = useState(0);
@@ -97,7 +105,7 @@ export function BrandOnboarding({ emailVerified, mode = "account" }: { emailVeri
     const key = defs[i].key;
     if (kind === "skipped") setSkipped((prev) => (prev.includes(key) ? prev : [...prev, key]));
     trackOnboarding(key, kind);
-    setStep((s) => Math.max(s, i + 1));
+    setStep((s) => (s === i ? i + 1 : s));
   }
 
   function replayGuestSteps(accountIndex: number) {
@@ -117,11 +125,13 @@ export function BrandOnboarding({ emailVerified, mode = "account" }: { emailVeri
   const defs: StepDef[] = [
     {
       key: "language",
-      render: (i) => <OnboardingLanguageStep onDone={() => finish(i)} />,
+      render: (i) => <OnboardingLanguageStep onDone={() => finish(i)} onBack={onLeave} />,
     },
     {
       key: "company",
-      render: (i) => <CompanyNameStep guest={guest} value={companyName} onChange={setCompanyName} onDone={() => finish(i)} />,
+      render: (i) => (
+        <CompanyNameStep guest={guest} value={companyName} onChange={setCompanyName} onBack={() => back(i)} onDone={() => finish(i)} />
+      ),
     },
     {
       key: "niche",
@@ -157,7 +167,9 @@ export function BrandOnboarding({ emailVerified, mode = "account" }: { emailVeri
     },
     {
       key: "creators",
-      render: (i) => <BrandAha active={step === i} guest={guest} load={guest ? loadCreators : undefined} onNext={() => finish(i)} />,
+      render: (i) => (
+        <BrandAha active={step === i} guest={guest} load={guest ? loadCreators : undefined} onBack={() => back(i)} onNext={() => finish(i)} />
+      ),
     },
     ...(guest
       ? [
@@ -186,7 +198,9 @@ export function BrandOnboarding({ emailVerified, mode = "account" }: { emailVeri
       ? [
           {
             key: "alerts" as const,
-            render: (i: number) => <OnboardingPushStep role="brand" onDone={() => finish(i)} onSkip={() => finish(i, "skipped")} />,
+            render: (i: number) => (
+              <OnboardingPushStep role="brand" onBack={() => back(i)} onDone={() => finish(i)} onSkip={() => finish(i, "skipped")} />
+            ),
           },
         ]
       : []),
@@ -221,11 +235,13 @@ function CompanyNameStep({
   guest,
   value,
   onChange,
+  onBack,
   onDone,
 }: {
   guest: boolean;
   value: string;
   onChange: (v: string) => void;
+  onBack: () => void;
   onDone: () => void;
 }) {
   const { t } = useI18n();
@@ -259,7 +275,7 @@ function CompanyNameStep({
       />
       <StepError state={state} />
       <div className={stepActions}>
-        <StepFooter pending={guest ? false : pending} disabled={!value.trim()} />
+        <StepFooter onBack={onBack} pending={guest ? false : pending} disabled={!value.trim()} />
       </div>
     </form>
   );
