@@ -31,6 +31,8 @@ type Content = {
   aside?: string;
   // One quiet line under the button: what the click actually costs.
   hint?: string;
+  // A still of the landing-page mockup, with a line under it saying what it is.
+  shot?: { file: string; width: number; height: number; alt: string; caption: string };
   // The black panel uses the large faint mark instead of the small logo.
   watermark?: boolean;
   // A first-touch note: the company name in the panel, one wide button,
@@ -77,6 +79,13 @@ export function marketingWelcomeEmail(url: string, role: "CREATOR" | "STARTUP", 
       heading: who ? `${who}, brand collabs just got easier.` : "Brand collabs, made easier.",
       body: "",
       steps: ["Swipe a deal.", "Accept the offer.", "Post once the money is in. You keep 90%."],
+      shot: {
+        file: "mock-creator.jpg",
+        width: 280,
+        height: 578,
+        alt: "The comtor feed, with a paid deal from Odd Bloom on the card.",
+        caption: "This is the feed. Each card is a paid deal, with the budget on it. Right means you want it, left means you pass.",
+      },
       aside: "No more DMs about your rate. The budget is on the card.",
       hint: "About two minutes. No call. Your account comes at the end.",
       watermark: true,
@@ -95,6 +104,13 @@ export function marketingWelcomeEmail(url: string, role: "CREATOR" | "STARTUP", 
       "Creators in your niche swipe right.",
       "You pay when you agree, and the money waits until the post is live.",
     ],
+    shot: {
+      file: "mock-brand.jpg",
+      width: 320,
+      height: 1058,
+      alt: "The request a brand posts, and the card creators then see in their feed.",
+      caption: "This is the request you post. What you set here is the card creators swipe, budget included.",
+    },
     aside: "No subscription. comtor keeps 10% of each payment, or 3% on Pro.",
     hint: "About two minutes. No call. Your account comes at the end.",
     watermark: true,
@@ -264,6 +280,12 @@ function render(c: Content): Email {
   const aside = c.aside
     ? `<p class="ink" style="margin:${steps ? "18px" : "0"} 0 0;font-family:${FONT};font-size:16px;line-height:1.5;font-weight:700;color:${INK};">${escapeHtml(c.aside)}</p>`
     : "";
+  const shotRow = c.shot
+    ? `<tr><td class="px" align="center" style="padding:28px 32px 0;">
+<img src="${SITE_URL}/email/${c.shot.file}" width="${c.shot.width}" height="${c.shot.height}" alt="${escapeHtml(c.shot.alt)}" style="display:block;width:${c.shot.width}px;max-width:100%;height:auto;margin:0 auto;border:0;">
+<p class="text" style="margin:16px 0 0;font-family:${FONT};font-size:15px;line-height:1.5;color:${TEXT};text-align:center;">${escapeHtml(c.shot.caption)}</p>
+</td></tr>`
+    : "";
   const hintRow = c.hint
     ? `<tr><td class="px" align="center" style="padding:14px 32px 0;">
 <p class="muted" style="margin:0;font-family:${FONT};font-size:14px;line-height:1.5;color:${MUTED};text-align:center;">${escapeHtml(c.hint)}</p>
@@ -319,6 +341,7 @@ ${wordmark}
 </td>
 </tr></table>
 </td></tr>
+${shotRow}
 <tr><td class="px" style="padding:28px 32px 0;">
 ${c.lead ? `<p class="ink" style="margin:0 0 10px;font-family:${FONT};font-size:18px;line-height:1.35;font-weight:700;color:${INK};">${escapeHtml(c.lead)}</p>` : ""}
 ${stepsTable}
@@ -348,6 +371,7 @@ ${footerNote}<p class="muted" style="margin:0;font-family:${FONT};font-size:12px
   const text = [
     c.heading,
     "",
+    ...(c.shot ? [c.shot.caption, ""] : []),
     ...(c.lead ? [c.lead, ""] : []),
     ...(c.steps?.map((step, index) => `${index + 1}. ${step}`) ?? []),
     ...(c.steps?.length ? [""] : []),
