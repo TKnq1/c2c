@@ -89,7 +89,9 @@ export function OfferHistoryCard({ turn, timeLabel, isNew }: { turn: ChatOfferTu
     >
       <div className="w-[80%] max-w-xs rounded-[18px] border border-ink/10 bg-fog px-3.5 py-3">
         <p className="text-[11px] font-medium uppercase tracking-wide text-neutral-500 dark:text-neutral-400">{eyebrow}</p>
-        <p className="mt-0.5 text-xl font-bold tabular-nums text-neutral-700 dark:text-neutral-300">{formatCents(turn.amountCents)}</p>
+        <p className="mt-0.5 text-xl font-bold tabular-nums text-neutral-700 line-through decoration-neutral-500 dark:text-neutral-300 dark:decoration-neutral-400">
+          {formatCents(turn.amountCents)}
+        </p>
         <div className="mt-1 flex items-center justify-between gap-2">
           <span className="text-xs text-neutral-500 dark:text-neutral-400">{status}</span>
           {timeLabel && <span className="text-[11px] text-neutral-500 dark:text-neutral-400">{timeLabel}</span>}
