@@ -8,6 +8,7 @@ import { hasAdminAccess } from "@/lib/admin-access";
 import { prisma } from "@/lib/prisma";
 import { sendEmail } from "@/lib/email";
 import { marketingEntryUrl, marketingWelcomeEmail } from "@/lib/email-templates";
+import { landingCrowd } from "@/lib/landing-crowd";
 
 const PATH = "/admin/mailing";
 
@@ -61,10 +62,12 @@ export async function sendOutreachAction(
   if (rows.length === 0) return { error: "This list is empty." };
 
   const url = marketingEntryUrl(side);
+  const crowd = await landingCrowd();
+  const count = side === "CREATOR" ? crowd.brands : crowd.creators;
   const failed: { email: string; error: string }[] = [];
   let sent = 0;
   for (const row of rows) {
-    const message = marketingWelcomeEmail(url, side, subject.data, row.name);
+    const message = marketingWelcomeEmail(url, side, subject.data, row.name, count);
     const result = await sendEmail({ to: row.email, ...message });
     if (result.ok) sent += 1;
     else failed.push({ email: row.email, error: result.error });

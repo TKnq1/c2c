@@ -74,15 +74,16 @@ describe("welcomeEmail", () => {
 
 describe("marketingWelcomeEmail", () => {
   it("speaks to creators and brands separately", () => {
-    const creator = marketingWelcomeEmail("https://www.comtor.app/onboarding?role=creator", "CREATOR", "A note from comtor", "Mia");
-    const brand = marketingWelcomeEmail("https://www.comtor.app/onboarding?role=brand", "STARTUP", "A note for brands", "Glow");
+    const creator = marketingWelcomeEmail("https://www.comtor.app/onboarding?role=creator", "CREATOR", "A note from comtor", "Mia", 24);
+    const brand = marketingWelcomeEmail("https://www.comtor.app/onboarding?role=brand", "STARTUP", "A note for brands", "Glow", 3);
+    const one = marketingWelcomeEmail("https://www.comtor.app/onboarding?role=creator", "CREATOR", "A note from comtor", "Mia", 1);
     expect(creator.subject).toBe("A note from comtor");
     expect(creator.text).toContain("Mia, brand collabs just got easier.");
     expect(creator.text).toContain("See paid deals");
-    expect(creator.html).toContain("/email/mock-creator.jpg");
-    expect(creator.text).toContain("This is the feed.");
-    expect(brand.html).toContain("/email/mock-brand.jpg");
-    expect(brand.text).toContain("This is the request you post.");
+    expect(creator.text).toContain("24 brands already here");
+    expect(creator.html).not.toContain("mock-creator");
+    expect(brand.text).toContain("3 creators already here");
+    expect(one.text).toContain("1 brand already here");
     expect(creator.text).toContain("1. Swipe a deal.");
     expect(creator.text).toContain("You keep 90%");
     expect(creator.text).toContain("No more DMs about your rate.");

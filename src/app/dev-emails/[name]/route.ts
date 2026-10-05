@@ -8,6 +8,7 @@ import {
   marketingWelcomeEmail,
   welcomeEmail,
 } from "@/lib/email-templates";
+import { landingCrowd } from "@/lib/landing-crowd";
 import { SITE_URL } from "@/lib/site";
 
 // Local preview of the emails, as the HTML a mail client receives
@@ -21,8 +22,6 @@ const TOKEN = "0".repeat(64);
 const EMAILS = {
   welcome: () => welcomeEmail(`${SITE_URL}/verify-email/${TOKEN}`, "CREATOR"),
   "welcome-brand": () => welcomeEmail(`${SITE_URL}/verify-email/${TOKEN}`, "STARTUP"),
-  "marketing-creator": () => marketingWelcomeEmail(marketingEntryUrl("CREATOR"), "CREATOR", "A note from comtor", "Mia"),
-  "marketing-brand": () => marketingWelcomeEmail(marketingEntryUrl("STARTUP"), "STARTUP", "A note for brands", "Glow"),
   verify: () => verificationEmail(`${SITE_URL}/verify-email/${TOKEN}`),
   reset: () => passwordResetEmail(`${SITE_URL}/reset-password/${TOKEN}`),
   changed: () => passwordChangedEmail(`${SITE_URL}/forgot-password`),
@@ -32,9 +31,18 @@ const EMAILS = {
 
 export async function GET(request: Request, ctx: RouteContext<"/dev-emails/[name]">) {
   const { name } = await ctx.params;
-  const email = Object.hasOwn(EMAILS, name) ? EMAILS[name as keyof typeof EMAILS]() : null;
+  const crowd = name === "marketing-creator" || name === "marketing-brand" ? await landingCrowd() : null;
+  const email =
+    name === "marketing-creator"
+      ? marketingWelcomeEmail(marketingEntryUrl("CREATOR"), "CREATOR", "A note from comtor", "Mia", crowd?.brands ?? 0)
+      : name === "marketing-brand"
+        ? marketingWelcomeEmail(marketingEntryUrl("STARTUP"), "STARTUP", "A note for brands", "Glow", crowd?.creators ?? 0)
+        : Object.hasOwn(EMAILS, name)
+          ? EMAILS[name as keyof typeof EMAILS]()
+          : null;
   if (!email) {
-    return new Response(`Unknown email. Try one of: ${Object.keys(EMAILS).join(", ")}.`, { status: 404 });
+    const names = [...Object.keys(EMAILS), "marketing-creator", "marketing-brand"].join(", ");
+    return new Response(`Unknown email. Try one of: ${names}.`, { status: 404 });
   }
 
   const asText = new URL(request.url).searchParams.has("text");
