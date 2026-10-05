@@ -26,6 +26,11 @@ type Content = {
   // A short line above the body, a step heavier than the paragraph.
   lead?: string;
   body: string;
+  // Numbered beats for a cold email, then one line that answers the doubt.
+  steps?: string[];
+  aside?: string;
+  // One quiet line under the button: what the click actually costs.
+  hint?: string;
   // The black panel uses the large faint mark instead of the small logo.
   watermark?: boolean;
   // A first-touch note: the company name in the panel, one wide button,
@@ -70,8 +75,10 @@ export function marketingWelcomeEmail(url: string, role: "CREATOR" | "STARTUP", 
       subject,
       preview: "Brand collabs, made easier.",
       heading: who ? `${who}, brand collabs just got easier.` : "Brand collabs, made easier.",
-      lead: "Brands post a paid deal. You swipe the ones you want.",
-      body: "The budget is on the card. They pay before you post, and you keep 90%.",
+      body: "",
+      steps: ["Swipe a deal.", "Accept the offer.", "Post once the money is in. You keep 90%."],
+      aside: "No more DMs about your rate. The budget is on the card.",
+      hint: "About two minutes. No call. Your account comes at the end.",
       watermark: true,
       invite: true,
       action: { label: "See paid deals", url },
@@ -82,8 +89,14 @@ export function marketingWelcomeEmail(url: string, role: "CREATOR" | "STARTUP", 
     subject,
     preview: "Find the right creators for your product.",
     heading: who ? `${who}, find the right creators for your product.` : "Find the right creators for your product.",
-    lead: "Post the product, the budget, and what to make.",
-    body: "Creators who fit swipe right and come to you. You pay when you agree, and the money waits until the post is live.",
+    body: "",
+    steps: [
+      "Post the product and the budget.",
+      "Creators in your niche swipe right.",
+      "You pay when you agree, and the money waits until the post is live.",
+    ],
+    aside: "No subscription. comtor keeps 10% of each payment, or 3% on Pro.",
+    hint: "About two minutes. No call. Your account comes at the end.",
     watermark: true,
     invite: true,
     action: { label: "Post your first deal", url },
@@ -235,6 +248,27 @@ function render(c: Content): Email {
   const footerNote = c.invite
     ? `<p class="muted" style="margin:0 0 12px;font-family:${FONT};font-size:13px;line-height:1.55;color:${MUTED};">${escapeHtml(c.note)}</p>`
     : "";
+  const steps = (c.steps ?? [])
+    .map((step, index) => {
+      const last = index === (c.steps?.length ?? 0) - 1;
+      const pad = last ? "0" : "0 0 14px";
+      return `<tr>
+<td class="ink" valign="top" width="28" style="width:28px;padding:${pad};font-family:${FONT};font-size:16px;line-height:1.45;font-weight:900;color:${INK};">${index + 1}</td>
+<td class="text" valign="top" style="padding:${pad};font-family:${FONT};font-size:16px;line-height:1.45;color:${TEXT};">${escapeHtml(step)}</td>
+</tr>`;
+    })
+    .join("\n");
+  const stepsTable = steps
+    ? `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">${steps}</table>`
+    : "";
+  const aside = c.aside
+    ? `<p class="ink" style="margin:${steps ? "18px" : "0"} 0 0;font-family:${FONT};font-size:16px;line-height:1.5;font-weight:700;color:${INK};">${escapeHtml(c.aside)}</p>`
+    : "";
+  const hintRow = c.hint
+    ? `<tr><td class="px" align="center" style="padding:14px 32px 0;">
+<p class="muted" style="margin:0;font-family:${FONT};font-size:14px;line-height:1.5;color:${MUTED};text-align:center;">${escapeHtml(c.hint)}</p>
+</td></tr>`
+    : "";
 
   const html = `<!doctype html>
 <html lang="en" xmlns:o="urn:schemas-microsoft-com:office:office">
@@ -285,13 +319,16 @@ ${wordmark}
 </td>
 </tr></table>
 </td></tr>
-<tr><td class="px" style="padding:24px 32px 0;">
+<tr><td class="px" style="padding:28px 32px 0;">
 ${c.lead ? `<p class="ink" style="margin:0 0 10px;font-family:${FONT};font-size:18px;line-height:1.35;font-weight:700;color:${INK};">${escapeHtml(c.lead)}</p>` : ""}
-<p class="text" style="margin:0;font-family:${FONT};font-size:16px;line-height:1.55;color:${TEXT};">${escapeHtml(c.body)}</p>
+${stepsTable}
+${c.body ? `<p class="text" style="margin:${stepsTable || c.lead ? "14px" : "0"} 0 0;font-family:${FONT};font-size:16px;line-height:1.55;color:${TEXT};">${escapeHtml(c.body)}</p>` : ""}
+${aside}
 </td></tr>
 <tr><td class="px" style="padding:28px 32px 0;">
 ${button}
 </td></tr>
+${hintRow}
 ${noteRow}
 ${fallbackRow}
 <tr><td class="px" style="padding:40px 32px 48px;">
@@ -312,10 +349,13 @@ ${footerNote}<p class="muted" style="margin:0;font-family:${FONT};font-size:12px
     c.heading,
     "",
     ...(c.lead ? [c.lead, ""] : []),
-    c.body,
-    "",
+    ...(c.steps?.map((step, index) => `${index + 1}. ${step}`) ?? []),
+    ...(c.steps?.length ? [""] : []),
+    ...(c.body ? [c.body, ""] : []),
+    ...(c.aside ? [c.aside, ""] : []),
     `${c.action.label}: ${c.action.url}`,
     "",
+    ...(c.hint ? [c.hint, ""] : []),
     c.note,
     "",
     "-- ",

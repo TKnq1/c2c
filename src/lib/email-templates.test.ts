@@ -79,7 +79,13 @@ describe("marketingWelcomeEmail", () => {
     expect(creator.subject).toBe("A note from comtor");
     expect(creator.text).toContain("Mia, brand collabs just got easier.");
     expect(creator.text).toContain("See paid deals");
-    expect(creator.text).toContain("you keep 90%");
+    expect(creator.text).toContain("1. Swipe a deal.");
+    expect(creator.text).toContain("You keep 90%");
+    expect(creator.text).toContain("No more DMs about your rate.");
+    expect(creator.text).toContain("About two minutes.");
+    expect(brand.text).toContain("2. Creators in your niche swipe right.");
+    expect(brand.text).toContain("No subscription.");
+    expect(brand.text).toContain("3% on Pro.");
     expect(creator.html).toContain("/email/band-mark.jpg");
     expect(creator.html).not.toContain("mark-white.png");
     expect(creator.html).not.toContain("Button not working");
