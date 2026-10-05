@@ -1,5 +1,6 @@
 "use server";
 
+import { revalidatePath } from "next/cache";
 import { cookies } from "next/headers";
 import { after } from "next/server";
 import { AuthError } from "next-auth";
@@ -103,6 +104,7 @@ export async function signupFromDraftAction(_prevState: OnboardingState, formDat
       if (user.creatorProfile) {
         await notifyBrandsAboutCreator(user.creatorProfile, maxFollowers).catch(() => undefined);
       }
+      revalidatePath("/");
       after(() => sendWelcome(user.id, user.email, "CREATOR"));
       return await signInWithoutLeaving(data.email, data.password);
     }
@@ -124,6 +126,7 @@ export async function signupFromDraftAction(_prevState: OnboardingState, formDat
           },
         },
       });
+      revalidatePath("/");
       after(() => sendWelcome(user.id, user.email, "STARTUP"));
       return await signInWithoutLeaving(data.email, data.password);
     }
