@@ -564,14 +564,46 @@ enum OutreachSide {
 }
 
 model OutreachAddress {
-  id        String       @id @default(cuid())
-  name      String
-  email     String
-  side      OutreachSide
-  createdAt DateTime     @default(now())
+  id         String             @id @default(cuid())
+  name       String
+  email      String
+  side       OutreachSide
+  createdAt  DateTime           @default(now())
+  deliveries OutreachDelivery[]
 
   @@unique([email, side])
   @@index([side, createdAt])
+}
+
+// One row per marketing email Resend accepted. Opens and clicks arrive later
+// on the webhook and match this row by resendId.
+model OutreachDelivery {
+  id         String                  @id @default(cuid())
+  addressId  String
+  address    OutreachAddress         @relation(fields: [addressId], references: [id], onDelete: Cascade)
+  resendId   String                  @unique
+  sentAt     DateTime                @default(now())
+  openedAt   DateTime?
+  clickedAt  DateTime?
+  openCount  Int                     @default(0)
+  clickCount Int                     @default(0)
+  events     OutreachDeliveryEvent[]
+
+  @@index([addressId, sentAt])
+}
+
+// The webhook id, so a retry does not count the same open or click twice.
+model OutreachDeliveryEvent {
+  id         String           @id
+  deliveryId String
+  delivery   OutreachDelivery @relation(fields: [deliveryId], references: [id], onDelete: Cascade)
+  kind       OutreachEventKind
+  createdAt  DateTime         @default(now())
+}
+
+enum OutreachEventKind {
+  OPEN
+  CLICK
 }
 
 model Review {

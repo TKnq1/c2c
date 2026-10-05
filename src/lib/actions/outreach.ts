@@ -69,8 +69,12 @@ export async function sendOutreachAction(
   for (const row of rows) {
     const message = marketingWelcomeEmail(url, side, subject.data, row.name, count);
     const result = await sendEmail({ to: row.email, ...message });
-    if (result.ok) sent += 1;
-    else failed.push({ email: row.email, error: result.error });
+    if (result.ok) {
+      sent += 1;
+      if (result.id) {
+        await prisma.outreachDelivery.create({ data: { addressId: row.id, resendId: result.id } });
+      }
+    } else failed.push({ email: row.email, error: result.error });
   }
   return { sent, failed };
 }
