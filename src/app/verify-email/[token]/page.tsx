@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { hashToken } from "@/lib/tokens";
 import { ConfirmEmailVerificationForm } from "@/components/confirm-email-verification-form";
 import { Logo } from "@/components/logo";
 import { ImprintLink } from "@/components/imprint-link";
@@ -12,7 +13,7 @@ export default async function VerifyEmailTokenPage({ params }: { params: Promise
   const t = await getT();
   const { token } = await params;
 
-  const verifyToken = await prisma.emailVerificationToken.findUnique({ where: { token } });
+  const verifyToken = await prisma.emailVerificationToken.findUnique({ where: { tokenHash: hashToken(token) } });
   const isValid = !!verifyToken && !verifyToken.usedAt && verifyToken.expiresAt > new Date();
 
   return (
