@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { BrandBuilder } from "@/components/landing/brand-builder";
 import { CreatorDeck } from "@/components/landing/creator-deck";
@@ -9,6 +9,53 @@ import { SignupLink } from "@/components/landing/signup-link";
 import { FIRST_PHOTO, type PhotoKey } from "@/components/landing/landing-data";
 
 const delay = (ms: number) => ({ "--lp-delay": `${ms}ms` }) as React.CSSProperties;
+
+// The number is real text, not a CSS counter. A counter on the hidden side
+// stays at 0, and switching creator/brand never brings it up to date.
+function CountUp({ to }: { to: number }) {
+  const ref = useRef<HTMLSpanElement>(null);
+  const [value, setValue] = useState(to);
+  const started = useRef(false);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    started.current = false;
+    let frame = 0;
+
+    const run = () => {
+      if (started.current || el.getClientRects().length === 0) return;
+      started.current = true;
+      if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+        setValue(to);
+        return;
+      }
+      const began = performance.now();
+      const tick = (now: number) => {
+        const progress = Math.min(1, (now - began) / 1200);
+        const eased = 1 - (1 - progress) ** 3;
+        setValue(Math.round(eased * to));
+        if (progress < 1) frame = requestAnimationFrame(tick);
+      };
+      setValue(0);
+      frame = requestAnimationFrame(tick);
+    };
+
+    run();
+    const observer = new MutationObserver(run);
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ["data-landing-role"] });
+    return () => {
+      cancelAnimationFrame(frame);
+      observer.disconnect();
+    };
+  }, [to]);
+
+  return (
+    <span ref={ref} className="font-semibold tabular-nums">
+      {value}
+    </span>
+  );
+}
 
 // The headline over the thing itself: creators get the Feed to swipe,
 // brands the card they'd post, live. Either way the photo in play colours
@@ -128,7 +175,7 @@ function CrowdLine({
       className="lp-rise mt-4 text-[19px] leading-snug text-neutral-800 md:text-[22px] dark:text-neutral-200"
       style={delay(300)}
     >
-      <span className="lp-count lp-count-in font-semibold tabular-nums" style={{ "--lp-to": count } as React.CSSProperties} />{" "}
+      <CountUp to={count} />{" "}
       {word} already here
     </p>
   );
