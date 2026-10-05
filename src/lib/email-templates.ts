@@ -307,7 +307,7 @@ function render(c: Content): Email {
 <td class="panel" align="center" bgcolor="${FOG}" style="padding:22px 20px 20px;border-radius:4px;background-color:${FOG};">
 <table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
 <td class="bg" align="center" valign="middle" width="56" height="56" bgcolor="#ffffff" style="width:56px;height:56px;border-radius:999px;background-color:#ffffff;">
-<img src="${SITE_URL}/landing/icons/${step.icon}.png" width="34" height="34" alt="" style="display:block;width:34px;height:34px;border:0;">
+<img src="${SITE_URL}/email/icons/${step.icon}.png" width="34" height="34" alt="" style="display:block;width:34px;height:34px;border:0;">
 </td>
 </tr></table>
 <p class="ink" style="margin:14px 0 0;font-family:${FONT};font-size:16px;line-height:1.35;font-weight:700;color:${INK};text-align:center;">${escapeHtml(step.title)}</p>
