@@ -5,6 +5,7 @@ import {
   testEmail,
   verificationEmail,
   waitlistConfirmationEmail,
+  marketingWelcomeEmail,
   welcomeEmail,
 } from "@/lib/email-templates";
 
@@ -67,6 +68,17 @@ describe("welcomeEmail", () => {
   it("tells creators and brands what comes next", () => {
     expect(welcomeEmail(url, "CREATOR").text).toContain("brand deals");
     expect(welcomeEmail(url, "STARTUP").text).toContain("first request");
+  });
+});
+
+describe("marketingWelcomeEmail", () => {
+  it("speaks to creators and brands separately", () => {
+    const creator = marketingWelcomeEmail("https://www.comtor.app/dashboard/creator", "CREATOR");
+    const brand = marketingWelcomeEmail("https://www.comtor.app/dashboard/startup/new", "STARTUP");
+    expect(creator.subject).toBe("You're in on comtor");
+    expect(creator.text).toContain("Open your feed");
+    expect(brand.text).toContain("Post a request");
+    expect(brand.html).toContain("https://www.comtor.app/dashboard/startup/new");
   });
 });
 

@@ -46,6 +46,29 @@ export function welcomeEmail(url: string, role: "CREATOR" | "STARTUP"): Email {
   });
 }
 
+// A marketing note to people who already have an account. Separate from
+// welcomeEmail, which is the sign-up mail and carries the verify link.
+export function marketingWelcomeEmail(url: string, role: "CREATOR" | "STARTUP"): Email {
+  if (role === "CREATOR") {
+    return render({
+      subject: "You're in on comtor",
+      preview: "Brands are posting deals. The budget is on the card.",
+      heading: "You're in.",
+      body: "Brands are already posting deals, with the budget on the card. Swipe right on the ones you want. The money is in before you post, and you keep 90%.",
+      action: { label: "Open your feed", url },
+      note: "You're getting this because you have a comtor creator account.",
+    });
+  }
+  return render({
+    subject: "Creators are on comtor",
+    preview: "Post a request. Creators who fit come to you.",
+    heading: "Creators are here.",
+    body: "Post a request with the budget and what to post. Creators who fit swipe right, and your money stays held until you've approved the post.",
+    action: { label: "Post a request", url },
+    note: "You're getting this because you have a comtor brand account.",
+  });
+}
+
 export function verificationEmail(url: string): Email {
   return render({
     subject: "Verify your comtor email",
