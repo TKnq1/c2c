@@ -277,13 +277,27 @@ model StartupProfile {
   stripeCustomerId     String?
   stripeSubscriptionId String?
 
-  requests    Request[]
-  socialLinks StartupSocialLink[]
-  reviews     Review[]
-  favorites   Favorite[]
+  requests      Request[]
+  socialLinks   StartupSocialLink[]
+  reviews       Review[]
+  favorites     Favorite[]
+  proWithdrawals ProWithdrawal[]
 
   @@index([stripeCustomerId])
   @@index([stripeSubscriptionId])
+}
+
+// A brand used the 14-day withdrawal on Pro. The money is already back
+// with them; this row is what the admin list shows.
+model ProWithdrawal {
+  id             String         @id @default(cuid())
+  startupId      String
+  startup        StartupProfile @relation(fields: [startupId], references: [id], onDelete: Cascade)
+  amountCents    Int
+  stripeRefundId String?
+  createdAt      DateTime       @default(now())
+
+  @@index([createdAt])
 }
 
 model StartupSocialLink {

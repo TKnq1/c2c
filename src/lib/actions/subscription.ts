@@ -6,6 +6,7 @@ import { prisma } from "@/lib/prisma";
 import { stripe } from "@/lib/stripe";
 import { SITE_URL } from "@/lib/site";
 import { canSellProSubscription } from "@/lib/native-app-server";
+import { canWithdrawPro } from "@/lib/pro-withdrawal";
 
 function revalidateSubscriptionPaths() {
   revalidatePath("/dashboard/startup/settings");
@@ -74,4 +75,60 @@ export async function cancelProAction() {
   });
 
   revalidateSubscriptionPaths();
+}
+
+// Within 14 days of the first charge the brand can end Pro and get that
+// payment back. Ordinary cancellation (above) does not refund.
+export async function withdrawProAction(): Promise<{ error?: string }> {
+  const session = await auth();
+  if (!session || session.user.role !== "STARTUP") return { error: "Not authorized." };
+
+  const startup = await prisma.startupProfile.findUnique({ where: { userId: session.user.id } });
+  if (!startup?.isPro || !startup.stripeSubscriptionId || !startup.proSince) {
+    return { error: "Pro can't be withdrawn right now." };
+  }
+  if (!canWithdrawPro(startup.proSince)) {
+    return { error: "The 14 days to withdraw have passed. You can still cancel Pro." };
+  }
+
+  try {
+    const refund = await refundLatestProPayment(startup.stripeSubscriptionId, startup.id);
+    if (!refund) return { error: "No payment to refund." };
+    await stripe.subscriptions.cancel(startup.stripeSubscriptionId);
+    await prisma.$transaction([
+      prisma.startupProfile.update({
+        where: { id: startup.id },
+        data: { isPro: false, stripeSubscriptionId: null },
+      }),
+      prisma.proWithdrawal.create({
+        data: { startupId: startup.id, amountCents: refund.amount, stripeRefundId: refund.id },
+      }),
+    ]);
+  } catch (err) {
+    console.error("Pro withdrawal failed:", err);
+    return { error: "The withdrawal didn't go through. Try again, or write to info@comtor.app." };
+  }
+
+  revalidateSubscriptionPaths();
+  revalidatePath("/admin/payments");
+  return {};
+}
+
+async function refundLatestProPayment(subscriptionId: string, startupId: string) {
+  const invoices = await stripe.invoices.list({ subscription: subscriptionId, status: "paid", limit: 1 });
+  const invoice = invoices.data[0];
+  if (!invoice) return null;
+  const key = `pro-withdraw-${startupId}-${invoice.id}`;
+  const legacyCharge = (invoice as { charge?: string | null }).charge;
+  if (typeof legacyCharge === "string") return stripe.refunds.create({ charge: legacyCharge }, { idempotencyKey: key });
+
+  const listed = await stripe.invoicePayments.list({ invoice: invoice.id, limit: 5 });
+  const paid = listed.data.find((item) => item.status === "paid") ?? listed.data[0];
+  const intent = paid?.payment.payment_intent;
+  const charge = paid?.payment.charge;
+  const intentId = typeof intent === "string" ? intent : intent?.id;
+  if (intentId) return stripe.refunds.create({ payment_intent: intentId }, { idempotencyKey: key });
+  const chargeId = typeof charge === "string" ? charge : charge?.id;
+  if (chargeId) return stripe.refunds.create({ charge: chargeId }, { idempotencyKey: key });
+  return null;
 }
