@@ -1,25 +1,10 @@
 "use client";
 
-import type { PaymentStatus } from "@prisma/client";
 import { useI18n } from "@/components/i18n-provider";
 import type { MessageKey } from "@/lib/i18n/translate";
+import { type PaymentStage } from "@/lib/payment-stage";
 
-// What a payment shows as. The two approval sub-steps aren't statuses of
-// their own in the database (the money is HELD throughout) — they're
-// derived from when the post was submitted and whether a problem was
-// reported, via paymentStage below.
-export type PaymentStage = PaymentStatus | "SUBMITTED" | "DISPUTED";
-
-export function paymentStage(i: {
-  paymentStatus: PaymentStatus;
-  proofSubmittedAt: Date | number | null;
-  disputedAt: Date | number | null;
-}): PaymentStage {
-  if (i.paymentStatus !== "HELD") return i.paymentStatus;
-  if (i.disputedAt) return "DISPUTED";
-  if (i.proofSubmittedAt) return "SUBMITTED";
-  return "HELD";
-}
+export type { PaymentStage };
 
 const LABELS: Record<PaymentStage, MessageKey> = {
   OFFERED: "screens.payments.offerPending",

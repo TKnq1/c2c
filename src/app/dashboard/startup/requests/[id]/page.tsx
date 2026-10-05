@@ -6,7 +6,7 @@ import { IoChevronBack } from "react-icons/io5";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { BulkInterestedCreatorsList } from "@/components/bulk-interested-creators-list";
-import { paymentStage } from "@/components/payment-status-badge";
+import { paymentStage } from "@/lib/payment-stage";
 import { EmptyState } from "@/components/empty-state";
 import { RequestActions } from "@/components/request-actions";
 import { RequestFacts } from "@/components/request-card-face";
