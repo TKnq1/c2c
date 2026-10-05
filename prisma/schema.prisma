@@ -448,6 +448,17 @@ enum DepositStatus {
   FORFEITED
 }
 
+// One row per proposal in a chat. A counter doesn't overwrite the last
+// amount: the previous row becomes SUPERSEDED and the new one is PENDING,
+// so the thread can show the whole negotiation.
+enum OfferEventOutcome {
+  PENDING
+  SUPERSEDED
+  DECLINED
+  WITHDRAWN
+  ACCEPTED
+}
+
 model Interest {
   id          String         @id @default(cuid())
   requestId   String
@@ -509,14 +520,28 @@ model Interest {
   depositReleasedAt  DateTime?
   depositForfeitedAt DateTime?
 
-  reviews  Review[]
-  messages Message[]
+  reviews     Review[]
+  messages    Message[]
+  offerEvents OfferEvent[]
 
   @@unique([requestId, creatorId])
   @@index([creatorId, paymentStatus])
   // The daily auto-release job's lookup: HELD payments past their review window.
   @@index([paymentStatus, proofSubmittedAt])
   @@index([creatorId, depositStatus])
+}
+
+model OfferEvent {
+  id          String            @id @default(cuid())
+  interestId  String
+  interest    Interest          @relation(fields: [interestId], references: [id], onDelete: Cascade)
+  role        Role
+  amountCents Int
+  payoutCents Int?
+  outcome     OfferEventOutcome
+  createdAt   DateTime          @default(now())
+
+  @@index([interestId, createdAt])
 }
 
 model Message {

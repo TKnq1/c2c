@@ -30,10 +30,9 @@ type TimelineInterest = {
   reviews: { authorRole: Role; rating: number; comment: string | null; createdAt: Date }[];
 };
 
-// Synthesizes a chronological log from the interest's own state timestamps
-// (there's no separate append-only event table) — reflects the milestones
-// that actually happened, not a full round-by-round negotiation transcript,
-// since each new offer/counter overwrites the previous one's fields.
+// Milestones from the interest's own timestamps. The round-by-round
+// negotiation lives on OfferEvent and is drawn as cards in the thread;
+// this log only marks the current proposal so the chat can skip it.
 export function buildCollabTimeline(interest: TimelineInterest, t: TFunction): TimelineEvent[] {
   const creatorName = interest.creator.displayName;
   const startupName = interest.request.startup.companyName;
