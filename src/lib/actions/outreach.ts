@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import type { OutreachSide } from "@prisma/client";
+import { Prisma, type OutreachSide } from "@prisma/client";
 import { z } from "zod";
 import { auth } from "@/lib/auth";
 import { hasAdminAccess } from "@/lib/admin-access";
@@ -16,6 +16,14 @@ const emailSchema = z.string().trim().email("That doesn't look like an email add
 const nameSchema = z.string().trim().min(1, "Add a name.").max(80, "Keep the name under 80 characters.");
 
 const subjectSchema = z.string().trim().min(3, "Write a subject of at least 3 characters.").max(120, "Keep the subject under 120 characters.");
+
+function sendFailure(err: unknown): string {
+  console.error("Outreach send failed:", err);
+  if (err instanceof Prisma.PrismaClientKnownRequestError && (err.code === "P2021" || err.code === "P2022")) {
+    return "The mailing database is out of date. Redeploy, then try again.";
+  }
+  return "Sending failed. Try a smaller group, then send again.";
+}
 
 async function requireAdmin() {
   const session = await auth();
@@ -61,34 +69,43 @@ export async function sendOutreachAction(
   const ids = [...new Set(rawIds.map((id) => id.trim()).filter(Boolean))];
   if (ids.length === 0) return { error: "Mark the addresses you want to send to." };
 
-  const rows = await prisma.outreachAddress.findMany({
-    where: { side, id: { in: ids } },
-    orderBy: { createdAt: "asc" },
-  });
-  if (rows.length === 0) return { error: "Mark the addresses you want to send to." };
+  try {
+    const rows = await prisma.outreachAddress.findMany({
+      where: { side, id: { in: ids } },
+      orderBy: { createdAt: "asc" },
+    });
+    if (rows.length === 0) return { error: "Mark the addresses you want to send to." };
 
-  const url = marketingEntryUrl(side);
-  const crowd = await landingCrowd();
-  const count = side === "CREATOR" ? crowd.brands : crowd.creators;
-  const mailing = await prisma.outreachMailing.create({ data: { side, subject: subject.data } });
-  const failed: { email: string; error: string }[] = [];
-  let sent = 0;
-  for (const row of rows) {
-    const message = marketingWelcomeEmail(url, side, subject.data, row.name, count);
-    const result = await sendEmail({ to: row.email, ...message });
-    if (result.ok) {
+    const url = marketingEntryUrl(side);
+    const crowd = await landingCrowd();
+    const count = side === "CREATOR" ? crowd.brands : crowd.creators;
+    const mailing = await prisma.outreachMailing.create({ data: { side, subject: subject.data } });
+    const failed: { email: string; error: string }[] = [];
+    let sent = 0;
+    for (const row of rows) {
+      const message = marketingWelcomeEmail(url, side, subject.data, row.name, count);
+      const result = await sendEmail({ to: row.email, ...message });
+      if (!result.ok) {
+        failed.push({ email: row.email, error: result.error });
+        continue;
+      }
       sent += 1;
-      await prisma.outreachDelivery.create({
-        data: {
-          mailingId: mailing.id,
-          addressId: row.id,
-          recipientName: row.name,
-          recipientEmail: row.email,
-          resendId: result.id || `untracked_${mailing.id}_${row.id}`,
-        },
-      });
-    } else failed.push({ email: row.email, error: result.error });
+      await prisma.outreachDelivery
+        .create({
+          data: {
+            mailingId: mailing.id,
+            addressId: row.id,
+            recipientName: row.name,
+            recipientEmail: row.email,
+            resendId: result.id || `untracked_${mailing.id}_${row.id}`,
+          },
+        })
+        .catch((err) => console.error("Outreach send was delivered but not saved:", err));
+    }
+    if (sent === 0) await prisma.outreachMailing.delete({ where: { id: mailing.id } });
+    else revalidatePath(PATH);
+    return { sent, failed };
+  } catch (err) {
+    return { error: sendFailure(err) };
   }
-  if (sent === 0) await prisma.outreachMailing.delete({ where: { id: mailing.id } });
-  return { sent, failed };
 }
