@@ -12,6 +12,10 @@ function rememberRole(role: SignupRole) {
   window.history.replaceState(null, "", `/onboarding?role=${side}`);
 }
 
+function forgetRole() {
+  window.history.replaceState(null, "", "/onboarding");
+}
+
 // No account yet. The side comes from the landing toggle, a saved draft, or
 // one question asked before the wizard starts.
 export function GuestOnboarding({ initialRole }: { initialRole: SignupRole | null }) {
@@ -41,6 +45,10 @@ export function GuestOnboarding({ initialRole }: { initialRole: SignupRole | nul
       />
     );
   }
-  if (role === "STARTUP") return <BrandOnboarding mode="guest" emailVerified={false} />;
-  return <CreatorOnboarding mode="guest" emailVerified={false} />;
+  const onLeave = () => {
+    forgetRole();
+    setRole(null);
+  };
+  if (role === "STARTUP") return <BrandOnboarding mode="guest" emailVerified={false} onLeave={onLeave} />;
+  return <CreatorOnboarding mode="guest" emailVerified={false} onLeave={onLeave} />;
 }

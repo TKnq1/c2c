@@ -49,7 +49,16 @@ type StepDef = {
   render: (index: number) => React.ReactNode;
 };
 
-export function CreatorOnboarding({ emailVerified, mode = "account" }: { emailVerified: boolean; mode?: "guest" | "account" }) {
+export function CreatorOnboarding({
+  emailVerified,
+  mode = "account",
+  onLeave,
+}: {
+  emailVerified: boolean;
+  mode?: "guest" | "account";
+  // Guests can step back out to the creator/brand choice.
+  onLeave?: () => void;
+}) {
   const { t } = useI18n();
   const guest = mode === "guest";
   const [step, setStep] = useState(0);
@@ -132,7 +141,10 @@ export function CreatorOnboarding({ emailVerified, mode = "account" }: { emailVe
     const key = defs[i].key;
     if (kind === "skipped") setSkipped((prev) => (prev.includes(key) ? prev : [...prev, key]));
     trackOnboarding(key, kind);
-    setStep((s) => Math.max(s, i + 1));
+    // Only the step on screen may move the wizard. A late save from a step
+    // they already left must not jump them, and Continue after Back walks
+    // forward one step instead of skipping to the furthest one.
+    setStep((s) => (s === i ? i + 1 : s));
   }
 
   function replayGuestSteps(accountIndex: number) {
@@ -152,11 +164,13 @@ export function CreatorOnboarding({ emailVerified, mode = "account" }: { emailVe
   const defs: StepDef[] = [
     {
       key: "language",
-      render: (i) => <OnboardingLanguageStep onDone={() => finish(i)} />,
+      render: (i) => <OnboardingLanguageStep onDone={() => finish(i)} onBack={onLeave} />,
     },
     {
       key: "name",
-      render: (i) => <NameStep guest={guest} value={displayName} onChange={setDisplayName} onDone={() => finish(i)} />,
+      render: (i) => (
+        <NameStep guest={guest} value={displayName} onChange={setDisplayName} onBack={() => back(i)} onDone={() => finish(i)} />
+      ),
     },
     {
       key: "niches",
@@ -210,12 +224,21 @@ export function CreatorOnboarding({ emailVerified, mode = "account" }: { emailVe
     {
       key: "matches",
       render: (i) => (
-        <CreatorAha active={step === i} name={name} guest={guest} load={guest ? loadMatches : undefined} onNext={() => finish(i)} />
+        <CreatorAha
+          active={step === i}
+          name={name}
+          guest={guest}
+          load={guest ? loadMatches : undefined}
+          onBack={() => back(i)}
+          onNext={() => finish(i)}
+        />
       ),
     },
     {
       key: "swipe",
-      render: (i) => <OnboardingSwipeDemo active={step === i} onNext={() => finish(i)} onSkip={() => finish(i, "skipped")} />,
+      render: (i) => (
+        <OnboardingSwipeDemo active={step === i} onBack={() => back(i)} onNext={() => finish(i)} onSkip={() => finish(i, "skipped")} />
+      ),
     },
     ...(guest
       ? [
@@ -246,6 +269,7 @@ export function CreatorOnboarding({ emailVerified, mode = "account" }: { emailVe
             key: "payouts" as const,
             render: (i: number) => (
               <OnboardingPayoutStep
+                onBack={() => back(i)}
                 onDone={() => {
                   setPayoutsStarted(true);
                   finish(i);
@@ -260,7 +284,9 @@ export function CreatorOnboarding({ emailVerified, mode = "account" }: { emailVe
       ? [
           {
             key: "alerts" as const,
-            render: (i: number) => <OnboardingPushStep role="creator" onDone={() => finish(i)} onSkip={() => finish(i, "skipped")} />,
+            render: (i: number) => (
+              <OnboardingPushStep role="creator" onBack={() => back(i)} onDone={() => finish(i)} onSkip={() => finish(i, "skipped")} />
+            ),
           },
         ]
       : []),
@@ -295,11 +321,13 @@ function NameStep({
   guest,
   value,
   onChange,
+  onBack,
   onDone,
 }: {
   guest: boolean;
   value: string;
   onChange: (v: string) => void;
+  onBack: () => void;
   onDone: () => void;
 }) {
   const { t } = useI18n();
@@ -333,7 +361,7 @@ function NameStep({
       />
       <StepError state={state} />
       <div className={stepActions}>
-        <StepFooter pending={guest ? false : pending} disabled={!value.trim()} />
+        <StepFooter onBack={onBack} pending={guest ? false : pending} disabled={!value.trim()} />
       </div>
     </form>
   );

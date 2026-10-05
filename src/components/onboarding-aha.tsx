@@ -5,7 +5,7 @@ import { IoShieldCheckmarkOutline } from "react-icons/io5";
 import { Avatar } from "@/components/avatar";
 import { Confetti } from "@/components/confetti";
 import { useI18n } from "@/components/i18n-provider";
-import { PRIMARY_BUTTON, stepActions, stepScreen, useCountUp } from "@/components/onboarding-ui";
+import { BackButton, PRIMARY_BUTTON, stepActions, stepScreen, useCountUp } from "@/components/onboarding-ui";
 import {
   getBrandCreatorsAction,
   getCreatorMatchesAction,
@@ -43,12 +43,30 @@ function useAhaData<T>(active: boolean, load: () => Promise<T>) {
   return { data, failed };
 }
 
-function Looking({ title }: { title: string }) {
+function Looking({ title, onBack }: { title: string; onBack?: () => void }) {
   return (
     <div className="flex flex-1 flex-col items-center justify-center gap-5 py-10 text-center" role="status">
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img src="/logo-splash.png" alt="" width={72} height={72} className="app-splash-logo dark:invert" />
       <p className="text-neutral-600 dark:text-neutral-400">{title}</p>
+      {onBack && (
+        <div className="mt-auto">
+          <BackButton onClick={onBack} />
+        </div>
+      )}
+    </div>
+  );
+}
+
+function Forward({ onBack, onNext, label }: { onBack?: () => void; onNext: () => void; label: string }) {
+  return (
+    <div className={stepActions}>
+      <div className="flex gap-2">
+        {onBack && <BackButton onClick={onBack} />}
+        <button type="button" onClick={onNext} className={PRIMARY_BUTTON}>
+          {label}
+        </button>
+      </div>
     </div>
   );
 }
@@ -75,12 +93,14 @@ export function CreatorAha({
   active,
   name,
   onNext,
+  onBack,
   load = getCreatorMatchesAction,
   guest = false,
 }: {
   active: boolean;
   name: string;
   onNext: () => void;
+  onBack?: () => void;
   load?: () => Promise<CreatorMatchesResult>;
   guest?: boolean;
 }) {
@@ -93,15 +113,11 @@ export function CreatorAha({
         <p className="text-neutral-600 dark:text-neutral-400">
           {t(guest ? "onboarding.aha.loadFailedCreatorGuest" : "onboarding.aha.loadFailedCreator")}
         </p>
-        <div className={stepActions}>
-          <button type="button" onClick={onNext} className={`${PRIMARY_BUTTON} w-full`}>
-            {t("common.continue")}
-          </button>
-        </div>
+        <Forward onBack={onBack} onNext={onNext} label={t("common.continue")} />
       </div>
     );
   }
-  if (!data) return <Looking title={t("onboarding.aha.lookingRequests")} />;
+  if (!data) return <Looking title={t("onboarding.aha.lookingRequests")} onBack={onBack} />;
 
   const keep = Math.round((1 - PLATFORM_FEE_RATE) * 100);
 
@@ -121,11 +137,7 @@ export function CreatorAha({
           </p>
         </div>
         <Trust keep={keep} />
-        <div className={stepActions}>
-          <button type="button" onClick={onNext} className={`${PRIMARY_BUTTON} w-full`}>
-            {t("onboarding.aha.showHow")}
-          </button>
-        </div>
+        <Forward onBack={onBack} onNext={onNext} label={t("onboarding.aha.showHow")} />
       </div>
     );
   }
@@ -176,11 +188,7 @@ export function CreatorAha({
 
         <Trust keep={keep} />
       </div>
-      <div className={stepActions}>
-        <button type="button" onClick={onNext} className={`${PRIMARY_BUTTON} w-full`}>
-          {t("onboarding.aha.showHow")}
-        </button>
-      </div>
+      <Forward onBack={onBack} onNext={onNext} label={t("onboarding.aha.showHow")} />
     </div>
   );
 }
@@ -198,11 +206,13 @@ function Trust({ keep }: { keep: number }) {
 export function BrandAha({
   active,
   onNext,
+  onBack,
   load = getBrandCreatorsAction,
   guest = false,
 }: {
   active: boolean;
   onNext: () => void;
+  onBack?: () => void;
   load?: () => Promise<BrandCreatorsResult>;
   guest?: boolean;
 }) {
@@ -215,15 +225,11 @@ export function BrandAha({
         <p className="text-neutral-600 dark:text-neutral-400">
           {t(guest ? "onboarding.aha.loadFailedBrandGuest" : "onboarding.aha.loadFailedBrand")}
         </p>
-        <div className={stepActions}>
-          <button type="button" onClick={onNext} className={`${PRIMARY_BUTTON} w-full`}>
-            {t("common.continue")}
-          </button>
-        </div>
+        <Forward onBack={onBack} onNext={onNext} label={t("common.continue")} />
       </div>
     );
   }
-  if (!data) return <Looking title={t("onboarding.aha.lookingCreators")} />;
+  if (!data) return <Looking title={t("onboarding.aha.lookingCreators")} onBack={onBack} />;
 
   if (data.creators === 0) {
     return (
@@ -236,11 +242,7 @@ export function BrandAha({
             })}
           </p>
         </div>
-        <div className={stepActions}>
-          <button type="button" onClick={onNext} className={`${PRIMARY_BUTTON} w-full`}>
-            {t("common.continue")}
-          </button>
-        </div>
+        <Forward onBack={onBack} onNext={onNext} label={t("common.continue")} />
       </div>
     );
   }
@@ -279,11 +281,7 @@ export function BrandAha({
         )}
       </div>
 
-      <div className={stepActions}>
-        <button type="button" onClick={onNext} className={`${PRIMARY_BUTTON} w-full`}>
-          {t("common.continue")}
-        </button>
-      </div>
+      <Forward onBack={onBack} onNext={onNext} label={t("common.continue")} />
     </div>
   );
 }
