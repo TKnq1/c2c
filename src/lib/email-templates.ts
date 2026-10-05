@@ -26,8 +26,8 @@ type Content = {
   // A short line above the body, a step heavier than the paragraph.
   lead?: string;
   body: string;
-  // Numbered beats for a cold email, then one line that answers the doubt.
-  steps?: string[];
+  // The beats under the count, each with a landing-page icon.
+  steps?: { icon: string; text: string }[];
   aside?: string;
   // One quiet line under the button: what the click actually costs.
   hint?: string;
@@ -89,7 +89,11 @@ export function marketingWelcomeEmail(
       preview: "Brand collabs, made easier.",
       heading: who ? `${who}, brand collabs just got easier.` : "Brand collabs, made easier.",
       body: "",
-      steps: ["Swipe a deal.", "Accept the offer.", "Post once the money is in. You keep 90%."],
+      steps: [
+        { icon: "swipe", text: "Swipe a deal." },
+        { icon: "locked", text: "Accept the offer." },
+        { icon: "money-wings", text: "Post once the money is in. You keep 90%." },
+      ],
       crowd: crowdLine(crowd, "brand", "brands"),
       aside: "No more DMs about your rate. The budget is on the card.",
       hint: "About two minutes. No call. Your account comes at the end.",
@@ -105,9 +109,9 @@ export function marketingWelcomeEmail(
     heading: who ? `${who}, find the right creators for your product.` : "Find the right creators for your product.",
     body: "",
     steps: [
-      "Post the product and the budget.",
-      "Creators in your niche swipe right.",
-      "You pay when you agree, and the money waits until the post is live.",
+      { icon: "megaphone", text: "Post the product and the budget." },
+      { icon: "bell", text: "Creators in your niche swipe right." },
+      { icon: "locked", text: "You pay when you agree, and the money waits until the post is live." },
     ],
     crowd: crowdLine(crowd, "creator", "creators"),
     aside: "No subscription. comtor keeps 10% of each payment, or 3% on Pro.",
@@ -266,10 +270,16 @@ function render(c: Content): Email {
   const steps = (c.steps ?? [])
     .map((step, index) => {
       const last = index === (c.steps?.length ?? 0) - 1;
-      const pad = last ? "0" : "0 0 14px";
+      const pad = last ? "0" : "0 0 16px";
       return `<tr>
-<td class="ink" valign="top" width="28" style="width:28px;padding:${pad};font-family:${FONT};font-size:16px;line-height:1.45;font-weight:900;color:${INK};">${index + 1}</td>
-<td class="text" valign="top" style="padding:${pad};font-family:${FONT};font-size:16px;line-height:1.45;color:${TEXT};">${escapeHtml(step)}</td>
+<td valign="middle" width="44" style="width:44px;padding:${pad};">
+<table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
+<td align="center" valign="middle" width="44" height="44" bgcolor="${FOG}" style="width:44px;height:44px;border-radius:999px;background-color:${FOG};">
+<img src="${SITE_URL}/landing/icons/${step.icon}.png" width="28" height="28" alt="" style="display:block;width:28px;height:28px;border:0;">
+</td>
+</tr></table>
+</td>
+<td class="text" valign="middle" style="padding:${pad};padding-left:14px;font-family:${FONT};font-size:16px;line-height:1.45;color:${TEXT};">${escapeHtml(step.text)}</td>
 </tr>`;
     })
     .join("\n");
@@ -372,7 +382,7 @@ ${footerNote}<p class="muted" style="margin:0;font-family:${FONT};font-size:12px
     "",
     ...(c.crowd ? [`${c.crowd.count.toLocaleString("en-US")} ${c.crowd.label}`, ""] : []),
     ...(c.lead ? [c.lead, ""] : []),
-    ...(c.steps?.map((step, index) => `${index + 1}. ${step}`) ?? []),
+    ...(c.steps?.map((step, index) => `${index + 1}. ${step.text}`) ?? []),
     ...(c.steps?.length ? [""] : []),
     ...(c.body ? [c.body, ""] : []),
     ...(c.aside ? [c.aside, ""] : []),
