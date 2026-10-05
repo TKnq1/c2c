@@ -18,12 +18,14 @@ export function ConfirmActionButton({
   confirmLabel,
   pendingLabel = "Working…",
   redirectTo,
+  requirePassword = false,
   className,
   children,
 }: {
   // May return { error } instead of throwing — the only way a specific
-  // message survives to production (see errorMessage).
-  action: () => Promise<void | { error?: string }>;
+  // message survives to production (see errorMessage). Gets the password
+  // when `requirePassword` is set.
+  action: (password: string) => Promise<void | { error?: string }>;
   successMessage: string;
   title: string;
   description: string;
@@ -31,19 +33,29 @@ export function ConfirmActionButton({
   pendingLabel?: string;
   // Where to go once it worked, for an action that removes the page it's on.
   redirectTo?: string;
+  // Asks for the password in the sheet and hands it to the action: for what can't be taken back
+  // and shouldn't run from a session someone walked away from.
+  requirePassword?: boolean;
   className?: string;
   children: React.ReactNode;
 }) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [password, setPassword] = useState("");
   const [pending, startTransition] = useTransition();
 
   const confirm = () => {
     setError(null);
+    if (requirePassword && !password) {
+      setError("Enter your password to confirm.");
+      return;
+    }
     startTransition(async () => {
       try {
-        const result = await action();
+        // Only the actions that asked for it get the password (the others take no arguments).
+        const result = await (requirePassword ? action(password) : (action as () => Promise<void | { error?: string }>)());
+        setPassword("");
         if (result?.error) {
           setError(result.error);
           return;
@@ -79,11 +91,25 @@ export function ConfirmActionButton({
       </button>
       <Dialog open={open} onClose={() => setOpen(false)} title={title}>
         <p className="text-sm text-neutral-600 dark:text-neutral-400">{description}</p>
+        {requirePassword && (
+          <input
+            type="password"
+            autoComplete="current-password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            placeholder="Your password"
+            aria-label="Your password"
+            className="rounded border border-neutral-300 bg-transparent px-3 py-2.5 text-base outline-none focus:border-neutral-500 md:text-sm dark:border-neutral-700"
+          />
+        )}
         {error && <p className="text-sm font-medium text-ink">{error}</p>}
         <div className="flex gap-2">
           <button
             type="button"
-            onClick={() => setOpen(false)}
+            onClick={() => {
+              setOpen(false);
+              setPassword("");
+            }}
             className="flex-1 rounded-full border border-neutral-300 px-4 py-2.5 text-sm font-medium transition hover:border-neutral-400 dark:border-neutral-700"
           >
             Cancel

@@ -3,8 +3,8 @@
 import { revalidatePath } from "next/cache";
 import { Prisma, type OutreachSide } from "@prisma/client";
 import { z } from "zod";
-import { auth } from "@/lib/auth";
-import { hasAdminAccess } from "@/lib/admin-access";
+import { requireAdmin } from "@/lib/admin-guard";
+import { audit } from "@/lib/audit";
 import { prisma } from "@/lib/prisma";
 import { sendEmail } from "@/lib/email";
 import { marketingEntryUrl, marketingWelcomeEmail } from "@/lib/email-templates";
@@ -26,18 +26,13 @@ function sendFailure(err: unknown): string {
   return "Sending failed. Try a smaller group, then send again.";
 }
 
-async function requireAdmin() {
-  const session = await auth();
-  if (!session || !hasAdminAccess(session.user)) return null;
-  return session;
-}
-
 export async function addOutreachAddressAction(
   side: OutreachSide,
   rawName: string,
   rawEmail: string,
 ): Promise<{ error?: string }> {
-  if (!(await requireAdmin())) return { error: "Not authorized." };
+  const admin = await requireAdmin();
+  if (!admin) return { error: "Not authorized." };
   const name = nameSchema.safeParse(rawName);
   if (!name.success) return { error: name.error.issues[0].message };
   const parsed = emailSchema.safeParse(rawEmail);
@@ -48,13 +43,16 @@ export async function addOutreachAddressAction(
   if (existing) return { error: "That address is already on this list." };
 
   await prisma.outreachAddress.create({ data: { name: name.data, email, side } });
+  await audit(admin.user.id, "outreach.add", undefined, { email, side });
   revalidatePath(PATH);
   return {};
 }
 
 export async function removeOutreachAddressAction(id: string): Promise<{ error?: string }> {
-  if (!(await requireAdmin())) return { error: "Not authorized." };
+  const admin = await requireAdmin();
+  if (!admin) return { error: "Not authorized." };
   await prisma.outreachAddress.delete({ where: { id } }).catch(() => null);
+  await audit(admin.user.id, "outreach.remove", id);
   revalidatePath(PATH);
   return {};
 }
@@ -64,7 +62,8 @@ export async function sendOutreachAction(
   rawSubject: string,
   rawIds: string[],
 ): Promise<{ error?: string; sent?: number; failed?: { email: string; error: string }[] }> {
-  if (!(await requireAdmin())) return { error: "Not authorized." };
+  const admin = await requireAdmin();
+  if (!admin) return { error: "Not authorized." };
   const subject = subjectSchema.safeParse(rawSubject);
   if (!subject.success) return { error: subject.error.issues[0].message };
   const ids = [...new Set(rawIds.map((id) => id.trim()).filter(Boolean))];
@@ -105,6 +104,7 @@ export async function sendOutreachAction(
     }
     if (sent === 0) await prisma.outreachMailing.delete({ where: { id: mailing.id } });
     else revalidatePath(PATH);
+    await audit(admin.user.id, "outreach.send", mailing.id, { side, subject: subject.data, sent, failed: failed.length });
     return { sent, failed };
   } catch (err) {
     return { error: sendFailure(err) };

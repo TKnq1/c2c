@@ -2,7 +2,8 @@
 
 import { revalidatePath } from "next/cache";
 import { auth } from "@/lib/auth";
-import { hasAdminAccess } from "@/lib/admin-access";
+import { requireAdmin } from "@/lib/admin-guard";
+import { audit } from "@/lib/audit";
 import { prisma } from "@/lib/prisma";
 
 export type ReportActionState = { error?: string; success?: boolean } | undefined;
@@ -59,17 +60,19 @@ export async function unblockUserAction(otherUserId: string) {
 }
 
 export async function resolveReportAction(reportId: string) {
-  const session = await auth();
-  if (!session || !hasAdminAccess(session.user)) throw new Error("Not authorized.");
+  const session = await requireAdmin();
+  if (!session) throw new Error("Not authorized.");
 
   await prisma.report.update({ where: { id: reportId }, data: { status: "RESOLVED" } });
+  await audit(session.user.id, "report.resolve", reportId);
   revalidatePath("/admin", "layout");
 }
 
 export async function dismissReportAction(reportId: string) {
-  const session = await auth();
-  if (!session || !hasAdminAccess(session.user)) throw new Error("Not authorized.");
+  const session = await requireAdmin();
+  if (!session) throw new Error("Not authorized.");
 
   await prisma.report.update({ where: { id: reportId }, data: { status: "DISMISSED" } });
+  await audit(session.user.id, "report.dismiss", reportId);
   revalidatePath("/admin", "layout");
 }

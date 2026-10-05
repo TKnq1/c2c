@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import QRCode from "qrcode";
 import { auth } from "@/lib/auth";
+import { hasAdminAccess } from "@/lib/admin-access";
 import { prisma } from "@/lib/prisma";
 import { generateTotpSecret, matchTotpStep, totpUri } from "@/lib/totp";
 import { generateRecoveryCodes, saveRecoveryCodes, verifyAndConsumeRecoveryCode } from "@/lib/recovery-codes";
@@ -41,7 +42,9 @@ export async function startTwoFactorEnrollmentAction(password: string): Promise<
   const user = await prisma.user.findUniqueOrThrow({ where: { id: session.user.id } });
   if (!(await verifyPassword(user, password))) return { error: "Incorrect password." };
   if (user.totpEnabled) return { error: "Two-factor authentication is already enabled." };
-  if (!(await emailIsVerified(user.id))) return { error: VERIFY_EMAIL_MESSAGE };
+  // (Admins were made admins by someone with database access, so they're exempt: they have to be able
+  // to switch it on to get into /admin at all.)
+  if (!hasAdminAccess(user) && !(await emailIsVerified(user.id))) return { error: VERIFY_EMAIL_MESSAGE };
 
   const secret = generateTotpSecret();
   await prisma.user.update({ where: { id: user.id }, data: { totpSecret: seal(secret), totpLastStep: null } });

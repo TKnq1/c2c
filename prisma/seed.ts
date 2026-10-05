@@ -7,6 +7,15 @@ const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL! });
 const prisma = new PrismaClient({ adapter });
 
 async function main() {
+  // This wipes every user, request and payment and plants an admin with a known password:
+  // local databases only. (A .env pulled from Vercel points at the live one.)
+  const databaseHost = new URL(process.env.DATABASE_URL ?? "postgresql://invalid").hostname;
+  const isLocal = ["localhost", "127.0.0.1", "::1"].includes(databaseHost);
+  if (!isLocal || process.env.VERCEL_ENV || process.env.NODE_ENV === "production") {
+    console.error(`Refusing to seed ${databaseHost}: the seed deletes every user. Local databases only.`);
+    process.exit(1);
+  }
+
   await prisma.interest.deleteMany();
   await prisma.request.deleteMany();
   await prisma.creatorProfile.deleteMany();

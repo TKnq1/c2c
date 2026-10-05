@@ -4,8 +4,8 @@ import { randomBytes } from "crypto";
 import { revalidatePath } from "next/cache";
 import { after } from "next/server";
 import { z } from "zod";
-import { auth } from "@/lib/auth";
-import { hasAdminAccess } from "@/lib/admin-access";
+import { requireAdmin } from "@/lib/admin-guard";
+import { audit } from "@/lib/audit";
 import { prisma } from "@/lib/prisma";
 import { sendEmail } from "@/lib/email";
 import { waitlistConfirmationEmail } from "@/lib/email-templates";
@@ -89,8 +89,9 @@ export async function confirmWaitlistAction(token: string): Promise<ConfirmWaitl
 // Admin only: someone asked to be taken off the list (the privacy policy
 // promises that), or the address is obviously junk.
 export async function removeWaitlistEntryAction(id: string): Promise<{ error?: string } | void> {
-  const session = await auth();
-  if (!session || !hasAdminAccess(session.user)) return { error: "Not authorized." };
+  const session = await requireAdmin();
+  if (!session) return { error: "Not authorized." };
   await prisma.waitlistEntry.deleteMany({ where: { id } });
+  await audit(session.user.id, "waitlist.remove", id);
   revalidatePath("/admin/waitlist");
 }

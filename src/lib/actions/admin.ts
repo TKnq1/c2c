@@ -2,8 +2,9 @@
 
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
-import { auth } from "@/lib/auth";
 import { hasAdminAccess } from "@/lib/admin-access";
+import { confirmAdminPassword, requireAdmin } from "@/lib/admin-guard";
+import { audit } from "@/lib/audit";
 import { prisma } from "@/lib/prisma";
 import { sendEmail } from "@/lib/email";
 import { testEmail } from "@/lib/email-templates";
@@ -11,12 +12,6 @@ import { SITE_URL } from "@/lib/site";
 
 // Same shape ConfirmActionButton expects: an error message, or nothing.
 export type AdminActionResult = { error?: string };
-
-async function requireAdmin() {
-  const session = await auth();
-  if (!session || !hasAdminAccess(session.user)) return null;
-  return session;
-}
 
 function revalidateAdmin() {
   revalidatePath("/admin", "layout");
@@ -50,12 +45,13 @@ export async function suspendUserAction(userId: string, reason: string): Promise
       ? [
           prisma.request.updateMany({
             where: { startupId: user.startupProfile.id, status: "OPEN" },
-            data: { status: "CLOSED" },
+            data: { status: "CLOSED", closedByAdmin: true },
           }),
         ]
       : []),
   ]);
 
+  await audit(session.user.id, "user.suspend", userId, { reason: parsed.data.reason });
   revalidateAdmin();
   return {};
 }
@@ -70,6 +66,7 @@ export async function unsuspendUserAction(userId: string): Promise<AdminActionRe
 
   await prisma.user.update({ where: { id: userId }, data: { suspendedAt: null, suspendedReason: null } });
 
+  await audit(session.user.id, "user.unsuspend", userId);
   revalidateAdmin();
   return {};
 }
@@ -88,8 +85,10 @@ export async function setRequestStatusAction(requestId: string, status: "OPEN" |
     return { error: "The brand behind this request is suspended. Unsuspend the account first." };
   }
 
-  await prisma.request.update({ where: { id: requestId }, data: { status } });
+  // Closed by moderation, a brand can't reopen it itself (see reopenRequestAction).
+  await prisma.request.update({ where: { id: requestId }, data: { status, closedByAdmin: status === "CLOSED" } });
 
+  await audit(session.user.id, status === "CLOSED" ? "request.close" : "request.open", requestId);
   revalidateAdmin();
   revalidatePath("/dashboard/creator");
   revalidatePath(`/dashboard/startup/requests/${requestId}`);
@@ -114,10 +113,12 @@ export async function sendTestEmailAction(): Promise<{ error?: string; to?: stri
 // refuses what shouldn't go this way: yourself, other admins, and any
 // account with a Stripe connection or a payment through Stripe, since those
 // leave money or a subscription behind in Stripe that this wouldn't touch.
-export async function deleteUserAction(userId: string): Promise<AdminActionResult> {
+export async function deleteUserAction(userId: string, password: string): Promise<AdminActionResult> {
   const session = await requireAdmin();
   if (!session) return { error: "Not authorized." };
   if (userId === session.user.id) return { error: "You can't delete your own account here." };
+  const passwordError = await confirmAdminPassword(session.user.id, password);
+  if (passwordError) return { error: passwordError };
 
   const user = await prisma.user.findUnique({
     where: { id: userId },
@@ -150,6 +151,7 @@ export async function deleteUserAction(userId: string): Promise<AdminActionResul
     return { error: "This account is connected to Stripe or has payments through it. Deleting it here would leave those behind in Stripe." };
   }
 
+  await audit(session.user.id, "user.delete", userId, { email: user.email, role: user.role });
   await prisma.user.delete({ where: { id: userId } });
   revalidateAdmin();
   return {};
