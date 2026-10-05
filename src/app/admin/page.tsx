@@ -7,7 +7,8 @@ import { PRO_SUBSCRIPTION_PRICE_CENTS } from "@/lib/constants";
 import { dailySeries, windowStart } from "@/lib/admin-stats";
 import { StatTile } from "@/components/admin/stat-tile";
 import { DailyBarChart } from "@/components/admin/daily-bar-chart";
-import { PaymentStatusBadge, paymentStage } from "@/components/payment-status-badge";
+import { PaymentStatusBadge } from "@/components/payment-status-badge";
+import { paymentStage } from "@/lib/payment-stage";
 import { LocalDate } from "@/components/local-date";
 import { RoleBadge } from "@/components/admin/role-badge";
 

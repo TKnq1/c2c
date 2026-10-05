@@ -4,7 +4,8 @@ import { IoCardOutline, IoCheckmarkCircle, IoDownloadOutline, IoWalletOutline } 
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { ChatLink, PaymentRow, PaymentSection, PaymentStats } from "@/components/payment-row";
-import { PaymentStatusBadge, paymentStage } from "@/components/payment-status-badge";
+import { PaymentStatusBadge } from "@/components/payment-status-badge";
+import { paymentStage } from "@/lib/payment-stage";
 import { DepositStatusBadge } from "@/components/deposit-status-badge";
 import { ReviewForm } from "@/components/review-form";
 import { PrintButton } from "@/components/print-button";

@@ -6,7 +6,8 @@ import { requireAdminSession } from "@/lib/admin-session";
 import { formatCents } from "@/lib/format";
 import { EmptyState } from "@/components/empty-state";
 import { LocalDate } from "@/components/local-date";
-import { PaymentStatusBadge, paymentStage, type PaymentStage } from "@/components/payment-status-badge";
+import { PaymentStatusBadge, type PaymentStage } from "@/components/payment-status-badge";
+import { paymentStage } from "@/lib/payment-stage";
 import { FilterTabs, ListSearch, Pagination, firstParams, pageFrom } from "@/components/admin/list-controls";
 
 const PATH = "/admin/payments";
