@@ -577,19 +577,36 @@ model OutreachAddress {
 
 // One row per marketing email Resend accepted. Opens and clicks arrive later
 // on the webhook and match this row by resendId.
+// One press of Send. The people who got that mail stay here even if the
+// address is later taken off the creator or brand list.
+model OutreachMailing {
+  id         String             @id @default(cuid())
+  side       OutreachSide
+  subject    String
+  createdAt  DateTime           @default(now())
+  deliveries OutreachDelivery[]
+
+  @@index([createdAt])
+}
+
 model OutreachDelivery {
-  id         String                  @id @default(cuid())
-  addressId  String
-  address    OutreachAddress         @relation(fields: [addressId], references: [id], onDelete: Cascade)
-  resendId   String                  @unique
-  sentAt     DateTime                @default(now())
-  openedAt   DateTime?
-  clickedAt  DateTime?
-  openCount  Int                     @default(0)
-  clickCount Int                     @default(0)
-  events     OutreachDeliveryEvent[]
+  id             String                  @id @default(cuid())
+  mailingId      String
+  mailing        OutreachMailing         @relation(fields: [mailingId], references: [id], onDelete: Cascade)
+  addressId      String?
+  address        OutreachAddress?        @relation(fields: [addressId], references: [id], onDelete: SetNull)
+  recipientName  String
+  recipientEmail String
+  resendId       String                  @unique
+  sentAt         DateTime                @default(now())
+  openedAt       DateTime?
+  clickedAt      DateTime?
+  openCount      Int                     @default(0)
+  clickCount     Int                     @default(0)
+  events         OutreachDeliveryEvent[]
 
   @@index([addressId, sentAt])
+  @@index([mailingId])
 }
 
 // The webhook id, so a retry does not count the same open or click twice.
