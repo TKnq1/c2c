@@ -78,6 +78,8 @@ describe("marketingWelcomeEmail", () => {
     expect(creator.subject).toBe("A note from comtor");
     expect(creator.text).toContain("Brand collabs, made easier.");
     expect(creator.html).toContain("font-weight:700");
+    expect(creator.html).toContain("/email/band-mark.jpg");
+    expect(creator.html).not.toContain("mark-white.png");
     expect(brand.subject).toBe("A note for brands");
     expect(brand.text).toContain("Find the right creators for your product.");
     expect(brand.html).toContain("https://www.comtor.app/dashboard/startup/new");
