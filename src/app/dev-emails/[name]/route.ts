@@ -4,13 +4,15 @@ import {
   testEmail,
   verificationEmail,
   waitlistConfirmationEmail,
+  marketingWelcomeEmail,
   welcomeEmail,
 } from "@/lib/email-templates";
 import { SITE_URL } from "@/lib/site";
 
 // Local preview of the emails, as the HTML a mail client receives
-// (/dev-emails/welcome, /welcome-brand, /verify, /reset, /changed,
-// /waitlist, /test; add ?text for the plain-text part). The links carry a dummy
+// (/dev-emails/welcome, /welcome-brand, /marketing-creator, /marketing-brand,
+// /verify, /reset, /changed, /waitlist, /test; add ?text for the plain-text
+// part). The links carry a dummy
 // token. Like the other /dev-* routes it's a 404 in production (see
 // proxy.ts).
 const TOKEN = "0".repeat(64);
@@ -18,6 +20,8 @@ const TOKEN = "0".repeat(64);
 const EMAILS = {
   welcome: () => welcomeEmail(`${SITE_URL}/verify-email/${TOKEN}`, "CREATOR"),
   "welcome-brand": () => welcomeEmail(`${SITE_URL}/verify-email/${TOKEN}`, "STARTUP"),
+  "marketing-creator": () => marketingWelcomeEmail(`${SITE_URL}/dashboard/creator`, "CREATOR", "A note from comtor"),
+  "marketing-brand": () => marketingWelcomeEmail(`${SITE_URL}/dashboard/startup/new`, "STARTUP", "A note for brands"),
   verify: () => verificationEmail(`${SITE_URL}/verify-email/${TOKEN}`),
   reset: () => passwordResetEmail(`${SITE_URL}/reset-password/${TOKEN}`),
   changed: () => passwordChangedEmail(`${SITE_URL}/forgot-password`),

@@ -556,6 +556,23 @@ model Message {
   @@index([interestId, createdAt])
 }
 
+// Addresses an admin types in to send a marketing email. Two lists, one per
+// side. Not tied to an account: the address is whatever they add.
+enum OutreachSide {
+  CREATOR
+  STARTUP
+}
+
+model OutreachAddress {
+  id        String       @id @default(cuid())
+  email     String
+  side      OutreachSide
+  createdAt DateTime     @default(now())
+
+  @@unique([email, side])
+  @@index([side, createdAt])
+}
+
 model Review {
   id         String         @id @default(cuid())
   interestId String
