@@ -26,8 +26,8 @@ type Content = {
   // A short line above the body, a step heavier than the paragraph.
   lead?: string;
   body: string;
-  // The beats under the count, each with a landing-page icon.
-  steps?: { icon: string; text: string }[];
+  // The beats under the count: a black landing icon, a title, and what it means.
+  steps?: { icon: string; title: string; text: string }[];
   aside?: string;
   // One quiet line under the button: what the click actually costs.
   hint?: string;
@@ -88,14 +88,30 @@ export function marketingWelcomeEmail(
       subject,
       preview: "Brand collabs, made easier.",
       heading: who ? `${who}, brand collabs just got easier.` : "Brand collabs, made easier.",
-      body: "",
+      body: "comtor is where brands post a paid deal and you swipe the ones you want. The budget is on the card, they pay before you post, and you keep 90%.",
       steps: [
-        { icon: "swipe", text: "Swipe a deal." },
-        { icon: "locked", text: "Accept the offer." },
-        { icon: "money-wings", text: "Post once the money is in. You keep 90%." },
+        {
+          icon: "swipe",
+          title: "Swipe a deal.",
+          text: "Right means you want it, left means you pass. The brand sees your profile and can message you.",
+        },
+        {
+          icon: "money-bag",
+          title: "The budget is on the card.",
+          text: "No more DMs about your rate. Every request says what it pays, what to post, and whether the product comes with it.",
+        },
+        {
+          icon: "locked",
+          title: "Paid before you post.",
+          text: "Accept the offer and the brand pays first. The money waits until your post is up.",
+        },
+        {
+          icon: "money-wings",
+          title: "You keep 90%.",
+          text: "The brand has 3 days to approve your post. If they don't answer, it's released to you anyway.",
+        },
       ],
       crowd: crowdLine(crowd, "brand", "brands"),
-      aside: "No more DMs about your rate. The budget is on the card.",
       hint: "About two minutes. No call. Your account comes at the end.",
       watermark: true,
       invite: true,
@@ -107,14 +123,30 @@ export function marketingWelcomeEmail(
     subject,
     preview: "Find the right creators for your product.",
     heading: who ? `${who}, find the right creators for your product.` : "Find the right creators for your product.",
-    body: "",
+    body: "comtor is where you post the product, the budget, and what to make. Creators who fit swipe right and come to you. You pay when you agree, and the money waits until the post is live.",
     steps: [
-      { icon: "megaphone", text: "Post the product and the budget." },
-      { icon: "bell", text: "Creators in your niche swipe right." },
-      { icon: "locked", text: "You pay when you agree, and the money waits until the post is live." },
+      {
+        icon: "megaphone",
+        title: "Post the product and the budget.",
+        text: "Photos, the budget, the platform, and what to post. Creators get it as a card in their feed.",
+      },
+      {
+        icon: "bell",
+        title: "Creators come to you.",
+        text: "Creators in your niche swipe right. You see their reach and reviews and pick who fits.",
+      },
+      {
+        icon: "speech-balloon",
+        title: "Agree on it in the chat.",
+        text: "Send an offer. When they accept, you pay, and the money is held until the post is live.",
+      },
+      {
+        icon: "camera-flash",
+        title: "Then it's paid out.",
+        text: "You check the live post first. No subscription: comtor keeps 10% of each payment, or 3% on Pro.",
+      },
     ],
     crowd: crowdLine(crowd, "creator", "creators"),
-    aside: "No subscription. comtor keeps 10% of each payment, or 3% on Pro.",
     hint: "About two minutes. No call. Your account comes at the end.",
     watermark: true,
     invite: true,
@@ -275,10 +307,11 @@ function render(c: Content): Email {
 <td class="panel" align="center" bgcolor="${FOG}" style="padding:22px 20px 20px;border-radius:4px;background-color:${FOG};">
 <table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
 <td class="bg" align="center" valign="middle" width="56" height="56" bgcolor="#ffffff" style="width:56px;height:56px;border-radius:999px;background-color:#ffffff;">
-<img src="${SITE_URL}/landing/icons/${step.icon}.png" width="34" height="34" alt="" style="display:block;width:34px;height:34px;border:0;">
+<img src="${SITE_URL}/email/icons/${step.icon}.png" width="34" height="34" alt="" style="display:block;width:34px;height:34px;border:0;">
 </td>
 </tr></table>
-<p class="ink" style="margin:14px 0 0;font-family:${FONT};font-size:16px;line-height:1.4;font-weight:700;color:${INK};text-align:center;">${escapeHtml(step.text)}</p>
+<p class="ink" style="margin:14px 0 0;font-family:${FONT};font-size:16px;line-height:1.35;font-weight:700;color:${INK};text-align:center;">${escapeHtml(step.title)}</p>
+<p class="text" style="margin:6px 0 0;font-family:${FONT};font-size:15px;line-height:1.5;color:${TEXT};text-align:center;">${escapeHtml(step.text)}</p>
 </td>
 </tr></table>
 </td></tr>`;
@@ -354,8 +387,8 @@ ${wordmark}
 ${crowdRow}
 <tr><td class="px" style="padding:28px 32px 0;">
 ${c.lead ? `<p class="ink" style="margin:0 0 10px;font-family:${FONT};font-size:18px;line-height:1.35;font-weight:700;color:${INK};">${escapeHtml(c.lead)}</p>` : ""}
+${c.body ? `<p class="text" style="margin:0 0 ${stepsTable ? "22px" : "0"};font-family:${FONT};font-size:16px;line-height:1.55;color:${TEXT};">${escapeHtml(c.body)}</p>` : ""}
 ${stepsTable}
-${c.body ? `<p class="text" style="margin:${stepsTable || c.lead ? "14px" : "0"} 0 0;font-family:${FONT};font-size:16px;line-height:1.55;color:${TEXT};">${escapeHtml(c.body)}</p>` : ""}
 ${aside}
 </td></tr>
 <tr><td class="px" style="padding:28px 32px 0;">
@@ -383,9 +416,9 @@ ${footerNote}<p class="muted" style="margin:0;font-family:${FONT};font-size:12px
     "",
     ...(c.crowd ? [`${c.crowd.count.toLocaleString("en-US")} ${c.crowd.label}`, ""] : []),
     ...(c.lead ? [c.lead, ""] : []),
-    ...(c.steps?.map((step, index) => `${index + 1}. ${step.text}`) ?? []),
-    ...(c.steps?.length ? [""] : []),
     ...(c.body ? [c.body, ""] : []),
+    ...(c.steps?.map((step, index) => `${index + 1}. ${step.title}\n${step.text}`) ?? []),
+    ...(c.steps?.length ? [""] : []),
     ...(c.aside ? [c.aside, ""] : []),
     `${c.action.label}: ${c.action.url}`,
     "",
