@@ -28,6 +28,9 @@ type Content = {
   body: string;
   // The black panel uses the large faint mark instead of the small logo.
   watermark?: boolean;
+  // A first-touch note: the company name in the panel, one wide button,
+  // and no grey "paste this link" box. That box belongs on a verify mail.
+  invite?: boolean;
   action: { label: string; url: string };
   // Under the button: how long the link works, what to do if this wasn't you.
   note: string;
@@ -54,6 +57,12 @@ export function welcomeEmail(url: string, role: "CREATOR" | "STARTUP"): Email {
 // is whatever the admin typed. The body says what the product is, because
 // the inbox is the first time many of them hear of it. Separate from
 // welcomeEmail, which is the sign-up mail and carries the verify link.
+// Cold outreach has no account yet, so the button opens onboarding with the
+// side already chosen. /dashboard would only bounce them to the login page.
+export function marketingEntryUrl(role: "CREATOR" | "STARTUP"): string {
+  return `${SITE_URL}/onboarding?role=${role === "CREATOR" ? "creator" : "brand"}`;
+}
+
 export function marketingWelcomeEmail(url: string, role: "CREATOR" | "STARTUP", subject: string, name: string): Email {
   const who = name.trim();
   if (role === "CREATOR") {
@@ -61,8 +70,10 @@ export function marketingWelcomeEmail(url: string, role: "CREATOR" | "STARTUP", 
       subject,
       preview: "Brand collabs, made easier.",
       heading: who ? `${who}, brand collabs just got easier.` : "Brand collabs, made easier.",
-      body: "Brands post a paid deal. You swipe the ones you want. The budget is on the card, they pay before you post, and you keep 90%.",
+      lead: "Brands post a paid deal. You swipe the ones you want.",
+      body: "The budget is on the card. They pay before you post, and you keep 90%.",
       watermark: true,
+      invite: true,
       action: { label: "See paid deals", url },
       note: "You're getting this because comtor has your email as a creator.",
     });
@@ -71,8 +82,10 @@ export function marketingWelcomeEmail(url: string, role: "CREATOR" | "STARTUP", 
     subject,
     preview: "Find the right creators for your product.",
     heading: who ? `${who}, find the right creators for your product.` : "Find the right creators for your product.",
-    body: "Post the product, the budget, and what to make. Creators who fit swipe right and come to you. You pay when you agree, and the money waits until the post is live.",
+    lead: "Post the product, the budget, and what to make.",
+    body: "Creators who fit swipe right and come to you. You pay when you agree, and the money waits until the post is live.",
     watermark: true,
+    invite: true,
     action: { label: "Post your first deal", url },
     note: "You're getting this because comtor has your email as a brand.",
   });
@@ -187,9 +200,41 @@ function render(c: Content): Email {
   const logo = c.watermark
     ? ""
     : `<img src="${SITE_URL}/email/mark-white.png" width="48" height="32" alt="comtor" style="display:block;width:48px;height:32px;border:0;">`;
-  const headingSpace = c.watermark ? "48px" : "88px";
-  const headingSize = c.watermark ? "30px" : "42px";
+  const wordmark = c.invite
+    ? `<p style="margin:0;font-family:${FONT};font-size:15px;line-height:1;font-weight:900;letter-spacing:-0.03em;color:#ffffff;">comtor</p>`
+    : logo;
+  const headingSpace = c.invite ? "36px" : c.watermark ? "48px" : "88px";
+  const headingSize = c.watermark ? "32px" : "42px";
   const headingClass = c.watermark ? "h1 h1-invite" : "h1";
+  const button = c.invite
+    ? `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr>
+<td class="btn" align="center" style="border-radius:999px;background-color:${INK};mso-padding-alt:16px 28px;">
+<a href="${url}" target="_blank" style="display:block;padding:16px 28px;font-family:${FONT};font-size:16px;line-height:20px;font-weight:700;color:#ffffff;text-decoration:none;border-radius:999px;text-align:center;">${escapeHtml(c.action.label)}</a>
+</td>
+</tr></table>`
+    : `<table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
+<td class="btn" style="border-radius:999px;background-color:${INK};mso-padding-alt:14px 28px;">
+<a href="${url}" target="_blank" style="display:inline-block;padding:14px 28px;font-family:${FONT};font-size:16px;line-height:20px;font-weight:700;color:#ffffff;text-decoration:none;border-radius:999px;">${escapeHtml(c.action.label)}</a>
+</td>
+</tr></table>`;
+  const noteRow = c.invite
+    ? ""
+    : `<tr><td class="px" style="padding:24px 32px 0;">
+<p class="muted" style="margin:0;font-family:${FONT};font-size:14px;line-height:1.55;color:${MUTED};">${escapeHtml(c.note)}</p>
+</td></tr>`;
+  const fallbackRow = c.invite
+    ? ""
+    : `<tr><td class="px" style="padding:24px 32px 0;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr>
+<td class="panel" style="padding:14px 16px;border-radius:4px;background-color:${FOG};">
+<p class="muted" style="margin:0 0 6px;font-family:${FONT};font-size:13px;line-height:1.45;color:${MUTED};">Button not working? Paste this link into your browser:</p>
+<p style="margin:0;font-family:${FONT};font-size:13px;line-height:1.45;word-break:break-all;"><a class="ink" href="${url}" target="_blank" style="color:${INK};text-decoration:underline;">${url}</a></p>
+</td>
+</tr></table>
+</td></tr>`;
+  const footerNote = c.invite
+    ? `<p class="muted" style="margin:0 0 12px;font-family:${FONT};font-size:13px;line-height:1.55;color:${MUTED};">${escapeHtml(c.note)}</p>`
+    : "";
 
   const html = `<!doctype html>
 <html lang="en" xmlns:o="urn:schemas-microsoft-com:office:office">
@@ -209,7 +254,7 @@ ${FONT_FACES}
 @media (max-width: 600px) {
   .px { padding-left: 24px !important; padding-right: 24px !important; }
   .h1 { font-size: 36px !important; }
-  .h1.h1-invite { font-size: 26px !important; }
+  .h1.h1-invite { font-size: 28px !important; }
 }
 </style>
 <style>
@@ -235,7 +280,7 @@ ${FONT_FACES}
 <tr><td class="px" style="padding:32px 32px 0;">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr>
 <td bgcolor="${NIGHT}" background="${night}" style="padding:32px 28px 40px;border-radius:4px;background-color:${NIGHT};background-image:url(${night});background-size:cover;background-position:center;">
-${logo}
+${wordmark}
 <h1 class="${headingClass}" style="margin:${headingSpace} 0 0;font-family:${FONT};font-size:${headingSize};line-height:1.08;font-weight:900;letter-spacing:-0.025em;color:#ffffff;">${escapeHtml(c.heading)}</h1>
 </td>
 </tr></table>
@@ -245,27 +290,14 @@ ${c.lead ? `<p class="ink" style="margin:0 0 10px;font-family:${FONT};font-size:
 <p class="text" style="margin:0;font-family:${FONT};font-size:16px;line-height:1.55;color:${TEXT};">${escapeHtml(c.body)}</p>
 </td></tr>
 <tr><td class="px" style="padding:28px 32px 0;">
-<table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
-<td class="btn" style="border-radius:999px;background-color:${INK};mso-padding-alt:14px 28px;">
-<a href="${url}" target="_blank" style="display:inline-block;padding:14px 28px;font-family:${FONT};font-size:16px;line-height:20px;font-weight:700;color:#ffffff;text-decoration:none;border-radius:999px;">${escapeHtml(c.action.label)}</a>
-</td>
-</tr></table>
+${button}
 </td></tr>
-<tr><td class="px" style="padding:24px 32px 0;">
-<p class="muted" style="margin:0;font-family:${FONT};font-size:14px;line-height:1.55;color:${MUTED};">${escapeHtml(c.note)}</p>
-</td></tr>
-<tr><td class="px" style="padding:24px 32px 0;">
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr>
-<td class="panel" style="padding:14px 16px;border-radius:4px;background-color:${FOG};">
-<p class="muted" style="margin:0 0 6px;font-family:${FONT};font-size:13px;line-height:1.45;color:${MUTED};">Button not working? Paste this link into your browser:</p>
-<p style="margin:0;font-family:${FONT};font-size:13px;line-height:1.45;word-break:break-all;"><a class="ink" href="${url}" target="_blank" style="color:${INK};text-decoration:underline;">${url}</a></p>
-</td>
-</tr></table>
-</td></tr>
+${noteRow}
+${fallbackRow}
 <tr><td class="px" style="padding:40px 32px 48px;">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr>
 <td class="line" style="padding-top:20px;border-top:1px solid ${LINE};">
-<p class="muted" style="margin:0;font-family:${FONT};font-size:12px;line-height:1.6;color:${MUTED};"><strong class="ink" style="font-weight:900;color:${INK};">comtor</strong> · Brands meet the right creators.<br><a class="muted" href="${imprint}" target="_blank" style="color:${MUTED};text-decoration:underline;">Imprint</a> · <a class="muted" href="${privacy}" target="_blank" style="color:${MUTED};text-decoration:underline;">Privacy</a></p>
+${footerNote}<p class="muted" style="margin:0;font-family:${FONT};font-size:12px;line-height:1.6;color:${MUTED};"><strong class="ink" style="font-weight:900;color:${INK};">comtor</strong> · Brands meet the right creators.<br><a class="muted" href="${imprint}" target="_blank" style="color:${MUTED};text-decoration:underline;">Imprint</a> · <a class="muted" href="${privacy}" target="_blank" style="color:${MUTED};text-decoration:underline;">Privacy</a></p>
 </td>
 </tr></table>
 </td></tr>

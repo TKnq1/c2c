@@ -5,6 +5,7 @@ import {
   testEmail,
   verificationEmail,
   waitlistConfirmationEmail,
+  marketingEntryUrl,
   marketingWelcomeEmail,
   welcomeEmail,
 } from "@/lib/email-templates";
@@ -73,17 +74,25 @@ describe("welcomeEmail", () => {
 
 describe("marketingWelcomeEmail", () => {
   it("speaks to creators and brands separately", () => {
-    const creator = marketingWelcomeEmail("https://www.comtor.app/dashboard/creator", "CREATOR", "A note from comtor", "Mia");
-    const brand = marketingWelcomeEmail("https://www.comtor.app/dashboard/startup/new", "STARTUP", "A note for brands", "Glow");
+    const creator = marketingWelcomeEmail("https://www.comtor.app/onboarding?role=creator", "CREATOR", "A note from comtor", "Mia");
+    const brand = marketingWelcomeEmail("https://www.comtor.app/onboarding?role=brand", "STARTUP", "A note for brands", "Glow");
     expect(creator.subject).toBe("A note from comtor");
     expect(creator.text).toContain("Mia, brand collabs just got easier.");
     expect(creator.text).toContain("See paid deals");
+    expect(creator.text).toContain("you keep 90%");
     expect(creator.html).toContain("/email/band-mark.jpg");
     expect(creator.html).not.toContain("mark-white.png");
+    expect(creator.html).not.toContain("Button not working");
+    expect(creator.html.split('href="https://www.comtor.app/onboarding?role=creator"')).toHaveLength(2);
     expect(brand.subject).toBe("A note for brands");
     expect(brand.text).toContain("Glow, find the right creators for your product.");
     expect(brand.text).toContain("Post your first deal");
-    expect(brand.html).toContain("https://www.comtor.app/dashboard/startup/new");
+    expect(brand.html).toContain("https://www.comtor.app/onboarding?role=brand");
+  });
+
+  it("opens onboarding for someone who has no account yet", () => {
+    expect(marketingEntryUrl("CREATOR")).toContain("/onboarding?role=creator");
+    expect(marketingEntryUrl("STARTUP")).toContain("/onboarding?role=brand");
   });
 });
 

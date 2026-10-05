@@ -4,6 +4,7 @@ import {
   testEmail,
   verificationEmail,
   waitlistConfirmationEmail,
+  marketingEntryUrl,
   marketingWelcomeEmail,
   welcomeEmail,
 } from "@/lib/email-templates";
@@ -20,8 +21,8 @@ const TOKEN = "0".repeat(64);
 const EMAILS = {
   welcome: () => welcomeEmail(`${SITE_URL}/verify-email/${TOKEN}`, "CREATOR"),
   "welcome-brand": () => welcomeEmail(`${SITE_URL}/verify-email/${TOKEN}`, "STARTUP"),
-  "marketing-creator": () => marketingWelcomeEmail(`${SITE_URL}/dashboard/creator`, "CREATOR", "A note from comtor", "Mia"),
-  "marketing-brand": () => marketingWelcomeEmail(`${SITE_URL}/dashboard/startup/new`, "STARTUP", "A note for brands", "Glow"),
+  "marketing-creator": () => marketingWelcomeEmail(marketingEntryUrl("CREATOR"), "CREATOR", "A note from comtor", "Mia"),
+  "marketing-brand": () => marketingWelcomeEmail(marketingEntryUrl("STARTUP"), "STARTUP", "A note for brands", "Glow"),
   verify: () => verificationEmail(`${SITE_URL}/verify-email/${TOKEN}`),
   reset: () => passwordResetEmail(`${SITE_URL}/reset-password/${TOKEN}`),
   changed: () => passwordChangedEmail(`${SITE_URL}/forgot-password`),

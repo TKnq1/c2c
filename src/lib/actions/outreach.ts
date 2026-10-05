@@ -7,8 +7,7 @@ import { auth } from "@/lib/auth";
 import { hasAdminAccess } from "@/lib/admin-access";
 import { prisma } from "@/lib/prisma";
 import { sendEmail } from "@/lib/email";
-import { marketingWelcomeEmail } from "@/lib/email-templates";
-import { SITE_URL } from "@/lib/site";
+import { marketingEntryUrl, marketingWelcomeEmail } from "@/lib/email-templates";
 
 const PATH = "/admin/mailing";
 
@@ -61,7 +60,7 @@ export async function sendOutreachAction(
   const rows = await prisma.outreachAddress.findMany({ where: { side }, orderBy: { createdAt: "asc" } });
   if (rows.length === 0) return { error: "This list is empty." };
 
-  const url = side === "CREATOR" ? `${SITE_URL}/dashboard/creator` : `${SITE_URL}/dashboard/startup/new`;
+  const url = marketingEntryUrl(side);
   const failed: { email: string; error: string }[] = [];
   let sent = 0;
   for (const row of rows) {
