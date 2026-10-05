@@ -58,6 +58,7 @@ export const screensPl: DeepString<typeof screens> = {
     proFee: "Prowizja {pro}% zamiast {standard}%, za {price}/mies.", proSince: "Pro od {date}.",
     cancelProTitle: "Anulować Pro?", cancelProBody: "Prowizja wraca od razu do {rate}%. Reszta tego okresu nie jest zwracana.",
     cancelPro: "Anuluj Pro", cancelling: "Anulowanie…", proCancelled: "Pro anulowane. Wracasz do stawki standardowej.",
+    withdrawPro: "Odstąp od Pro", withdrawProTitle: "Odstąpić od Pro?", withdrawProBody: "Jesteś w ciągu 14 dni. Pro kończy się teraz, a zapłacone {price} wraca. Prowizja wraca do {rate}%.", withdrawing: "Odstępowanie…", proWithdrawn: "Pro się skończyło, a płatność została zwrócona.",
     standardFee: "Każda wysłana płatność zawiera prowizję {rate}%.",
     proPitch: "Zapłać {price}/mies., żeby obniżyć prowizję z {standard}% do {pro}% przy każdej płatności. Opłaca się, gdy płacisz twórcom więcej niż około {breakEven} miesięcznie.",
     goPro: "Przejdź na Pro za {price}/mies.", redirecting: "Przekierowanie…", serverUnreachable: "Nie udało się połączyć z serwerem. Sprawdź połączenie i spróbuj ponownie.",

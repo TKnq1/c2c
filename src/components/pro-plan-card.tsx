@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { createProCheckoutSessionAction, cancelProAction } from "@/lib/actions/subscription";
+import { createProCheckoutSessionAction, cancelProAction, withdrawProAction } from "@/lib/actions/subscription";
 import { ConfirmActionButton } from "@/components/confirm-action-button";
 import { LocalDate } from "@/components/local-date";
 import { formatCents } from "@/lib/format";
@@ -13,10 +13,12 @@ import { useI18n } from "@/components/i18n-provider";
 export function ProPlanCard({
   isPro,
   proSince,
+  canWithdraw,
   canPurchase,
 }: {
   isPro: boolean;
   proSince: Date | null;
+  canWithdraw: boolean;
   // False in the store apps (see canSellProSubscription): shows the current
   // plan without any upgrade offer.
   canPurchase: boolean;
@@ -61,6 +63,22 @@ export function ProPlanCard({
             </>
           )}
         </p>
+        {canWithdraw && (
+          <ConfirmActionButton
+            action={withdrawProAction}
+            successMessage={t("screens.settings.proWithdrawn")}
+            title={t("screens.settings.withdrawProTitle")}
+            description={t("screens.settings.withdrawProBody", {
+              price: formatCents(PRO_SUBSCRIPTION_PRICE_CENTS),
+              rate: PLATFORM_FEE_RATE * 100,
+            })}
+            confirmLabel={t("screens.settings.withdrawPro")}
+            pendingLabel={t("screens.settings.withdrawing")}
+            className="self-start rounded-full bg-ink px-4 py-2.5 text-sm font-medium text-paper transition hover:bg-graphite"
+          >
+            {t("screens.settings.withdrawPro")}
+          </ConfirmActionButton>
+        )}
         <ConfirmActionButton
           action={cancelProAction}
           successMessage={t("screens.settings.proCancelled")}

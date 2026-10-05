@@ -75,7 +75,7 @@ export default async function AdminPaymentsPage(props: PageProps<"/admin/payment
     ],
   };
 
-  const [payments, total, totals, stageCounts] = await Promise.all([
+  const [payments, total, totals, stageCounts, withdrawals] = await Promise.all([
     prisma.interest.findMany({
       where,
       orderBy: { createdAt: "desc" },
@@ -89,6 +89,11 @@ export default async function AdminPaymentsPage(props: PageProps<"/admin/payment
     prisma.interest.count({ where }),
     prisma.interest.aggregate({ where, _sum: { amountCents: true, platformFeeCents: true } }),
     Promise.all(STAGES.map((s) => prisma.interest.count({ where: s.where }))),
+    prisma.proWithdrawal.findMany({
+      orderBy: { createdAt: "desc" },
+      take: 20,
+      include: { startup: { select: { companyName: true, user: { select: { email: true } } } } },
+    }),
   ]);
   const allCount = stageCounts.reduce((sum, n) => sum + n, 0);
 
@@ -100,6 +105,30 @@ export default async function AdminPaymentsPage(props: PageProps<"/admin/payment
           Every offer and payment between brands and creators, from first offer to payout.
         </p>
       </div>
+
+      <section className="flex flex-col gap-3 rounded border border-ink/10 p-4">
+        <h2 className="font-display text-title-3 font-bold">
+          Pro withdrawals <span className="tabular-nums text-neutral-500">{withdrawals.length}</span>
+        </h2>
+        {withdrawals.length === 0 ? (
+          <p className="text-sm text-neutral-500">No brand has withdrawn from Pro yet.</p>
+        ) : (
+          <ul className="rounded bg-fog">
+            {withdrawals.map((row) => (
+              <li key={row.id} className="flex items-center justify-between gap-3 px-3 py-2.5 [&+&]:border-t [&+&]:border-ink/10">
+                <span className="min-w-0">
+                  <span className="block truncate text-sm font-medium">{row.startup.companyName || "Brand"}</span>
+                  <span className="block truncate text-footnote text-neutral-500">{row.startup.user.email}</span>
+                </span>
+                <span className="shrink-0 text-right text-footnote text-neutral-500">
+                  <span className="block font-medium text-ink">{formatCents(row.amountCents)} refunded</span>
+                  <LocalDate ms={row.createdAt.getTime()} withTime />
+                </span>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
 
       <div className="flex flex-col gap-3">
         <FilterTabs

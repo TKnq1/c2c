@@ -41,6 +41,10 @@ export const PLATFORM_FEE_RATE = 0.1;
 // instead of the standard rate above.
 export const PRO_PLATFORM_FEE_RATE = 0.03;
 export const PRO_SUBSCRIPTION_PRICE_CENTS = 4900; // €49/month — must match STRIPE_PRO_PRICE_ID's actual price
+// Statutory withdrawal window for a consumer distance contract. Offered to
+// every brand, because the app cannot tell a business from a private person.
+export const PRO_WITHDRAWAL_DAYS = 14;
+export const PRO_WITHDRAWAL_MS = PRO_WITHDRAWAL_DAYS * 24 * 60 * 60 * 1000;
 
 // How long a brand has to approve a creator's submitted post (or report a
 // problem) before the payment is released automatically.

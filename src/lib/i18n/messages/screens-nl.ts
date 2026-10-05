@@ -58,6 +58,7 @@ export const screensNl: DeepString<typeof screens> = {
     proFee: "{pro}% platformkosten in plaats van {standard}%, voor {price}/maand.", proSince: "Pro sinds {date}.",
     cancelProTitle: "Pro opzeggen?", cancelProBody: "Je tarief gaat meteen terug naar {rate}%. De rest van deze periode wordt niet terugbetaald.",
     cancelPro: "Pro opzeggen", cancelling: "Opzeggen…", proCancelled: "Pro opgezegd. Je zit weer op het standaardtarief.",
+    withdrawPro: "Pro herroepen", withdrawProTitle: "Pro herroepen?", withdrawProBody: "Je zit binnen 14 dagen. Pro stopt nu en de betaalde {price} wordt teruggestort. Je tarief gaat terug naar {rate}%.", withdrawing: "Herroepen…", proWithdrawn: "Pro is gestopt en de betaling is teruggestort.",
     standardFee: "In elke betaling die je stuurt zit {rate}% platformkosten.",
     proPitch: "Betaal {price}/maand om de platformkosten van {standard}% naar {pro}% te verlagen bij elke betaling. Loont zodra je creators meer dan ongeveer {breakEven} per maand betaalt.",
     goPro: "Pro voor {price}/maand", redirecting: "Doorsturen…", serverUnreachable: "Server niet bereikbaar. Controleer je verbinding en probeer het opnieuw.",

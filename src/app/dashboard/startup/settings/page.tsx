@@ -16,6 +16,7 @@ import { DeleteAccountForm } from "@/components/delete-account-form";
 import { SettingsNav } from "@/components/settings-nav";
 import { SettingsRow, SettingsSection } from "@/components/settings-section";
 import { ProPlanCard } from "@/components/pro-plan-card";
+import { canWithdrawPro } from "@/lib/pro-withdrawal";
 import { LegalLinks } from "@/components/legal-links";
 import { AppearanceSettings } from "@/components/appearance-settings";
 import { OnboardingChecklist } from "@/components/onboarding-checklist";
@@ -87,6 +88,7 @@ export default async function StartupSettingsPage() {
           key={String(startup.isPro)}
           isPro={startup.isPro}
           proSince={startup.proSince}
+          canWithdraw={startup.isPro && canWithdrawPro(startup.proSince)}
           canPurchase={await canSellProSubscription()}
         />
       </SettingsSection>

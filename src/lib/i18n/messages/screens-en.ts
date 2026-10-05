@@ -211,6 +211,11 @@ export const screens = {
     cancelPro: "Cancel Pro",
     cancelling: "Cancelling…",
     proCancelled: "Pro cancelled. You're back on the standard rate.",
+    withdrawPro: "Withdraw from Pro",
+    withdrawProTitle: "Withdraw from Pro?",
+    withdrawProBody: "You're within 14 days. Pro ends now and the {price} you paid is refunded. Your fee goes back to {rate}%.",
+    withdrawing: "Withdrawing…",
+    proWithdrawn: "Pro ended and the payment was refunded.",
     standardFee: "A {rate}% platform fee is included in every payment you send.",
     proPitch:
       "Pay {price}/month to drop your platform fee from {standard}% to {pro}% on every payment. Worth it once you're paying creators more than about {breakEven} a month.",
