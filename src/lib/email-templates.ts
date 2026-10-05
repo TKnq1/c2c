@@ -26,6 +26,8 @@ type Content = {
   // A short line above the body, a step heavier than the paragraph.
   lead?: string;
   body: string;
+  // The black panel uses the large faint mark instead of the small logo.
+  watermark?: boolean;
   action: { label: string; url: string };
   // Under the button: how long the link works, what to do if this wasn't you.
   note: string;
@@ -59,7 +61,8 @@ export function marketingWelcomeEmail(url: string, role: "CREATOR" | "STARTUP", 
       preview: "Brand collabs, made easier.",
       heading: "This is comtor.",
       lead: "Brand collabs, made easier.",
-      body: "comtor is where brands post paid deals and creators swipe through them. Every card shows the budget, what to post, and whether the product is included. Swipe right if you want the deal. The brand pays before you post, and you keep 90%.",
+      body: "Brands post a paid deal. You swipe the ones you want. The budget is on the card, they pay before you post, and you keep 90%.",
+      watermark: true,
       action: { label: "See the deals", url },
       note: "You're getting this because comtor has your email as a creator.",
     });
@@ -69,7 +72,8 @@ export function marketingWelcomeEmail(url: string, role: "CREATOR" | "STARTUP", 
       preview: "Find the right creators for your product.",
       heading: "This is comtor.",
       lead: "Find the right creators for your product.",
-      body: "comtor is where you post a paid deal and creators swipe on it. You set the budget, the platform, and what to post. Creators in that niche see it as a card. The ones who want it swipe right and come to you. You pay when you agree, and the money is held until you've approved the post.",
+      body: "Post the product, the budget, and what to make. Creators who fit swipe right and come to you. You pay when you agree, and the money waits until the post is live.",
+      watermark: true,
     action: { label: "Post a deal", url },
     note: "You're getting this because comtor has your email as a brand.",
   });
@@ -180,7 +184,11 @@ function render(c: Content): Email {
   const url = escapeHtml(c.action.url);
   const imprint = `${SITE_URL}/legal/imprint`;
   const privacy = `${SITE_URL}/legal/privacy`;
-  const night = `${SITE_URL}/email/band-dark.jpg`;
+  const night = `${SITE_URL}/email/${c.watermark ? "band-mark.jpg" : "band-dark.jpg"}`;
+  const logo = c.watermark
+    ? ""
+    : `<img src="${SITE_URL}/email/mark-white.png" width="48" height="32" alt="comtor" style="display:block;width:48px;height:32px;border:0;">`;
+  const headingSpace = c.watermark ? "64px" : "88px";
 
   const html = `<!doctype html>
 <html lang="en" xmlns:o="urn:schemas-microsoft-com:office:office">
@@ -225,8 +233,8 @@ ${FONT_FACES}
 <tr><td class="px" style="padding:32px 32px 0;">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr>
 <td bgcolor="${NIGHT}" background="${night}" style="padding:32px 28px 40px;border-radius:4px;background-color:${NIGHT};background-image:url(${night});background-size:cover;background-position:center;">
-<img src="${SITE_URL}/email/mark-white.png" width="48" height="32" alt="comtor" style="display:block;width:48px;height:32px;border:0;">
-<h1 class="h1" style="margin:88px 0 0;font-family:${FONT};font-size:42px;line-height:1.04;font-weight:900;letter-spacing:-0.025em;color:#ffffff;">${escapeHtml(c.heading)}</h1>
+${logo}
+<h1 class="h1" style="margin:${headingSpace} 0 0;font-family:${FONT};font-size:42px;line-height:1.04;font-weight:900;letter-spacing:-0.025em;color:#ffffff;">${escapeHtml(c.heading)}</h1>
 </td>
 </tr></table>
 </td></tr>
