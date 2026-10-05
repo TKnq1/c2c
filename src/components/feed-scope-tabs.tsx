@@ -36,12 +36,15 @@ export function FeedScopeTabs({ scope, variant = "page" }: { scope: FeedScope; v
     <div
       role="tablist"
       aria-label={t("feed.label")}
-      className={
-        header
-          ? "flex gap-0.5 rounded-full bg-fog p-0.5"
-          : "flex gap-1 self-center rounded bg-fog p-1"
-      }
+      className={`relative grid w-max grid-cols-2 rounded bg-fog p-1 ${header ? "" : "self-center"}`}
     >
+      {/* Same 4px corner as the rest of the app. It slides between the two
+          labels instead of the fill popping from one to the other. */}
+      <span
+        aria-hidden
+        className="pointer-events-none absolute top-1 bottom-1 left-1 w-[calc(50%-0.25rem)] rounded bg-white transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none dark:bg-neutral-900"
+        style={{ transform: shown === "all" ? "translateX(100%)" : "translateX(0)" }}
+      />
       {TABS.map((tab) => (
         <button
           key={tab.scope}
@@ -49,11 +52,11 @@ export function FeedScopeTabs({ scope, variant = "page" }: { scope: FeedScope; v
           role="tab"
           aria-selected={shown === tab.scope}
           onClick={() => select(tab)}
-          className={`font-medium transition ${
-            header ? "rounded-full px-3 py-1 text-sm" : "rounded px-5 py-1.5 text-sm"
+          className={`relative z-10 font-medium transition-colors duration-300 motion-reduce:transition-none ${
+            header ? "px-3 py-1 text-sm" : "px-5 py-1.5 text-sm"
           } ${
             shown === tab.scope
-              ? "bg-white text-neutral-900 dark:bg-neutral-900 dark:text-neutral-100"
+              ? "text-neutral-900 dark:text-neutral-100"
               : "text-neutral-500 hover:text-ink dark:text-neutral-400"
           }`}
         >
