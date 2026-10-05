@@ -26,8 +26,18 @@ type Content = {
   // A short line above the body, a step heavier than the paragraph.
   lead?: string;
   body: string;
+  // The beats under the count: a black landing icon, a title, and what it means.
+  steps?: { icon: string; title: string; text: string }[];
+  aside?: string;
+  // One quiet line under the button: what the click actually costs.
+  hint?: string;
+  // The live count from the other side: brands on a creator mail, creators on a brand mail.
+  crowd?: { count: number; label: string };
   // The black panel uses the large faint mark instead of the small logo.
   watermark?: boolean;
+  // A first-touch note: the company name in the panel, one wide button,
+  // and no grey "paste this link" box. That box belongs on a verify mail.
+  invite?: boolean;
   action: { label: string; url: string };
   // Under the button: how long the link works, what to do if this wasn't you.
   note: string;
@@ -54,25 +64,92 @@ export function welcomeEmail(url: string, role: "CREATOR" | "STARTUP"): Email {
 // is whatever the admin typed. The body says what the product is, because
 // the inbox is the first time many of them hear of it. Separate from
 // welcomeEmail, which is the sign-up mail and carries the verify link.
-export function marketingWelcomeEmail(url: string, role: "CREATOR" | "STARTUP", subject: string, name: string): Email {
+// The button opens the landing page on the matching side (?for= is what the
+// page itself uses to show creators or brands).
+export function marketingEntryUrl(role: "CREATOR" | "STARTUP"): string {
+  return `${SITE_URL}/?for=${role === "CREATOR" ? "creators" : "brands"}`;
+}
+
+function crowdLine(count: number, singular: string, plural: string) {
+  const safe = Math.max(0, Math.floor(count));
+  return { count: safe, label: `${safe === 1 ? singular : plural} already here` };
+}
+
+export function marketingWelcomeEmail(
+  url: string,
+  role: "CREATOR" | "STARTUP",
+  subject: string,
+  name: string,
+  crowd: number,
+): Email {
   const who = name.trim();
   if (role === "CREATOR") {
     return render({
       subject,
-      preview: "Brand collabs, made easier.",
-      heading: who ? `${who}, brand collabs just got easier.` : "Brand collabs, made easier.",
-      body: "Brands post a paid deal. You swipe the ones you want. The budget is on the card, they pay before you post, and you keep 90%.",
+      preview: "Earn money posting TikToks.",
+      heading: who ? `${who}, earn money posting TikToks.` : "Earn money posting TikToks.",
+      body: "comtor is where brands post a paid deal and you swipe the ones you want. The budget is on the card, they pay before you post, and you keep 90%.",
+      steps: [
+        {
+          icon: "swipe",
+          title: "Swipe a deal.",
+          text: "Right means you want it, left means you pass. The brand sees your profile and can message you.",
+        },
+        {
+          icon: "money-bag",
+          title: "The budget is on the card.",
+          text: "No more DMs about your rate. Every request says what it pays, what to post, and whether the product comes with it.",
+        },
+        {
+          icon: "locked",
+          title: "Paid before you post.",
+          text: "Accept the offer and the brand pays first. The money waits until your post is up.",
+        },
+        {
+          icon: "money-wings",
+          title: "You keep 90%.",
+          text: "The brand has 3 days to approve your post. If they don't answer, it's released to you anyway.",
+        },
+      ],
+      crowd: crowdLine(crowd, "brand", "brands"),
+      hint: "Have a look first. Signing up is on the page.",
       watermark: true,
+      invite: true,
       action: { label: "See paid deals", url },
       note: "You're getting this because comtor has your email as a creator.",
     });
   }
   return render({
     subject,
-    preview: "Find the right creators for your product.",
-    heading: who ? `${who}, find the right creators for your product.` : "Find the right creators for your product.",
-    body: "Post the product, the budget, and what to make. Creators who fit swipe right and come to you. You pay when you agree, and the money waits until the post is live.",
+    preview: "Grow your brand with content creators.",
+    heading: who ? `${who}, grow your brand with content creators.` : "Grow your brand with content creators.",
+    body: "comtor is where you post the product, the budget, and what to make. Creators who fit swipe right and come to you. You pay when you agree, and the money waits until the post is live.",
+    steps: [
+      {
+        icon: "megaphone",
+        title: "Post the product and the budget.",
+        text: "Photos, the budget, the platform, and what to post. Creators get it as a card in their feed.",
+      },
+      {
+        icon: "bell",
+        title: "Creators come to you.",
+        text: "Creators in your niche swipe right. You see their reach and reviews and pick who fits.",
+      },
+      {
+        icon: "speech-balloon",
+        title: "Agree on it in the chat.",
+        text: "Send an offer. When they accept, you pay, and the money is held until the post is live.",
+      },
+      {
+        icon: "camera-flash",
+        title: "Then it's paid out.",
+        text: "You check the live post first. No subscription: comtor keeps 10% of each payment, or 3% on Pro.",
+      },
+    ],
+    crowd: crowdLine(crowd, "creator", "creators"),
+    hint: "Have a look first. Signing up is on the page.",
     watermark: true,
+    invite: true,
     action: { label: "Post your first deal", url },
     note: "You're getting this because comtor has your email as a brand.",
   });
@@ -187,9 +264,74 @@ function render(c: Content): Email {
   const logo = c.watermark
     ? ""
     : `<img src="${SITE_URL}/email/mark-white.png" width="48" height="32" alt="comtor" style="display:block;width:48px;height:32px;border:0;">`;
-  const headingSpace = c.watermark ? "48px" : "88px";
-  const headingSize = c.watermark ? "30px" : "42px";
+  const wordmark = c.invite
+    ? `<p style="margin:0;font-family:${FONT};font-size:15px;line-height:1;font-weight:900;letter-spacing:-0.03em;color:#ffffff;">comtor</p>`
+    : logo;
+  const headingSpace = c.invite ? "36px" : c.watermark ? "48px" : "88px";
+  const headingSize = c.watermark ? "32px" : "42px";
   const headingClass = c.watermark ? "h1 h1-invite" : "h1";
+  const button = c.invite
+    ? `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr>
+<td class="btn" align="center" style="border-radius:999px;background-color:${INK};mso-padding-alt:16px 28px;">
+<a href="${url}" target="_blank" style="display:block;padding:16px 28px;font-family:${FONT};font-size:16px;line-height:20px;font-weight:700;color:#ffffff;text-decoration:none;border-radius:999px;text-align:center;">${escapeHtml(c.action.label)}</a>
+</td>
+</tr></table>`
+    : `<table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
+<td class="btn" style="border-radius:999px;background-color:${INK};mso-padding-alt:14px 28px;">
+<a href="${url}" target="_blank" style="display:inline-block;padding:14px 28px;font-family:${FONT};font-size:16px;line-height:20px;font-weight:700;color:#ffffff;text-decoration:none;border-radius:999px;">${escapeHtml(c.action.label)}</a>
+</td>
+</tr></table>`;
+  const noteRow = c.invite
+    ? ""
+    : `<tr><td class="px" style="padding:24px 32px 0;">
+<p class="muted" style="margin:0;font-family:${FONT};font-size:14px;line-height:1.55;color:${MUTED};">${escapeHtml(c.note)}</p>
+</td></tr>`;
+  const fallbackRow = c.invite
+    ? ""
+    : `<tr><td class="px" style="padding:24px 32px 0;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr>
+<td class="panel" style="padding:14px 16px;border-radius:4px;background-color:${FOG};">
+<p class="muted" style="margin:0 0 6px;font-family:${FONT};font-size:13px;line-height:1.45;color:${MUTED};">Button not working? Paste this link into your browser:</p>
+<p style="margin:0;font-family:${FONT};font-size:13px;line-height:1.45;word-break:break-all;"><a class="ink" href="${url}" target="_blank" style="color:${INK};text-decoration:underline;">${url}</a></p>
+</td>
+</tr></table>
+</td></tr>`;
+  const footerNote = c.invite
+    ? `<p class="muted" style="margin:0 0 12px;font-family:${FONT};font-size:13px;line-height:1.55;color:${MUTED};">${escapeHtml(c.note)}</p>`
+    : "";
+  const steps = (c.steps ?? [])
+    .map((step, index) => {
+      const last = index === (c.steps?.length ?? 0) - 1;
+      return `<tr><td style="padding:0 0 ${last ? "0" : "10px"};">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr>
+<td class="panel" align="center" bgcolor="${FOG}" style="padding:22px 20px 20px;border-radius:4px;background-color:${FOG};">
+<table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
+<td class="bg" align="center" valign="middle" width="56" height="56" bgcolor="#ffffff" style="width:56px;height:56px;border-radius:999px;background-color:#ffffff;">
+<img src="${SITE_URL}/email/icons/${step.icon}.png" width="34" height="34" alt="" style="display:block;width:34px;height:34px;border:0;">
+</td>
+</tr></table>
+<p class="ink" style="margin:14px 0 0;font-family:${FONT};font-size:16px;line-height:1.35;font-weight:700;color:${INK};text-align:center;">${escapeHtml(step.title)}</p>
+<p class="text" style="margin:6px 0 0;font-family:${FONT};font-size:15px;line-height:1.5;color:${TEXT};text-align:center;">${escapeHtml(step.text)}</p>
+</td>
+</tr></table>
+</td></tr>`;
+    })
+    .join("\n");
+  const stepsTable = steps
+    ? `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">${steps}</table>`
+    : "";
+  const aside = c.aside
+    ? `<p class="ink" style="margin:${steps ? "18px" : "0"} 0 0;font-family:${FONT};font-size:16px;line-height:1.5;font-weight:700;color:${INK};">${escapeHtml(c.aside)}</p>`
+    : "";
+  const crowdBlock = c.crowd
+    ? `<p class="ink" style="margin:0;font-family:${FONT};font-size:56px;line-height:1;font-weight:900;letter-spacing:-0.04em;color:${INK};text-align:center;">${c.crowd.count.toLocaleString("en-US")}</p>
+<p class="text" style="margin:8px 0 ${stepsTable ? "22px" : "0"};font-family:${FONT};font-size:16px;line-height:1.4;color:${TEXT};text-align:center;">${escapeHtml(c.crowd.label)}</p>`
+    : "";
+  const hintRow = c.hint
+    ? `<tr><td class="px" align="center" style="padding:14px 32px 0;">
+<p class="muted" style="margin:0;font-family:${FONT};font-size:14px;line-height:1.5;color:${MUTED};text-align:center;">${escapeHtml(c.hint)}</p>
+</td></tr>`
+    : "";
 
   const html = `<!doctype html>
 <html lang="en" xmlns:o="urn:schemas-microsoft-com:office:office">
@@ -209,7 +351,7 @@ ${FONT_FACES}
 @media (max-width: 600px) {
   .px { padding-left: 24px !important; padding-right: 24px !important; }
   .h1 { font-size: 36px !important; }
-  .h1.h1-invite { font-size: 26px !important; }
+  .h1.h1-invite { font-size: 28px !important; }
 }
 </style>
 <style>
@@ -235,37 +377,28 @@ ${FONT_FACES}
 <tr><td class="px" style="padding:32px 32px 0;">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr>
 <td bgcolor="${NIGHT}" background="${night}" style="padding:32px 28px 40px;border-radius:4px;background-color:${NIGHT};background-image:url(${night});background-size:cover;background-position:center;">
-${logo}
+${wordmark}
 <h1 class="${headingClass}" style="margin:${headingSpace} 0 0;font-family:${FONT};font-size:${headingSize};line-height:1.08;font-weight:900;letter-spacing:-0.025em;color:#ffffff;">${escapeHtml(c.heading)}</h1>
 </td>
 </tr></table>
 </td></tr>
-<tr><td class="px" style="padding:24px 32px 0;">
+<tr><td class="px" style="padding:28px 32px 0;">
 ${c.lead ? `<p class="ink" style="margin:0 0 10px;font-family:${FONT};font-size:18px;line-height:1.35;font-weight:700;color:${INK};">${escapeHtml(c.lead)}</p>` : ""}
-<p class="text" style="margin:0;font-family:${FONT};font-size:16px;line-height:1.55;color:${TEXT};">${escapeHtml(c.body)}</p>
+${c.body ? `<p class="text" style="margin:0 0 ${crowdBlock || stepsTable ? "22px" : "0"};font-family:${FONT};font-size:16px;line-height:1.55;color:${TEXT};">${escapeHtml(c.body)}</p>` : ""}
+${crowdBlock}
+${stepsTable}
+${aside}
 </td></tr>
 <tr><td class="px" style="padding:28px 32px 0;">
-<table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
-<td class="btn" style="border-radius:999px;background-color:${INK};mso-padding-alt:14px 28px;">
-<a href="${url}" target="_blank" style="display:inline-block;padding:14px 28px;font-family:${FONT};font-size:16px;line-height:20px;font-weight:700;color:#ffffff;text-decoration:none;border-radius:999px;">${escapeHtml(c.action.label)}</a>
-</td>
-</tr></table>
+${button}
 </td></tr>
-<tr><td class="px" style="padding:24px 32px 0;">
-<p class="muted" style="margin:0;font-family:${FONT};font-size:14px;line-height:1.55;color:${MUTED};">${escapeHtml(c.note)}</p>
-</td></tr>
-<tr><td class="px" style="padding:24px 32px 0;">
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr>
-<td class="panel" style="padding:14px 16px;border-radius:4px;background-color:${FOG};">
-<p class="muted" style="margin:0 0 6px;font-family:${FONT};font-size:13px;line-height:1.45;color:${MUTED};">Button not working? Paste this link into your browser:</p>
-<p style="margin:0;font-family:${FONT};font-size:13px;line-height:1.45;word-break:break-all;"><a class="ink" href="${url}" target="_blank" style="color:${INK};text-decoration:underline;">${url}</a></p>
-</td>
-</tr></table>
-</td></tr>
+${hintRow}
+${noteRow}
+${fallbackRow}
 <tr><td class="px" style="padding:40px 32px 48px;">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr>
 <td class="line" style="padding-top:20px;border-top:1px solid ${LINE};">
-<p class="muted" style="margin:0;font-family:${FONT};font-size:12px;line-height:1.6;color:${MUTED};"><strong class="ink" style="font-weight:900;color:${INK};">comtor</strong> · Brands meet the right creators.<br><a class="muted" href="${imprint}" target="_blank" style="color:${MUTED};text-decoration:underline;">Imprint</a> · <a class="muted" href="${privacy}" target="_blank" style="color:${MUTED};text-decoration:underline;">Privacy</a></p>
+${footerNote}<p class="muted" style="margin:0;font-family:${FONT};font-size:12px;line-height:1.6;color:${MUTED};"><strong class="ink" style="font-weight:900;color:${INK};">comtor</strong> · Brands meet the right creators.<br><a class="muted" href="${imprint}" target="_blank" style="color:${MUTED};text-decoration:underline;">Imprint</a> · <a class="muted" href="${privacy}" target="_blank" style="color:${MUTED};text-decoration:underline;">Privacy</a></p>
 </td>
 </tr></table>
 </td></tr>
@@ -280,10 +413,14 @@ ${c.lead ? `<p class="ink" style="margin:0 0 10px;font-family:${FONT};font-size:
     c.heading,
     "",
     ...(c.lead ? [c.lead, ""] : []),
-    c.body,
-    "",
+    ...(c.body ? [c.body, ""] : []),
+    ...(c.crowd ? [`${c.crowd.count.toLocaleString("en-US")} ${c.crowd.label}`, ""] : []),
+    ...(c.steps?.map((step, index) => `${index + 1}. ${step.title}\n${step.text}`) ?? []),
+    ...(c.steps?.length ? [""] : []),
+    ...(c.aside ? [c.aside, ""] : []),
     `${c.action.label}: ${c.action.url}`,
     "",
+    ...(c.hint ? [c.hint, ""] : []),
     c.note,
     "",
     "-- ",

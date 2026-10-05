@@ -5,6 +5,7 @@ import {
   testEmail,
   verificationEmail,
   waitlistConfirmationEmail,
+  marketingEntryUrl,
   marketingWelcomeEmail,
   welcomeEmail,
 } from "@/lib/email-templates";
@@ -73,17 +74,40 @@ describe("welcomeEmail", () => {
 
 describe("marketingWelcomeEmail", () => {
   it("speaks to creators and brands separately", () => {
-    const creator = marketingWelcomeEmail("https://www.comtor.app/dashboard/creator", "CREATOR", "A note from comtor", "Mia");
-    const brand = marketingWelcomeEmail("https://www.comtor.app/dashboard/startup/new", "STARTUP", "A note for brands", "Glow");
+    const creator = marketingWelcomeEmail("https://www.comtor.app/?for=creators", "CREATOR", "A note from comtor", "Mia", 24);
+    const brand = marketingWelcomeEmail("https://www.comtor.app/?for=brands", "STARTUP", "A note for brands", "Glow", 3);
+    const one = marketingWelcomeEmail("https://www.comtor.app/?for=creators", "CREATOR", "A note from comtor", "Mia", 1);
     expect(creator.subject).toBe("A note from comtor");
-    expect(creator.text).toContain("Mia, brand collabs just got easier.");
+    expect(creator.text).toContain("Mia, earn money posting TikToks.");
     expect(creator.text).toContain("See paid deals");
+    expect(creator.text).toContain("24 brands already here");
+    expect(creator.html).not.toContain("mock-creator");
+    expect(brand.text).toContain("3 creators already here");
+    expect(one.text).toContain("1 brand already here");
+    expect(creator.html).toContain("/email/icons/swipe.png");
+    expect(brand.html).toContain("/email/icons/megaphone.png");
+    expect(creator.text).toContain("comtor is where brands post a paid deal");
+    expect(creator.text.indexOf("comtor is where brands")).toBeLessThan(creator.text.indexOf("24 brands already here"));
+    expect(creator.text).toContain("1. Swipe a deal.");
+    expect(creator.text).toContain("You keep 90%");
+    expect(creator.text).toContain("No more DMs about your rate.");
+    expect(creator.text).toContain("Signing up is on the page.");
+    expect(brand.text).toContain("Creators in your niche swipe right.");
+    expect(brand.text).toContain("No subscription:");
+    expect(brand.text).toContain("3% on Pro.");
     expect(creator.html).toContain("/email/band-mark.jpg");
     expect(creator.html).not.toContain("mark-white.png");
+    expect(creator.html).not.toContain("Button not working");
+    expect(creator.html.split('href="https://www.comtor.app/?for=creators"')).toHaveLength(2);
     expect(brand.subject).toBe("A note for brands");
-    expect(brand.text).toContain("Glow, find the right creators for your product.");
+    expect(brand.text).toContain("Glow, grow your brand with content creators.");
     expect(brand.text).toContain("Post your first deal");
-    expect(brand.html).toContain("https://www.comtor.app/dashboard/startup/new");
+    expect(brand.html).toContain("https://www.comtor.app/?for=brands");
+  });
+
+  it("opens the landing page on the matching side", () => {
+    expect(marketingEntryUrl("CREATOR")).toContain("/?for=creators");
+    expect(marketingEntryUrl("STARTUP")).toContain("/?for=brands");
   });
 });
 
