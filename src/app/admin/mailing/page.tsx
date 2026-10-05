@@ -48,7 +48,7 @@ export default async function AdminMailingPage() {
         <OutreachList
           side="CREATOR"
           title="Creators"
-          blurb="The headline says their name, then “earn money posting TikToks.” The button opens the creator side of the landing page."
+          blurb="The headline says their name, then “earn money posting on social media.” The button opens the creator side of the landing page."
           addresses={creators}
         />
         <OutreachList
