@@ -32,7 +32,15 @@ export default async function RequestDetailPage({ params }: { params: Promise<{ 
         ...requestPhotoIds,
         interests: {
           include: {
-            creator: { include: { user: true, platforms: true } },
+            // Their name, photo, niches and reach: never the account (email, password hash, 2FA secret).
+            creator: {
+              select: {
+                displayName: true,
+                avatarUrl: true,
+                niches: true,
+                platforms: { select: { platform: true, followerCount: true } },
+              },
+            },
             reviews: { where: { authorRole: "STARTUP" } },
           },
           orderBy: { createdAt: "desc" },
@@ -157,7 +165,6 @@ function toInterestEntry(i: {
     displayName: string;
     avatarUrl: string | null;
     niches: string[];
-    user: { email: string };
     platforms: { platform: string; followerCount: number }[];
   };
   paymentStatus: PaymentStatus | null;
@@ -174,7 +181,6 @@ function toInterestEntry(i: {
     displayName: i.creator.displayName,
     avatarUrl: i.creator.avatarUrl,
     niche: i.creator.niches.join(", "),
-    email: i.creator.user.email,
     platforms: i.creator.platforms,
     paymentStatus: i.paymentStatus,
     paymentStage:

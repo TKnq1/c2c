@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { isBlocked } from "@/lib/moderation";
 
 async function requireStartup() {
   const session = await auth();
@@ -18,6 +19,12 @@ async function requireCreator() {
 
 export async function favoriteCreatorAction(creatorId: string) {
   const startup = await requireStartup();
+  // Only an active creator who hasn't blocked this brand (or the other way round).
+  const creator = await prisma.creatorProfile.findFirst({
+    where: { id: creatorId, user: { suspendedAt: null } },
+    select: { userId: true },
+  });
+  if (!creator || (await isBlocked(startup.userId, creator.userId))) throw new Error("This creator could not be found.");
 
   await prisma.favorite.upsert({
     where: { startupId_creatorId_favoritedByRole: { startupId: startup.id, creatorId, favoritedByRole: "STARTUP" } },
@@ -42,6 +49,11 @@ export async function unfavoriteCreatorAction(creatorId: string) {
 
 export async function favoriteStartupAction(startupId: string) {
   const creator = await requireCreator();
+  const startup = await prisma.startupProfile.findFirst({
+    where: { id: startupId, user: { suspendedAt: null } },
+    select: { userId: true },
+  });
+  if (!startup || (await isBlocked(creator.userId, startup.userId))) throw new Error("This brand could not be found.");
 
   await prisma.favorite.upsert({
     where: {

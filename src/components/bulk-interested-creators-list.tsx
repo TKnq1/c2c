@@ -15,7 +15,6 @@ type InterestEntry = {
   displayName: string;
   avatarUrl: string | null;
   niche: string;
-  email: string;
   platforms: { platform: string; followerCount: number }[];
   paymentStatus: PaymentStatus | null;
   paymentStage: PaymentStage | null;

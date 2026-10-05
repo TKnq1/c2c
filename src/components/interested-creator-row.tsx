@@ -17,7 +17,6 @@ type Props = {
   displayName: string;
   avatarUrl: string | null;
   niche: string;
-  email: string;
   platforms: { platform: string; followerCount: number }[];
   paymentStatus: PaymentStatus | null;
   paymentStage: PaymentStage | null;
@@ -35,7 +34,6 @@ export function InterestedCreatorRow({
   displayName,
   avatarUrl,
   niche,
-  email,
   platforms,
   paymentStatus,
   paymentStage,
@@ -84,9 +82,6 @@ export function InterestedCreatorRow({
           >
             {t("screens.messages.message")}
           </Link>
-          <a href={`mailto:${email}`} className="underline text-neutral-500 dark:text-neutral-400">
-            {email}
-          </a>
         </p>
         <CollabStatus
           paymentStage={paymentStage}

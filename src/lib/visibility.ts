@@ -17,13 +17,29 @@ import { creatorFeedWhere, type FeedCreator, type FeedScope } from "@/lib/feed-s
  * the same Promise.all, and fetching it in here instead would force an
  * extra sequential round-trip after that Promise.all rather than joining it.
  */
-export async function getCreatorFeed(creator: FeedCreator, blockedUserIds: string[], scope: FeedScope) {
+export async function getCreatorFeed(
+  creator: FeedCreator,
+  blockedUserIds: string[],
+  scope: FeedScope,
+  // `requestId` / `startupId` narrow it to one request or one brand, which is how a single request is
+  // checked against the feed. Without either the list is capped: nobody swipes through more than this,
+  // and an unbounded query is a cheap way to slow the database down.
+  options: { requestId?: string; startupId?: string } = {},
+) {
+  const narrowed = options.requestId !== undefined || options.startupId !== undefined;
   return prisma.request.findMany({
-    where: creatorFeedWhere(creator, blockedUserIds, scope),
+    where: {
+      ...creatorFeedWhere(creator, blockedUserIds, scope),
+      ...(options.requestId !== undefined && { id: options.requestId }),
+      ...(options.startupId !== undefined && { startupId: options.startupId }),
+    },
     // Photo ids only (served by /api/request-images), never the legacy
     // data-URI column — a feed would otherwise ship every image inline.
-    include: { startup: true, ...requestPhotoIds },
+    // The brand's public side only: callers pass these rows around, and the whole profile
+    // row carries Stripe ids.
+    include: { startup: { select: { id: true, userId: true, companyName: true, avatarUrl: true } }, ...requestPhotoIds },
     omit: { imageUrl: true },
     orderBy: [{ createdAt: "desc" }, { id: "desc" }],
+    ...(narrowed ? {} : { take: 300 }),
   });
 }

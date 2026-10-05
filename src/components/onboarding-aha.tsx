@@ -178,7 +178,7 @@ export function CreatorAha({
             </li>
           ))}
         </ul>
-        {data.matches > data.top.length && (
+        {data.top.length > 0 && data.matches > data.top.length && (
           <p className="-mt-3 text-center text-sm text-neutral-500 dark:text-neutral-400">
             {t("onboarding.aha.andMore", {
               count: data.matches - data.top.length,
