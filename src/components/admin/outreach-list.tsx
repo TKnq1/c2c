@@ -4,7 +4,14 @@ import { useState, useTransition } from "react";
 import type { OutreachSide } from "@prisma/client";
 import { addOutreachAddressAction, removeOutreachAddressAction, sendOutreachAction } from "@/lib/actions/outreach";
 
-type Address = { id: string; name: string; email: string };
+type Address = { id: string; name: string; email: string; sent: number; opened: number; clicked: number };
+
+function trackLine({ sent, opened, clicked }: Pick<Address, "sent" | "opened" | "clicked">) {
+  if (sent === 0) return null;
+  return [`Sent ${sent}`, opened > 0 ? `Opened ${opened}` : "Not opened", clicked > 0 ? `Clicked ${clicked}` : null]
+    .filter(Boolean)
+    .join(" · ");
+}
 
 export function OutreachList({
   side,
@@ -122,11 +129,14 @@ export function OutreachList({
         <p className="text-sm text-neutral-500">No addresses yet.</p>
       ) : (
         <ul className="rounded bg-fog">
-          {addresses.map((row) => (
+          {addresses.map((row) => {
+            const tracking = trackLine(row);
+            return (
             <li key={row.id} className="flex items-center justify-between gap-3 px-3 py-2.5 [&+&]:border-t [&+&]:border-ink/10">
               <span className="min-w-0">
                 <span className="block truncate text-sm font-medium">{row.name}</span>
                 <span className="block truncate text-footnote text-neutral-500">{row.email}</span>
+                {tracking && <span className="block text-footnote text-neutral-500">{tracking}</span>}
               </span>
               <button
                 type="button"
@@ -137,7 +147,8 @@ export function OutreachList({
                 Remove
               </button>
             </li>
-          ))}
+            );
+          })}
         </ul>
       )}
 
