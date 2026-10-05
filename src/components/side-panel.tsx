@@ -45,11 +45,12 @@ export function SidePanel({
       >
         <div className="flex shrink-0 items-center justify-end gap-1 border-b border-ink/10 px-3 pt-[calc(var(--safe-top)+8px)] pb-2 md:pt-2">
           {fullPageHref && (
+            // Hidden on phones: the panel is already the full screen there.
             // A plain <a>, not <Link>: a client navigation to this URL would
             // be intercepted into the panel again.
             <a
               href={fullPageHref}
-              className="flex h-10 items-center gap-1.5 rounded-full px-3 text-sm text-neutral-500 transition hover:bg-fog hover:text-ink dark:text-neutral-400"
+              className="hidden h-10 items-center gap-1.5 rounded-full px-3 text-sm text-neutral-500 transition hover:bg-fog hover:text-ink md:flex dark:text-neutral-400"
             >
               <IoOpenOutline className="h-4 w-4" aria-hidden />
               {t("screens.ui.openFullPage")}

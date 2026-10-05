@@ -13,6 +13,7 @@ import { notify } from "@/lib/notifications";
 import { flagIfAnomalousOffer } from "@/lib/moderation";
 import { RELEASE_REVIEW_DAYS } from "@/lib/constants";
 import { refundHeldPayment, releaseHeldPayment, type MoneyMoveResult } from "@/lib/payment-release";
+import { recordProposal, settleProposal } from "@/lib/offer-events";
 
 export type PaymentActionState = { error?: string; success?: boolean } | undefined;
 
@@ -43,10 +44,14 @@ function paymentsHref(role: Role) {
   return role === "STARTUP" ? "/dashboard/creator/payments" : "/dashboard/startup/payments";
 }
 
-async function revalidateOfferPaths(requestId: string) {
+async function revalidateOfferPaths(requestId: string, interestId?: string) {
   revalidatePath(`/dashboard/startup/requests/${requestId}`);
   revalidatePath("/dashboard/startup/payments");
   revalidatePath("/dashboard/creator/payments");
+  if (interestId) {
+    revalidatePath("/dashboard/messages");
+    revalidatePath(`/dashboard/messages/${interestId}`);
+  }
 }
 
 // Brand sends the opening offer to one interested creator. No money moves
@@ -83,9 +88,12 @@ export async function sendOfferAction(
   const amountCents = parsed.data.amount;
   const { platformFeeCents, payoutCents } = splitPayment(amountCents, startup.isPro);
 
-  await prisma.interest.update({
-    where: { id: interestId },
-    data: { amountCents, platformFeeCents, payoutCents, paymentStatus: "OFFERED", offerRole: "STARTUP", offeredAt: new Date() },
+  await prisma.$transaction(async (tx) => {
+    await tx.interest.update({
+      where: { id: interestId },
+      data: { amountCents, platformFeeCents, payoutCents, paymentStatus: "OFFERED", offerRole: "STARTUP", offeredAt: new Date() },
+    });
+    await recordProposal(tx, { interestId, role: "STARTUP", amountCents, payoutCents });
   });
 
   // startup.createdAt doubles as account age — the profile is always
@@ -99,8 +107,7 @@ export async function sendOfferAction(
     "payments",
   );
 
-  revalidatePath(`/dashboard/startup/requests/${interest.requestId}`);
-  revalidatePath("/dashboard/startup/payments");
+  await revalidateOfferPaths(interest.requestId, interestId);
   return { success: true };
 }
 
@@ -131,19 +138,25 @@ export async function bulkSendOfferAction(requestId: string, interestIds: string
   const amountCents = parsed.data.amount;
   const { platformFeeCents, payoutCents } = splitPayment(amountCents, startup.isPro);
 
-  await Promise.all(
-    interests.map(async (interest) => {
-      await prisma.interest.update({
+  await prisma.$transaction(async (tx) => {
+    for (const interest of interests) {
+      await tx.interest.update({
         where: { id: interest.id },
         data: { amountCents, platformFeeCents, payoutCents, paymentStatus: "OFFERED", offerRole: "STARTUP", offeredAt: new Date() },
       });
-      await notify(
+      await recordProposal(tx, { interestId: interest.id, role: "STARTUP", amountCents, payoutCents });
+    }
+  });
+
+  await Promise.all(
+    interests.map((interest) =>
+      notify(
         interest.creator.userId,
         `${startup.companyName} sent you an offer of ${formatCents(amountCents)} for "${request.title}"`,
         "/dashboard/creator/payments",
         "payments",
-      );
-    }),
+      ),
+    ),
   );
 
   revalidatePath(`/dashboard/startup/requests/${requestId}`);
@@ -179,9 +192,12 @@ export async function counterOfferAction(
   const amountCents = parsed.data.amount;
   const { platformFeeCents, payoutCents } = splitPayment(amountCents, interest.request.startup.isPro);
 
-  await prisma.interest.update({
-    where: { id: interestId },
-    data: { amountCents, platformFeeCents, payoutCents, offerRole: role, offeredAt: new Date() },
+  await prisma.$transaction(async (tx) => {
+    await tx.interest.update({
+      where: { id: interestId },
+      data: { amountCents, platformFeeCents, payoutCents, offerRole: role, offeredAt: new Date() },
+    });
+    await recordProposal(tx, { interestId, role, amountCents, payoutCents });
   });
 
   // Same account-age signal as the opening offer, just sourced from
@@ -196,7 +212,7 @@ export async function counterOfferAction(
     "payments",
   );
 
-  await revalidateOfferPaths(interest.requestId);
+  await revalidateOfferPaths(interest.requestId, interestId);
   return { success: true };
 }
 
@@ -215,9 +231,12 @@ export async function withdrawOfferAction(interestId: string) {
     throw new Error("This offer isn't yours to withdraw.");
   }
 
-  await prisma.interest.update({
-    where: { id: interestId },
-    data: { paymentStatus: null, amountCents: null, platformFeeCents: null, payoutCents: null, offerRole: null, offeredAt: null },
+  await prisma.$transaction(async (tx) => {
+    await tx.interest.update({
+      where: { id: interestId },
+      data: { paymentStatus: null, amountCents: null, platformFeeCents: null, payoutCents: null, offerRole: null, offeredAt: null },
+    });
+    await settleProposal(tx, interestId, "WITHDRAWN");
   });
 
   await notify(
@@ -227,7 +246,7 @@ export async function withdrawOfferAction(interestId: string) {
     "payments",
   );
 
-  await revalidateOfferPaths(interest.requestId);
+  await revalidateOfferPaths(interest.requestId, interestId);
 }
 
 // Accepts a proposal awaiting the caller's response — this is the moment
@@ -253,9 +272,12 @@ export async function acceptOfferAction(interestId: string) {
   // Not HELD yet — the brand still has to actually pay via Stripe Checkout
   // (createCheckoutSessionAction). Real money only starts existing once the
   // webhook confirms it, regardless of which side clicked accept here.
-  await prisma.interest.update({
-    where: { id: interestId },
-    data: { paymentStatus: "ACCEPTED", acceptedAt: new Date() },
+  await prisma.$transaction(async (tx) => {
+    await tx.interest.update({
+      where: { id: interestId },
+      data: { paymentStatus: "ACCEPTED", acceptedAt: new Date() },
+    });
+    await settleProposal(tx, interestId, "ACCEPTED");
   });
 
   const startupUserId = interest.request.startup.userId;
@@ -276,7 +298,7 @@ export async function acceptOfferAction(interestId: string) {
     );
   }
 
-  await revalidateOfferPaths(interest.requestId);
+  await revalidateOfferPaths(interest.requestId, interestId);
 }
 
 // Brand starts (or resumes) a Stripe Checkout for an accepted offer.
@@ -360,9 +382,12 @@ export async function declineOfferAction(interestId: string) {
     throw new Error("This offer isn't awaiting your response.");
   }
 
-  await prisma.interest.update({
-    where: { id: interestId },
-    data: { paymentStatus: null, amountCents: null, platformFeeCents: null, payoutCents: null, offerRole: null, offeredAt: null },
+  await prisma.$transaction(async (tx) => {
+    await tx.interest.update({
+      where: { id: interestId },
+      data: { paymentStatus: null, amountCents: null, platformFeeCents: null, payoutCents: null, offerRole: null, offeredAt: null },
+    });
+    await settleProposal(tx, interestId, "DECLINED");
   });
 
   await notify(
@@ -372,7 +397,7 @@ export async function declineOfferAction(interestId: string) {
     "payments",
   );
 
-  await revalidateOfferPaths(interest.requestId);
+  await revalidateOfferPaths(interest.requestId, interestId);
 }
 
 // Creator submits the link to their post — this no longer releases

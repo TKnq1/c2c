@@ -8,6 +8,7 @@ import { Avatar } from "@/components/avatar";
 import { MarkThreadRead } from "@/components/mark-thread-read";
 import { ReportBlockActions } from "@/components/report-block-actions";
 import { ChatConversation } from "@/components/chat-conversation";
+import type { ChatOfferTurn } from "@/components/chat-offer";
 import { ChatLiveUpdates } from "@/components/chat-live-updates";
 import { ChatViewport } from "@/components/chat-viewport";
 import { buildCollabTimeline } from "@/lib/collab-timeline";
@@ -28,6 +29,7 @@ export default async function MessageThreadPage({ params }: { params: Promise<{ 
       request: { include: { startup: true } },
       creator: true,
       messages: { orderBy: { createdAt: "asc" } },
+      offerEvents: { orderBy: { createdAt: "asc" } },
       reviews: true,
     },
   });
@@ -87,6 +89,7 @@ export default async function MessageThreadPage({ params }: { params: Promise<{ 
           proofSubmittedAt: interest.proofSubmittedAt?.getTime() ?? null,
           disputed: interest.disputedAt !== null,
           payoutsReady: interest.creator.stripeOnboarded,
+          isCounter: interest.offerEvents.length > 1,
         }
       : null;
   // Only brands open the negotiation, and only while nothing's on the table
@@ -104,6 +107,22 @@ export default async function MessageThreadPage({ params }: { params: Promise<{ 
     disputedAt: interest.disputedAt,
     reviewCount: interest.reviews.length,
     blocked: blockedEitherWay,
+    offerEventCount: interest.offerEvents.length,
+  });
+
+  const offerTurns: ChatOfferTurn[] = interest.offerEvents.flatMap((event, index) => {
+    if (event.outcome !== "SUPERSEDED" && event.outcome !== "DECLINED" && event.outcome !== "WITHDRAWN") return [];
+    return [
+      {
+        id: event.id,
+        at: event.createdAt.getTime(),
+        isMine: event.role === session.user.role,
+        isCounter: index > 0,
+        amountCents: event.amountCents,
+        outcome: event.outcome,
+        otherPartyName: other.name,
+      },
+    ];
   });
 
   return (
@@ -148,6 +167,7 @@ export default async function MessageThreadPage({ params }: { params: Promise<{ 
           requestTitle={interest.request.title}
           blockedNotice={blockedNotice}
           offer={offer}
+          offerTurns={offerTurns}
           makeOffer={makeOffer}
           messages={interest.messages.map((m) => ({
             id: m.id,

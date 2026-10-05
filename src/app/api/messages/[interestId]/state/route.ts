@@ -26,7 +26,7 @@ export async function GET(_req: NextRequest, ctx: RouteContext<"/api/messages/[i
         disputedAt: true,
         creator: { select: { userId: true } },
         request: { select: { startup: { select: { userId: true } } } },
-        _count: { select: { messages: true, reviews: true } },
+        _count: { select: { messages: true, reviews: true, offerEvents: true } },
       },
     }),
     prisma.message.count({ where: { interestId, read: true } }),
@@ -49,6 +49,7 @@ export async function GET(_req: NextRequest, ctx: RouteContext<"/api/messages/[i
     disputedAt: interest.disputedAt,
     reviewCount: interest._count.reviews,
     blocked: await isBlocked(creatorUserId, startupUserId),
+    offerEventCount: interest._count.offerEvents,
   });
 
   return NextResponse.json({ version }, { headers: { "Cache-Control": "no-store" } });
