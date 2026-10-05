@@ -270,17 +270,18 @@ function render(c: Content): Email {
   const steps = (c.steps ?? [])
     .map((step, index) => {
       const last = index === (c.steps?.length ?? 0) - 1;
-      const pad = last ? "0" : "0 0 16px";
-      return `<tr>
-<td valign="middle" width="44" style="width:44px;padding:${pad};">
+      return `<tr><td style="padding:0 0 ${last ? "0" : "10px"};">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr>
+<td class="panel" align="center" bgcolor="${FOG}" style="padding:22px 20px 20px;border-radius:4px;background-color:${FOG};">
 <table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
-<td align="center" valign="middle" width="44" height="44" bgcolor="${FOG}" style="width:44px;height:44px;border-radius:999px;background-color:${FOG};">
-<img src="${SITE_URL}/landing/icons/${step.icon}.png" width="28" height="28" alt="" style="display:block;width:28px;height:28px;border:0;">
+<td class="bg" align="center" valign="middle" width="56" height="56" bgcolor="#ffffff" style="width:56px;height:56px;border-radius:999px;background-color:#ffffff;">
+<img src="${SITE_URL}/landing/icons/${step.icon}.png" width="34" height="34" alt="" style="display:block;width:34px;height:34px;border:0;">
 </td>
 </tr></table>
+<p class="ink" style="margin:14px 0 0;font-family:${FONT};font-size:16px;line-height:1.4;font-weight:700;color:${INK};text-align:center;">${escapeHtml(step.text)}</p>
 </td>
-<td class="text" valign="middle" style="padding:${pad};padding-left:14px;font-family:${FONT};font-size:16px;line-height:1.45;color:${TEXT};">${escapeHtml(step.text)}</td>
-</tr>`;
+</tr></table>
+</td></tr>`;
     })
     .join("\n");
   const stepsTable = steps
