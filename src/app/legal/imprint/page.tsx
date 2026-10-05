@@ -4,7 +4,7 @@ import { canonical } from "@/lib/seo";
 export const metadata: Metadata = { title: "Imprint", alternates: canonical("/legal/imprint") };
 
 const ROWS: { label: string; lines: string[] }[] = [
-  { label: "Service provider", lines: ["Teethawat Kanpai", "Sonnenscheinpfad 64", "12277 Berlin, Germany"] },
+  { label: "Service provider", lines: ["Teethawat Kanpai", "Sole trader (Einzelunternehmen)", "Sonnenscheinpfad 64", "12277 Berlin, Germany"] },
   { label: "Contact", lines: ["info@comtor.app", "+49 172 4134526"] },
   { label: "Responsible for content", lines: ["Teethawat Kanpai, address as above (§ 18 (2) MStV)"] },
 ];
