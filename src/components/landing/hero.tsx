@@ -13,7 +13,7 @@ const delay = (ms: number) => ({ "--lp-delay": `${ms}ms` }) as React.CSSProperti
 // The headline over the thing itself: creators get the Feed to swipe,
 // brands the card they'd post, live. Either way the photo in play colours
 // the whole section.
-export function Hero() {
+export function Hero({ brands, creators }: { brands: number; creators: number }) {
   const [creatorPhoto, setCreatorPhoto] = useState<PhotoKey>(FIRST_PHOTO);
   const [brandPhoto, setBrandPhoto] = useState<PhotoKey>("flask");
 
@@ -71,6 +71,9 @@ export function Hero() {
           approved the post.
         </p>
 
+        <CrowdLine side="creator" count={brands} singular="brand" plural="brands" />
+        <CrowdLine side="brand" count={creators} singular="creator" plural="creators" />
+
         {/* Phones: the nav has Log in where Get the app is on bigger
             screens, so the button sits here, with a word on the web app. */}
         <div className="lp-rise mt-7 flex flex-col items-center gap-2.5 sm:hidden" style={delay(330)}>
@@ -104,5 +107,29 @@ export function Hero() {
         </p>
       </div>
     </section>
+  );
+}
+
+function CrowdLine({
+  side,
+  count,
+  singular,
+  plural,
+}: {
+  side: "creator" | "brand";
+  count: number;
+  singular: string;
+  plural: string;
+}) {
+  const word = count === 1 ? singular : plural;
+  return (
+    <p
+      data-for={side}
+      className="lp-rise mt-5 text-[15px] font-medium text-neutral-800 md:text-base dark:text-neutral-200"
+      style={delay(300)}
+    >
+      <span className="font-display text-[1.65rem] font-black tabular-nums tracking-tight">{count.toLocaleString("en-US")}</span>{" "}
+      {word} already here
+    </p>
   );
 }
