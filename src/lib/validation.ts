@@ -5,7 +5,25 @@ const nicheEnum = z.enum([...NICHES]);
 const platformEnum = z.enum([...PLATFORMS]);
 const productCategoryEnum = z.enum([...PRODUCT_CATEGORIES]);
 const languageEnum = z.enum([...LANGUAGES]);
-const optionalUrl = z.string().trim().url("Please enter a valid URL").or(z.literal(""));
+// Links other people will open: http(s) only. new URL() (what .url() checks) also accepts
+// javascript:, data:, file: and ftp:, none of which belongs in a profile.
+const httpUrl = z
+  .string()
+  .trim()
+  .max(500, "That link is too long")
+  .url("Please enter a valid URL")
+  .refine((value) => /^https?:\/\//i.test(value), "Use a link starting with https://");
+
+const optionalUrl = httpUrl.or(z.literal(""));
+
+// Emails are compared in lower case everywhere, so "Ana@x.com" and "ana@x.com" are one account.
+export const emailField = z.string().trim().toLowerCase().max(254).email();
+
+// 10 to 128 characters (bcrypt only looks at the first 72 bytes; the cap keeps absurd input out).
+export const passwordField = z
+  .string()
+  .min(10, "Password must be at least 10 characters")
+  .max(128, "Password can be at most 128 characters");
 
 // Dynamic-length rows (platforms, social links) are built client-side and
 // submitted as a JSON string in one hidden field, since a plain <form> has
@@ -32,7 +50,7 @@ const platformEntrySchema = z.object({
     .string({ error: "Add the link to each of your profiles." })
     .trim()
     .min(1, "Add the link to each of your profiles.")
-    .url("Please enter a valid profile link"),
+    .pipe(httpUrl),
 });
 
 const platformsField = jsonField(
@@ -47,7 +65,7 @@ const platformsField = jsonField(
 
 const socialLinkEntrySchema = z.object({
   platform: platformEnum,
-  url: z.string().trim().url("Please enter a valid URL"),
+  url: httpUrl,
 });
 
 const socialLinksField = jsonField(
@@ -59,9 +77,11 @@ const socialLinksField = jsonField(
     ),
 );
 
+// Existing accounts may have shorter passwords than new ones are allowed to, so signing in
+// only asks for something to check.
 export const loginSchema = z.object({
-  email: z.string().email(),
-  password: z.string().min(8),
+  email: emailField,
+  password: z.string().min(1).max(256),
 });
 
 // Just enough to create the account — everything role-specific (company
@@ -70,8 +90,8 @@ export const loginSchema = z.object({
 // this short.
 export const signupSchema = z.object({
   role: z.enum(["STARTUP", "CREATOR"]),
-  email: z.string().email(),
-  password: z.string().min(8),
+  email: emailField,
+  password: passwordField,
 });
 
 export const onboardingCompanyNameSchema = z.object({
@@ -255,11 +275,11 @@ export const reviewSchema = z.object({
 
 export const changePasswordSchema = z.object({
   currentPassword: z.string().min(1, "Enter your current password"),
-  newPassword: z.string().min(8, "New password must be at least 8 characters"),
+  newPassword: passwordField,
 });
 
 export const forgotPasswordSchema = z.object({
-  email: z.string().email(),
+  email: emailField,
 });
 
 export const totpCodeSchema = z.object({
@@ -275,5 +295,5 @@ export const disableTwoFactorSchema = z.object({
 });
 
 export const resetPasswordSchema = z.object({
-  password: z.string().min(8, "Password must be at least 8 characters"),
+  password: passwordField,
 });
