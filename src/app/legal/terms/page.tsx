@@ -3,6 +3,8 @@ import { PLATFORM_FEE_RATE, PRO_PLATFORM_FEE_RATE, PRO_SUBSCRIPTION_PRICE_CENTS,
 import { formatCents } from "@/lib/format";
 import { LegalDocument } from "@/components/legal-document";
 import { canonical } from "@/lib/seo";
+import { getLocale } from "@/lib/i18n/server";
+import { deTerms } from "@/lib/legal/de";
 
 export const metadata: Metadata = { title: "Terms of Service", alternates: canonical("/legal/terms") };
 
@@ -10,7 +12,7 @@ const SECTIONS: { title: string; body: string[] }[] = [
   {
     title: "Scope and operator",
     body: [
-      "These terms apply to your use of comtor (comtor.app). The operator is Teethawat Kanpai, a sole trader in Berlin, Germany (see Imprint). Creating an account means you agree to these terms.",
+      "These terms apply to your use of comtor (comtor.app). The operator is Teethawat Kanpai, a sole trader in Berlin, Germany (see Imprint). Creating an account means you agree to these terms. For users in Germany, the German version of these terms is the one that applies.",
       "comtor is the technical platform only. A collaboration is a contract between the brand and the creator. The operator is not a party to it, does not employ the creator, and does not sell the brand's product.",
     ],
   },
@@ -96,6 +98,13 @@ const SECTIONS: { title: string; body: string[] }[] = [
   },
 ];
 
-export default function TermsPage() {
-  return <LegalDocument title="Terms of Service" updated="October 5, 2026" sections={SECTIONS} />;
+export default async function TermsPage() {
+  const german = (await getLocale()) === "de";
+  return (
+    <LegalDocument
+      title={german ? "Allgemeine Geschäftsbedingungen" : "Terms of Service"}
+      updated={german ? "5. Oktober 2026" : "October 5, 2026"}
+      sections={german ? deTerms() : SECTIONS}
+    />
+  );
 }

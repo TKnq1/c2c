@@ -674,6 +674,7 @@ export const screens = {
     badCode: "Incorrect code. Please try again.",
     emailTaken: "This email is already registered.",
     fillFields: "Please fill in all fields correctly.",
+    acceptTerms: "Please accept the terms and the privacy policy.",
     notAuthorized: "Not authorized.",
   },
   ui: {
@@ -764,6 +765,7 @@ export const screens = {
     getStarted: "Get started as a brand or a creator.",
     alreadyAccount: "Already have an account?",
     agreeLead: "By signing up you agree to our",
+    agreeCheck: "I have read and I agree to the",
     andWord: "and",
     resetTitle: "Reset your password",
     resetHint: "Enter your account email.",

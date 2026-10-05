@@ -670,6 +670,7 @@ export const screensDe: DeepString<typeof screens> = {
     badCode: "Code ist falsch. Bitte erneut versuchen.",
     emailTaken: "Diese E-Mail ist schon registriert.",
     fillFields: "Bitte alle Felder richtig ausfüllen.",
+    acceptTerms: "Bitte stimme den AGB und der Datenschutzerklärung zu.",
     notAuthorized: "Nicht berechtigt.",
   },
   ui: {
@@ -760,6 +761,7 @@ export const screensDe: DeepString<typeof screens> = {
     getStarted: "Leg los als Marke oder Creator.",
     alreadyAccount: "Schon ein Konto?",
     agreeLead: "Mit der Registrierung stimmst du unseren",
+    agreeCheck: "Ich habe die folgenden Texte gelesen und stimme zu:",
     andWord: "und",
     resetTitle: "Passwort zurücksetzen",
     resetHint: "Gib die E-Mail deines Kontos ein.",

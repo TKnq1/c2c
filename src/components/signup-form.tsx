@@ -3,6 +3,7 @@
 import { useActionState, useState } from "react";
 import { signupAction } from "@/lib/actions/auth";
 import { NewPasswordField } from "@/components/new-password-field";
+import { TermsConsent } from "@/components/terms-consent";
 import { PLATFORM_FEE_RATE, PRO_PLATFORM_FEE_RATE, RELEASE_REVIEW_DAYS } from "@/lib/constants";
 
 import type { SignupRole } from "@/lib/signup-role";
@@ -87,6 +88,7 @@ export function SignupForm({ role: controlledRole, onRoleChange, initialRole = n
         />
       </div>
       <NewPasswordField name="password" />
+      <TermsConsent />
 
       {state?.error && <p className="text-sm text-ink">{localizeError(state.error, t)}</p>}
       <button

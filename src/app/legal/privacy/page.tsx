@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { LegalDocument } from "@/components/legal-document";
 import { canonical } from "@/lib/seo";
+import { getLocale } from "@/lib/i18n/server";
+import { DE_PRIVACY } from "@/lib/legal/de";
 
 export const metadata: Metadata = { title: "Privacy Policy", alternates: canonical("/legal/privacy") };
 
@@ -37,7 +39,7 @@ const SECTIONS: { title: string; body: string[] }[] = [
     title: "Emails we send you",
     body: [
       "Account emails (verification, password reset, a changed password) are sent because you have an account (Art. 6(1)(b) GDPR). They go out through Resend.",
-      "If we write to you about comtor before you have an account, we store the name and email address, the message we sent, and, where the email service records it, whether the message was opened or a link was clicked. We use that to send the note and to see whether it arrived (Art. 6(1)(f) GDPR). You can object at any time by writing to info@comtor.app, and we will stop and delete that address.",
+      "We do not send promotional email to private individuals without their prior consent. An address saved on a list does not by itself allow that. Business notes go only to business contacts, and only where the law allows it. For those we store the name and email address, the message we sent, and, where the email service records it, whether it was opened or a link was clicked (Art. 6(1)(f) GDPR). You can object at any time, with the link in the email or by writing to info@comtor.app. We then delete the address and stop writing.",
     ],
   },
   {
@@ -93,13 +95,18 @@ const SECTIONS: { title: string; body: string[] }[] = [
   },
 ];
 
-export default function PrivacyPage() {
+export default async function PrivacyPage() {
+  const german = (await getLocale()) === "de";
   return (
     <LegalDocument
-      title="Privacy Policy"
-      updated="October 5, 2026"
-      intro="What personal data comtor processes, why, and what rights you have."
-      sections={SECTIONS}
+      title={german ? "Datenschutzerklärung" : "Privacy Policy"}
+      updated={german ? "5. Oktober 2026" : "October 5, 2026"}
+      intro={
+        german
+          ? "Welche personenbezogenen Daten comtor verarbeitet, warum, und welche Rechte du hast."
+          : "What personal data comtor processes, why, and what rights you have."
+      }
+      sections={german ? DE_PRIVACY : SECTIONS}
     />
   );
 }

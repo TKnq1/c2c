@@ -44,6 +44,7 @@ const ERROR_KEYS: Record<string, MessageKey> = {
   "Incorrect code. Please try again.": "screens.errors.badCode",
   "This email is already registered.": "screens.errors.emailTaken",
   "Please fill in all fields correctly.": "screens.errors.fillFields",
+  "Please accept the terms and the privacy policy.": "screens.errors.acceptTerms",
   "Not authorized.": "screens.errors.notAuthorized",
 };
 

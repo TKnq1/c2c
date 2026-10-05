@@ -8,6 +8,7 @@ import { hasAdminAccess } from "@/lib/admin-access";
 import { prisma } from "@/lib/prisma";
 import { sendEmail } from "@/lib/email";
 import { marketingEntryUrl, marketingWelcomeEmail } from "@/lib/email-templates";
+import { outreachOptOutUrl } from "@/lib/outreach-opt-out";
 import { landingCrowd } from "@/lib/landing-crowd";
 
 const PATH = "/admin/mailing";
@@ -83,7 +84,7 @@ export async function sendOutreachAction(
     const failed: { email: string; error: string }[] = [];
     let sent = 0;
     for (const row of rows) {
-      const message = marketingWelcomeEmail(url, side, subject.data, row.name, count);
+      const message = marketingWelcomeEmail(url, side, subject.data, row.name, count, outreachOptOutUrl(row.email, side));
       const result = await sendEmail({ to: row.email, ...message });
       if (!result.ok) {
         failed.push({ email: row.email, error: result.error });
