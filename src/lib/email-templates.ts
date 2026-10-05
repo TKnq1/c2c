@@ -225,6 +225,8 @@ const LINE = "#e5e5e5";
 const DARK = { paper: "#1e1e1e", fog: "#2d2d2d", text: "#d4d4d4", muted: "#a3a3a3" };
 // The video's backdrop, under its grain image (public/email/band-dark.jpg).
 const NIGHT = "#0b0b0b";
+// One step off pure white. Gmail rewrites #ffffff on a heading to black.
+const ON_NIGHT = "#fffffe";
 
 const FONT = "Lato, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif";
 
@@ -265,7 +267,7 @@ function render(c: Content): Email {
     ? ""
     : `<img src="${SITE_URL}/email/mark-white.png" width="48" height="32" alt="comtor" style="display:block;width:48px;height:32px;border:0;">`;
   const wordmark = c.invite
-    ? `<p style="margin:0;font-family:${FONT};font-size:15px;line-height:1;font-weight:900;letter-spacing:-0.03em;color:#ffffff;">comtor</p>`
+    ? `<p class="on-night" style="margin:0;font-family:${FONT};font-size:15px;line-height:1;font-weight:900;letter-spacing:-0.03em;color:${ON_NIGHT};">comtor</p>`
     : logo;
   const headingSpace = c.invite ? "36px" : c.watermark ? "48px" : "88px";
   const headingSize = c.watermark ? "32px" : "42px";
@@ -273,12 +275,12 @@ function render(c: Content): Email {
   const button = c.invite
     ? `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr>
 <td class="btn" align="center" style="border-radius:999px;background-color:${INK};mso-padding-alt:16px 28px;">
-<a href="${url}" target="_blank" style="display:block;padding:16px 28px;font-family:${FONT};font-size:16px;line-height:20px;font-weight:700;color:#ffffff;text-decoration:none;border-radius:999px;text-align:center;">${escapeHtml(c.action.label)}</a>
+<a href="${url}" target="_blank" style="display:block;padding:16px 28px;font-family:${FONT};font-size:16px;line-height:20px;font-weight:700;color:${ON_NIGHT};text-decoration:none;border-radius:999px;text-align:center;">${escapeHtml(c.action.label)}</a>
 </td>
 </tr></table>`
     : `<table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
 <td class="btn" style="border-radius:999px;background-color:${INK};mso-padding-alt:14px 28px;">
-<a href="${url}" target="_blank" style="display:inline-block;padding:14px 28px;font-family:${FONT};font-size:16px;line-height:20px;font-weight:700;color:#ffffff;text-decoration:none;border-radius:999px;">${escapeHtml(c.action.label)}</a>
+<a href="${url}" target="_blank" style="display:inline-block;padding:14px 28px;font-family:${FONT};font-size:16px;line-height:20px;font-weight:700;color:${ON_NIGHT};text-decoration:none;border-radius:999px;">${escapeHtml(c.action.label)}</a>
 </td>
 </tr></table>`;
   const noteRow = c.invite
@@ -340,8 +342,8 @@ function render(c: Content): Email {
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="x-apple-disable-message-reformatting">
 <meta name="format-detection" content="telephone=no, date=no, address=no, email=no, url=no">
-<meta name="color-scheme" content="light dark">
-<meta name="supported-color-schemes" content="light dark">
+<meta name="color-scheme" content="light only">
+<meta name="supported-color-schemes" content="light">
 <title>${escapeHtml(c.subject)}</title>
 <!--[if mso]><noscript><xml><o:OfficeDocumentSettings><o:PixelsPerInch>96</o:PixelsPerInch></o:OfficeDocumentSettings></xml></noscript><![endif]-->
 <style>
@@ -353,6 +355,7 @@ ${FONT_FACES}
   .h1 { font-size: 36px !important; }
   .h1.h1-invite { font-size: 28px !important; }
 }
+.on-night { color: ${ON_NIGHT} !important; }
 </style>
 <style>
 @media (prefers-color-scheme: dark) {
@@ -364,6 +367,7 @@ ${FONT_FACES}
   .line { border-color: ${DARK.fog} !important; }
   .btn { background-color: #ffffff !important; }
   .btn a { color: ${INK} !important; }
+  .on-night { color: ${ON_NIGHT} !important; }
 }
 </style>
 <!--[if mso]><style>h1, p, a, td { font-family: Arial, Helvetica, sans-serif !important; }</style><![endif]-->
@@ -378,7 +382,7 @@ ${FONT_FACES}
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr>
 <td bgcolor="${NIGHT}" background="${night}" style="padding:32px 28px 40px;border-radius:4px;background-color:${NIGHT};background-image:url(${night});background-size:cover;background-position:center;">
 ${wordmark}
-<h1 class="${headingClass}" style="margin:${headingSpace} 0 0;font-family:${FONT};font-size:${headingSize};line-height:1.08;font-weight:900;letter-spacing:-0.025em;color:#ffffff;">${escapeHtml(c.heading)}</h1>
+<p class="${headingClass} on-night" style="margin:${headingSpace} 0 0;font-family:${FONT};font-size:${headingSize};line-height:1.08;font-weight:900;letter-spacing:-0.025em;color:${ON_NIGHT};">${escapeHtml(c.heading)}</p>
 </td>
 </tr></table>
 </td></tr>
