@@ -15,8 +15,8 @@ const STRENGTH_KEYS: MessageKey[] = [
 
 function getStrength(pw: string): { score: number } {
   let score = 0;
-  if (pw.length >= 8) score++;
-  if (pw.length >= 12) score++;
+  if (pw.length >= 10) score++;
+  if (pw.length >= 14) score++;
   if (/[a-z]/.test(pw) && /[A-Z]/.test(pw)) score++;
   if (/\d/.test(pw)) score++;
   if (/[^A-Za-z0-9]/.test(pw)) score++;
@@ -52,7 +52,8 @@ export function NewPasswordField({ name, label, className }: { name: string; lab
         name={name}
         type="password"
         required
-        minLength={8}
+        minLength={10}
+        maxLength={128}
         value={password}
         onChange={(e) => setPassword(e.target.value)}
         className={`rounded border border-neutral-300 px-3 py-2.5 dark:border-neutral-700 ${className ?? ""}`}

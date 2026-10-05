@@ -5,7 +5,6 @@ import { cookies } from "next/headers";
 import { after } from "next/server";
 import { AuthError } from "next-auth";
 import { Prisma } from "@prisma/client";
-import bcrypt from "bcryptjs";
 import { signIn } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { processAvatarUpload } from "@/lib/avatar-upload";
@@ -16,9 +15,10 @@ import { LOCALE_COOKIE, parseLocale } from "@/lib/i18n/locales";
 import { isSignupRateLimited, logSignupAttempt, SIGNUP_RATE_LIMIT_MESSAGE } from "@/lib/login-security";
 import { notifyBrandsAboutCreator } from "@/lib/onboarding-notify";
 import { SITE_URL } from "@/lib/site";
+import { hashPassword } from "@/lib/password";
+import { hashToken, newToken } from "@/lib/tokens";
 import { guestBrandSignupSchema, guestCreatorSignupSchema } from "@/lib/validation";
 import type { OnboardingState } from "@/lib/actions/onboarding";
-import { randomBytes } from "crypto";
 
 function field(formData: FormData, name: string): string {
   const value = formData.get(name);
@@ -79,7 +79,7 @@ export async function signupFromDraftAction(_prevState: OnboardingState, formDat
   if (existing) return { error: "This email is already registered." };
 
   try {
-    const passwordHash = await bcrypt.hash(account.password, 10);
+    const passwordHash = await hashPassword(account.password);
     if (creatorParsed?.success) {
       const data = creatorParsed.data;
       const maxFollowers = data.platforms.reduce((max, p) => Math.max(max, p.followerCount), 0);
@@ -165,9 +165,9 @@ async function signInWithoutLeaving(email: string, password: string): Promise<On
 }
 
 async function sendWelcome(userId: string, email: string, welcomeAs: "CREATOR" | "STARTUP") {
-  const token = randomBytes(32).toString("hex");
+  const token = newToken();
   await prisma.emailVerificationToken.create({
-    data: { userId, token, expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000) },
+    data: { userId, tokenHash: hashToken(token), expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000) },
   });
   await sendEmail({ to: email, ...welcomeEmail(`${SITE_URL}/verify-email/${token}`, welcomeAs) });
 }

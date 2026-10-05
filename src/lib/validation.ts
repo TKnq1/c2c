@@ -291,7 +291,9 @@ export const deleteAccountSchema = z.object({
 });
 
 export const disableTwoFactorSchema = z.object({
-  password: z.string().min(1, "Enter your current password"),
+  password: z.string().min(1, "Enter your current password").max(256),
+  // An authenticator code or a recovery code.
+  code: z.string().trim().min(1, "Enter a code from your authenticator app").max(32),
 });
 
 export const resetPasswordSchema = z.object({

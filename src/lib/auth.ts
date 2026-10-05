@@ -1,9 +1,9 @@
 import NextAuth from "next-auth";
 import Credentials from "next-auth/providers/credentials";
-import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
 import { loginSchema } from "@/lib/validation";
-import { verifyTotpCode } from "@/lib/totp";
+import { verifyPassword } from "@/lib/password";
+import { consumeTotpCode } from "@/lib/totp-login";
 import { verifyAndConsumeRecoveryCode } from "@/lib/recovery-codes";
 import { isRateLimited, logLoginAttempt } from "@/lib/login-security";
 import { isSessionRevoked } from "@/lib/session-revocation";
@@ -11,11 +11,11 @@ import { writeLocaleCookie } from "@/lib/i18n/cookie";
 import { parseLocale } from "@/lib/i18n/locales";
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
-  // A year, and every visit starts the year over: people stay logged in for
-  // as long as they use comtor at all. Changing the password logs out every
-  // other device (sessionsRevokedAt, below), so a lost phone doesn't stay
-  // in for a year.
-  session: { strategy: "jwt", maxAge: 60 * 60 * 24 * 365 },
+  // 30 days, renewed once a day while someone keeps using comtor: people stay
+  // logged in as long as they use it, and a stolen cookie doesn't outlive a
+  // month of silence. Logging out (revokedSession, below) and changing the
+  // password (sessionsRevokedAt) end a session on the server.
+  session: { strategy: "jwt", maxAge: 60 * 60 * 24 * 30, updateAge: 60 * 60 * 24 },
   pages: { signIn: "/login" },
   providers: [
     Credentials({
@@ -38,14 +38,10 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         if (await isRateLimited(email)) return null;
 
         const user = await prisma.user.findUnique({ where: { email } });
-        if (!user) {
-          await logLoginAttempt({ email, succeeded: false });
-          return null;
-        }
-
-        const validPassword = await bcrypt.compare(password, user.passwordHash);
-        if (!validPassword) {
-          await logLoginAttempt({ email, succeeded: false, userId: user.id });
+        // The same bcrypt work whether or not the address has an account (see password.ts).
+        const validPassword = await verifyPassword(user, password);
+        if (!user || !validPassword) {
+          await logLoginAttempt({ email, succeeded: false, userId: user?.id });
           return null;
         }
 
@@ -55,9 +51,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         }
 
         if (user.totpEnabled) {
-          const validCode =
-            (user.totpSecret ? verifyTotpCode(user.totpSecret, code) : false) ||
-            (await verifyAndConsumeRecoveryCode(user.id, code));
+          const validCode = (await consumeTotpCode(user, code)) || (await verifyAndConsumeRecoveryCode(user.id, code));
           if (!validCode) {
             await logLoginAttempt({ email, succeeded: false, userId: user.id });
             return null;
@@ -126,6 +120,10 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         // Nothing here trusts the session update endpoint, so a copied
         // cookie can't refresh itself back in.
         if (isSessionRevoked(token, current)) return null;
+        // Logged out on purpose (logoutAction): the cookie itself stays cryptographically valid.
+        if (typeof token.sid === "string" && (await prisma.revokedSession.findUnique({ where: { sid: token.sid } }))) {
+          return null;
+        }
         // Admin access granted or taken away in the database applies
         // without signing out and back in.
         token.role = current.role;

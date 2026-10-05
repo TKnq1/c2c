@@ -118,7 +118,7 @@ export const screensFr: DeepString<typeof screens> = {
     exportHint: "Tout ce qu’il y a dans ton compte, en fichier JSON.",
     danger: "Zone sensible",
     deleteAccount: "Supprimer le compte",
-    deleteHint: "Supprime définitivement ton compte et tout ce qu’il contient.",
+    deleteHint: "Supprime définitivement ton compte et tes données personnelles. Les justificatifs de paiement à conserver restent, anonymisés.", signOutEverywhere: "Se déconnecter partout ailleurs", signOutEverywhereHint: "Met fin à toutes les autres connexions de ton compte. Tu restes connecté ici.", signOutEverywhereTitle: "Se déconnecter sur tous les autres appareils ?", signOutEverywhereBody: "Toute personne connectée à ton compte sur un autre téléphone ou ordinateur est déconnectée en quelques minutes. Utilise-le si tu as perdu un appareil.", signOutEverywhereConfirm: "Déconnecter", signedOutEverywhere: "Déconnecté partout ailleurs.",
     deleteTitle: "Supprimer ton compte ?",
     deleteBody: "Cela supprime définitivement ton compte et tout ce qui y est lié : profil, demandes ou intérêts, messages, avis, historique de paiement. C’est irréversible.",
     yourPassword: "Ton mot de passe",

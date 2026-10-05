@@ -181,7 +181,7 @@ export const screens = {
     exportHint: "Everything in your account, as a JSON file.",
     danger: "Danger zone",
     deleteAccount: "Delete account",
-    deleteHint: "Permanently removes your account and everything in it.",
+    deleteHint: "Permanently removes your account and your personal data. Payment records that have to be kept stay, anonymised.", signOutEverywhere: "Sign out everywhere else", signOutEverywhereHint: "Ends every other login of your account. You stay signed in here.", signOutEverywhereTitle: "Sign out on all other devices?", signOutEverywhereBody: "Anyone signed in to your account on another phone or computer is signed out within minutes. Use this if you lost a device.", signOutEverywhereConfirm: "Sign them out", signedOutEverywhere: "Signed out everywhere else.",
     deleteTitle: "Delete your account?",
     deleteBody:
       "This permanently deletes your account and everything tied to it: profile, requests or interests, messages, reviews, payment history. It can't be undone.",

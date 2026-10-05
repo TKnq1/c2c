@@ -181,7 +181,7 @@ export const screensDe: DeepString<typeof screens> = {
     exportHint: "Alles in deinem Konto, als JSON-Datei.",
     danger: "Gefahrenzone",
     deleteAccount: "Konto löschen",
-    deleteHint: "Entfernt dein Konto und alles darin dauerhaft.",
+    deleteHint: "Entfernt dein Konto und deine persönlichen Daten dauerhaft. Zahlungsbelege, die aufbewahrt werden müssen, bleiben anonymisiert erhalten.", signOutEverywhere: "Überall sonst abmelden", signOutEverywhereHint: "Beendet jede andere Anmeldung deines Kontos. Hier bleibst du angemeldet.", signOutEverywhereTitle: "Auf allen anderen Geräten abmelden?", signOutEverywhereBody: "Wer mit deinem Konto auf einem anderen Handy oder Computer angemeldet ist, wird innerhalb weniger Minuten abgemeldet. Nutze das, wenn du ein Gerät verloren hast.", signOutEverywhereConfirm: "Abmelden", signedOutEverywhere: "Überall sonst abgemeldet.",
     deleteTitle: "Konto löschen?",
     deleteBody: "Das löscht dein Konto und alles daran dauerhaft: Profil, Anfragen oder Interessen, Nachrichten, Bewertungen, Zahlungsverlauf. Das lässt sich nicht rückgängig machen.",
     yourPassword: "Dein Passwort",

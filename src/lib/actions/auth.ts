@@ -1,10 +1,8 @@
 "use server";
 
-import { randomBytes } from "crypto";
 import { redirect } from "next/navigation";
 import { after } from "next/server";
 import { AuthError } from "next-auth";
-import bcrypt from "bcryptjs";
 import type { Role } from "@prisma/client";
 import { signIn, signOut, auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
@@ -13,11 +11,14 @@ import {
   logLoginAttempt,
   RATE_LIMIT_MESSAGE,
   isPasswordResetRateLimited,
-  RESET_RATE_LIMIT_MESSAGE,
   isSignupRateLimited,
   logSignupAttempt,
   SIGNUP_RATE_LIMIT_MESSAGE,
+  takeResetRequestToken,
 } from "@/lib/login-security";
+import { hashPassword, verifyPassword } from "@/lib/password";
+import { hashToken, newToken } from "@/lib/tokens";
+import { DAY, MINUTE, takeToken } from "@/lib/rate-limit";
 import { sendEmail } from "@/lib/email";
 import { passwordChangedEmail, passwordResetEmail, verificationEmail, welcomeEmail } from "@/lib/email-templates";
 import { SITE_URL } from "@/lib/site";
@@ -60,7 +61,8 @@ export async function checkLoginAction(_prevState: CheckLoginState, formData: Fo
   }
 
   const user = await prisma.user.findUnique({ where: { email } });
-  const valid = user ? await bcrypt.compare(password, user.passwordHash) : false;
+  // The same bcrypt work whether or not the address has an account (see password.ts).
+  const valid = await verifyPassword(user, password);
 
   if (!user || !valid) {
     await logLoginAttempt({ email, succeeded: false, userId: user?.id });
@@ -121,7 +123,7 @@ export async function signupAction(_prevState: ActionState, formData: FormData):
     return { error: "This email is already registered." };
   }
 
-  const passwordHash = await bcrypt.hash(data.password, 10);
+  const passwordHash = await hashPassword(data.password);
 
   const user =
     data.role === "STARTUP"
@@ -163,8 +165,27 @@ export async function signupAction(_prevState: ActionState, formData: FormData):
 }
 
 export async function logoutAction() {
+  // Ending the session on the server too: the cookie is a signed token that would otherwise stay
+  // valid until it expires, for whoever copied it.
+  const session = await auth();
+  if (session?.sid) {
+    await prisma.revokedSession
+      .create({ data: { sid: session.sid, expiresAt: new Date(Date.now() + 31 * DAY) } })
+      .catch(() => undefined);
+  }
   // Not "/" — the landing page was pulled while someone else rebuilds it.
   await signOut({ redirectTo: "/login" });
+}
+
+// Every session of this account except the one that asks, e.g. after losing a phone.
+export async function signOutEverywhereAction(): Promise<{ error?: string; success?: boolean }> {
+  const session = await auth();
+  if (!session) return { error: "Not authorized." };
+  await prisma.user.update({
+    where: { id: session.user.id },
+    data: { sessionsRevokedAt: new Date(), keptSessionId: session.sid || null },
+  });
+  return { success: true };
 }
 
 export type PasswordActionState = { error?: string; success?: boolean } | undefined;
@@ -181,11 +202,16 @@ export async function changePasswordAction(
     return { error: parsed.error.issues[0]?.message ?? "Please fill in both fields correctly." };
   }
 
+  // This checks a password on behalf of whoever holds the session: without a limit a stolen cookie
+  // is a way to guess the password.
+  if (!(await takeToken("password-check", session.user.id, 5, 15 * MINUTE))) {
+    return { error: "Too many attempts. Try again in 15 minutes." };
+  }
   const user = await prisma.user.findUniqueOrThrow({ where: { id: session.user.id } });
-  const valid = await bcrypt.compare(parsed.data.currentPassword, user.passwordHash);
+  const valid = await verifyPassword(user, parsed.data.currentPassword);
   if (!valid) return { error: "Current password is incorrect." };
 
-  const passwordHash = await bcrypt.hash(parsed.data.newPassword, 10);
+  const passwordHash = await hashPassword(parsed.data.newPassword);
   // Every other device is logged out within minutes; this one stays.
   await prisma.user.update({
     where: { id: user.id },
@@ -208,16 +234,18 @@ export async function requestPasswordResetAction(
   const parsed = forgotPasswordSchema.safeParse(Object.fromEntries(formData));
   if (!parsed.success) return { error: "Please enter a valid email address." };
 
+  // Limited per network address, and an answer that never depends on the account: not even "too many
+  // requests" is said only for addresses that exist (that told anyone which accounts there are).
+  if (!(await takeResetRequestToken())) return { success: true };
+
   const user = await prisma.user.findUnique({ where: { email: parsed.data.email } });
-  if (user) {
-    if (await isPasswordResetRateLimited(user.id)) return { error: RESET_RATE_LIMIT_MESSAGE };
-
-    const token = randomBytes(32).toString("hex");
+  if (user && !(await isPasswordResetRateLimited(user.id))) {
+    const token = newToken();
     await prisma.passwordResetToken.create({
-      data: { userId: user.id, token, expiresAt: new Date(Date.now() + 60 * 60 * 1000) },
+      data: { userId: user.id, tokenHash: hashToken(token), expiresAt: new Date(Date.now() + 60 * 60 * 1000) },
     });
-
-    await sendEmail({ to: user.email, ...passwordResetEmail(`${SITE_URL}/reset-password/${token}`) });
+    // After the response, so how long it takes doesn't depend on whether a mail was sent.
+    after(() => sendEmail({ to: user.email, ...passwordResetEmail(`${SITE_URL}/reset-password/${token}`) }));
   }
 
   return { success: true };
@@ -235,18 +263,29 @@ export async function resetPasswordAction(
     return { error: parsed.error.issues[0]?.message ?? "Please enter a valid password." };
   }
 
-  const resetToken = await prisma.passwordResetToken.findUnique({ where: { token } });
-  if (!resetToken || resetToken.usedAt || resetToken.expiresAt < new Date()) {
-    return { error: "This reset link is invalid or has expired." };
-  }
+  const tokenHash = hashToken(token);
+  const passwordHash = await hashPassword(parsed.data.password);
 
-  const passwordHash = await bcrypt.hash(parsed.data.password, 10);
-  // A reset is often because someone else got in: every device is logged out.
-  const user = await prisma.user.update({
-    where: { id: resetToken.userId },
-    data: { passwordHash, sessionsRevokedAt: new Date(), keptSessionId: null },
+  // The link is used exactly once even if two requests arrive together: only one update can flip usedAt.
+  const userId = await prisma.$transaction(async (tx) => {
+    const claimed = await tx.passwordResetToken.updateMany({
+      where: { tokenHash, usedAt: null, expiresAt: { gt: new Date() } },
+      data: { usedAt: new Date() },
+    });
+    if (claimed.count !== 1) return null;
+    const row = await tx.passwordResetToken.findUniqueOrThrow({ where: { tokenHash } });
+    // A reset is often because someone else got in: every device is logged out.
+    await tx.user.update({
+      where: { id: row.userId },
+      data: { passwordHash, sessionsRevokedAt: new Date(), keptSessionId: null },
+    });
+    // Any other reset link of this account that is still open dies with it.
+    await tx.passwordResetToken.updateMany({ where: { userId: row.userId, usedAt: null }, data: { usedAt: new Date() } });
+    return row.userId;
   });
-  await prisma.passwordResetToken.update({ where: { id: resetToken.id }, data: { usedAt: new Date() } });
+  if (!userId) return { error: "This reset link is invalid or has expired." };
+
+  const user = await prisma.user.findUniqueOrThrow({ where: { id: userId }, select: { email: true } });
   after(() => sendPasswordChangedEmail(user.email));
 
   redirect("/login");
@@ -263,6 +302,8 @@ export async function generateEmailVerificationAction(): Promise<GenerateVerific
   const session = await auth();
   if (!session) return { error: "Not authorized." };
 
+  // Per account and per network: this sends mail to whatever address the account has.
+  if (!(await takeResetRequestToken())) return { sent: true };
   const recent = await prisma.emailVerificationToken.findFirst({
     where: {
       userId: session.user.id,
@@ -279,9 +320,9 @@ export async function generateEmailVerificationAction(): Promise<GenerateVerific
 // A fresh 24-hour link, mailed: inside the welcome email right after
 // sign-up (pass the new account's role), on its own when asked for again.
 async function sendVerificationEmail(userId: string, email: string, welcomeAs?: "CREATOR" | "STARTUP") {
-  const token = randomBytes(32).toString("hex");
+  const token = newToken();
   await prisma.emailVerificationToken.create({
-    data: { userId, token, expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000) },
+    data: { userId, tokenHash: hashToken(token), expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000) },
   });
   const url = `${SITE_URL}/verify-email/${token}`;
   await sendEmail({ to: email, ...(welcomeAs ? welcomeEmail(url, welcomeAs) : verificationEmail(url)) });
@@ -303,13 +344,22 @@ export async function confirmEmailVerificationAction(
   _formData: FormData,
 ): Promise<ConfirmVerificationState> {
   /* eslint-enable @typescript-eslint/no-unused-vars */
-  const verifyToken = await prisma.emailVerificationToken.findUnique({ where: { token } });
+  const tokenHash = hashToken(token);
+  const verifyToken = await prisma.emailVerificationToken.findUnique({ where: { tokenHash } });
   if (!verifyToken || verifyToken.usedAt || verifyToken.expiresAt < new Date()) {
     return { error: "This verification link is invalid or has expired." };
   }
 
+  // Used exactly once even if two requests arrive together.
+  const claimed = await prisma.emailVerificationToken.updateMany({
+    where: { id: verifyToken.id, usedAt: null },
+    data: { usedAt: new Date() },
+  });
+  if (claimed.count !== 1) return { error: "This verification link is invalid or has expired." };
+
+  // (Two-factor can't be switched on before this point, see startTwoFactorEnrollmentAction, so an
+  // address someone only typed into the sign-up form can't have an authenticator planted on it.)
   await prisma.user.update({ where: { id: verifyToken.userId }, data: { emailVerified: true } });
-  await prisma.emailVerificationToken.update({ where: { id: verifyToken.id }, data: { usedAt: new Date() } });
 
   return { success: true };
 }

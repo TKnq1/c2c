@@ -10,7 +10,7 @@ import { sendOfferSchema, submitPostSchema, reportProblemSchema } from "@/lib/va
 import { splitPayment } from "@/lib/payment-math";
 import { formatCents } from "@/lib/format";
 import { notify } from "@/lib/notifications";
-import { flagIfAnomalousOffer, flagForReview, getMutualBlockedUserIds, isBlocked } from "@/lib/moderation";
+import { flagIfAnomalousOffer, getMutualBlockedUserIds, isBlocked } from "@/lib/moderation";
 import { DAY, takeToken } from "@/lib/rate-limit";
 import { VERIFY_EMAIL_MESSAGE, emailIsVerified } from "@/lib/verified";
 import { RELEASE_REVIEW_DAYS } from "@/lib/constants";

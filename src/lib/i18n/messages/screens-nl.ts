@@ -48,7 +48,7 @@ export const screensNl: DeepString<typeof screens> = {
     prefMessages: "Berichten", prefPayments: "Betalingen", prefDeposits: "Borgsommen",
     admin: "Admin", adminHint: "Gebruikers, betalingen, meldingen en geschillen op comtor.",
     yourData: "Je gegevens", exportData: "Mijn gegevens exporteren", exportHint: "Alles in je account, als JSON-bestand.",
-    danger: "Gevarenzone", deleteAccount: "Account verwijderen", deleteHint: "Verwijdert je account en alles erin definitief.",
+    danger: "Gevarenzone", deleteAccount: "Account verwijderen", deleteHint: "Verwijdert je account en je persoonlijke gegevens definitief. Betalingsgegevens die bewaard moeten blijven, blijven geanonimiseerd bestaan.", signOutEverywhere: "Overal elders uitloggen", signOutEverywhereHint: "Beëindigt elke andere aanmelding van je account. Hier blijf je ingelogd.", signOutEverywhereTitle: "Uitloggen op alle andere apparaten?", signOutEverywhereBody: "Wie met jouw account is ingelogd op een andere telefoon of computer, wordt binnen enkele minuten uitgelogd. Gebruik dit als je een apparaat kwijt bent.", signOutEverywhereConfirm: "Uitloggen", signedOutEverywhere: "Overal elders uitgelogd.",
     deleteTitle: "Account verwijderen?", deleteBody: "Dit verwijdert je account en alles wat eraan hangt definitief: profiel, verzoeken of interesses, berichten, reviews, betalingsgeschiedenis. Dit kan niet ongedaan worden gemaakt.",
     yourPassword: "Je wachtwoord", deleting: "Verwijderen…", deleteForever: "Definitief verwijderen",
     legal: "Juridisch", imprint: "Impressum", privacy: "Privacy", terms: "Voorwaarden",

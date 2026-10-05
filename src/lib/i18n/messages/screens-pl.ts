@@ -48,7 +48,7 @@ export const screensPl: DeepString<typeof screens> = {
     prefMessages: "Wiadomości", prefPayments: "Płatności", prefDeposits: "Kaucje",
     admin: "Admin", adminHint: "Użytkownicy, płatności, zgłoszenia i spory w comtor.",
     yourData: "Twoje dane", exportData: "Eksportuj moje dane", exportHint: "Wszystko z konta, jako plik JSON.",
-    danger: "Strefa zagrożenia", deleteAccount: "Usuń konto", deleteHint: "Trwale usuwa konto i wszystko, co w nim jest.",
+    danger: "Strefa zagrożenia", deleteAccount: "Usuń konto", deleteHint: "Trwale usuwa konto i Twoje dane osobowe. Zapisy płatności, które trzeba przechowywać, zostają w formie zanonimizowanej.", signOutEverywhere: "Wyloguj wszędzie indziej", signOutEverywhereHint: "Kończy wszystkie inne logowania do konta. Tutaj pozostajesz zalogowany.", signOutEverywhereTitle: "Wylogować na wszystkich innych urządzeniach?", signOutEverywhereBody: "Każdy, kto jest zalogowany na Twoje konto na innym telefonie lub komputerze, zostanie wylogowany w ciągu kilku minut. Użyj tego, jeśli zgubisz urządzenie.", signOutEverywhereConfirm: "Wyloguj", signedOutEverywhere: "Wylogowano wszędzie indziej.",
     deleteTitle: "Usunąć konto?", deleteBody: "To trwale usuwa konto i wszystko z nim związane: profil, zlecenia lub zainteresowania, wiadomości, opinie, historię płatności. Nie da się tego cofnąć.",
     yourPassword: "Twoje hasło", deleting: "Usuwanie…", deleteForever: "Usuń na zawsze",
     legal: "Informacje prawne", imprint: "Nota prawna", privacy: "Prywatność", terms: "Regulamin",
