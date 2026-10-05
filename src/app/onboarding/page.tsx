@@ -11,6 +11,13 @@ import { GuestOnboarding } from "@/components/guest-onboarding";
 import type { Metadata } from "next";
 import { NO_INDEX } from "@/lib/seo";
 import { parseSignupRole } from "@/lib/signup-role";
+import type { RolePreview } from "@/components/onboarding-role-step";
+
+function parseRolePreview(value: string | string[] | undefined): RolePreview | null {
+  const raw = Array.isArray(value) ? value[0] : value;
+  if (raw === "cards" || raw === "toggle" || raw === "text" || raw === "split") return raw;
+  return null;
+}
 
 export const metadata: Metadata = {
   title: "Set up your profile",
@@ -19,7 +26,9 @@ export const metadata: Metadata = {
 
 export default async function OnboardingPage(props: PageProps<"/onboarding">) {
   const session = await auth();
-  const requestedRole = parseSignupRole((await props.searchParams).role);
+  const searchParams = await props.searchParams;
+  const requestedRole = parseSignupRole(searchParams.role);
+  const preview = parseRolePreview(searchParams.rolePreview);
 
   if (session?.user.role === "ADMIN") redirect("/admin");
 
@@ -45,7 +54,7 @@ export default async function OnboardingPage(props: PageProps<"/onboarding">) {
   } else if (session) {
     redirect("/dashboard");
   } else {
-    body = <GuestOnboarding initialRole={requestedRole} />;
+    body = <GuestOnboarding initialRole={requestedRole} preview={preview} />;
   }
 
   return (
