@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { auth } from "@/lib/auth";
 import { requireAdmin } from "@/lib/admin-guard";
 import { audit } from "@/lib/audit";
+import { DAY, takeToken } from "@/lib/rate-limit";
 import { prisma } from "@/lib/prisma";
 
 export type ReportActionState = { error?: string; success?: boolean } | undefined;
@@ -17,11 +18,16 @@ export async function reportUserAction(
   if (!session) return { error: "Not authorized." };
   if (reportedUserId === session.user.id) return { error: "You can't report yourself." };
 
-  const reason = String(formData.get("reason") ?? "").trim();
+  // The reason is picked from a list; the cap is for anyone posting something else.
+  const reason = String(formData.get("reason") ?? "").trim().slice(0, 100);
   const details = String(formData.get("details") ?? "")
     .trim()
     .slice(0, 500);
   if (!reason) return { error: "Choose a reason." };
+
+  if (!(await takeToken("report", session.user.id, 10, DAY))) return { error: "You've sent a lot of reports today." };
+  const reported = await prisma.user.findUnique({ where: { id: reportedUserId }, select: { id: true } });
+  if (!reported) return { error: "This account no longer exists." };
 
   await prisma.report.create({
     data: { reporterId: session.user.id, reportedId: reportedUserId, reason, details: details || null },
@@ -40,6 +46,8 @@ export async function blockUserAction(otherUserId: string) {
   const session = await auth();
   if (!session) throw new Error("Not authorized.");
   if (otherUserId === session.user.id) throw new Error("You can't block yourself.");
+  const other = await prisma.user.findUnique({ where: { id: otherUserId }, select: { id: true } });
+  if (!other) throw new Error("This account no longer exists.");
 
   await prisma.block.upsert({
     where: { blockerId_blockedId: { blockerId: session.user.id, blockedId: otherUserId } },

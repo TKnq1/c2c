@@ -29,8 +29,11 @@ permissions, `capacitor.config.ts`) need a new build.
 
 ```bash
 npm ci
-CAP_SERVER_URL=https://your-domain.com npx cap sync
+CAP_RELEASE=1 CAP_SERVER_URL=https://your-domain.com npx cap sync
 ```
+
+`CAP_RELEASE=1` makes the sync fail when `CAP_SERVER_URL` is missing, instead of
+building an app that loads plain-http localhost.
 
 Re-run this whenever `capacitor.config.ts`, a Capacitor plugin or
 `CAP_SERVER_URL` changes. It also writes the server URL into the offline page

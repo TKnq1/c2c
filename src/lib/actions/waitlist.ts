@@ -10,6 +10,7 @@ import { prisma } from "@/lib/prisma";
 import { sendEmail } from "@/lib/email";
 import { waitlistConfirmationEmail } from "@/lib/email-templates";
 import { SITE_URL } from "@/lib/site";
+import { HOUR, takeIpToken } from "@/lib/rate-limit";
 
 export type WaitlistState = { ok?: boolean; alreadyConfirmed?: boolean; error?: string } | undefined;
 
@@ -37,6 +38,10 @@ export async function joinWaitlistAction(_prev: WaitlistState, formData: FormDat
   });
   if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? "Enter a valid email address." };
 
+  // One confirmation mail per address every ten minutes isn't enough alone: with changing addresses this
+  // form could send mail to anyone. Per network address, then.
+  if (!(await takeIpToken("waitlist", 5, HOUR))) return { error: "Too many attempts. Try again later." };
+
   const { email, role } = parsed.data;
   try {
     // Housekeeping here rather than in a cron: this is where entries come in.
@@ -45,7 +50,8 @@ export async function joinWaitlistAction(_prev: WaitlistState, formData: FormDat
     });
 
     const existing = await prisma.waitlistEntry.findUnique({ where: { email } });
-    if (existing?.confirmedAt) return { ok: true, alreadyConfirmed: true };
+    // Said the same for an address that is already on the list: the form can't be used to check who is.
+    if (existing?.confirmedAt) return { ok: true };
     if (existing?.confirmSentAt && Date.now() - existing.confirmSentAt.getTime() < RESEND_AFTER_MS) {
       return { ok: true };
     }

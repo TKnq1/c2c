@@ -30,6 +30,8 @@ const EMAILS = {
 };
 
 export async function GET(request: Request, ctx: RouteContext<"/dev-emails/[name]">) {
+  // Not only the proxy's rewrite: this route itself is a 404 outside development.
+  if (process.env.NODE_ENV === "production") return new Response("Not found", { status: 404 });
   const { name } = await ctx.params;
   const crowd = name === "marketing-creator" || name === "marketing-brand" ? await landingCrowd() : null;
   const email =

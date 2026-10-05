@@ -6,6 +6,11 @@ import type { CapacitorConfig } from "@capacitor/cli";
 // into the native projects, so re-sync after changing it. It has to be the
 // same origin as NEXT_PUBLIC_SITE_URL, or Stripe's return URLs would leave
 // the app.
+// A release build has to name its server: without it the app would be built against plain-http localhost.
+// Set CAP_RELEASE=1 for store builds (see docs/store-release.md).
+if (!process.env.CAP_SERVER_URL && process.env.CAP_RELEASE === "1") {
+  throw new Error("CAP_SERVER_URL is required for a release build (CAP_RELEASE=1).");
+}
 const serverUrl = process.env.CAP_SERVER_URL ?? "http://localhost:3000";
 
 const config: CapacitorConfig = {

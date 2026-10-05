@@ -1,18 +1,12 @@
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { formatCents } from "@/lib/format";
-
-function csvCell(value: string): string {
-  return /[",\n]/.test(value) ? `"${value.replace(/"/g, '""')}"` : value;
-}
-
-function csvRow(cells: string[]): string {
-  return cells.map(csvCell).join(",");
-}
+import { csvRow } from "@/lib/csv";
 
 export async function GET() {
   const session = await auth();
   if (!session) return new Response("Not authorized", { status: 401 });
+  if (session.user.role !== "STARTUP" && session.user.role !== "CREATOR") return new Response("Not found", { status: 404 });
 
   const lines = [csvRow(["Date", "Counterparty", "Request", "Amount", "Platform fee", "Payout", "Status"])];
 
@@ -64,6 +58,8 @@ export async function GET() {
     headers: {
       "Content-Type": "text/csv; charset=utf-8",
       "Content-Disposition": 'attachment; filename="payments.csv"',
+      "Cache-Control": "no-store",
+      "X-Content-Type-Options": "nosniff",
     },
   });
 }

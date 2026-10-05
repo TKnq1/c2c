@@ -1,12 +1,18 @@
 "use server";
 
-import { z } from "zod";
+import { MAX_PUSH_SUBSCRIPTIONS_PER_USER, nativeTokenSchema, webPushSubscriptionSchema } from "@/lib/push-validation";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
-export async function savePushSubscriptionAction(sub: { endpoint: string; p256dh: string; auth: string }) {
+// `input` comes from the browser, so what it holds is checked here: the endpoint is a URL this server
+// will POST to (see push-validation.ts), and nobody needs more than a handful of devices.
+export async function savePushSubscriptionAction(input: { endpoint: string; p256dh: string; auth: string }) {
   const session = await auth();
   if (!session) throw new Error("Not authorized.");
+  const sub = webPushSubscriptionSchema.parse(input);
+
+  const count = await prisma.pushSubscription.count({ where: { userId: session.user.id, NOT: { endpoint: sub.endpoint } } });
+  if (count >= MAX_PUSH_SUBSCRIPTIONS_PER_USER) throw new Error("Too many devices.");
 
   await prisma.pushSubscription.upsert({
     where: { endpoint: sub.endpoint },
@@ -22,11 +28,6 @@ export async function deletePushSubscriptionAction(endpoint: string) {
   await prisma.pushSubscription.deleteMany({ where: { endpoint, userId: session.user.id } });
 }
 
-const nativeTokenSchema = z.object({
-  token: z.string().min(1).max(4096),
-  platform: z.enum(["ios", "android"]),
-});
-
 // Upsert keyed on the token alone: a device that was used by another
 // account before simply moves over to whoever is signed in now.
 export async function saveNativePushTokenAction(input: { token: string; platform: "ios" | "android" }) {
@@ -35,6 +36,9 @@ export async function saveNativePushTokenAction(input: { token: string; platform
 
   const { token, platform } = nativeTokenSchema.parse(input);
   const nativePlatform = platform === "ios" ? "IOS" : "ANDROID";
+
+  const count = await prisma.nativePushToken.count({ where: { userId: session.user.id, NOT: { token } } });
+  if (count >= MAX_PUSH_SUBSCRIPTIONS_PER_USER) throw new Error("Too many devices.");
 
   await prisma.nativePushToken.upsert({
     where: { token },
