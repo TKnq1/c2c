@@ -54,27 +54,26 @@ export function welcomeEmail(url: string, role: "CREATOR" | "STARTUP"): Email {
 // is whatever the admin typed. The body says what the product is, because
 // the inbox is the first time many of them hear of it. Separate from
 // welcomeEmail, which is the sign-up mail and carries the verify link.
-export function marketingWelcomeEmail(url: string, role: "CREATOR" | "STARTUP", subject: string): Email {
+export function marketingWelcomeEmail(url: string, role: "CREATOR" | "STARTUP", subject: string, name: string): Email {
+  const who = name.trim();
   if (role === "CREATOR") {
     return render({
       subject,
       preview: "Brand collabs, made easier.",
-      heading: "This is comtor.",
-      lead: "Brand collabs, made easier.",
+      heading: who ? `${who}, brand collabs just got easier.` : "Brand collabs, made easier.",
       body: "Brands post a paid deal. You swipe the ones you want. The budget is on the card, they pay before you post, and you keep 90%.",
       watermark: true,
-      action: { label: "See the deals", url },
+      action: { label: "See paid deals", url },
       note: "You're getting this because comtor has your email as a creator.",
     });
   }
   return render({
     subject,
-      preview: "Find the right creators for your product.",
-      heading: "This is comtor.",
-      lead: "Find the right creators for your product.",
-      body: "Post the product, the budget, and what to make. Creators who fit swipe right and come to you. You pay when you agree, and the money waits until the post is live.",
-      watermark: true,
-    action: { label: "Post a deal", url },
+    preview: "Find the right creators for your product.",
+    heading: who ? `${who}, find the right creators for your product.` : "Find the right creators for your product.",
+    body: "Post the product, the budget, and what to make. Creators who fit swipe right and come to you. You pay when you agree, and the money waits until the post is live.",
+    watermark: true,
+    action: { label: "Post your first deal", url },
     note: "You're getting this because comtor has your email as a brand.",
   });
 }
@@ -188,7 +187,9 @@ function render(c: Content): Email {
   const logo = c.watermark
     ? ""
     : `<img src="${SITE_URL}/email/mark-white.png" width="48" height="32" alt="comtor" style="display:block;width:48px;height:32px;border:0;">`;
-  const headingSpace = c.watermark ? "64px" : "88px";
+  const headingSpace = c.watermark ? "48px" : "88px";
+  const headingSize = c.watermark ? "30px" : "42px";
+  const headingClass = c.watermark ? "h1 h1-invite" : "h1";
 
   const html = `<!doctype html>
 <html lang="en" xmlns:o="urn:schemas-microsoft-com:office:office">
@@ -208,6 +209,7 @@ ${FONT_FACES}
 @media (max-width: 600px) {
   .px { padding-left: 24px !important; padding-right: 24px !important; }
   .h1 { font-size: 36px !important; }
+  .h1.h1-invite { font-size: 26px !important; }
 }
 </style>
 <style>
@@ -234,7 +236,7 @@ ${FONT_FACES}
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr>
 <td bgcolor="${NIGHT}" background="${night}" style="padding:32px 28px 40px;border-radius:4px;background-color:${NIGHT};background-image:url(${night});background-size:cover;background-position:center;">
 ${logo}
-<h1 class="h1" style="margin:${headingSpace} 0 0;font-family:${FONT};font-size:42px;line-height:1.04;font-weight:900;letter-spacing:-0.025em;color:#ffffff;">${escapeHtml(c.heading)}</h1>
+<h1 class="${headingClass}" style="margin:${headingSpace} 0 0;font-family:${FONT};font-size:${headingSize};line-height:1.08;font-weight:900;letter-spacing:-0.025em;color:#ffffff;">${escapeHtml(c.heading)}</h1>
 </td>
 </tr></table>
 </td></tr>

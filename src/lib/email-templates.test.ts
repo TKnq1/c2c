@@ -73,15 +73,16 @@ describe("welcomeEmail", () => {
 
 describe("marketingWelcomeEmail", () => {
   it("speaks to creators and brands separately", () => {
-    const creator = marketingWelcomeEmail("https://www.comtor.app/dashboard/creator", "CREATOR", "A note from comtor");
-    const brand = marketingWelcomeEmail("https://www.comtor.app/dashboard/startup/new", "STARTUP", "A note for brands");
+    const creator = marketingWelcomeEmail("https://www.comtor.app/dashboard/creator", "CREATOR", "A note from comtor", "Mia");
+    const brand = marketingWelcomeEmail("https://www.comtor.app/dashboard/startup/new", "STARTUP", "A note for brands", "Glow");
     expect(creator.subject).toBe("A note from comtor");
-    expect(creator.text).toContain("Brand collabs, made easier.");
-    expect(creator.html).toContain("font-weight:700");
+    expect(creator.text).toContain("Mia, brand collabs just got easier.");
+    expect(creator.text).toContain("See paid deals");
     expect(creator.html).toContain("/email/band-mark.jpg");
     expect(creator.html).not.toContain("mark-white.png");
     expect(brand.subject).toBe("A note for brands");
-    expect(brand.text).toContain("Find the right creators for your product.");
+    expect(brand.text).toContain("Glow, find the right creators for your product.");
+    expect(brand.text).toContain("Post your first deal");
     expect(brand.html).toContain("https://www.comtor.app/dashboard/startup/new");
   });
 });

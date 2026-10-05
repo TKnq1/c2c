@@ -13,21 +13,20 @@ export default async function AdminMailingPage() {
       <div>
         <h1 className="font-display text-title-1 font-bold">Mailing</h1>
         <p className="mt-1 max-w-2xl text-sm text-neutral-600 dark:text-neutral-400">
-          Two lists. Add the addresses yourself. You write the subject. The email itself is in English and explains what
-          comtor is: brands post a paid deal, creators swipe, the money is held until the post is approved.
+          Two lists. Each row is a name and an email. You write the subject. The headline uses their name.
         </p>
       </div>
       <div className="grid gap-6 lg:grid-cols-2">
         <OutreachList
           side="CREATOR"
           title="Creators"
-          blurb="The button opens their feed. The note says comtor has their email as a creator."
+          blurb="The headline says their name, then “brand collabs just got easier.” The button is See paid deals."
           addresses={creators}
         />
         <OutreachList
           side="STARTUP"
           title="Brands"
-          blurb="The button opens a new request. The note says comtor has their email as a brand."
+          blurb="The headline says their name, then “find the right creators for your product.” The button is Post your first deal."
           addresses={brands}
         />
       </div>
