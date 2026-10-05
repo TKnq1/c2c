@@ -87,6 +87,8 @@ export const en = {
     role: {
       title: "Are you a creator or a brand?",
       description: "You'll see what fits you first. The account comes at the end.",
+      creatorLine: "Swipe on paid deals.",
+      brandLine: "Post a request. Creators come to you.",
     },
     account: {
       title: "Create your account",

@@ -1,32 +1,29 @@
 "use client";
 
 import { useI18n } from "@/components/i18n-provider";
-import { StepHeading, stepScreen } from "@/components/onboarding-ui";
 import type { SignupRole } from "@/lib/signup-role";
 
-// Only when /onboarding is opened without a side. The landing toggle and
-// ?role= skip this, so it isn't one of the numbered steps.
+// Two full-height halves. A tap picks the side and continues.
 export function OnboardingRoleStep({ onChoose }: { onChoose: (role: SignupRole) => void }) {
   const { t } = useI18n();
   return (
-    <div className={stepScreen}>
-      <StepHeading title={t("onboarding.role.title")} description={t("onboarding.role.description")} />
-      <div className="flex flex-col gap-3">
-        <button
-          type="button"
-          onClick={() => onChoose("CREATOR")}
-          className="w-full rounded-full bg-ink px-4 py-3.5 font-medium text-paper transition hover:bg-graphite"
-        >
-          {t("screens.auth.imCreator")}
-        </button>
-        <button
-          type="button"
-          onClick={() => onChoose("STARTUP")}
-          className="w-full rounded-full border border-neutral-300 px-4 py-3.5 font-medium transition hover:border-ink dark:border-neutral-700"
-        >
-          {t("screens.auth.imBrand")}
-        </button>
-      </div>
+    <div className="flex flex-1 flex-col gap-3 sm:flex-row">
+      <button
+        type="button"
+        onClick={() => onChoose("CREATOR")}
+        className="flex flex-1 flex-col justify-end rounded bg-ink px-5 py-6 text-left text-paper transition hover:bg-graphite"
+      >
+        <span className="font-display text-title-2 font-bold">{t("screens.auth.imCreator")}</span>
+        <span className="mt-1 max-w-[24ch] text-sm text-paper/80">{t("onboarding.role.creatorLine")}</span>
+      </button>
+      <button
+        type="button"
+        onClick={() => onChoose("STARTUP")}
+        className="flex flex-1 flex-col justify-end rounded border border-ink/10 bg-fog px-5 py-6 text-left transition hover:border-ink"
+      >
+        <span className="font-display text-title-2 font-bold">{t("screens.auth.imBrand")}</span>
+        <span className="mt-1 max-w-[24ch] text-sm text-neutral-600 dark:text-neutral-400">{t("onboarding.role.brandLine")}</span>
+      </button>
     </div>
   );
 }

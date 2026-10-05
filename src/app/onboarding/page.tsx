@@ -19,7 +19,8 @@ export const metadata: Metadata = {
 
 export default async function OnboardingPage(props: PageProps<"/onboarding">) {
   const session = await auth();
-  const requestedRole = parseSignupRole((await props.searchParams).role);
+  const searchParams = await props.searchParams;
+  const requestedRole = parseSignupRole(searchParams.role);
 
   if (session?.user.role === "ADMIN") redirect("/admin");
 

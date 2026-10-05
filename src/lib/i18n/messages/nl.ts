@@ -87,6 +87,8 @@ export const nl: Catalog = {
     role: {
       title: "Ben je creator of merk?",
       description: "Je ziet eerst wat bij je past. Het account komt aan het eind.",
+      creatorLine: "Swipe op betaalde deals.",
+      brandLine: "Plaats een aanvraag. Creators komen naar je toe.",
     },
     account: {
       title: "Maak je account",

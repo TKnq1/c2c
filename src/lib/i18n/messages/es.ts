@@ -87,6 +87,8 @@ export const es: Catalog = {
     role: {
       title: "¿Eres creador o marca?",
       description: "Primero ves lo que encaja contigo. La cuenta llega al final.",
+      creatorLine: "Desliza en deals de pago.",
+      brandLine: "Publica una solicitud. Los creadores vienen a ti.",
     },
     account: {
       title: "Crea tu cuenta",
