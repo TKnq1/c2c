@@ -40,7 +40,7 @@ export default async function AdminMailingPage() {
       <div>
         <h1 className="font-display text-title-1 font-bold">Mailing</h1>
         <p className="mt-1 max-w-2xl text-sm text-neutral-600 dark:text-neutral-400">
-          Creators and brands are who you can write to. Sent is every mail that already went out, and who got it.
+          Creators and brands are who you can write to. Mark the ones who should get this mail. Sent is every mail that already went out, and who got it.
           Opened counts when the images load, so it can fire without anyone reading. Clicked is the button.
         </p>
       </div>

@@ -30,7 +30,21 @@ export function OutreachList({
   const [error, setError] = useState<string | null>(null);
   const [status, setStatus] = useState<string | null>(null);
   const [confirm, setConfirm] = useState(false);
+  const [open, setOpen] = useState(false);
+  const [picked, setPicked] = useState<Set<string>>(() => new Set());
   const [pending, startTransition] = useTransition();
+
+  const selected = addresses.filter((row) => picked.has(row.id));
+
+  const toggle = (id: string) => {
+    setConfirm(false);
+    setPicked((current) => {
+      const next = new Set(current);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
 
   const add = (e: React.FormEvent) => {
     e.preventDefault();
@@ -64,7 +78,11 @@ export function OutreachList({
     setStatus(null);
     setConfirm(false);
     startTransition(async () => {
-      const result = await sendOutreachAction(side, subject);
+      const result = await sendOutreachAction(
+        side,
+        subject,
+        selected.map((row) => row.id),
+      );
       if (result.error) {
         setError(result.error);
         return;
@@ -128,28 +146,48 @@ export function OutreachList({
       {addresses.length === 0 ? (
         <p className="text-sm text-neutral-500">No addresses yet.</p>
       ) : (
-        <ul className="rounded bg-fog">
-          {addresses.map((row) => {
-            const tracking = trackLine(row);
-            return (
-            <li key={row.id} className="flex items-center justify-between gap-3 px-3 py-2.5 [&+&]:border-t [&+&]:border-ink/10">
-              <span className="min-w-0">
-                <span className="block truncate text-sm font-medium">{row.name}</span>
-                <span className="block truncate text-footnote text-neutral-500">{row.email}</span>
-                {tracking && <span className="block text-footnote text-neutral-500">{tracking}</span>}
-              </span>
-              <button
-                type="button"
-                onClick={() => remove(row.id)}
-                disabled={pending}
-                className="shrink-0 text-sm text-neutral-500 underline underline-offset-2 hover:text-ink disabled:opacity-50"
-              >
-                Remove
-              </button>
-            </li>
-            );
-          })}
-        </ul>
+        <div className="flex flex-col gap-2">
+          <button
+            type="button"
+            aria-expanded={open}
+            onClick={() => setOpen((current) => !current)}
+            className="self-start text-sm font-medium underline underline-offset-2"
+          >
+            {open ? "Hide addresses" : `Show ${addresses.length} ${addresses.length === 1 ? "address" : "addresses"}`}
+            {selected.length > 0 ? ` · ${selected.length} marked` : ""}
+          </button>
+          {open && (
+            <ul className="rounded bg-fog">
+              {addresses.map((row) => {
+                const tracking = trackLine(row);
+                return (
+                  <li key={row.id} className="flex items-center gap-3 px-3 py-2.5 [&+&]:border-t [&+&]:border-ink/10">
+                    <input
+                      type="checkbox"
+                      checked={picked.has(row.id)}
+                      onChange={() => toggle(row.id)}
+                      aria-label={`Send to ${row.name}`}
+                      className="size-4 shrink-0 accent-ink"
+                    />
+                    <span className="min-w-0 flex-1">
+                      <span className="block truncate text-sm font-medium">{row.name}</span>
+                      <span className="block truncate text-footnote text-neutral-500">{row.email}</span>
+                      {tracking && <span className="block text-footnote text-neutral-500">{tracking}</span>}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => remove(row.id)}
+                      disabled={pending}
+                      className="shrink-0 text-sm text-neutral-500 underline underline-offset-2 hover:text-ink disabled:opacity-50"
+                    >
+                      Remove
+                    </button>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+        </div>
       )}
 
       <label className="flex flex-col gap-1.5 text-sm font-medium">
@@ -169,10 +207,16 @@ export function OutreachList({
       <button
         type="button"
         onClick={send}
-        disabled={pending || addresses.length === 0}
+        disabled={pending || selected.length === 0}
         className="rounded-full bg-ink px-4 py-2.5 text-sm font-medium text-paper transition hover:bg-graphite disabled:opacity-50"
       >
-        {pending ? "Sending…" : confirm ? `Send now to ${addresses.length}` : `Send to ${title.toLowerCase()}`}
+        {pending
+          ? "Sending…"
+          : selected.length === 0
+            ? "Mark who gets this"
+            : confirm
+              ? `Send now to ${selected.length}`
+              : `Send to ${selected.length}`}
       </button>
 
       {error && (

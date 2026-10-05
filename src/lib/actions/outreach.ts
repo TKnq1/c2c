@@ -53,13 +53,19 @@ export async function removeOutreachAddressAction(id: string): Promise<{ error?:
 export async function sendOutreachAction(
   side: OutreachSide,
   rawSubject: string,
+  rawIds: string[],
 ): Promise<{ error?: string; sent?: number; failed?: { email: string; error: string }[] }> {
   if (!(await requireAdmin())) return { error: "Not authorized." };
   const subject = subjectSchema.safeParse(rawSubject);
   if (!subject.success) return { error: subject.error.issues[0].message };
+  const ids = [...new Set(rawIds.map((id) => id.trim()).filter(Boolean))];
+  if (ids.length === 0) return { error: "Mark the addresses you want to send to." };
 
-  const rows = await prisma.outreachAddress.findMany({ where: { side }, orderBy: { createdAt: "asc" } });
-  if (rows.length === 0) return { error: "This list is empty." };
+  const rows = await prisma.outreachAddress.findMany({
+    where: { side, id: { in: ids } },
+    orderBy: { createdAt: "asc" },
+  });
+  if (rows.length === 0) return { error: "Mark the addresses you want to send to." };
 
   const url = marketingEntryUrl(side);
   const crowd = await landingCrowd();

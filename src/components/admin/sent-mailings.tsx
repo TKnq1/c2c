@@ -1,3 +1,6 @@
+"use client";
+
+import { useState } from "react";
 import type { OutreachSide } from "@prisma/client";
 import { LocalDate } from "@/components/local-date";
 
@@ -23,8 +26,50 @@ function status(recipient: Recipient) {
   return "Not opened";
 }
 
+function SentMailing({ mailing }: { mailing: SentMailing }) {
+  const [open, setOpen] = useState(false);
+  const opened = mailing.recipients.filter((recipient) => recipient.openCount > 0).length;
+  const clicked = mailing.recipients.filter((recipient) => recipient.clickCount > 0).length;
+  return (
+    <article className="rounded bg-fog">
+      <button
+        type="button"
+        aria-expanded={open}
+        onClick={() => setOpen((current) => !current)}
+        className="w-full px-3 py-2.5 text-left"
+      >
+        <span className="block text-sm font-medium">{mailing.subject}</span>
+        <span className="mt-0.5 block text-footnote text-neutral-500">
+          {mailing.side === "CREATOR" ? "Creators" : "Brands"}
+          {" · "}
+          <LocalDate ms={mailing.createdAt} withTime />
+          {` · Sent ${mailing.recipients.length} · Opened ${opened} · Clicked ${clicked}`}
+          {open ? " · Hide" : " · Show"}
+        </span>
+      </button>
+      {open && (
+        <ul>
+          {mailing.recipients.map((recipient) => (
+            <li
+              key={recipient.id}
+              className="flex items-center justify-between gap-3 border-t border-ink/10 px-3 py-2.5"
+            >
+              <span className="min-w-0">
+                <span className="block truncate text-sm font-medium">{recipient.name}</span>
+                <span className="block truncate text-footnote text-neutral-500">{recipient.email}</span>
+              </span>
+              <span className="shrink-0 text-footnote text-neutral-500">{status(recipient)}</span>
+            </li>
+          ))}
+        </ul>
+      )}
+    </article>
+  );
+}
+
 // The archive of mails that already went out. Each send is its own list of
 // people, kept even after an address is removed from the creator or brand list.
+// The people stay folded until you open that mail.
 export function SentMailings({ mailings }: { mailings: SentMailing[] }) {
   return (
     <section className="flex flex-col gap-4 rounded border border-ink/10 p-4">
@@ -41,37 +86,9 @@ export function SentMailings({ mailings }: { mailings: SentMailing[] }) {
         <p className="text-sm text-neutral-500">Nothing sent yet.</p>
       ) : (
         <div className="flex flex-col gap-4">
-          {mailings.map((mailing) => {
-            const opened = mailing.recipients.filter((recipient) => recipient.openCount > 0).length;
-            const clicked = mailing.recipients.filter((recipient) => recipient.clickCount > 0).length;
-            return (
-              <article key={mailing.id} className="rounded bg-fog">
-                <header className="px-3 py-2.5">
-                  <h3 className="text-sm font-medium">{mailing.subject}</h3>
-                  <p className="mt-0.5 text-footnote text-neutral-500">
-                    {mailing.side === "CREATOR" ? "Creators" : "Brands"}
-                    {" · "}
-                    <LocalDate ms={mailing.createdAt} withTime />
-                    {` · Sent ${mailing.recipients.length} · Opened ${opened} · Clicked ${clicked}`}
-                  </p>
-                </header>
-                <ul>
-                  {mailing.recipients.map((recipient) => (
-                    <li
-                      key={recipient.id}
-                      className="flex items-center justify-between gap-3 border-t border-ink/10 px-3 py-2.5"
-                    >
-                      <span className="min-w-0">
-                        <span className="block truncate text-sm font-medium">{recipient.name}</span>
-                        <span className="block truncate text-footnote text-neutral-500">{recipient.email}</span>
-                      </span>
-                      <span className="shrink-0 text-footnote text-neutral-500">{status(recipient)}</span>
-                    </li>
-                  ))}
-                </ul>
-              </article>
-            );
-          })}
+          {mailings.map((mailing) => (
+            <SentMailing key={mailing.id} mailing={mailing} />
+          ))}
         </div>
       )}
     </section>
