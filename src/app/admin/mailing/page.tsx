@@ -4,6 +4,10 @@ import { OutreachList } from "@/components/admin/outreach-list";
 import { SentMailings } from "@/components/admin/sent-mailings";
 import { outreachStats } from "@/lib/outreach-tracking";
 
+// Several addresses go out one after another. The default limit cuts that
+// off and the whole page turns into the error screen.
+export const maxDuration = 60;
+
 export default async function AdminMailingPage() {
   await requireAdminSession();
   const rows = await prisma.outreachAddress.findMany({
