@@ -19,9 +19,10 @@ import {
 } from "react-icons/io5";
 import { Sfx, SfxRepeat } from "../audio";
 import { browserIn, ease, enterUp, mix, path, pop, popIn, ramp, thousands } from "../anim";
+import { MATCH_CUT_HEADER } from "../series";
 import { Cursor, pressAt } from "../components/shared-scenes";
 import { Avatar, BrowserWindow, Bubble, type Deal, DealCard, KIEZ_GOODS, ODD_BLOOM, Photo, SampleNote, SceneHeader, Stage, Toast } from "../components/ui";
-import { colors } from "../theme";
+import { colors, GUTTER } from "../theme";
 
 const NICHES = [
   { label: "Beauty", icon: IoSparkles, click: 48 },
@@ -167,6 +168,24 @@ function blend(p: number, a: CardPose, b: CardPose): CardPose {
 const TOP: CardPose = { dx: 0, dy: 0, rotate: 0, scale: 1 };
 const HIDDEN: CardPose = { ...BEHIND, scale: 0.9, opacity: 0 };
 
+// The card's flight into the chat header that opens the next scene: frames, and its end pose (avatar centre at
+// 76/62 in the browser, 72 px wide).
+const FLIGHT = [162, 186] as const;
+const INTO_HEADER: CardPose = { dx: 76 - CARD.left - CARD.width / 2, dy: 62 - CARD.top - CARD.height / 2, rotate: 0, scale: 72 / CARD.width };
+
+// Top of the chat with Odd Bloom. Also drawn at the end of the swipe scene, so the cut between the two is invisible.
+const ChatHeader: React.FC<{ avatar?: number; text?: number }> = ({ avatar = 1, text = 1 }) => (
+  <div style={{ display: "flex", alignItems: "center", gap: 20, padding: "26px 40px", borderBottom: `2px solid rgba(7,7,7,${0.1 * text})`, backgroundColor: text > 0 ? colors.paper : undefined }}>
+    <div style={{ ...popIn(avatar, 0.3), display: "flex" }}>
+      <Avatar name="Odd Bloom" size={72} />
+    </div>
+    <div style={{ opacity: text }}>
+      <div style={{ fontSize: 32, fontWeight: 700 }}>Odd Bloom</div>
+      <div style={{ fontSize: 24, color: colors.graphite }}>Serum-Launch, erste Eindrücke</div>
+    </div>
+  </div>
+);
+
 export const C06Swipe: React.FC = () => {
   const frame = useCurrentFrame();
 
@@ -175,15 +194,18 @@ export const C06Swipe: React.FC = () => {
   const lumoThrow = ramp(frame, 58, 72, Easing.in(Easing.quad));
   const lumo: CardPose = { dx: -120 * lumoDrag - 1000 * lumoThrow, dy: 0, rotate: -6 * lumoDrag - 20 * lumoThrow, scale: 1 };
 
-  // Odd Bloom: moves up to the top, gets dragged right and held, then thrown out.
+  // Odd Bloom: moves up to the top, gets dragged right and held, then flies into the chat's header (match cut).
   const bloomUp = ease(frame, 58);
   const bloomDrag = ramp(frame, 100, 140, Easing.inOut(Easing.quad));
-  const bloomThrow = ramp(frame, 178, 194, Easing.in(Easing.quad));
   const bloomBase = blend(bloomUp, BEHIND, TOP);
-  const bloom: CardPose = { ...bloomBase, dx: bloomBase.dx + 82 * bloomDrag + 1000 * bloomThrow, rotate: bloomBase.rotate + 10 * bloomDrag + 18 * bloomThrow };
+  const held: CardPose = { ...bloomBase, dx: bloomBase.dx + 82 * bloomDrag, rotate: bloomBase.rotate + 10 * bloomDrag };
+  const bloom = blend(ramp(frame, FLIGHT[0], FLIGHT[1], Easing.inOut(Easing.cubic)), held, INTO_HEADER);
+  bloom.opacity = 1 - ramp(frame, FLIGHT[1] - 4, FLIGHT[1] + 2);
 
-  // Kiez Goods: hidden, then behind, then on top.
-  const kiez = blend(ease(frame, 180), blend(ease(frame, 60), HIDDEN, BEHIND), TOP);
+  // Kiez Goods: hidden, then behind, then gone with the rest of the feed.
+  const kiez = blend(ease(frame, 60), HIDDEN, BEHIND);
+  kiez.opacity = (kiez.opacity ?? 1) * (1 - ramp(frame, 164, 176));
+  const feedOut = 1 - ramp(frame, 166, 180);
 
   const toast = pop(frame, 146);
   const cardCenterX = CARD.left + CARD.width / 2;
@@ -195,8 +217,8 @@ export const C06Swipe: React.FC = () => {
     <Stage>
       <SceneHeader step={{ n: 2, label: "Deals wischen" }} parts={["Das Budget steht", { mark: "auf der Karte." }]} start={0} />
       <BrowserWindow height={1100} style={browserIn(frame, 680)}>
-        {(["headphones", "serum", "matcha"] as const).map((photo, i) => {
-          const opacity = i === 0 ? 1 - ramp(frame, 56, 72) : i === 1 ? ramp(frame, 56, 72) * (1 - ramp(frame, 180, 196)) : ramp(frame, 180, 196);
+        {(["headphones", "serum"] as const).map((photo, i) => {
+          const opacity = i === 0 ? 1 - ramp(frame, 56, 72) : ramp(frame, 56, 72) * (1 - ramp(frame, 168, 186));
           return (
             <Photo
               key={photo}
@@ -208,10 +230,10 @@ export const C06Swipe: React.FC = () => {
         <DealCard deal={KIEZ_GOODS} width={CARD.width} height={CARD.height} style={poseStyle(kiez)} />
         <DealCard deal={ODD_BLOOM} width={CARD.width} height={CARD.height} style={poseStyle(bloom)} />
         <DealCard deal={LUMO_AUDIO} width={CARD.width} height={CARD.height} style={poseStyle(lumo)} />
-        <Toast style={{ position: "absolute", top: 34, left: "50%", transform: `translateX(-50%) scale(${mix(toast, 0.6, 1)})`, opacity: Math.min(1, toast * 2), whiteSpace: "nowrap", zIndex: 10 }}>
+        <Toast style={{ position: "absolute", top: 34, left: "50%", transform: `translateX(-50%) scale(${mix(toast, 0.6, 1)})`, opacity: Math.min(1, toast * 2) * (1 - ramp(frame, 170, 180)), whiteSpace: "nowrap", zIndex: 10 }}>
           <IoHeart size={30} /> Interesse an Odd Bloom gesendet.
         </Toast>
-        <div style={{ position: "absolute", bottom: 40, left: 0, right: 0, display: "flex", justifyContent: "center", gap: 60 }}>
+        <div style={{ position: "absolute", bottom: 40, left: 0, right: 0, display: "flex", justifyContent: "center", gap: 60, opacity: feedOut }}>
           <RoundButton press={pressAt(frame, 56)}>
             <IoClose size={60} />
           </RoundButton>
@@ -219,10 +241,13 @@ export const C06Swipe: React.FC = () => {
             <IoHeart size={56} />
           </RoundButton>
         </div>
-        <div style={{ position: "absolute", top: 480, right: 30, opacity: 0.8 * ramp(frame, 100, 120) * (1 - ramp(frame, 176, 184)), transform: `translateX(${Math.sin(frame / 5) * 8}px)` }}>
+        <div style={{ position: "absolute", top: 480, right: 30, opacity: 0.8 * ramp(frame, 100, 120) * (1 - ramp(frame, 160, 170)), transform: `translateX(${Math.sin(frame / 5) * 8}px)` }}>
           <IoArrowForward size={90} />
         </div>
         <Cursor x={cursorX} y={cursorY} pressed={grabbing} opacity={ramp(frame, 28, 34) * (1 - ramp(frame, 156, 166))} />
+        <div style={{ position: "absolute", top: 0, left: 0, right: 0 }}>
+          <ChatHeader avatar={pop(frame, FLIGHT[1] - 2)} text={ramp(frame, FLIGHT[1] - 8, FLIGHT[1] + 6)} />
+        </div>
       </BrowserWindow>
       <SampleNote />
       <Sfx name="click" at={38} volume={0.55} />
@@ -230,7 +255,8 @@ export const C06Swipe: React.FC = () => {
       <Sfx name="click" at={98} volume={0.55} />
       <Sfx name="click" at={140} volume={0.5} />
       <Sfx name="like" at={146} volume={0.7} />
-      <Sfx name="swipe" at={178} volume={0.7} />
+      <Sfx name="swipe" at={FLIGHT[0]} volume={0.5} />
+      <Sfx name="pop" at={FLIGHT[1] - 2} volume={0.5} />
     </Stage>
   );
 };
@@ -250,15 +276,11 @@ export const C07Chat: React.FC = () => {
 
   return (
     <Stage>
-      <SceneHeader step={{ n: 3, label: "Angebot annehmen" }} parts={["Absprache", { mark: "direkt im Chat." }]} start={0} />
-      <BrowserWindow height={1100} style={browserIn(frame, 680)}>
-        <div style={{ display: "flex", alignItems: "center", gap: 20, padding: "26px 40px", borderBottom: `2px solid ${colors.line}` }}>
-          <Avatar name="Odd Bloom" size={72} />
-          <div>
-            <div style={{ fontSize: 32, fontWeight: 700 }}>Odd Bloom</div>
-            <div style={{ fontSize: 24, color: colors.graphite }}>Serum-Launch, erste Eindrücke</div>
-          </div>
-        </div>
+      {/* Starts once the match cut has faded the previous headline out. */}
+      <SceneHeader step={{ n: 3, label: "Angebot annehmen" }} parts={["Absprache", { mark: "direkt im Chat." }]} start={MATCH_CUT_HEADER} />
+      {/* Already in place: the swipe scene ends on this exact window. */}
+      <BrowserWindow height={1100} style={{ position: "absolute", top: 680, left: GUTTER }}>
+        <ChatHeader />
         <div style={{ padding: "36px 40px", display: "flex", flexDirection: "column", gap: 22 }}>
           <div style={bubble(28)}>
             <Bubble style={{ maxWidth: "none" }}>Hey Mia, wir lieben deinen Content!</Bubble>

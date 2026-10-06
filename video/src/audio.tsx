@@ -15,6 +15,7 @@ const FILES = {
   stamp: "sfx/stamp.wav",
   lock: "sfx/lock.wav",
   ding: "sfx/ding.wav",
+  hit: "sfx/hit.wav",
   success: "sounds/success.mp3",
 } as const;
 

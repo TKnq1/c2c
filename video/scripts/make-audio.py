@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """Generates the music bed and the sound effects of the videos.
 
-    video/public/music/creator-bed.mp3   music for the creator video (42 s, 120 BPM)
-    video/public/music/brand-bed.mp3     music for the brand video (34.5 s, 120 BPM)
+    video/public/music/creator-bed.mp3   music for the creator video (43 s, 120 BPM)
+    video/public/music/brand-bed.mp3     music for the brand video (33.5 s, 120 BPM)
     video/public/sfx/*.wav               UI sounds (pop, click, swipe, coin, ...)
 
 Everything is synthesised from code (oscillators and filtered noise, no samples, nothing third-party), so it
@@ -206,28 +206,34 @@ ARP = [0, 1, 2, 3, 2, 1, 3, 2]
 CREATOR = {
     "file": "creator-bed.mp3",
     "chords": [AM7, FMAJ7, CMAJ7, G6],  # vi - IV - I - V
-    "scenes": [0, 7, 14, 21, 25, 34, 47, 56, 63, 71, 77],
-    "logo": 21,  # C04, logo on black
-    "drop": 25,  # C05, first step: the groove starts
-    "lift": 47,  # C07, the chat: 16th shaker on top
-    "accents": [71],  # C10, the payout: fill and crash
+    "scenes": [0, 4, 10, 16, 23, 27, 36, 49, 58, 65, 73, 79],
+    "hook": (0, 4),  # C00: kick and bass under the card slam, then the music drops back
+    "hats_from": 10,  # C02
+    "kicks_from": 16,  # C03
+    "logo": 23,  # C04, logo on black
+    "drop": 27,  # C05, first step: the groove starts
+    "lift": 49,  # C07, the chat: 16th shaker on top
+    "accents": [73],  # C10, the payout: fill and crash
     "breakdown": None,
     "cta_riser": False,
-    "cta": 77,  # C11
-    "end": 84,  # 42 s
+    "cta": 79,  # C11
+    "end": 86,  # 43 s
 }
 BRAND = {
     "file": "brand-bed.mp3",
     "chords": [CMAJ7, G6, AM7, FMAJ7],  # I - V - vi - IV
-    "scenes": [0, 7, 15, 22, 26, 36, 44, 51, 61],
-    "logo": 22,  # B04
-    "drop": 26,  # B05, the request
-    "lift": 36,  # B06, creators coming in
-    "accents": [51],  # B08, the founding offer
-    "breakdown": (51, 55),  # no kick or bass for the first two bars of the offer
+    "scenes": [0, 5, 13, 20, 24, 34, 42, 49, 59],
+    "hook": (0, 5),  # B01: the ad flicked away
+    "hats_from": 9,
+    "kicks_from": 13,  # B03
+    "logo": 20,  # B04
+    "drop": 24,  # B05, the request
+    "lift": 34,  # B06, creators coming in
+    "accents": [49],  # B08, the founding offer
+    "breakdown": (49, 53),  # no kick or bass for the first two bars of the offer
     "cta_riser": True,
-    "cta": 61,  # B09
-    "end": 69,  # 34.5 s
+    "cta": 59,  # B09
+    "end": 67,  # 33.5 s
 }
 
 
@@ -238,7 +244,8 @@ def beat_t(beat):
 def make_bed(spec):
     chords = spec["chords"]
     logo, drop, cta, end = spec["logo"], spec["drop"], spec["cta"], spec["end"]
-    hats_from, kicks_from = spec["scenes"][1], spec["scenes"][2]
+    hook_from, intro = spec["hook"]
+    hats_from, kicks_from = spec["hats_from"], spec["kicks_from"]
     length = int(beat_t(end) * SR)
     music = np.zeros((length, 2))  # pads, plucks, bass: ducked by the kick
     drums = np.zeros((length, 2))
@@ -251,24 +258,37 @@ def make_bed(spec):
     def in_breakdown(beat):
         return spec["breakdown"] is not None and spec["breakdown"][0] <= beat < spec["breakdown"][1]
 
-    # Intro (hook): pad and a quiet arpeggio, a chord every bar from beat 0, the last one held into the logo.
-    for bar_start in range(0, logo, 4):
-        notes, _ = chord_at(bar_start, 0)
+    # Hook: straight in with kick, clap and bass on the first chord; beat 0 is left to the scene's own impact.
+    for beat in range(hook_from + 1, intro):
+        place(drums, beat_t(beat), kick(0.9))
+        kicks.append(beat_t(beat))
+        if (beat - hook_from) % 2 == 0:
+            place(drums, beat_t(beat), clap(0.45), pan=-0.05)
+        for half in (0, 0.5):
+            place(drums, beat_t(beat + half), hat(gain=0.16 if half else 0.08), pan=0.25)
+        place(music, beat_t(beat + 0.5), bass(chords[0][1], BEAT * 0.45), gain=0.45)
+    for k, note in enumerate(chords[0][0]):
+        place(music, beat_t(hook_from), pad_note(note, beat_t(intro - hook_from), 1500), pan=(k - 1.5) / 2.5, gain=0.13)
+    place(fx, beat_t(intro) - 0.35, band(noise(0.35), 3000, 10000) * np.linspace(0, 1, int(0.35 * SR)) ** 3, gain=0.25)
+
+    # Intro: the music drops back to a pad and a quiet arpeggio, a chord every bar, the last one held into the logo.
+    for bar_start in range(intro, logo, 4):
+        notes, _ = chord_at(bar_start, intro)
         dur = beat_t(min(4, logo - bar_start)) + 0.3
         for k, note in enumerate(notes):
             place(music, beat_t(bar_start), pad_note(note, dur, 900), pan=(k - 1.5) / 2.5, gain=0.16)
-    for step in range(logo * 2):
+    for step in range(intro * 2, logo * 2):
         beat = step / 2
-        notes, _ = chord_at(beat, 0)
+        notes, _ = chord_at(beat, intro)
         note = notes[ARP[step % len(ARP)]] + 12
-        place(music, beat_t(beat), pluck(note, 0.6, 0.8), pan=0.35 if step % 2 else -0.35, gain=0.08 + 0.05 * beat / logo)
+        place(music, beat_t(beat), pluck(note, 0.6, 0.8), pan=0.35 if step % 2 else -0.35, gain=0.08 + 0.05 * (beat - intro) / (logo - intro))
 
     # Build-up: hats from the second scene, kicks from the third, a riser and a clap roll into the logo.
     for step in range(hats_from * 2, logo * 2):
         place(drums, beat_t(step / 2), hat(gain=0.18 if step % 2 else 0.1), pan=0.3)
     for beat in range(kicks_from, logo):
         place(drums, beat_t(beat), kick(0.55))
-        _, root = chord_at(beat, 0)
+        _, root = chord_at(beat, intro)
         place(music, beat_t(beat), bass(root, BEAT * 0.9), gain=0.22)
     for k, step in enumerate(np.arange(logo - 2, logo, 0.25)):
         place(drums, beat_t(step), clap(0.15 + 0.06 * k))
@@ -466,6 +486,16 @@ def sfx_ding():
     return declick(out)
 
 
+def sfx_hit():
+    """Impact for something landing hard: a sub drop, a punchy body and a short crack."""
+    t = axis(0.9)
+    freq = 38 + 90 * np.exp(-t / 0.05)
+    sub = np.sin(2 * np.pi * np.cumsum(freq) / SR) * np.exp(-t / 0.28)
+    crack = band(noise(0.9), 1200, 9000) * np.exp(-t / 0.012) * 0.7
+    body = band(noise(0.9), 150, 1200) * np.exp(-t / 0.05) * 0.5
+    return declick(np.tanh((sub + crack + body) * 1.5))
+
+
 def seed(name):
     """Fresh noise per sound, so regenerating one never changes another."""
     global rng
@@ -489,6 +519,7 @@ def main():
         "stamp": sfx_stamp,
         "lock": sfx_lock,
         "ding": sfx_ding,
+        "hit": sfx_hit,
     }
     for name, make in effects.items():
         seed(name)

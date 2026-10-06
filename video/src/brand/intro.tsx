@@ -2,30 +2,40 @@ import type { ReactNode } from "react";
 import { Easing, useCurrentFrame } from "remotion";
 import { IoChatbubble, IoHeart, IoPlay, IoShareSocial } from "react-icons/io5";
 import { ease, enterUp, path, pop, popIn, ramp } from "../anim";
+import { MATCH_CUT_HEADER } from "../series";
 import { Sfx } from "../audio";
 import { Cursor, LogoReveal } from "../components/shared-scenes";
-import { Avatar, Photo, PhoneOutline, SceneHeader, Stage } from "../components/ui";
+import { Avatar, Headline, Photo, PhoneOutline, SceneHeader, Stage } from "../components/ui";
 import { colors, GUTTER, type PhotoKey } from "../theme";
 
+// The flick that throws the ad out, and the creator video sliding up behind it.
+const FLICK = 14;
+const NEXT = 20;
+
+// First second decides whether people keep watching: the ad and the question are there from frame 0, the flick
+// follows half a second later.
 export const B01Hook: React.FC = () => {
   const frame = useCurrentFrame();
-  const phone = ease(frame, 6, { stiffness: 90 });
-  const drag = ramp(frame, 40, 62, Easing.inOut(Easing.quad));
-  const thrown = ramp(frame, 66, 82, Easing.in(Easing.quad));
-  const dx = -190 * drag - 820 * thrown;
-  const rotate = -12 * drag - 22 * thrown;
-  const lines = ramp(frame, 50, 60) * (1 - ramp(frame, 82, 96));
-  const next = ease(frame, 82, { stiffness: 90 });
-  // The pointer holds the ad's centre (phone coordinates) and lets go when it's thrown.
-  const cursorX = path(frame, [28, 38, 40, 62, 66, 80], [520, 320, 320, 320 - 190 * 0.9, 300, 420]);
-  const cursorY = path(frame, [28, 38, 62, 80], [900, 500, 470, 560]);
+  const drag = ramp(frame, 2, FLICK, Easing.inOut(Easing.quad));
+  const thrown = ramp(frame, FLICK, FLICK + 12, Easing.in(Easing.quad));
+  const dx = -50 * drag - 900 * thrown;
+  const rotate = -4 * drag - 28 * thrown;
+  const lines = ramp(frame, FLICK, FLICK + 6) * (1 - ramp(frame, FLICK + 16, FLICK + 26));
+  const next = ease(frame, NEXT, { stiffness: 120 });
+  // The thumb holds the ad's centre (phone coordinates) from the first frame and lets go on the flick.
+  const cursorX = path(frame, [0, FLICK, FLICK + 8], [320, 320 - 50 * 0.9, 220]);
+  const cursorY = path(frame, [0, FLICK, FLICK + 8], [490, 480, 520]);
 
   return (
     <Stage>
-      <SceneHeader parts={["Werbung wird", { mark: "weggewischt." }]} size={124} start={0} />
-      <PhoneOutline width={640} height={1240} style={{ position: "absolute", top: 600, left: 220, transform: `translateY(${(1 - phone) * 1300}px)` }}>
-        <div style={{ position: "absolute", left: 18, right: 18, top: 110 + (1 - next) * 1100, bottom: 30, borderRadius: 12, overflow: "hidden", opacity: next }}>
+      <div style={{ position: "absolute", top: 150, left: GUTTER, right: GUTTER, display: "flex", flexDirection: "column", gap: 10 }}>
+        <Headline parts={["Deine", "Werbung?"]} size={124} start={-7} />
+        <Headline parts={[{ mark: "Weggewischt." }]} size={124} start={FLICK} />
+      </div>
+      <PhoneOutline width={640} height={1240} style={{ position: "absolute", top: 600, left: 220 }}>
+        <div style={{ position: "absolute", inset: 0, transform: `translateY(${(1 - next) * 1240}px)`, opacity: next > 0.001 ? 1 : 0 }}>
           <Photo photo="serum" />
+          <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to top, rgba(0,0,0,0.6), transparent 45%)" }} />
         </div>
         <div style={{ position: "absolute", inset: 0, paddingTop: 110, display: "flex", flexDirection: "column", alignItems: "center" }}>
           <div
@@ -68,14 +78,16 @@ export const B01Hook: React.FC = () => {
             }}
           />
         ))}
-        <Cursor x={cursorX} y={cursorY} pressed={frame >= 38 && frame < 64 ? 1 : 0} opacity={ramp(frame, 26, 32) * (1 - ramp(frame, 74, 82))} />
+        <Cursor x={cursorX} y={cursorY} pressed={frame < FLICK + 2 ? 1 : 0} opacity={1 - ramp(frame, FLICK + 2, FLICK + 10)} />
       </PhoneOutline>
-      <Sfx name="whoosh" at={4} volume={0.35} />
-      <Sfx name="click" at={38} volume={0.5} />
-      <Sfx name="swipe" at={66} volume={0.7} />
+      <Sfx name="hit" at={0} volume={0.55} />
+      <Sfx name="swipe" at={FLICK} volume={0.8} />
+      <Sfx name="whoosh" at={NEXT} volume={0.3} />
     </Stage>
   );
 };
+
+export const B01_BLUR: [number, number][] = [[FLICK - 4, NEXT + 22]];
 
 const UgcPost: React.FC<{
   photo: PhotoKey;
@@ -85,20 +97,22 @@ const UgcPost: React.FC<{
   // Words of the caption shown so far, like burned-in subtitles.
   words: number;
   counts: [string, string, string];
+  // 0..1: name and action column fading in over the photo.
+  ui: number;
   width: number;
   height: number;
-}> = ({ photo, name, handle, caption, words, counts, width, height }) => (
+}> = ({ photo, name, handle, caption, words, counts, ui, width, height }) => (
   <PhoneOutline width={width} height={height}>
     <Photo photo={photo} style={{ position: "absolute", inset: 0 }} />
     <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to top, rgba(0,0,0,0.6), transparent 45%)" }} />
-    <div style={{ position: "absolute", top: 110, left: 34, display: "flex", alignItems: "center", gap: 16, color: colors.paper }}>
+    <div style={{ position: "absolute", top: 110, left: 34, display: "flex", alignItems: "center", gap: 16, color: colors.paper, ...enterUp(ui, 30) }}>
       <Avatar name={name} size={72} style={{ border: `4px solid ${colors.paper}` }} />
       <div>
         <div style={{ fontSize: 30, fontWeight: 900 }}>{name}</div>
         <div style={{ fontSize: 24, opacity: 0.85 }}>{handle}</div>
       </div>
     </div>
-    <div style={{ position: "absolute", right: 28, bottom: 230, display: "flex", flexDirection: "column", gap: 34, alignItems: "center", color: colors.paper, fontSize: 24, fontWeight: 700 }}>
+    <div style={{ position: "absolute", right: 28, bottom: 230, display: "flex", flexDirection: "column", gap: 34, alignItems: "center", color: colors.paper, fontSize: 24, fontWeight: 700, opacity: ui }}>
       {[<IoHeart key="h" size={60} />, <IoChatbubble key="c" size={54} />, <IoShareSocial key="s" size={54} />].map((icon, i) => (
         <div key={i} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 6 }}>
           {icon}
@@ -158,8 +172,10 @@ export const B02Ugc: React.FC = () => {
 
   return (
     <Stage>
-      <SceneHeader parts={["Echte Creator. Echte Videos.", { mark: "Echtes Vertrauen." }]} size={92} start={0} />
-      <div style={{ position: "absolute", top: 640, left: 220, ...popIn(ease(frame, 4, { stiffness: 110 }), 0.9) }}>
+      {/* Starts once the match cut has faded the previous headline out. */}
+      <SceneHeader parts={["Echte Creator. Echte Videos.", { mark: "Echtes Vertrauen." }]} size={92} start={MATCH_CUT_HEADER} />
+      {/* Same phone, same place as at the end of the hook: the cut between the two is a match. */}
+      <div style={{ position: "absolute", top: 600, left: 220 }}>
         <UgcPost
           photo="serum"
           name="Lena"
@@ -167,8 +183,9 @@ export const B02Ugc: React.FC = () => {
           caption={CAPTION}
           words={words}
           counts={[compact(12400 * counted), compact(318 * counted), compact(1100 * counted)]}
+          ui={ease(frame, 10)}
           width={640}
-          height={1180}
+          height={1240}
         />
       </div>
       {FLOATING.map(({ x, y, rotate, delay, icon }, i) => (

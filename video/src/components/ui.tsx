@@ -1,21 +1,28 @@
 import type { CSSProperties, ReactNode } from "react";
 import { AbsoluteFill, Img, staticFile, useCurrentFrame } from "remotion";
 import { ease, enterUp, pop, popIn, ramp } from "../anim";
+import { cameraDrift, HEADER_DEPTH, useCamera } from "../camera";
 import { IoGiftOutline, IoLogoInstagram, IoLogoTiktok, IoStar } from "react-icons/io5";
 import { colors, FONT, GUTTER, PHOTOS, type PhotoKey } from "../theme";
 
-export const Stage: React.FC<{ dark?: boolean; children: ReactNode }> = ({ dark, children }) => (
-  <AbsoluteFill
-    style={{
-      backgroundColor: dark ? colors.ink : colors.paper,
-      color: dark ? colors.paper : colors.ink,
-      fontFamily: FONT,
-      overflow: "hidden",
-    }}
-  >
-    {children}
-  </AbsoluteFill>
-);
+// Pivot of the camera's push-in: a little below the middle, where the content sits.
+const CAMERA_ORIGIN = "50% 62%";
+
+export const Stage: React.FC<{ dark?: boolean; children: ReactNode }> = ({ dark, children }) => {
+  const { zoom } = useCamera();
+  return (
+    <AbsoluteFill
+      style={{
+        backgroundColor: dark ? colors.ink : colors.paper,
+        color: dark ? colors.paper : colors.ink,
+        fontFamily: FONT,
+        overflow: "hidden",
+      }}
+    >
+      <AbsoluteFill style={{ transform: `translateY(${cameraDrift(zoom)}px) scale(${zoom})`, transformOrigin: CAMERA_ORIGIN }}>{children}</AbsoluteFill>
+    </AbsoluteFill>
+  );
+};
 
 // A plain string, or a word set on an inverted bar.
 export type HeadlinePart = string | { mark: string };
@@ -106,8 +113,23 @@ export const SceneHeader: React.FC<{
   const headlineStart = start === undefined ? undefined : start + (step ? 5 : 0);
   const stepP = start === undefined ? 1 : pop(frame, start);
   const subP = headlineStart === undefined ? 1 : ease(frame, headlineStart + headlineLength(parts) + 4);
+  // Depth: the headline takes back part of the camera's zoom and drift, so it moves less than the content.
+  const { zoom } = useCamera();
+  const back = 1 + (zoom - 1) * (1 - HEADER_DEPTH);
   return (
-    <div style={{ position: "absolute", top, left: GUTTER, right: GUTTER, display: "flex", flexDirection: "column", gap: 28 }}>
+    <div
+      style={{
+        position: "absolute",
+        top,
+        left: GUTTER,
+        right: GUTTER,
+        display: "flex",
+        flexDirection: "column",
+        gap: 28,
+        transformOrigin: CAMERA_ORIGIN,
+        transform: `translateY(${-cameraDrift(zoom) * (1 - HEADER_DEPTH)}px) scale(${zoom === 1 ? 1 : back / zoom})`,
+      }}
+    >
       {step && (
         <div style={{ alignSelf: "flex-start", transformOrigin: "left center", ...popIn(stepP, 0.5) }}>
           <StepLabel n={step.n} label={step.label} dark={dark} />

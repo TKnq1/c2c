@@ -49,3 +49,11 @@ export function browserIn(frame: number, top: number, delay = 8): CSSProperties 
 export function path(frame: number, frames: number[], values: number[]) {
   return interpolate(frame, frames, values, { extrapolateLeft: "clamp", extrapolateRight: "clamp", easing: Easing.inOut(Easing.cubic) });
 }
+
+// Camera shake after an impact at `at`, decaying within a few frames.
+export function shake(frame: number, at: number, strength = 22) {
+  const t = frame - at;
+  if (t < 0) return { x: 0, y: 0 };
+  const decay = Math.exp(-t / 4);
+  return { x: strength * decay * Math.sin(t * 2.7), y: strength * 0.7 * decay * Math.cos(t * 3.3) };
+}

@@ -11,7 +11,7 @@ Zwei Videos, beide in Remotion (`video/`), 2D-Flat-Animation im comtor-Look.
 | Schrift | Lato Black für Headlines, Lato Regular für Fließtext |
 | Formen | 4px-Ecken überall, Avatare rund (wie in der App) |
 | UI | Vereinfachte 2D-Nachbauten der echten Web-App-Screens im Browserfenster (wie `mac-window.tsx` auf der Landingpage), keine Screenshots |
-| Bewegung | Spring-Animationen (Remotion `spring`), harte Schnitte zwischen Szenen per Wisch/Maske, kinetische Typo Wort für Wort |
+| Bewegung | Spring-Animationen, kinetische Typo Wort für Wort, Bewegungsunschärfe bei schnellen Bewegungen und Übergängen, langsamer Kamera-Zoom pro Szene mit Tiefenwirkung (Überschrift bewegt sich weniger als der Inhalt), Match-Cuts wo ein Element in die nächste Szene weiterläuft |
 | Daten | Nur Beispieldaten von der Landingpage (Odd Bloom, Kiez Goods, Lumo Audio …). Kleiner Hinweis „Beispieldaten“ unten im Bild, sobald UI zu sehen ist |
 | Wording | „zurückgehalten“, nie „Treuhand“ (siehe `docs/legal-readiness.md`) |
 | Ton | Eigene, per Code erzeugte Musik (120 BPM, Schnitte auf dem Beat) + UI-Sounds (`scripts/make-audio.py`). Voiceover spricht ihr selbst ein |
@@ -20,7 +20,12 @@ Zwei Videos, beide in Remotion (`video/`), 2D-Flat-Animation im comtor-Look.
 
 ## Video 1: Creator, „Geld verdienen mit deinen Posts“
 
-Länge: ca. 45 s
+Länge: ca. 43 s (Zeiten der Szenen unten vom ersten Entwurf; aktuelle Zeiten in `VOICEOVER.md`)
+
+### Szene 0 – Hook (0:00–0:02)
+- **Bild:** Ab dem ersten Frame fällt die Odd-Bloom-Deal-Karte mit Bewegungsunschärfe ins Bild und schlägt nach 8 Frames ein (Impact-Sound, Kamera-Wackler). Ein großer „250 €“-Stempel knallt schräg auf die Karte.
+- **Text:** „**250 €** für ein TikTok?“ ist schon beim ersten Frame im Einflug, darunter „So verdienst du mit deinen Posts.“
+- **Musik:** Kick und Bass direkt ab dem Hook, danach fällt sie ins ruhige Intro zurück.
 
 ### Szene 1 – Hook (0:00–0:04)
 - **Bild:** Weißer Screen. Ein Smartphone-Umriss (2D, Ink-Linie) fällt von oben ins Bild, darin scrollt ein Feed aus grauen Post-Platzhaltern.
@@ -54,6 +59,7 @@ Länge: ca. 45 s
 - **Text:** „Das Budget steht auf der Karte. Rechts heißt: interessiert.“
 
 ### Szene 7 – Schritt 3: Angebot im Chat (0:26–0:31)
+- **Übergang (Match-Cut):** Am Ende von Szene 6 fliegt die Odd-Bloom-Karte klein in die Kopfzeile des Chats und wird dort zum Avatar. Das Browserfenster bleibt stehen, nur die Überschrift wechselt.
 - **Bild:** Chat-Ansicht. Nachrichten tippen sich rein: Marke „Ein TikTok für 250 €?“ → Creator „Deal!“. Darunter Angebots-Karte, Stempel-Animation „Angebot angenommen“.
 - **Schritt-Label:** „3 · Angebot annehmen“
 - **Text:** „Absprache direkt im Chat.“
@@ -81,11 +87,12 @@ Länge: ca. 45 s
 
 ## Video 2: Marken, „Wachse schneller mit UGC“
 
-Länge: ca. 35 s
+Länge: ca. 33,5 s (Zeiten der Szenen unten vom ersten Entwurf; aktuelle Zeiten in `VOICEOVER.md`)
 
-### Szene 1 – Hook (0:00–0:04)
-- **Bild:** Eine klassische Werbeanzeige (graues Rechteck mit „AD“-Badge) im Feed, ein Daumen wischt sie sofort weg.
-- **Text:** „Werbung wird weggewischt.“
+### Szene 1 – Hook (0:00–0:02)
+- **Bild:** Die Anzeige steht ab dem ersten Frame im Handy, ein Daumen hält sie. Nach einer halben Sekunde wischt er sie mit Schwung weg (Bewegungsunschärfe), dahinter schiebt sich ein Creator-Video hoch.
+- **Text:** „Deine Werbung?“ (ab Frame 0, mit Impact-Sound) → beim Wegwischen knallt „**Weggewischt.**“ darunter.
+- **Übergang (Match-Cut):** Das Handy mit dem Creator-Video bleibt stehen und wird zu Szene 2, nur die Überschrift wechselt.
 
 ### Szene 2 – UGC als Antwort (0:04–0:09)
 - **Bild:** An ihrer Stelle erscheint ein Creator-Video (runder Avatar, Produktfoto, Untertitel-Balken). Herzen, Kommentare und Shares fliegen raus.
@@ -126,8 +133,8 @@ Länge: ca. 35 s
 
 ## Offene Punkte für dich
 
-1. **„Lebenslang“ vs. „solange dein Konto besteht“:** Die App sagt überall „solange dein Konto besteht“ (bewusst so formuliert). Ich habe das im Text übernommen. Soll „lebenslang“ trotzdem rein, z. B. nur im VO?
-2. **Voiceover oder nur Text + Musik?** Storyboard funktioniert ohne VO (Social-Videos laufen oft stumm).
+1. **„Lebenslang“ vs. „solange dein Konto besteht“:** Die App sagt überall „solange dein Konto besteht“ (bewusst so formuliert). Ich habe das im Text übernommen. Im Voiceover steht „lebenslang, solange dein Konto besteht“ (`VOICEOVER.md`, B08), im Bild bleibt „Solange dein Konto besteht“.
+2. **Voiceover:** Entschieden: ElevenLabs, Skript in `VOICEOVER.md`.
 3. **Freie Plätze im 50er-Raster:** Entschieden: alle 50 frei.
 4. **Format:** Nur 9:16 oder zusätzlich 16:9 (Website/YouTube) bzw. 1:1?
 5. **Sprache:** Nur Deutsch oder auch Englisch? Die Texte sind so gebaut, dass sie sich leicht austauschen lassen.
