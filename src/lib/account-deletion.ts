@@ -94,6 +94,7 @@ export async function anonymiseAccount(userId: string, role: Role) {
         sessionsRevokedAt: now,
         keptSessionId: null,
         isAdmin: false,
+        heardFrom: null,
         marketingConsentAt: null,
         marketingTokenHash: null,
         marketingTokenExpiresAt: null,

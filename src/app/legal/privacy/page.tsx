@@ -23,6 +23,7 @@ const SECTIONS: { title: string; body: string[] }[] = [
       "If we suspend an account for breaking our terms, we store when and why, so the decision can be reviewed later (Art. 6(1)(f) GDPR).",
       "When you sign up we also store when you agreed to the terms and this privacy policy and which version it was, and that you confirmed you are at least 18. This is our proof of it (Art. 6(1)(b) and (f) GDPR).",
       "Which setup steps you have seen or completed is stored with your account, so we can improve the setup (Art. 6(1)(f) GDPR).",
+      "At the end of the setup we ask, voluntarily, how you heard about us (for example a search engine or a friend). Only if you answer, we store the option you picked with your account, to see which channels bring people to us (Art. 6(1)(a) GDPR). You can skip the question. The answer is deleted with the account.",
       "We need your email address and password to enter into and perform a contract with you. Without them there is no account. Everything else you enter is optional, except what is required for payouts (Stripe verifies your identity for that).",
     ],
   },

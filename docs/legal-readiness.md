@@ -70,5 +70,6 @@ what a developer needs.
 | Waitlist | launch notice | email, role, confirmation time | Resend, Neon | Art. 6(1)(a) | 30 days unconfirmed / until launch mail |
 | Push notifications | notifications | subscription or device token | Apple, Google, Mozilla | Art. 6(1)(a) | until withdrawn or account deletion |
 | Onboarding events | product improvement | user id, step, time | Neon | Art. 6(1)(f) | until account deletion |
+| "How did you hear about us?" (optional) | channel measurement | one answer code | Neon | Art. 6(1)(a) | until account deletion |
 | Error reporting (if on) | stability | error data, maybe IP | Sentry | Art. 6(1)(f) | per Sentry setting |
 | Marketing mail (if on) | advertising | name, email, consent note, send record | Resend, Neon | Art. 6(1)(a) | send record 90 days |

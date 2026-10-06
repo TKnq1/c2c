@@ -2,6 +2,17 @@ import { prisma } from "@/lib/prisma";
 import { requireAdminSession } from "@/lib/admin-session";
 import { buildFunnel, type FunnelRow } from "@/lib/onboarding-flow";
 import { StatTile } from "@/components/admin/stat-tile";
+import { HEARD_FROM } from "@/lib/heard-from";
+
+const HEARD_LABELS: Record<(typeof HEARD_FROM)[number], string> = {
+  search: "Search engine",
+  social: "Social media",
+  friend: "A friend or colleague",
+  community: "A forum or community",
+  newsletter: "A newsletter or blog",
+  event: "An event",
+  other: "Somewhere else",
+};
 
 // Where people leave the onboarding wizard. Counted from OnboardingEvent
 // (one row per person, step and outcome), so the numbers start from the day
@@ -15,6 +26,25 @@ export default async function AdminOnboardingPage() {
     groups = rows.map((r) => ({ role: r.role, step: r.step, kind: r.kind, count: r._count._all }));
   } catch {
     // The table isn't in this database yet (a preview deploy before the migration ran).
+  }
+
+  // The optional "How did you hear about us?" on the last screen. Accounts that skipped it, or were created
+  // before it existed, are counted apart.
+  let heard: { answer: string; count: number }[] | null = null;
+  let withoutAnswer = 0;
+  try {
+    const rows = await prisma.user.groupBy({
+      by: ["heardFrom"],
+      where: { deletedAt: null, role: { in: ["CREATOR", "STARTUP"] } },
+      _count: { _all: true },
+    });
+    withoutAnswer = rows.find((r) => r.heardFrom === null)?._count._all ?? 0;
+    heard = rows
+      .filter((r): r is typeof r & { heardFrom: string } => r.heardFrom !== null)
+      .map((r) => ({ answer: r.heardFrom, count: r._count._all }))
+      .sort((a, b) => b.count - a.count);
+  } catch {
+    // The column isn't in this database yet.
   }
 
   return (
@@ -37,7 +67,39 @@ export default async function AdminOnboardingPage() {
           <Funnel title="Brands" rows={buildFunnel("STARTUP", groups.filter((g) => g.role === "STARTUP"))} />
         </>
       )}
+
+      {heard !== null && <HeardFrom rows={heard} withoutAnswer={withoutAnswer} />}
     </div>
+  );
+}
+
+function HeardFrom({ rows, withoutAnswer }: { rows: { answer: string; count: number }[]; withoutAnswer: number }) {
+  const answered = rows.reduce((sum, r) => sum + r.count, 0);
+  return (
+    <section className="flex flex-col gap-3">
+      <h2 className="font-display text-title-2 font-bold">How people heard about us</h2>
+      <p className="text-sm text-neutral-600 dark:text-neutral-400">
+        The optional question on the last onboarding screen. {answered} answered, {withoutAnswer} didn&apos;t (or signed
+        up before it existed).
+      </p>
+      {rows.length > 0 && (
+        <div className="overflow-x-auto rounded bg-fog">
+          <table className="w-full text-sm">
+            <tbody>
+              {rows.map((r) => (
+                <tr key={r.answer} className="border-t border-ink/10 tabular-nums first:border-t-0">
+                  <td className="px-4 py-2.5 font-sans">{HEARD_LABELS[r.answer as keyof typeof HEARD_LABELS] ?? r.answer}</td>
+                  <td className="px-4 py-2.5 text-right">{r.count}</td>
+                  <td className="px-4 py-2.5 text-right text-neutral-500 dark:text-neutral-400">
+                    {Math.round((r.count / answered) * 100)}%
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </section>
   );
 }
 

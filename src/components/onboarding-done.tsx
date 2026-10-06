@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useI18n } from "@/components/i18n-provider";
+import { OnboardingHeardFrom } from "@/components/onboarding-heard-from";
 import type { IconType } from "react-icons";
 import { IoCheckmark, IoChevronForward, IoMailOutline, IoPersonOutline, IoSearchOutline, IoWalletOutline } from "react-icons/io5";
 
@@ -109,6 +110,8 @@ export function OnboardingDone({
           </li>
         ))}
       </ul>
+
+      <OnboardingHeardFrom />
 
       <div className="mt-auto flex flex-col items-center gap-3 pt-2 sm:mt-0">
         <Link

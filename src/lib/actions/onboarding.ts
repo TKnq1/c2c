@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { processAvatarUpload } from "@/lib/avatar-upload";
 import { notifyBrandsAboutCreator } from "@/lib/onboarding-notify";
 import { creatorNicheColumns } from "@/lib/creator-niches";
+import { isHeardFrom } from "@/lib/heard-from";
 import type { OnboardingInsight } from "@/lib/onboarding-flow";
 import { brandNicheCreatorsInsight, nicheRequestsInsight, reachRequestsInsight } from "@/lib/onboarding-insights";
 import {
@@ -169,5 +170,18 @@ export async function saveOnboardingPhotoAction(
     await prisma.creatorProfile.update({ where: { userId: session.user.id }, data: { avatarUrl } });
   }
 
+  return { success: true };
+}
+
+// The optional "How did you hear about us?" on the last screen. Only a known code is stored, and picking
+// another answer replaces the first.
+export async function saveHeardFromAction(answer: string): Promise<{ success?: boolean; error?: string }> {
+  const session = await auth();
+  if (!session || (session.user.role !== "STARTUP" && session.user.role !== "CREATOR")) {
+    return { error: "Not authorized." };
+  }
+  if (!isHeardFrom(answer)) return { error: "Please choose one of the options." };
+
+  await prisma.user.update({ where: { id: session.user.id }, data: { heardFrom: answer } });
   return { success: true };
 }

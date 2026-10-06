@@ -39,6 +39,10 @@ model User {
   termsVersion    String?
   ageConfirmedAt  DateTime?
 
+  // The optional "How did you hear about us?" answer at the end of onboarding: one of the codes in
+  // src/lib/heard-from.ts, never free text.
+  heardFrom String?
+
   // Set by an admin from /admin/users. A suspended account can't sign in,
   // and an existing session ends at its next periodic check (see auth.ts).
   suspendedAt     DateTime?
