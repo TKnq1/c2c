@@ -21,6 +21,7 @@ import { canWithdrawPro } from "@/lib/pro-withdrawal";
 import { LegalLinks } from "@/components/legal-links";
 import { AppearanceSettings } from "@/components/appearance-settings";
 import { OnboardingChecklist } from "@/components/onboarding-checklist";
+import { MarketingConsentSettings } from "@/components/marketing-consent-settings";
 import { canSellProSubscription } from "@/lib/native-app-server";
 import { PageTitle } from "@/components/page-title";
 import { getT } from "@/lib/i18n/server";
@@ -45,6 +46,9 @@ export default async function StartupSettingsPage() {
         notifyPayments: true,
         notifyDeposits: true,
         notifyNewCreators: true,
+        marketingConsentAt: true,
+        marketingSentAt: true,
+        marketingTokenExpiresAt: true,
       },
     }),
     prisma.request.count({ where: { startup: { userId: session.user.id } } }),
@@ -127,6 +131,18 @@ export default async function StartupSettingsPage() {
           }}
         />
 
+      </SettingsSection>
+
+      <SettingsSection id="news" title={t("screens.marketing.settingsTitle")}>
+        <MarketingConsentSettings
+          confirmed={!!user.marketingConsentAt}
+          pending={
+            !user.marketingConsentAt &&
+            !!user.marketingSentAt &&
+            !!user.marketingTokenExpiresAt &&
+            user.marketingTokenExpiresAt > new Date()
+          }
+        />
       </SettingsSection>
 
       {session.user.isAdmin && (

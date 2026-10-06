@@ -19,6 +19,7 @@ import { ConnectStripeButton } from "@/components/connect-stripe-button";
 import { LegalLinks } from "@/components/legal-links";
 import { AppearanceSettings } from "@/components/appearance-settings";
 import { OnboardingChecklist } from "@/components/onboarding-checklist";
+import { MarketingConsentSettings } from "@/components/marketing-consent-settings";
 import { PageTitle } from "@/components/page-title";
 import { getT } from "@/lib/i18n/server";
 
@@ -42,6 +43,9 @@ export default async function CreatorSettingsPage() {
         notifyPayments: true,
         notifyDeposits: true,
         notifyNewCreators: true,
+        marketingConsentAt: true,
+        marketingSentAt: true,
+        marketingTokenExpiresAt: true,
       },
     }),
   ]);
@@ -152,6 +156,18 @@ export default async function CreatorSettingsPage() {
           }}
         />
 
+      </SettingsSection>
+
+      <SettingsSection id="news" title={t("screens.marketing.settingsTitle")}>
+        <MarketingConsentSettings
+          confirmed={!!user.marketingConsentAt}
+          pending={
+            !user.marketingConsentAt &&
+            !!user.marketingSentAt &&
+            !!user.marketingTokenExpiresAt &&
+            user.marketingTokenExpiresAt > new Date()
+          }
+        />
       </SettingsSection>
 
       {session.user.isAdmin && (

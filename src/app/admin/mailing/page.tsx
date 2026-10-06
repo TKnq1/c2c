@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { requireAdminSession } from "@/lib/admin-session";
+import { RoleBadge } from "@/components/admin/role-badge";
 import { OutreachList } from "@/components/admin/outreach-list";
 import { SentMailings } from "@/components/admin/sent-mailings";
 import { outreachStats } from "@/lib/outreach-tracking";
@@ -23,6 +24,18 @@ export default async function AdminMailingPage() {
   }));
   const creators = listed.filter((row) => row.side === "CREATOR");
   const brands = listed.filter((row) => row.side === "STARTUP");
+  const consented = await prisma.user.findMany({
+    where: { marketingConsentAt: { not: null }, deletedAt: null },
+    orderBy: { marketingConsentAt: "desc" },
+    select: {
+      id: true,
+      email: true,
+      role: true,
+      marketingConsentAt: true,
+      creatorProfile: { select: { displayName: true } },
+      startupProfile: { select: { companyName: true } },
+    },
+  });
   const mailings = await prisma.outreachMailing.findMany({
     orderBy: { createdAt: "desc" },
     include: {
@@ -48,6 +61,34 @@ export default async function AdminMailingPage() {
           Opened counts when the images load, so it can fire without anyone reading. Clicked is the button.
         </p>
       </div>
+      <section className="flex flex-col gap-3">
+        <h2 className="font-display text-title-2 font-bold">May receive product news ({consented.length})</h2>
+        <p className="max-w-2xl text-sm text-neutral-600 dark:text-neutral-400">
+          These accounts pressed the button in the confirmation email. Only they may get product news. Opening the link does not count. The lists below are typed-in addresses and are not this consent.
+        </p>
+        {consented.length === 0 ? (
+          <p className="text-sm text-neutral-500">Nobody has confirmed yet.</p>
+        ) : (
+          <ul className="divide-y divide-ink/10 rounded border border-ink/10">
+            {consented.map((person) => (
+              <li key={person.id} className="flex items-center justify-between gap-3 px-4 py-3">
+                <div className="min-w-0">
+                  <p className="truncate text-sm font-medium">
+                    {person.creatorProfile?.displayName ?? person.startupProfile?.companyName ?? person.email}
+                  </p>
+                  <p className="truncate text-sm text-neutral-500">{person.email}</p>
+                </div>
+                <div className="flex shrink-0 items-center gap-3">
+                  <span className="text-xs text-neutral-500 tabular-nums">
+                    {person.marketingConsentAt?.toLocaleDateString("en", { day: "numeric", month: "short", year: "numeric" })}
+                  </span>
+                  <RoleBadge role={person.role} />
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
       <div className="grid gap-6 lg:grid-cols-2">
         <OutreachList
           side="CREATOR"

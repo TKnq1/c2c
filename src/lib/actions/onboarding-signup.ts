@@ -17,6 +17,7 @@ import { notifyBrandsAboutCreator } from "@/lib/onboarding-notify";
 import { SITE_URL } from "@/lib/site";
 import { hashPassword } from "@/lib/password";
 import { hashToken, newToken } from "@/lib/tokens";
+import { queueMarketingConsent } from "@/lib/marketing-consent";
 import { guestBrandSignupSchema, guestCreatorSignupSchema } from "@/lib/validation";
 import type { OnboardingState } from "@/lib/actions/onboarding";
 
@@ -107,6 +108,7 @@ export async function signupFromDraftAction(_prevState: OnboardingState, formDat
       }
       revalidatePath("/");
       after(() => sendWelcome(user.id, user.email, "CREATOR"));
+      if (field(formData, "marketing") === "yes") queueMarketingConsent(user.id);
       return await signInWithoutLeaving(data.email, data.password);
     }
 
@@ -129,6 +131,7 @@ export async function signupFromDraftAction(_prevState: OnboardingState, formDat
       });
       revalidatePath("/");
       after(() => sendWelcome(user.id, user.email, "STARTUP"));
+      if (field(formData, "marketing") === "yes") queueMarketingConsent(user.id);
       return await signInWithoutLeaving(data.email, data.password);
     }
   } catch (error) {
