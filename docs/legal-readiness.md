@@ -38,9 +38,11 @@ what a developer needs.
 
 German is the default language (`DEFAULT_LOCALE` in `src/lib/i18n/locales.ts`): a first visit, a search engine and a
 link preview all get German, and the landing page offers a switch to English. The landing page, the FAQ, the share
-images, the German search pages under `/ugc` and the legal texts exist in German and English. The other six app
-languages show the English landing page text until it is translated (`landing` in `src/lib/i18n/messages/`).
-Still English only: the emails the app sends (`src/lib/email-templates.ts`).
+images, the German search pages under `/ugc`, the legal texts and the emails the app sends exist in German and
+English. The other six app languages show the English landing page and the English emails until they are translated
+(`landing` in `src/lib/i18n/messages/`, `src/lib/email-templates.ts`). An email is written in the account's stored
+language (`User.locale`), or in the language cookie of a visitor without an account (waitlist). `/dev-emails/<name>`
+shows them locally, `?lang=en` for English.
 
 ## Still open outside the code
 

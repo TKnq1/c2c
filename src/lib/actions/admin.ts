@@ -9,6 +9,7 @@ import { audit } from "@/lib/audit";
 import { prisma } from "@/lib/prisma";
 import { sendEmail } from "@/lib/email";
 import { accountSuspendedEmail, testEmail } from "@/lib/email-templates";
+import { parseLocale } from "@/lib/i18n/locales";
 import { SITE_URL } from "@/lib/site";
 
 // Same shape ConfirmActionButton expects: an error message, or nothing.
@@ -54,7 +55,7 @@ export async function suspendUserAction(userId: string, reason: string): Promise
 
   await audit(session.user.id, "user.suspend", userId, { reason: parsed.data.reason });
   // The person is told why, and how to object. A failed mail doesn't undo the suspension (sendEmail logs it).
-  await sendEmail({ to: user.email, ...accountSuspendedEmail(parsed.data.reason) });
+  await sendEmail({ to: user.email, ...accountSuspendedEmail(parsed.data.reason, parseLocale(user.locale)) });
   revalidateAdmin();
   return {};
 }

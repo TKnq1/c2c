@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { UgcBreadcrumbs, UgcCtas, UgcFaq, UgcFooter, UgcHeader, UgcSection, UgcSteps, UgcWatermark } from "@/components/ugc/ugc-parts";
+import { RELEASE_REVIEW_DAYS } from "@/lib/constants";
 import { canonical } from "@/lib/seo";
 import { getUgcNichePage, UGC_NICHE_PAGES, UGC_PATH, ugcNicheHref } from "@/lib/seo-pages";
 
@@ -53,7 +54,7 @@ export default async function UgcNichePage({ params }: { params: Promise<{ niche
             </p>
           </div>
 
-          <UgcSection title={`Diese Inhalte entstehen in der Nische ${page.label}`}>
+          <UgcSection title={`Diese Formate funktionieren in der Nische „${page.label}“`}>
             <div className="grid gap-3 sm:grid-cols-2">
               {page.formats.map((format) => (
                 <div key={format.title} className="rounded bg-fog p-5">
@@ -71,15 +72,15 @@ export default async function UgcNichePage({ params }: { params: Promise<{ niche
                 steps={[
                   `Anfrage einstellen: Nische ${page.label}, Sprache, Mindestzahl an Followern, Budget und Lieferumfang.`,
                   "Creator melden sich: Wer passt, sieht die Anfrage im Feed und schreibt dir im Chat.",
-                  "Bezahlen und freigeben: Du zahlst über die Plattform und gibst den Beitrag frei, wenn er passt.",
+                  "Bezahlen und freigeben: Du zahlst über die Plattform und gibst den Post frei, wenn er passt.",
                 ]}
               />
               <UgcSteps
                 title="Für Creator"
                 steps={[
-                  `Profil anlegen: Bis zu drei Nischen, zum Beispiel ${page.label}, und deine Plattformen mit Followerzahl.`,
+                  `Profil anlegen: Bis zu drei Nischen, zum Beispiel ${page.label}, und deine Plattformen mit der jeweiligen Followerzahl.`,
                   "Anfragen ansehen: Im Feed siehst du Budget und Anforderungen, bevor du dich meldest.",
-                  "Posten und bezahlt werden: Nach dem Post reichst du den Link ein, danach wird die Zahlung freigegeben.",
+                  `Posten und bezahlt werden: Nach dem Post reichst du den Link ein. Sobald die Marke ihn freigibt (spätestens nach ${RELEASE_REVIEW_DAYS} Tagen), wird die Zahlung ausgezahlt.`,
                 ]}
               />
             </div>
@@ -89,11 +90,11 @@ export default async function UgcNichePage({ params }: { params: Promise<{ niche
 
           <div className="flex flex-col gap-4 rounded bg-fog p-6">
             <h2 className="font-display text-title-2 font-bold text-balance">
-              Bereit für deinen ersten Auftrag in der Nische {page.label}?
+              Bereit für deinen ersten Auftrag in der Nische „{page.label}“?
             </h2>
             <UgcCtas />
             <p className="text-sm text-neutral-600 dark:text-neutral-400">
-              Mehr dazu, was UGC ist und wie comtor funktioniert, findest du auf{" "}
+              Was UGC ist und wie comtor funktioniert, erklären wir im Überblick:{" "}
               <Link href={UGC_PATH} className="underline">
                 UGC-Creator finden
               </Link>

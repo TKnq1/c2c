@@ -14,7 +14,7 @@ import {
 
 describe("verificationEmail", () => {
   const url = "https://www.comtor.app/verify-email/abc123";
-  const email = verificationEmail(url);
+  const email = verificationEmail(url, "en");
 
   it("links the button and the fallback link to the token URL", () => {
     expect(email.html.split(`href="${url}"`)).toHaveLength(3);
@@ -29,7 +29,7 @@ describe("verificationEmail", () => {
 
 describe("passwordResetEmail", () => {
   it("keeps the subject the inbox shows", () => {
-    expect(passwordResetEmail("https://www.comtor.app/reset-password/x").subject).toBe("Reset your comtor password");
+    expect(passwordResetEmail("https://www.comtor.app/reset-password/x", "en").subject).toBe("Reset your comtor password");
   });
 
   it("escapes what goes into the HTML", () => {
@@ -43,7 +43,7 @@ describe("passwordResetEmail", () => {
 
 describe("passwordChangedEmail", () => {
   it("offers a reset for when it wasn't them", () => {
-    const email = passwordChangedEmail("https://www.comtor.app/forgot-password");
+    const email = passwordChangedEmail("https://www.comtor.app/forgot-password", "en");
     expect(email.subject).toBe("Your comtor password was changed");
     expect(email.html).toContain('href="https://www.comtor.app/forgot-password"');
     expect(email.text).toContain("Wasn't you?");
@@ -53,7 +53,7 @@ describe("passwordChangedEmail", () => {
 describe("waitlistConfirmationEmail", () => {
   it("links to the confirmation page and promises one email only", () => {
     const url = "https://www.comtor.app/waitlist/confirm/abc";
-    const email = waitlistConfirmationEmail(url);
+    const email = waitlistConfirmationEmail(url, "en");
     expect(email.html).toContain(`href="${url}"`);
     expect(email.text).toContain("one email");
   });
@@ -63,21 +63,21 @@ describe("welcomeEmail", () => {
   const url = "https://www.comtor.app/verify-email/abc123";
 
   it("carries the verification link", () => {
-    const email = welcomeEmail(url, "CREATOR");
+    const email = welcomeEmail(url, "CREATOR", "en");
     expect(email.html.split(`href="${url}"`)).toHaveLength(3);
     expect(email.text).toContain(url);
   });
 
   it("tells creators and brands what comes next", () => {
-    expect(welcomeEmail(url, "CREATOR").text).toContain("brand deals");
-    expect(welcomeEmail(url, "STARTUP").text).toContain("first request");
+    expect(welcomeEmail(url, "CREATOR", "en").text).toContain("brand deals");
+    expect(welcomeEmail(url, "STARTUP", "en").text).toContain("first request");
   });
 });
 
 describe("marketingConsentEmail", () => {
   it("points at the confirm page and does not treat the mail itself as a yes", () => {
     const url = "https://www.comtor.app/marketing/confirm/abc";
-    const email = marketingConsentEmail(url);
+    const email = marketingConsentEmail(url, "en");
     expect(email.subject).toBe("Confirm news from comtor");
     expect(email.text).toContain(url);
     expect(email.text).toContain("Nothing is turned on until you press the button");
@@ -86,9 +86,9 @@ describe("marketingConsentEmail", () => {
 
 describe("marketingWelcomeEmail", () => {
   it("speaks to creators and brands separately", () => {
-    const creator = marketingWelcomeEmail("https://www.comtor.app/?for=creators", "CREATOR", "A note from comtor", "Mia", 24);
-    const brand = marketingWelcomeEmail("https://www.comtor.app/?for=brands", "STARTUP", "A note for brands", "Glow", 3);
-    const one = marketingWelcomeEmail("https://www.comtor.app/?for=creators", "CREATOR", "A note from comtor", "Mia", 1);
+    const creator = marketingWelcomeEmail("https://www.comtor.app/?for=creators", "CREATOR", "A note from comtor", "Mia", 24, undefined, undefined, "en");
+    const brand = marketingWelcomeEmail("https://www.comtor.app/?for=brands", "STARTUP", "A note for brands", "Glow", 3, undefined, undefined, "en");
+    const one = marketingWelcomeEmail("https://www.comtor.app/?for=creators", "CREATOR", "A note from comtor", "Mia", 1, undefined, undefined, "en");
     expect(creator.subject).toBe("A note from comtor");
     expect(creator.text).toContain("Mia, earn money posting on social media.");
     expect(creator.text).toContain("See paid deals");
@@ -126,6 +126,7 @@ describe("marketingWelcomeEmail", () => {
       2,
       "https://www.comtor.app/outreach/opt-out?x=1",
       "you ticked the box on our form on 2026-10-01",
+      "en",
     );
     expect(mail.text).toContain("You are getting this email because you agreed to hear from comtor (you ticked the box on our form on 2026-10-01).");
     expect(mail.text).toContain("Stop these emails: https://www.comtor.app/outreach/opt-out?x=1");
@@ -139,7 +140,7 @@ describe("marketingWelcomeEmail", () => {
 });
 
 describe("testEmail", () => {
-  const email = testEmail("https://www.comtor.app");
+  const email = testEmail("https://www.comtor.app", "en");
 
   it("says what it is, in the subject and the body", () => {
     expect(email.subject).toBe("comtor test email");
@@ -154,9 +155,89 @@ describe("testEmail", () => {
 
 describe("accountSuspendedEmail", () => {
   it("gives the reason and says how to object", () => {
-    const mail = accountSuspendedEmail("Fake follower numbers.");
+    const mail = accountSuspendedEmail("Fake follower numbers.", "en");
     expect(mail.subject).toBe("Your comtor account was suspended");
     expect(mail.text).toContain("Reason: Fake follower numbers.");
     expect(mail.text).toContain("info@comtor.app");
+  });
+});
+
+describe("German emails", () => {
+  const url = "https://www.comtor.app/verify-email/abc123";
+
+  it("is the default language", () => {
+    expect(verificationEmail(url).subject).toBe("Bestätige deine comtor-E-Mail-Adresse");
+    expect(verificationEmail(url, "fr").subject).toBe("Verify your comtor email");
+  });
+
+  it("writes the page in German, with German words around the content", () => {
+    const email = verificationEmail(url, "de");
+    expect(email.html).toContain('<html lang="de"');
+    expect(email.html).toContain("Button funktioniert nicht?");
+    expect(email.html).toContain(">Impressum<");
+    expect(email.html).toContain(">Datenschutz<");
+    expect(email.text).toContain("Impressum: ");
+    expect(email.text).toContain("Der Link gilt 24 Stunden.");
+    expect(email.html.split(`href="${url}"`)).toHaveLength(3);
+  });
+
+  it("keeps the English text free of German", () => {
+    const email = verificationEmail(url, "en");
+    expect(email.html).toContain('<html lang="en"');
+    expect(email.html).toContain("Button not working?");
+    expect(email.text).not.toMatch(/Impressum|Datenschutz/);
+  });
+
+  it("has every email in German", () => {
+    const emails = [
+      welcomeEmail(url, "CREATOR", "de"),
+      welcomeEmail(url, "STARTUP", "de"),
+      passwordResetEmail(url, "de"),
+      passwordChangedEmail(url, "de"),
+      accountSuspendedEmail("Gefälschte Follower-Zahlen.", "de"),
+      testEmail(url, "de"),
+      marketingConsentEmail(url, "de"),
+      waitlistConfirmationEmail(url, "de"),
+      marketingWelcomeEmail(url, "CREATOR", "Hallo", "Mia", 24, undefined, undefined, "de"),
+      marketingWelcomeEmail(url, "STARTUP", "Hallo", "Glow", 1, undefined, undefined, "de"),
+    ];
+    for (const email of emails) {
+      // None of the English sentences is left in the German mail.
+      expect(email.text).not.toMatch(/\b(Verify your|Reset your|Didn't|you can ignore|Thanks for signing|swipe|already here|Imprint|Privacy)\b/);
+      expect(email.html).toContain('<html lang="de"');
+    }
+  });
+
+  it("speaks to creators and brands, with the same numbers", () => {
+    const creator = marketingWelcomeEmail(url, "CREATOR", "Hallo", "Mia", 1234, undefined, undefined, "de");
+    const brand = marketingWelcomeEmail(url, "STARTUP", "Hallo", "", 1, undefined, undefined, "de");
+    expect(creator.text).toContain("Mia, verdiene Geld mit Posts in sozialen Medien.");
+    expect(creator.text).toContain("1.234 Marken sind schon dabei");
+    expect(creator.text).toContain("Du behältst 90 %.");
+    expect(brand.text).toContain("Bring deine Marke mit Creatorn voran.");
+    expect(brand.text).toContain("1 Creator ist schon dabei");
+    expect(brand.text).toContain("comtor behält 10 % jeder Zahlung, mit Pro (49 € im Monat) nur 3 %.");
+  });
+
+  it("tells the recipient why they get it, and how to stop, in German", () => {
+    const mail = marketingWelcomeEmail(
+      url,
+      "CREATOR",
+      "Hallo",
+      "Mia",
+      2,
+      "https://www.comtor.app/outreach/opt-out?x=1",
+      "du hast am 01.10.2026 auf unserem Formular zugestimmt",
+      "de",
+    );
+    expect(mail.text).toContain("Du bekommst diese E-Mail, weil du zugestimmt hast, E-Mails von comtor zu erhalten (du hast am 01.10.2026 auf unserem Formular zugestimmt).");
+    expect(mail.text).toContain("Diese E-Mails abbestellen: https://www.comtor.app/outreach/opt-out?x=1");
+  });
+
+  it("gives the reason and the way to object in German", () => {
+    const mail = accountSuspendedEmail("Gefälschte Follower-Zahlen.", "de");
+    expect(mail.subject).toBe("Dein comtor-Konto wurde gesperrt");
+    expect(mail.text).toContain("Grund: Gefälschte Follower-Zahlen.");
+    expect(mail.html).toContain("mailto:info@comtor.app?subject=Gesperrtes%20Konto");
   });
 });

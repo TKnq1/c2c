@@ -177,7 +177,7 @@ const GERMAN_TEXT: Record<string, { title: string; description: string }> = {
   "lumo-audio": {
     title: "Kopfhörer, die sich nicht zu ernst nehmen",
     description:
-      "Unsere neuen Over-Ears in deinem verrücktesten Setup. Spaß schlägt Hochglanz, Hauptsache man hört den Sound.",
+      "Unsere neuen Over-Ears in deinem verrücktesten Setup. Spaß schlägt Hochglanz, Hauptsache, man hört den Sound.",
   },
   "vela-optics": {
     title: "Glitzerbrillen, erster Blick",
@@ -198,7 +198,7 @@ const GERMAN_TEXT: Record<string, { title: string; description: string }> = {
       "Bau unsere Vitamin-C-Creme in deine echte Morgenroutine ein und erzähl nach zwei Wochen, wie sich deine Haut anfühlt.",
   },
   "salt-shore": {
-    title: "Bodylotion für nach dem Strand",
+    title: "After-Sun-Lotion für den Strandtag",
     description:
       "Drei Stories von einem Tag am Wasser, unsere After-Sun-Lotion kommt in mindestens einer davon vor.",
   },

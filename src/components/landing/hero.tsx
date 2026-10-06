@@ -116,14 +116,14 @@ export function Hero({ brands, creators }: { brands: number; creators: number })
 
         <p
           data-for="creator"
-          className="lp-rise mt-6 max-w-[36ch] text-[19px] leading-snug text-neutral-800 md:text-[22px] dark:text-neutral-200"
+          className="lp-rise mt-6 max-w-[36ch] rounded bg-paper/60 px-4 py-3 text-[19px] leading-snug text-ink backdrop-blur-xl md:text-[22px]"
           style={delay(250)}
         >
           {t("landing.hero.creatorBody")}
         </p>
         <p
           data-for="brand"
-          className="lp-rise mt-6 max-w-[38ch] text-[19px] leading-snug text-neutral-800 md:text-[22px] dark:text-neutral-200"
+          className="lp-rise mt-6 max-w-[38ch] rounded bg-paper/60 px-4 py-3 text-[19px] leading-snug text-ink backdrop-blur-xl md:text-[22px]"
           style={delay(250)}
         >
           {t("landing.hero.brandBody")}
@@ -141,7 +141,7 @@ export function Hero({ brands, creators }: { brands: number; creators: number })
           >
             {t("landing.nav.getApp")}
           </a>
-          <p className="text-footnote text-neutral-700 dark:text-neutral-300">
+          <p className="rounded bg-paper/60 px-3 py-2 text-footnote text-ink backdrop-blur-xl">
             {t("landing.hero.liveOnWeb")}{" "}
             <Link href="/login" className="font-semibold underline underline-offset-2">
               {t("landing.hero.logIn")}
@@ -160,10 +160,10 @@ export function Hero({ brands, creators }: { brands: number; creators: number })
             <BrandBuilder onPhoto={setBrandPhoto} />
           </div>
         </div>
-        <p className="lp-rise mt-5 text-footnote text-neutral-700 dark:text-neutral-300" style={delay(900)}>
+        <p className="lp-rise mt-5 rounded bg-paper/60 px-3 py-1.5 text-footnote text-ink backdrop-blur-xl" style={delay(900)}>
           {t("landing.hero.examples")}
         </p>
-        <p data-for="creator" className="lp-rise mt-2 text-sm text-neutral-700 dark:text-neutral-300" style={delay(900)}>
+        <p data-for="creator" className="lp-rise mt-2 rounded bg-paper/60 px-3 py-1.5 text-sm text-ink backdrop-blur-xl" style={delay(900)}>
           {t("landing.hero.drag")}
         </p>
       </div>
@@ -176,7 +176,7 @@ function CrowdLine({ side, count, one, many }: { side: "creator" | "brand"; coun
   return (
     <p
       data-for={side}
-      className="lp-rise mt-4 text-[19px] leading-snug text-neutral-800 md:text-[22px] dark:text-neutral-200"
+      className="lp-rise mt-4 rounded bg-paper/60 px-4 py-2 text-[19px] leading-snug text-ink backdrop-blur-xl md:text-[22px]"
       style={delay(300)}
     >
       <CountUp to={count} />{" "}

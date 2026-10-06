@@ -1,12 +1,13 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { UgcBreadcrumbs, UgcCtas, UgcFaq, UgcFooter, UgcHeader, UgcSection, UgcSteps, UgcWatermark } from "@/components/ugc/ugc-parts";
+import { RELEASE_REVIEW_DAYS } from "@/lib/constants";
 import { canonical } from "@/lib/seo";
 import { UGC_HUB_FAQS, UGC_NICHE_PAGES, UGC_PATH, ugcNicheHref } from "@/lib/seo-pages";
 
 const TITLE = "UGC-Creator finden und beauftragen";
 const DESCRIPTION =
-  "Marken finden UGC-Creator für Videos und Fotos, Creator finden bezahlte Aufträge. Anfrage einstellen, im Chat abstimmen, über die Plattform bezahlen. Kostenlos starten.";
+  "Marken finden UGC-Creator für Videos und Fotos, Creator bezahlte Aufträge. Anfrage einstellen, im Chat absprechen, über die Plattform bezahlen. Kostenlos.";
 
 export const metadata: Metadata = {
   title: TITLE,
@@ -62,15 +63,15 @@ export default function UgcPage() {
                 steps={[
                   "Anfrage einstellen: Nische, Sprache, Mindestzahl an Followern, Produktkategorie, Budget und Lieferumfang.",
                   "Creator melden sich: Wer passt, sieht die Anfrage im Feed und schreibt dir im Chat.",
-                  "Bezahlen und freigeben: Du zahlst über die Plattform und gibst den Beitrag frei, wenn er passt.",
+                  "Bezahlen und freigeben: Du zahlst über die Plattform und gibst den Post frei, wenn er passt.",
                 ]}
               />
               <UgcSteps
                 title="Für Creator"
                 steps={[
-                  "Profil anlegen: Bis zu drei Nischen und deine Plattformen mit Followerzahl.",
+                  "Profil anlegen: Bis zu drei Nischen und deine Plattformen mit der jeweiligen Followerzahl.",
                   "Anfragen ansehen: Im Feed siehst du Budget und Anforderungen, bevor du dich meldest.",
-                  "Posten und bezahlt werden: Nach dem Post reichst du den Link ein, danach wird die Zahlung freigegeben.",
+                  `Posten und bezahlt werden: Nach dem Post reichst du den Link ein. Sobald die Marke ihn freigibt (spätestens nach ${RELEASE_REVIEW_DAYS} Tagen), wird die Zahlung ausgezahlt.`,
                 ]}
               />
             </div>
@@ -79,7 +80,7 @@ export default function UgcPage() {
           <UgcFaq faqs={UGC_HUB_FAQS} />
         </div>
       </main>
-      <UgcFooter />
+      <UgcFooter onHub />
     </div>
   );
 }
