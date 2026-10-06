@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { UgcBreadcrumbs, UgcCtas, UgcFaq, UgcFooter, UgcHeader, UgcSection, UgcSteps } from "@/components/ugc/ugc-parts";
+import { UgcBreadcrumbs, UgcCtas, UgcFaq, UgcFooter, UgcHeader, UgcSection, UgcSteps, UgcWatermark } from "@/components/ugc/ugc-parts";
 import { canonical } from "@/lib/seo";
 import { UGC_HUB_FAQS, UGC_NICHE_PAGES, UGC_PATH, ugcNicheHref } from "@/lib/seo-pages";
 
@@ -19,10 +19,11 @@ export const metadata: Metadata = {
 // The German overview: what UGC is, how comtor works, and the way into each niche page.
 export default function UgcPage() {
   return (
-    <div lang="de" className="flex flex-1 flex-col">
+    <div lang="de" className="relative flex flex-1 flex-col">
+      <UgcWatermark />
       <UgcBreadcrumbs trail={[{ name: TITLE, path: UGC_PATH }]} />
       <UgcHeader />
-      <main className="flex-1 px-4 py-12 md:py-16">
+      <main className="relative z-10 flex-1 px-4 py-12 md:py-16">
         <div className="mx-auto flex max-w-3xl flex-col gap-12">
           <div className="flex flex-col gap-5">
             <h1 className="font-display text-[40px] leading-[1.02] font-black tracking-[-0.03em] text-balance md:text-[56px]">

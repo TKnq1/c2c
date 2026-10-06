@@ -6,13 +6,32 @@ import { SITE_URL } from "@/lib/site";
 // Pieces shared by the German search pages (/ugc and /ugc/<niche>). Plain server components: no script,
 // no tracking, so there is nothing to ask consent for.
 
-const PRIMARY = "rounded-full bg-ink px-6 py-3.5 text-center font-semibold text-paper transition hover:bg-graphite";
+const PRIMARY = "rounded bg-ink px-6 py-3.5 text-center font-semibold text-paper transition hover:bg-graphite";
 const SECONDARY =
-  "rounded-full border border-neutral-300 px-6 py-3.5 text-center font-semibold transition hover:border-ink dark:border-neutral-700";
+  "rounded border border-neutral-300 px-6 py-3.5 text-center font-semibold transition hover:border-ink dark:border-neutral-700";
+
+// The mark, huge, behind the whole page: the same shape as on the login and error screens (see
+// LogoWatermark), about a third bigger. Fixed, so it stays put while the page scrolls; the grey boxes are
+// solid and sit on top of it. Dark mode inverts it, a little fainter than there because these pages are long
+// stretches of small text.
+export function UgcWatermark() {
+  return (
+    <div aria-hidden className="pointer-events-none fixed inset-0 z-0 overflow-hidden">
+      <Image
+        src="/logo.png"
+        alt=""
+        width={2000}
+        height={2000}
+        priority
+        className="absolute top-1/2 left-1/2 h-[min(220vmin,104rem)] w-auto max-w-none -translate-x-1/2 -translate-y-1/2 opacity-[0.11] select-none dark:invert dark:opacity-[0.16]"
+      />
+    </div>
+  );
+}
 
 export function UgcHeader() {
   return (
-    <header className="border-b border-ink/10 px-4 pt-[calc(var(--safe-top)+12px)] pb-3">
+    <header className="relative z-10 border-b border-ink/10 px-4 pt-[calc(var(--safe-top)+12px)] pb-3">
       <div className="mx-auto flex max-w-3xl items-center justify-between">
         <Link href="/" className="flex items-center gap-2.5" aria-label="comtor, zur Startseite">
           <Image src="/logo.png" alt="" width={32} height={32} className="dark:invert" />
@@ -105,7 +124,7 @@ export function UgcBreadcrumbs({ trail }: { trail: { name: string; path: string 
 export function UgcFooter({ currentSlug }: { currentSlug?: string }) {
   const others = UGC_NICHE_PAGES.filter((page) => page.slug !== currentSlug);
   return (
-    <footer className="border-t border-ink/10 px-4 pt-8 pb-[calc(var(--safe-bottom)+28px)]">
+    <footer className="relative z-10 border-t border-ink/10 px-4 pt-8 pb-[calc(var(--safe-bottom)+28px)]">
       <div className="mx-auto flex max-w-3xl flex-col gap-6 text-sm text-neutral-600 dark:text-neutral-400">
         <nav aria-label="UGC nach Nische" className="flex flex-wrap gap-x-5 gap-y-2">
           {currentSlug && (
