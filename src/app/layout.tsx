@@ -3,7 +3,7 @@ import type { Metadata, Viewport } from "next";
 import { Lato } from "next/font/google";
 import { I18nProvider } from "@/components/i18n-provider";
 import { Nav } from "@/components/nav";
-import { getLocale } from "@/lib/i18n/server";
+import { getLocale, getT } from "@/lib/i18n/server";
 import { NativePushBridge } from "@/components/native-push-bridge";
 import { NativeBackButton } from "@/components/native-back-button";
 import { InAppNavigationMarker } from "@/lib/in-app-navigation";
@@ -26,36 +26,39 @@ const lato = Lato({
   weight: ["400", "700", "900"],
 });
 
-const SITE_NAME = "comtor – Brand-Creator Marketplace";
-const SITE_DESCRIPTION = "Brands find matching content creators for collaborations.";
-
-export const metadata: Metadata = {
-  metadataBase: new URL(SITE_URL),
-  title: { default: SITE_NAME, template: `%s · comtor` },
-  description: SITE_DESCRIPTION,
-  openGraph: {
-    title: SITE_NAME,
-    description: SITE_DESCRIPTION,
-    siteName: "comtor",
-    locale: "en_US",
-    type: "website",
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: SITE_NAME,
-    description: SITE_DESCRIPTION,
-  },
-  // Google Search Console ownership check for the site's domain.
-  verification: { google: "phXZ3gI5wDzbgcuHAxcyl_QNIH8Gw9lKXY7Gz-LH43k" },
-  appleWebApp: {
-    capable: true,
-    statusBarStyle: "black-translucent",
-    title: "comtor",
-    // No media query — one universal fallback rather than the full
-    // per-device matrix (see apple-splash/route.tsx for why).
-    startupImage: "/apple-splash",
-  },
-};
+// Title and description follow the visitor's language (German unless they chose another).
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getT();
+  const siteName = t("landing.meta.siteName");
+  const siteDescription = t("landing.meta.siteDescription");
+  return {
+    metadataBase: new URL(SITE_URL),
+    title: { default: siteName, template: `%s · comtor` },
+    description: siteDescription,
+    openGraph: {
+      title: siteName,
+      description: siteDescription,
+      siteName: "comtor",
+      locale: (await getLocale()) === "de" ? "de_DE" : "en_US",
+      type: "website",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: siteName,
+      description: siteDescription,
+    },
+    // Google Search Console ownership check for the site's domain.
+    verification: { google: "phXZ3gI5wDzbgcuHAxcyl_QNIH8Gw9lKXY7Gz-LH43k" },
+    appleWebApp: {
+      capable: true,
+      statusBarStyle: "black-translucent",
+      title: "comtor",
+      // No media query — one universal fallback rather than the full
+      // per-device matrix (see apple-splash/route.tsx for why).
+      startupImage: "/apple-splash",
+    },
+  };
+}
 
 // content is the light-mode default (matches --paper); the anti-FOUC
 // script below overwrites it before first paint when dark mode applies,
@@ -75,17 +78,20 @@ export const viewport: Viewport = {
   interactiveWidget: "resizes-content",
 };
 
-const ORGANIZATION_JSON_LD = {
-  "@context": "https://schema.org",
-  "@type": "Organization",
-  name: "comtor",
-  url: SITE_URL,
-  logo: `${SITE_URL}/logo.png`,
-  description: SITE_DESCRIPTION,
-};
+function organizationJsonLd(description: string) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    name: "comtor",
+    url: SITE_URL,
+    logo: `${SITE_URL}/logo.png`,
+    description,
+  };
+}
 
 export default async function RootLayout({ children }: LayoutProps<"/">) {
   const locale = await getLocale();
+  const t = await getT();
   return (
     <html
       lang={locale}
@@ -118,7 +124,7 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
         <link rel="preload" as="image" href="/logo-splash.png" fetchPriority="high" />
         <script
           type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(ORGANIZATION_JSON_LD) }}
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationJsonLd(t("landing.meta.siteDescription"))) }}
         />
       </head>
       <body className="min-h-full flex flex-col">

@@ -6,12 +6,15 @@ import { FiCheck, FiMail } from "react-icons/fi";
 import { joinWaitlistAction } from "@/lib/actions/waitlist";
 import { Spinner } from "@/components/spinner";
 import { useLandingRole } from "@/components/landing/landing-role";
+import { useI18n } from "@/components/i18n-provider";
+import { localizeError } from "@/lib/i18n/labels";
 
 // One email when the apps are out, after the address is confirmed (see
 // joinWaitlistAction). Keeps which side the visitor picked, so the launch
 // email can talk to creators and brands differently.
 export function WaitlistForm() {
   const role = useLandingRole();
+  const { t } = useI18n();
   const [state, action, pending] = useActionState(joinWaitlistAction, undefined);
   // Controlled, so a failed try doesn't wipe what was typed (React resets
   // an action form's own fields after every submit).
@@ -21,7 +24,7 @@ export function WaitlistForm() {
     return (
       <p role="status" className="lp-rise mx-auto mt-8 flex w-fit items-center gap-2 rounded-full bg-ink px-5 py-3 font-medium text-paper">
         <FiCheck className="h-5 w-5 shrink-0" />
-        You&apos;re already on the list.
+        {t("landing.waitlist.alreadyOn")}
       </p>
     );
   }
@@ -31,11 +34,11 @@ export function WaitlistForm() {
       <div role="status" className="lp-rise mx-auto mt-8 flex max-w-md flex-col items-center gap-2">
         <p className="flex w-fit items-center gap-2 rounded-full bg-ink px-5 py-3 font-medium text-paper">
           <FiMail className="h-5 w-5 shrink-0" />
-          Check your inbox.
+          {t("landing.waitlist.checkInbox")}
         </p>
         <p className="text-sm text-neutral-700 dark:text-neutral-300">
-          Confirm your email with the link we sent to <span className="font-semibold text-ink">{email}</span>, and
-          you&apos;re on the list.
+          {t("landing.waitlist.confirmBefore")} <span className="font-semibold text-ink">{email}</span>{" "}
+          {t("landing.waitlist.confirmAfter")}
         </p>
       </div>
     );
@@ -44,14 +47,14 @@ export function WaitlistForm() {
   return (
     <form action={action} className="mx-auto mt-8 w-full max-w-md text-left">
       <p className="mb-3 text-center text-sm font-medium text-neutral-700 dark:text-neutral-300">
-        Want the app? Get an email the day it&apos;s out.
+        {t("landing.waitlist.want")}
       </p>
       <input type="hidden" name="role" value={role ?? ""} />
       {/* For bots only: off screen and out of the tab order. */}
       <input type="text" name="website" tabIndex={-1} autoComplete="off" aria-hidden="true" className="absolute -left-[9999px] h-px w-px opacity-0" />
       <div className="flex flex-col gap-2 sm:flex-row">
         <label htmlFor="waitlist-email" className="sr-only">
-          Email
+          {t("landing.waitlist.emailLabel")}
         </label>
         <input
           id="waitlist-email"
@@ -61,7 +64,7 @@ export function WaitlistForm() {
           autoComplete="email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          placeholder="you@example.com"
+          placeholder={t("landing.waitlist.placeholder")}
           aria-invalid={state?.error ? true : undefined}
           aria-describedby={state?.error ? "waitlist-error" : undefined}
           className="min-w-0 flex-1 rounded border border-neutral-300 bg-paper/80 px-4 py-3 text-base backdrop-blur dark:border-neutral-700"
@@ -73,30 +76,30 @@ export function WaitlistForm() {
         >
           {pending ? (
             <span className="relative inline-flex items-center justify-center">
-              <span className="invisible">Notify me</span>
+              <span className="invisible">{t("landing.waitlist.notify")}</span>
               <Spinner className="absolute h-4 w-4" />
             </span>
           ) : (
-            "Notify me"
+            t("landing.waitlist.notify")
           )}
         </button>
       </div>
       {state?.error && (
         <p id="waitlist-error" role="alert" className="mt-2 text-center text-sm font-medium text-ink">
-          {state.error}
+          {localizeError(state.error, t)}
         </p>
       )}
       <p className="mt-3 text-center text-footnote text-neutral-600 dark:text-neutral-400">
-        You confirm by email first. Then one email when the apps are out, nothing else. See the{" "}
+        {t("landing.waitlist.confirmFirst")}{" "}
         <Link href="/legal/privacy" className="underline underline-offset-2">
-          Privacy Policy
+          {t("screens.settings.privacy")}
         </Link>
         .
       </p>
       <p className="mt-6 text-center text-sm text-neutral-700 dark:text-neutral-300">
-        Already have an account?{" "}
+        {t("landing.waitlist.haveAccount")}{" "}
         <Link href="/login" className="font-semibold underline underline-offset-2">
-          Log in
+          {t("landing.waitlist.logIn")}
         </Link>
       </p>
     </form>

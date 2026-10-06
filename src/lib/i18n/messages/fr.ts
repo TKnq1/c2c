@@ -1,4 +1,5 @@
 import type { Catalog } from "@/lib/i18n/messages/types";
+import { landing } from "@/lib/i18n/messages/landing-en";
 import { screensFr as screens } from "@/lib/i18n/messages/screens-fr";
 
 export const fr: Catalog = {
@@ -250,5 +251,7 @@ export const fr: Catalog = {
       heardOther: "Ailleurs",
     },
   },
+  // Not translated yet: the English landing page text.
+  landing,
   screens,
 };

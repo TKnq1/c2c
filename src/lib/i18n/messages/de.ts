@@ -1,4 +1,5 @@
 import type { Catalog } from "@/lib/i18n/messages/types";
+import { landingDe as landing } from "@/lib/i18n/messages/landing-de";
 import { screensDe as screens } from "@/lib/i18n/messages/screens-de";
 
 export const de: Catalog = {
@@ -250,5 +251,6 @@ export const de: Catalog = {
       heardOther: "Anderswo",
     },
   },
+  landing,
   screens,
 };

@@ -1,5 +1,6 @@
 import { getImageProps } from "next/image";
 import type { SwipeRequest } from "@/components/swipe-card";
+import type { Locale } from "@/lib/i18n/locales";
 
 // Product shots from Unsplash (free licence, no logos), one per colour so
 // the hero's background visibly changes with every card. The brands on the
@@ -160,16 +161,60 @@ const MOCK_REQUESTS: MockRequest[] = [
   },
 ];
 
-export function toSwipeRequest(r: MockRequest, round = 0): SwipeRequest & { photoKey: PhotoKey } {
+// The same requests in German, for the German page. Only the text people read changes: the content
+// presets ("1 Reel + 2 Stories") stay as they are, the cards translate those themselves.
+const GERMAN_TEXT: Record<string, { title: string; description: string }> = {
+  "odd-bloom": {
+    title: "Serum-Launch, erste Eindrücke",
+    description:
+      "Zeig unser neues Glow-Serum in deiner Morgenroutine. Ehrliche erste Eindrücke bei Tageslicht, ohne Skript. Wir schicken zwei Flaschen.",
+  },
+  "kiez-goods": {
+    title: "Iced Matcha für die Sommerkarte",
+    description:
+      "Unser Berliner Café nimmt Iced Matcha auf die Karte. Komm vorbei, filme die Zubereitung und erzähl, wie er dir schmeckt.",
+  },
+  "lumo-audio": {
+    title: "Kopfhörer, die sich nicht zu ernst nehmen",
+    description:
+      "Unsere neuen Over-Ears in deinem verrücktesten Setup. Spaß schlägt Hochglanz, Hauptsache man hört den Sound.",
+  },
+  "vela-optics": {
+    title: "Glitzerbrillen, erster Blick",
+    description: "Style unsere neuen Glitzerbrillen auf drei Arten. Bitte mit Nahaufnahmen der Details.",
+  },
+  "rouge-atelier": {
+    title: "Ein Lippenstift, drei Looks",
+    description: "Tag, Büro und Abend mit einem Farbton. Zwei kurze Videos, in deinem eigenen Stil.",
+  },
+  "linden-leather": {
+    title: "Die Tasche, die du wirklich jeden Tag nutzt",
+    description:
+      "Zeig, was in unsere Alltagstasche passt und wohin sie dich begleitet. Ein Feed-Post.",
+  },
+  "citrus-club": {
+    title: "Vitamin-C-Creme in deiner Morgenroutine",
+    description:
+      "Bau unsere Vitamin-C-Creme in deine echte Morgenroutine ein und erzähl nach zwei Wochen, wie sich deine Haut anfühlt.",
+  },
+  "salt-shore": {
+    title: "Bodylotion für nach dem Strand",
+    description:
+      "Drei Stories von einem Tag am Wasser, unsere After-Sun-Lotion kommt in mindestens einer davon vor.",
+  },
+};
+
+export function toSwipeRequest(r: MockRequest, round = 0, locale: Locale = "en"): SwipeRequest & { photoKey: PhotoKey } {
+  const german = locale === "de" ? GERMAN_TEXT[r.id] : undefined;
   return {
     id: `${r.id}-${round}`,
     startupId: r.id,
     isBrandFavorited: false,
     photoKey: r.photo,
-    title: r.title,
-    description: r.description,
+    title: german?.title ?? r.title,
+    description: german?.description ?? r.description,
     niche: r.niche,
-    languages: ["English"],
+    languages: [locale === "de" ? "German" : "English"],
     minFollowers: 1000,
     productCategory: r.productCategory,
     companyName: r.company,
@@ -186,8 +231,8 @@ export function toSwipeRequest(r: MockRequest, round = 0): SwipeRequest & { phot
   };
 }
 
-export function deck(round: number) {
-  return MOCK_REQUESTS.map((r) => toSwipeRequest(r, round));
+export function deck(round: number, locale: Locale = "en") {
+  return MOCK_REQUESTS.map((r) => toSwipeRequest(r, round, locale));
 }
 
 export const FIRST_PHOTO: PhotoKey = MOCK_REQUESTS[0].photo;

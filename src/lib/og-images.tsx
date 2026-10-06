@@ -1,4 +1,5 @@
 import { ImageResponse } from "next/og";
+import { NICHES } from "@/lib/constants";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
@@ -41,13 +42,63 @@ export const OG_ALT: Record<OgVariant, string> = {
   product: "comtor – Swipe. Match. Get paid.",
 };
 
-export function ogImage(variant: OgVariant) {
-  const art = variant === "clean" ? <Clean /> : variant === "bold" ? <Bold /> : <Product />;
+// The share images exist in German and English. Link previews are fetched without a language choice, so the
+// default language (German) is what they usually show. Any other language gets the English text.
+const OG_TEXT = {
+  en: {
+    cleanA: "Brands meet",
+    cleanB: "the right creators.",
+    cleanSub: "Post a request, get matched, pay once the deal is agreed.",
+    cleanSize: 92,
+    tagline: "Brand-Creator Marketplace",
+    boldA: "Where brands",
+    boldB: "meet creators.",
+    prodA: "Swipe. Match.",
+    prodB: "Get paid.",
+    prodSub: "The marketplace for brand × creator collabs.",
+    prodSize: 80,
+    cardBrand: "Glow Beauty Co",
+    cardTitle: "Serum launch reel",
+    cardBody: "Show your morning routine with our new serum, honest first impressions.",
+    chipA: "1 Reel + 2 Stories",
+    chipB: "Product included",
+    offer: "OFFER ACCEPTED",
+    offerNote: "Held until you approve the post.",
+  },
+  de: {
+    cleanA: "Marken treffen",
+    cleanB: "die richtigen Creator.",
+    cleanSub: "Anfrage posten, Match finden, bezahlen, sobald der Deal steht.",
+    cleanSize: 78,
+    tagline: "Marktplatz für Marken und Creator",
+    boldA: "Wo Marken",
+    boldB: "Creator treffen.",
+    prodA: "Swipen. Matchen.",
+    prodB: "Bezahlt werden.",
+    prodSub: "Der Marktplatz für Marken × Creator.",
+    prodSize: 64,
+    cardBrand: "Glow Beauty Co",
+    cardTitle: "Serum-Launch-Reel",
+    cardBody: "Zeig deine Morgenroutine mit unserem neuen Serum, ehrliche erste Eindrücke.",
+    chipA: "1 Reel + 2 Stories",
+    chipB: "Produkt inklusive",
+    offer: "ANGEBOT ANGENOMMEN",
+    offerNote: "Zurückgehalten, bis du den Post bestätigst.",
+  },
+} as const;
+
+type OgText = (typeof OG_TEXT)[keyof typeof OG_TEXT];
+const ogText = (locale: string): OgText => (locale === "de" ? OG_TEXT.de : OG_TEXT.en);
+
+export function ogImage(variant: OgVariant, locale: string = "en") {
+  const text = ogText(locale);
+  const art =
+    variant === "clean" ? <Clean text={text} /> : variant === "bold" ? <Bold lines={[text.boldA, text.boldB]} /> : <Product text={text} />;
   return new ImageResponse(art, { ...OG_SIZE, fonts: FONTS });
 }
 
 // Default for pages without one of their own: calm, white, just the claim.
-function Clean() {
+function Clean({ text }: { text: OgText }) {
   return (
     <div
       style={{
@@ -64,25 +115,40 @@ function Clean() {
     >
       <Mark width={150} />
       <div style={{ display: "flex", flexDirection: "column" }}>
-        <div style={{ display: "flex", flexDirection: "column", fontSize: 92, fontWeight: 900, lineHeight: 1.02, letterSpacing: "-0.02em" }}>
-          <span>Brands meet</span>
-          <span>the right creators.</span>
+        <div style={{ display: "flex", flexDirection: "column", fontSize: text.cleanSize, fontWeight: 900, lineHeight: 1.02, letterSpacing: "-0.02em" }}>
+          <span>{text.cleanA}</span>
+          <span>{text.cleanB}</span>
         </div>
         <div style={{ fontSize: 32, color: "#5a5a5a", marginTop: 22 }}>
-          Post a request, get matched, pay once the deal is agreed.
+          {text.cleanSub}
         </div>
       </div>
       <div style={{ display: "flex", justifyContent: "space-between", fontSize: 28 }}>
         <span style={{ fontWeight: 900 }}>comtor</span>
-        <span style={{ color: "#8a8a8a" }}>Brand-Creator Marketplace</span>
+        <span style={{ color: "#8a8a8a" }}>{text.tagline}</span>
       </div>
     </div>
   );
 }
 
+// A niche page's preview: the Bold artwork with its own two-line headline and its niche picked out.
+export function ogNiche(lines: [string, string], active: string) {
+  return new ImageResponse(<Bold lines={lines} active={active} size={84} />, { ...OG_SIZE, fonts: FONTS });
+}
+
 // Sign-up: black, loud, with the niches creators pick from.
-function Bold() {
-  const niches = ["Beauty", "Fitness", "Food", "Fashion", "Tech", "Travel"];
+function Bold({
+  lines,
+  active = "Beauty",
+  size = 104,
+}: {
+  lines: [string, string];
+  active?: string;
+  size?: number;
+}) {
+  // Six chips fit the width: the active niche first, then the others in the usual order.
+  const all: readonly string[] = NICHES;
+  const niches = [...(all.includes(active) ? [active] : []), ...all.filter((n) => n !== active)].slice(0, 6);
   return (
     <div
       style={{
@@ -98,23 +164,23 @@ function Bold() {
       }}
     >
       <Mark width={130} white />
-      <div style={{ display: "flex", flexDirection: "column", fontSize: 104, fontWeight: 900, lineHeight: 1, letterSpacing: "-0.03em" }}>
-        <span>Where brands</span>
-        <span>meet creators.</span>
+      <div style={{ display: "flex", flexDirection: "column", fontSize: size, fontWeight: 900, lineHeight: 1, letterSpacing: "-0.03em" }}>
+        <span>{lines[0]}</span>
+        <span>{lines[1]}</span>
       </div>
       <div style={{ display: "flex", gap: 14 }}>
-        {niches.map((n, i) => (
+        {niches.map((n) => (
           <div
             key={n}
             style={{
               display: "flex",
-              borderRadius: 999,
+              borderRadius: 4,
               padding: "12px 26px",
               fontSize: 26,
               fontWeight: 700,
-              border: i === 0 ? "2px solid #ffffff" : "2px solid rgba(255,255,255,0.35)",
-              background: i === 0 ? "#ffffff" : "transparent",
-              color: i === 0 ? INK : "#ffffff",
+              border: n === active ? "2px solid #ffffff" : "2px solid rgba(255,255,255,0.35)",
+              background: n === active ? "#ffffff" : "transparent",
+              color: n === active ? INK : "#ffffff",
             }}
           >
             {n}
@@ -126,8 +192,8 @@ function Bold() {
 }
 
 // Landing page: the product itself — a request card and an accepted offer.
-function Product() {
-  const chip = { display: "flex", background: "#f1f1f1", borderRadius: 8, padding: "8px 14px", fontSize: 18, color: "#444" };
+function Product({ text }: { text: OgText }) {
+  const chip = { display: "flex", background: "#f1f1f1", borderRadius: 4, padding: "8px 14px", fontSize: 18, color: "#444" };
   return (
     <div
       style={{
@@ -144,11 +210,11 @@ function Product() {
     >
       <div style={{ display: "flex", flexDirection: "column", width: 560, gap: 26 }}>
         <Mark width={110} />
-        <div style={{ display: "flex", flexDirection: "column", fontSize: 80, fontWeight: 900, lineHeight: 1.02, letterSpacing: "-0.02em" }}>
-          <span>Swipe. Match.</span>
-          <span>Get paid.</span>
+        <div style={{ display: "flex", flexDirection: "column", fontSize: text.prodSize, fontWeight: 900, lineHeight: 1.02, letterSpacing: "-0.02em" }}>
+          <span>{text.prodA}</span>
+          <span>{text.prodB}</span>
         </div>
-        <div style={{ fontSize: 30, color: "#555", lineHeight: 1.3 }}>The marketplace for brand × creator collabs.</div>
+        <div style={{ fontSize: 30, color: "#555", lineHeight: 1.3 }}>{text.prodSub}</div>
       </div>
 
       <div
@@ -185,16 +251,16 @@ function Product() {
             G
           </div>
           <div style={{ display: "flex", flexDirection: "column" }}>
-            <div style={{ fontSize: 20, color: "#777" }}>Glow Beauty Co</div>
-            <div style={{ fontSize: 26, fontWeight: 900 }}>Serum launch reel</div>
+            <div style={{ fontSize: 20, color: "#777" }}>{text.cardBrand}</div>
+            <div style={{ fontSize: 26, fontWeight: 900 }}>{text.cardTitle}</div>
           </div>
         </div>
         <div style={{ fontSize: 22, color: "#444", lineHeight: 1.35 }}>
-          Show your morning routine with our new serum, honest first impressions.
+          {text.cardBody}
         </div>
         <div style={{ display: "flex", flexWrap: "wrap", gap: 10 }}>
-          <div style={chip}>1 Reel + 2 Stories</div>
-          <div style={chip}>Product included</div>
+          <div style={chip}>{text.chipA}</div>
+          <div style={chip}>{text.chipB}</div>
         </div>
       </div>
 
@@ -213,9 +279,9 @@ function Product() {
           transform: "rotate(5deg)",
         }}
       >
-        <div style={{ fontSize: 15, color: "#777", letterSpacing: "0.06em" }}>OFFER ACCEPTED</div>
+        <div style={{ fontSize: 15, color: "#777", letterSpacing: "0.06em" }}>{text.offer}</div>
         <div style={{ fontSize: 46, fontWeight: 900, marginTop: 4 }}>250,00 €</div>
-        <div style={{ fontSize: 20, color: "#777", marginTop: 6 }}>Held until you approve the post.</div>
+        <div style={{ fontSize: 20, color: "#777", marginTop: 6 }}>{text.offerNote}</div>
       </div>
     </div>
   );

@@ -34,6 +34,14 @@ what a developer needs.
   advertising pixels or tracking requires a consent banner first, and the CSP in `next.config.ts` has to be
   adapted.
 
+## Language
+
+German is the default language (`DEFAULT_LOCALE` in `src/lib/i18n/locales.ts`): a first visit, a search engine and a
+link preview all get German, and the landing page offers a switch to English. The landing page, the FAQ, the share
+images, the German search pages under `/ugc` and the legal texts exist in German and English. The other six app
+languages show the English landing page text until it is translated (`landing` in `src/lib/i18n/messages/`).
+Still English only: the emails the app sends (`src/lib/email-templates.ts`).
+
 ## Still open outside the code
 
 1. **Resend:** switch open and click tracking **off** for the sending domain, and delete the webhook that points to

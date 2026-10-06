@@ -1,3 +1,4 @@
+import { landing } from "@/lib/i18n/messages/landing-en";
 import { screens } from "@/lib/i18n/messages/screens-en";
 
 // Source catalog. Every other locale must carry the same keys.
@@ -251,6 +252,7 @@ export const en = {
       heardOther: "Somewhere else",
     },
   },
+  landing,
   screens,
 } as const;
 

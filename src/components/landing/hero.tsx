@@ -6,6 +6,7 @@ import { BrandBuilder } from "@/components/landing/brand-builder";
 import { CreatorDeck } from "@/components/landing/creator-deck";
 import { PhotoBackdrop } from "@/components/landing/photo-backdrop";
 import { SignupLink } from "@/components/landing/signup-link";
+import { useI18n } from "@/components/i18n-provider";
 import { FIRST_PHOTO, type PhotoKey } from "@/components/landing/landing-data";
 
 const delay = (ms: number) => ({ "--lp-delay": `${ms}ms` }) as React.CSSProperties;
@@ -61,6 +62,7 @@ function CountUp({ to }: { to: number }) {
 // brands the card they'd post, live. Either way the photo in play colours
 // the whole section.
 export function Hero({ brands, creators }: { brands: number; creators: number }) {
+  const { t } = useI18n();
   const [creatorPhoto, setCreatorPhoto] = useState<PhotoKey>(FIRST_PHOTO);
   const [brandPhoto, setBrandPhoto] = useState<PhotoKey>("flask");
 
@@ -80,10 +82,20 @@ export function Hero({ brands, creators }: { brands: number; creators: number })
           className="font-display text-[clamp(34px,11.4vw,44px)] leading-[0.98] font-black tracking-[-0.035em] sm:text-[64px] lg:text-[88px]"
         >
           <span className="lp-line">
-            <span>Swipe right on</span>
+            <span>{t("landing.hero.creatorTitleA")}</span>
           </span>
           <span className="lp-line">
-            <span style={delay(90)}>paid brand deals.</span>
+            <span style={delay(90)}>
+              {t("landing.hero.creatorTitleB1")}
+              {t("landing.hero.creatorTitleB2") && (
+                <>
+                  {" "}
+                  {/* Three lines on phones, so the German words aren't broken in the middle. */}
+                  <br className="sm:hidden" />
+                  {t("landing.hero.creatorTitleB2")}
+                </>
+              )}
+            </span>
           </span>
         </h1>
         <h1
@@ -91,13 +103,13 @@ export function Hero({ brands, creators }: { brands: number; creators: number })
           className="font-display text-[clamp(34px,11.4vw,44px)] leading-[0.98] font-black tracking-[-0.035em] sm:text-[64px] lg:text-[88px]"
         >
           <span className="lp-line">
-            <span>Post a deal.</span>
+            <span>{t("landing.hero.brandTitleA")}</span>
           </span>
           <span className="lp-line">
             {/* Three lines on phones rather than "you." left on its own. */}
             <span style={delay(90)}>
-              Creators come <br className="sm:hidden" />
-              to you.
+              {t("landing.hero.brandTitleB1")} <br className="sm:hidden" />
+              {t("landing.hero.brandTitleB2")}
             </span>
           </span>
         </h1>
@@ -107,19 +119,18 @@ export function Hero({ brands, creators }: { brands: number; creators: number })
           className="lp-rise mt-6 max-w-[36ch] text-[19px] leading-snug text-neutral-800 md:text-[22px] dark:text-neutral-200"
           style={delay(250)}
         >
-          Every request shows the budget upfront. The money&apos;s in before you post, and you keep 90%.
+          {t("landing.hero.creatorBody")}
         </p>
         <p
           data-for="brand"
           className="lp-rise mt-6 max-w-[38ch] text-[19px] leading-snug text-neutral-800 md:text-[22px] dark:text-neutral-200"
           style={delay(250)}
         >
-          Set the budget and what to post. Creators who fit swipe right, and your money is held until you&apos;ve
-          approved the post.
+          {t("landing.hero.brandBody")}
         </p>
 
-        <CrowdLine side="creator" count={brands} singular="brand" plural="brands" />
-        <CrowdLine side="brand" count={creators} singular="creator" plural="creators" />
+        <CrowdLine side="creator" count={brands} one={t("landing.hero.crowdBrandOne")} many={t("landing.hero.crowdBrandMany")} />
+        <CrowdLine side="brand" count={creators} one={t("landing.hero.crowdCreatorOne")} many={t("landing.hero.crowdCreatorMany")} />
 
         {/* Phones: the nav has Log in where Get the app is on bigger
             screens, so the button sits here, with a word on the web app. */}
@@ -128,15 +139,15 @@ export function Hero({ brands, creators }: { brands: number; creators: number })
             href="#get-the-app"
             className="rounded-full bg-ink px-5 py-2.5 text-sm font-semibold text-paper transition hover:bg-graphite"
           >
-            Get the app
+            {t("landing.nav.getApp")}
           </a>
           <p className="text-footnote text-neutral-700 dark:text-neutral-300">
-            Already live on the web:{" "}
+            {t("landing.hero.liveOnWeb")}{" "}
             <Link href="/login" className="font-semibold underline underline-offset-2">
-              log in
+              {t("landing.hero.logIn")}
             </Link>{" "}
-            or{" "}
-            <SignupLink className="font-semibold underline underline-offset-2">sign up</SignupLink>
+            {t("landing.hero.or")}{" "}
+            <SignupLink className="font-semibold underline underline-offset-2">{t("landing.hero.signUp")}</SignupLink>
             .
           </p>
         </div>
@@ -150,28 +161,18 @@ export function Hero({ brands, creators }: { brands: number; creators: number })
           </div>
         </div>
         <p className="lp-rise mt-5 text-footnote text-neutral-700 dark:text-neutral-300" style={delay(900)}>
-          Examples: the brands, creators, ratings and numbers shown here are made up.
+          {t("landing.hero.examples")}
         </p>
         <p data-for="creator" className="lp-rise mt-2 text-sm text-neutral-700 dark:text-neutral-300" style={delay(900)}>
-          Drag the card: right is interested, left is pass.
+          {t("landing.hero.drag")}
         </p>
       </div>
     </section>
   );
 }
 
-function CrowdLine({
-  side,
-  count,
-  singular,
-  plural,
-}: {
-  side: "creator" | "brand";
-  count: number;
-  singular: string;
-  plural: string;
-}) {
-  const word = count === 1 ? singular : plural;
+function CrowdLine({ side, count, one, many }: { side: "creator" | "brand"; count: number; one: string; many: string }) {
+  const word = count === 1 ? one : many;
   return (
     <p
       data-for={side}
@@ -179,7 +180,7 @@ function CrowdLine({
       style={delay(300)}
     >
       <CountUp to={count} />{" "}
-      {word} already here
+      {word}
     </p>
   );
 }
