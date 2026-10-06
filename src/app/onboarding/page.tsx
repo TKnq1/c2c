@@ -57,7 +57,7 @@ export default async function OnboardingPage(props: PageProps<"/onboarding">) {
         <Logo />
         <OnboardingExit loggedIn={!!session} />
       </header>
-      <main className="relative z-10 mx-auto flex w-full max-w-md flex-1 flex-col px-5 pt-2 pb-[max(1.25rem,env(safe-area-inset-bottom))] sm:px-6 sm:pt-4 sm:pb-12">
+      <main className="relative z-10 mx-auto flex w-full max-w-md flex-1 flex-col px-5 pt-2 pb-[max(1.25rem,env(safe-area-inset-bottom))] sm:overflow-y-auto sm:px-6 sm:py-8">
         {body}
       </main>
     </div>
