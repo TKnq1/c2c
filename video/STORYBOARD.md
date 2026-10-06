@@ -110,7 +110,7 @@ Länge: ca. 35 s
 
 ### Szene 7 – Sicher abwickeln (0:24–0:27)
 - **Bild:** Schnelle Sequenz: Angebot senden → „Jetzt zahlen“ → Schloss „zurückgehalten“ → Post online → Button „Freigeben“ wird geklickt.
-- **Text:** „Du zahlst erst frei, wenn der Post online ist.“
+- **Text:** „Ausgezahlt wird erst, wenn der Post online ist.“
 
 ### Szene 8 – Angebot: 50 Founding Brands (0:27–0:32)
 - **Bild:** Schwarzer Screen. Ein Raster aus 50 kleinen Quadraten (5 × 10). Einige füllen sich weiß (vergeben), die freien bleiben als Umriss und pulsieren leicht. Groß darüber ein Zähler.

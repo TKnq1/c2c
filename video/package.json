@@ -6,12 +6,17 @@
     "studio": "remotion studio",
     "render:creator": "remotion render CreatorVideo out/creator.mp4",
     "render:brand": "remotion render BrandVideo out/brand.mp4",
+    "styleframes": "node scripts/render-styleframes.mjs",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@remotion/bundler": "^4.0.533",
     "@remotion/cli": "^4.0.533",
+    "@remotion/fonts": "^4.0.533",
+    "@remotion/renderer": "^4.0.533",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
+    "react-icons": "^5.7.0",
     "remotion": "^4.0.533"
   },
   "devDependencies": {
