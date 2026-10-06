@@ -7,6 +7,7 @@ import {
   marketingEntryUrl,
   marketingWelcomeEmail,
   welcomeEmail,
+  foundingNoticeEmail,
 } from "@/lib/email-templates";
 import { landingCrowd } from "@/lib/landing-crowd";
 import { parseLocale, type Locale } from "@/lib/i18n/locales";
@@ -28,6 +29,8 @@ const EMAILS = {
   changed: (l: Locale) => passwordChangedEmail(`${SITE_URL}/forgot-password`, l),
   waitlist: (l: Locale) => waitlistConfirmationEmail(`${SITE_URL}/waitlist/confirm/${TOKEN}`, l),
   test: (l: Locale) => testEmail(SITE_URL, l),
+  "founding-notice": (l: Locale) => foundingNoticeEmail(7, l),
+  "founding-notice-paying": (l: Locale) => foundingNoticeEmail(7, l, true),
 };
 
 export async function GET(request: Request, ctx: RouteContext<"/dev-emails/[name]">) {

@@ -7,6 +7,7 @@ import { useI18n } from "@/components/i18n-provider";
 import { PRIMARY_BUTTON, stepActions, stepScreen, useCountUp } from "@/components/onboarding-ui";
 import { FOUNDING_BRAND_LIMIT, PLATFORM_FEE_RATE, PRO_PLATFORM_FEE_RATE } from "@/lib/constants";
 import { hapticSuccess } from "@/lib/haptics";
+import { playSound } from "@/lib/sounds";
 
 // The screen right after a brand's account exists, when it got one of the founding places: the number counts
 // up, the confetti falls, and what it means is said in two lines. The wizard keeps every step mounted, so the
@@ -17,7 +18,9 @@ export function FoundingStep({ active, number, onNext }: { active: boolean; numb
   const vars = { pro: PRO_PLATFORM_FEE_RATE * 100, standard: PLATFORM_FEE_RATE * 100, total: FOUNDING_BRAND_LIMIT };
 
   useEffect(() => {
-    if (active) hapticSuccess();
+    if (!active) return;
+    hapticSuccess();
+    playSound("success");
   }, [active]);
 
   if (!active) return <div className={stepScreen} />;

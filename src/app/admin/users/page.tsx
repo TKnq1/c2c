@@ -2,6 +2,9 @@ import Link from "next/link";
 import type { Prisma, Role } from "@prisma/client";
 import { FiUsers } from "react-icons/fi";
 import { prisma } from "@/lib/prisma";
+import { foundingNoticeAudience } from "@/lib/founding-notice";
+import { sendFoundingNoticesAction } from "@/lib/actions/admin";
+import { ConfirmActionButton } from "@/components/confirm-action-button";
 import { requireAdminSession } from "@/lib/admin-session";
 import { EmptyState } from "@/components/empty-state";
 import { LocalDate } from "@/components/local-date";
@@ -32,7 +35,7 @@ export default async function AdminUsersPage(props: PageProps<"/admin/users">) {
     }),
   };
 
-  const [users, total, roleCounts, suspendedCount, adminCount] = await Promise.all([
+  const [users, total, roleCounts, suspendedCount, adminCount, notice] = await Promise.all([
     prisma.user.findMany({
       where,
       orderBy: { createdAt: "desc" },
@@ -48,6 +51,7 @@ export default async function AdminUsersPage(props: PageProps<"/admin/users">) {
     prisma.user.groupBy({ by: ["role"], _count: true }),
     prisma.user.count({ where: { suspendedAt: { not: null } } }),
     prisma.user.count({ where: { OR: [{ role: "ADMIN" }, { isAdmin: true }] } }),
+    foundingNoticeAudience(),
   ]);
   const countFor = (r: Role) => roleCounts.find((c) => c.role === r)?._count ?? 0;
   const allCount = roleCounts.reduce((sum, c) => sum + c._count, 0);
@@ -60,6 +64,32 @@ export default async function AdminUsersPage(props: PageProps<"/admin/users">) {
           Every account on comtor. Open one to see its activity or suspend it.
         </p>
       </div>
+
+      {notice.verified + notice.unverified > 0 && (
+        <div className="flex flex-col gap-3 rounded border border-dashed border-ink px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="text-sm">
+            <p className="font-medium">Founding brands that haven&apos;t been told yet</p>
+            <p className="text-neutral-600 dark:text-neutral-400">
+              {notice.verified} with a verified email {notice.verified === 1 ? "gets" : "get"} the notice, once each.
+              {notice.unverified > 0 && ` ${notice.unverified} with an unverified email are skipped (they see their plan in the app).`}
+            </p>
+          </div>
+          {notice.verified > 0 && (
+            <ConfirmActionButton
+              action={sendFoundingNoticesAction}
+              requirePassword
+              successMessage="The notices are sent."
+              title={`Send the founding notice to ${notice.verified} ${notice.verified === 1 ? "brand" : "brands"}?`}
+              description={`${notice.verified} ${notice.verified === 1 ? "brand gets" : "brands get"} an email that Pro is free for them for as long as their account exists. It is sent right away and only once per brand. Check the text first at /dev-emails/founding-notice.`}
+              confirmLabel="Send"
+              pendingLabel="Sending…"
+              className="shrink-0 self-start rounded-full border border-ink px-4 py-2 text-sm font-medium transition hover:bg-fog sm:self-auto"
+            >
+              Send notice
+            </ConfirmActionButton>
+          )}
+        </div>
+      )}
 
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <FilterTabs

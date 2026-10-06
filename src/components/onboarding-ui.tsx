@@ -6,7 +6,7 @@ import { useI18n } from "@/components/i18n-provider";
 import type { OnboardingState } from "@/lib/actions/onboarding";
 import { localizedInsight } from "@/lib/i18n/insight";
 import type { OnboardingInsight } from "@/lib/onboarding-flow";
-import { unlockSounds } from "@/lib/sounds";
+import { prepareSounds, unlockSounds } from "@/lib/sounds";
 
 // Shared pieces of the brand and creator onboarding wizards.
 
@@ -55,6 +55,11 @@ export function OnboardingProgress({ step, total, labels }: { step: number; tota
 export function StepPanels({ step, children }: { step: number; children: React.ReactNode }) {
   const ref = useRef<HTMLDivElement>(null);
   const first = useRef(true);
+
+  // The success sound is ready by the time a step wants it.
+  useEffect(() => {
+    prepareSounds();
+  }, []);
 
   useEffect(() => {
     // The first step's own autoFocus covers the initial render.

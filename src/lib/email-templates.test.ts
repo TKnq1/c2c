@@ -9,6 +9,7 @@ import {
   marketingEntryUrl,
   marketingWelcomeEmail,
   welcomeEmail,
+  foundingNoticeEmail,
   accountSuspendedEmail,
 } from "@/lib/email-templates";
 
@@ -84,6 +85,31 @@ describe("welcomeEmail", () => {
     expect(welcomeEmail(url, "STARTUP", "en").text).not.toMatch(/founding/i);
     expect(welcomeEmail(url, "STARTUP", "en", null).text).not.toMatch(/founding/i);
     expect(welcomeEmail(url, "CREATOR", "en", 17).text).not.toMatch(/founding/i);
+  });
+});
+
+describe("foundingNoticeEmail", () => {
+  it("tells a brand its place and what it means, in the account's language", () => {
+    const de = foundingNoticeEmail(7, "de").text;
+    expect(de).toContain("Founding Brand Nr. 7");
+    expect(de).toContain("3 % statt 10 %");
+    expect(de).toContain("ersten 50 Marken");
+    const en = foundingNoticeEmail(7, "en").text;
+    expect(en).toContain("founding brand no. 7");
+    expect(en).toContain("3% instead of 10%");
+  });
+
+  it("points at the plan in Settings and is no advert", () => {
+    const email = foundingNoticeEmail(7, "de");
+    expect(email.html).toContain("/dashboard/startup/settings#plan");
+    expect(email.text).toContain("keine Werbung");
+    expect(email.text).not.toMatch(/abmelden|unsubscribe/i);
+  });
+
+  it("mentions a running subscription only for a brand that pays for one", () => {
+    expect(foundingNoticeEmail(7, "de").text).not.toContain("Pro-Abo");
+    expect(foundingNoticeEmail(7, "de", true).text).toContain("Pro-Abo läuft weiter");
+    expect(foundingNoticeEmail(7, "en", true).text).toContain("subscription from before is still running");
   });
 });
 
@@ -209,6 +235,8 @@ describe("German emails", () => {
       passwordChangedEmail(url, "de"),
       accountSuspendedEmail("Gefälschte Follower-Zahlen.", "de"),
       testEmail(url, "de"),
+      foundingNoticeEmail(7, "de"),
+      foundingNoticeEmail(7, "de", true),
       marketingConsentEmail(url, "de"),
       waitlistConfirmationEmail(url, "de"),
       marketingWelcomeEmail(url, "CREATOR", "Hallo", "Mia", 24, undefined, undefined, "de"),

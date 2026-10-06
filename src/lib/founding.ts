@@ -35,7 +35,8 @@ export async function claimFoundingPro(startupId: string): Promise<number | null
 
     await tx.startupProfile.update({
       where: { id: startupId },
-      data: { foundingNumber: free, isPro: true, proSince: startup.proSince ?? new Date() },
+      // A brand that gets its place now is told in the wizard and the welcome mail: no extra notice mail.
+      data: { foundingNumber: free, isPro: true, proSince: startup.proSince ?? new Date(), foundingNoticeSentAt: new Date() },
     });
     return free;
   });
