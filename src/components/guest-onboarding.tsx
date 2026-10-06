@@ -4,7 +4,7 @@ import { useLayoutEffect, useState } from "react";
 import { BrandOnboarding } from "@/components/brand-onboarding";
 import { CreatorOnboarding } from "@/components/creator-onboarding";
 import { OnboardingRoleStep } from "@/components/onboarding-role-step";
-import { readOnboardingDraft } from "@/lib/onboarding-draft";
+import { clearOnboardingDraft } from "@/lib/onboarding-draft";
 import type { SignupRole } from "@/lib/signup-role";
 
 function rememberRole(role: SignupRole) {
@@ -13,25 +13,25 @@ function rememberRole(role: SignupRole) {
 }
 
 function forgetRole() {
+  // The wizard writes a draft as soon as a side is picked, including on the
+  // language step. Leaving that step has to drop it, or a refresh of the
+  // role question reads the draft and opens the language step again.
+  clearOnboardingDraft();
   window.history.replaceState(null, "", "/onboarding");
 }
 
-// No account yet. The side comes from the landing toggle, a saved draft, or
-// one question asked before the wizard starts.
+// No account yet. The side comes from the landing toggle (?role=) or from
+// the role question. A bare /onboarding stays on that question.
 export function GuestOnboarding({ initialRole }: { initialRole: SignupRole | null }) {
   const [role, setRole] = useState<SignupRole | null>(initialRole);
   const [booted, setBooted] = useState(initialRole !== null);
 
   useLayoutEffect(() => {
+    // A role in the URL is a wizard already in progress. A bare /onboarding
+    // is the role question, even if an older draft is still in this tab.
     if (initialRole) return;
-    queueMicrotask(() => {
-      const draft = readOnboardingDraft();
-      if (draft) {
-        setRole(draft.role);
-        rememberRole(draft.role);
-      }
-      setBooted(true);
-    });
+    clearOnboardingDraft();
+    setBooted(true);
   }, [initialRole]);
 
   if (!booted) return <div className="flex flex-1" />;
