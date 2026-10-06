@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { BrandBuilder } from "@/components/landing/brand-builder";
 import { CreatorDeck } from "@/components/landing/creator-deck";
+import { CreatorDesktop } from "@/components/landing/creator-desktop";
 import { PhotoBackdrop } from "@/components/landing/photo-backdrop";
 import { SignupLink } from "@/components/landing/signup-link";
 import { useI18n } from "@/components/i18n-provider";
@@ -153,8 +154,14 @@ export function Hero({ brands, creators }: { brands: number; creators: number })
         </div>
 
         <div className="mt-10 flex w-full justify-center sm:mt-12 md:mt-16">
-          <div data-for="creator" className="lp-phone-in" style={delay(350)}>
-            <CreatorDeck onTop={setCreatorPhoto} />
+          {/* From lg: the web app in a Mac window, with the phone in front of its right edge. */}
+          <div data-for="creator" className="flex items-center justify-center">
+            <div className="lp-phone-in hidden lg:block" style={delay(250)}>
+              <CreatorDesktop />
+            </div>
+            <div className="lp-phone-in relative z-10 lg:-ml-14" style={delay(350)}>
+              <CreatorDeck onTop={setCreatorPhoto} />
+            </div>
           </div>
           <div data-for="brand" className="lp-phone-in w-full" style={delay(350)}>
             <BrandBuilder onPhoto={setBrandPhoto} />
