@@ -3,6 +3,7 @@
 import { z } from "zod";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { foundingSpotsLeft } from "@/lib/founding";
 import { creatorFeedWhere, type FeedCreator } from "@/lib/feed-scope";
 import { getMutualBlockedUserIds } from "@/lib/moderation";
 import { MINUTE, takeIpToken } from "@/lib/rate-limit";
@@ -201,6 +202,12 @@ export async function previewBrandNicheInsightAction(niche: string): Promise<Onb
   const parsed = onboardingNicheSchema.safeParse({ niche });
   if (!parsed.success) return null;
   return brandNicheCreatorsInsight(parsed.data.niche).catch(() => null);
+}
+
+// How many founding places are left, for the line under the sign-up form. Null when it can't be told.
+export async function foundingSpotsLeftAction(): Promise<number | null> {
+  if (!(await guestAllowed())) return null;
+  return foundingSpotsLeft().catch(() => null);
 }
 
 export async function previewBrandCreatorsAction(niche: string): Promise<BrandCreatorsResult> {

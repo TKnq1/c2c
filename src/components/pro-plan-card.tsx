@@ -13,11 +13,17 @@ import { useI18n } from "@/components/i18n-provider";
 export function ProPlanCard({
   isPro,
   proSince,
+  foundingNumber,
+  hasSubscription,
   canWithdraw,
   canPurchase,
 }: {
   isPro: boolean;
   proSince: Date | null;
+  // One of the founding brands: Pro for as long as the account exists, without a subscription (see
+  // src/lib/founding.ts). Nothing to cancel or withdraw unless the brand also pays for one.
+  foundingNumber: number | null;
+  hasSubscription: boolean;
   canWithdraw: boolean;
   // False in the store apps (see canSellProSubscription): shows the current
   // plan without any upgrade offer.
@@ -42,19 +48,24 @@ export function ProPlanCard({
   }
 
   if (isPro) {
+    const founding = foundingNumber !== null;
     return (
       <div className="flex flex-col gap-2">
         <div className="flex items-center justify-between gap-2">
-          <p className="font-medium">{t("screens.settings.proPlan")}</p>
+          <p className="font-medium">
+            {founding ? t("founding.planTitle", { n: foundingNumber }) : t("screens.settings.proPlan")}
+          </p>
           <span className="whitespace-nowrap rounded-full bg-ink px-2.5 py-1 text-xs font-medium text-paper">{t("screens.settings.active")}</span>
         </div>
         <p className="text-sm text-neutral-600 dark:text-neutral-400">
-          {t("screens.settings.proFee", {
-            pro: PRO_PLATFORM_FEE_RATE * 100,
-            standard: PLATFORM_FEE_RATE * 100,
-            price: formatCents(PRO_SUBSCRIPTION_PRICE_CENTS),
-          })}
-          {proSince && (
+          {founding
+            ? t("founding.planBody", { pro: PRO_PLATFORM_FEE_RATE * 100, standard: PLATFORM_FEE_RATE * 100 })
+            : t("screens.settings.proFee", {
+                pro: PRO_PLATFORM_FEE_RATE * 100,
+                standard: PLATFORM_FEE_RATE * 100,
+                price: formatCents(PRO_SUBSCRIPTION_PRICE_CENTS),
+              })}
+          {!founding && proSince && (
             <>
               {" "}
               {t("screens.settings.proSince", { date: "\u0000" }).split("\u0000")[0]}
@@ -79,17 +90,19 @@ export function ProPlanCard({
             {t("screens.settings.withdrawPro")}
           </ConfirmActionButton>
         )}
-        <ConfirmActionButton
-          action={cancelProAction}
-          successMessage={t("screens.settings.proCancelled")}
-          title={t("screens.settings.cancelProTitle")}
-          description={t("screens.settings.cancelProBody", { rate: PLATFORM_FEE_RATE * 100 })}
-          confirmLabel={t("screens.settings.cancelPro")}
-          pendingLabel={t("screens.settings.cancelling")}
-          className="self-start text-sm text-neutral-500 transition hover:text-ink dark:text-neutral-400"
-        >
-          {t("screens.settings.cancelPro")}
-        </ConfirmActionButton>
+        {(!founding || hasSubscription) && (
+          <ConfirmActionButton
+            action={cancelProAction}
+            successMessage={t("screens.settings.proCancelled")}
+            title={t("screens.settings.cancelProTitle")}
+            description={t("screens.settings.cancelProBody", { rate: PLATFORM_FEE_RATE * 100 })}
+            confirmLabel={t("screens.settings.cancelPro")}
+            pendingLabel={t("screens.settings.cancelling")}
+            className="self-start text-sm text-neutral-500 transition hover:text-ink dark:text-neutral-400"
+          >
+            {t("screens.settings.cancelPro")}
+          </ConfirmActionButton>
+        )}
       </div>
     );
   }

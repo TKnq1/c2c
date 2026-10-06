@@ -1,4 +1,5 @@
 import type { Catalog } from "@/lib/i18n/messages/types";
+import { founding } from "@/lib/i18n/messages/founding-en";
 import { landing } from "@/lib/i18n/messages/landing-en";
 import { screensEs as screens } from "@/lib/i18n/messages/screens-es";
 
@@ -253,5 +254,6 @@ export const es: Catalog = {
   },
   // Not translated yet: the English landing page text.
   landing,
+  founding,
   screens,
 };

@@ -41,6 +41,8 @@ export const PLATFORM_FEE_RATE = 0.1;
 // instead of the standard rate above.
 export const PRO_PLATFORM_FEE_RATE = 0.03;
 export const PRO_SUBSCRIPTION_PRICE_CENTS = 4900; // €49/month — must match STRIPE_PRO_PRICE_ID's actual price
+// The first brands get Pro for as long as their account exists (see src/lib/founding.ts).
+export const FOUNDING_BRAND_LIMIT = 50;
 // Statutory withdrawal window for a consumer distance contract. Offered to
 // every brand, because the app cannot tell a business from a private person.
 export const PRO_WITHDRAWAL_DAYS = 14;

@@ -6,6 +6,8 @@ import { hasAdminAccess } from "@/lib/admin-access";
 import { confirmAdminPassword, requireAdmin } from "@/lib/admin-guard";
 import { anonymiseAccount, hasPaymentRecords, moneyInFlight } from "@/lib/account-deletion";
 import { audit } from "@/lib/audit";
+import { revokeFoundingPro } from "@/lib/founding";
+import { sendFoundingNotices } from "@/lib/founding-notice";
 import { prisma } from "@/lib/prisma";
 import { sendEmail } from "@/lib/email";
 import { accountSuspendedEmail, testEmail } from "@/lib/email-templates";
@@ -72,6 +74,40 @@ export async function unsuspendUserAction(userId: string): Promise<AdminActionRe
 
   await audit(session.user.id, "user.unsuspend", userId);
   revalidateAdmin();
+  return {};
+}
+
+// Takes the founding Pro away from a brand (e.g. a fake account) and frees its number for the next brand.
+export async function revokeFoundingProAction(userId: string): Promise<AdminActionResult> {
+  const session = await requireAdmin();
+  if (!session) return { error: "Not authorized." };
+
+  const profile = await prisma.startupProfile.findUnique({
+    where: { userId },
+    select: { id: true, foundingNumber: true },
+  });
+  if (!profile?.foundingNumber) return { error: "This brand isn't a founding brand." };
+
+  await revokeFoundingPro(profile.id);
+  await audit(session.user.id, "user.revokeFoundingPro", userId, { foundingNumber: profile.foundingNumber });
+  revalidateAdmin();
+  return {};
+}
+
+// Tells the brands that were already on comtor when the founding places came about their Pro, once each (see
+// src/lib/founding-notice.ts). Real mail to real people, so it asks for the password.
+export async function sendFoundingNoticesAction(password: string): Promise<AdminActionResult> {
+  const session = await requireAdmin();
+  if (!session) return { error: "Not authorized." };
+  const passwordError = await confirmAdminPassword(session.user.id, password);
+  if (passwordError) return { error: passwordError };
+
+  const result = await sendFoundingNotices();
+  await audit(session.user.id, "founding.notices", undefined, result);
+  revalidateAdmin();
+  if (result.failed > 0) {
+    return { error: `${result.sent} sent, ${result.failed} failed (they stay on the list). Check /admin/email, then try again.` };
+  }
   return {};
 }
 

@@ -1,9 +1,10 @@
-// Small UI sounds — for now the two swipe sounds in the Feed (made with the
-// launch video's own synth, so the app and the video sound the same).
+// Small UI sounds: the two swipe sounds in the Feed (made with the launch video's own synth, so the app and
+// the video sound the same) and the success sound of the onboarding moments (scripts/make-success-sound.py).
 // Web Audio rather than <audio>: decoded once, then they play instantly.
 const SOURCES = {
   "swipe-right": "/sounds/swipe-right.mp3",
   "swipe-left": "/sounds/swipe-left.mp3",
+  success: "/sounds/success.mp3",
 } as const;
 type Sound = keyof typeof SOURCES;
 
@@ -58,11 +59,12 @@ function load(name: Sound) {
 }
 
 // Fetches and decodes ahead of time — call it as a swipe starts, so the
-// sound is ready the moment the card is let go.
+// sound is ready the moment the card is let go (or when a wizard opens, for the success sound).
 export function prepareSounds() {
   if (!soundsEnabled()) return;
   void load("swipe-right");
   void load("swipe-left");
+  void load("success");
 }
 
 // Call from a tap, so a later UI sound is allowed to start.

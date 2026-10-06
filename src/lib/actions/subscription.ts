@@ -68,10 +68,10 @@ export async function cancelProAction() {
   await stripe.subscriptions.cancel(startup.stripeSubscriptionId);
   // The customer.subscription.deleted webhook will also flip isPro false,
   // but updating it here too means the UI reflects it immediately instead
-  // of waiting on webhook delivery.
+  // of waiting on webhook delivery. A founding brand's Pro doesn't depend on the subscription.
   await prisma.startupProfile.update({
     where: { id: startup.id },
-    data: { isPro: false, stripeSubscriptionId: null },
+    data: { isPro: startup.foundingNumber !== null, stripeSubscriptionId: null },
   });
 
   revalidateSubscriptionPaths();
@@ -98,7 +98,7 @@ export async function withdrawProAction(): Promise<{ error?: string }> {
     await prisma.$transaction([
       prisma.startupProfile.update({
         where: { id: startup.id },
-        data: { isPro: false, stripeSubscriptionId: null },
+        data: { isPro: startup.foundingNumber !== null, stripeSubscriptionId: null },
       }),
       prisma.proWithdrawal.create({
         data: { startupId: startup.id, amountCents: refund.amount, stripeRefundId: refund.id },

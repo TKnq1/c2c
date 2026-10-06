@@ -1,7 +1,8 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useEffect, useState } from "react";
 import Link from "next/link";
+import { foundingSpotsLeftAction } from "@/lib/actions/onboarding-flow";
 import { signupFromDraftAction } from "@/lib/actions/onboarding-signup";
 import { NewPasswordField } from "@/components/new-password-field";
 import { useI18n } from "@/components/i18n-provider";
@@ -11,7 +12,7 @@ import { localizeError } from "@/lib/i18n/labels";
 import { TermsConsent } from "@/components/terms-consent";
 import { MarketingConsentCheckbox } from "@/components/marketing-consent-checkbox";
 import { keepFieldsOnSubmit } from "@/lib/keep-fields";
-import { PLATFORM_FEE_RATE, PRO_PLATFORM_FEE_RATE, RELEASE_REVIEW_DAYS } from "@/lib/constants";
+import { FOUNDING_BRAND_LIMIT, PLATFORM_FEE_RATE, PRO_PLATFORM_FEE_RATE, RELEASE_REVIEW_DAYS } from "@/lib/constants";
 import type { PlatformDraft } from "@/components/platform-chips";
 import type { SignupRole } from "@/lib/signup-role";
 
@@ -49,9 +50,22 @@ export function OnboardingAccountStep({
   niche: string;
   photoDataUrl: string | null;
   onBack: () => void;
-  onDone: () => void;
+  onDone: (state: NonNullable<OnboardingState>) => void;
 }) {
   const { t } = useI18n();
+  // Brands only: how many of the founding places are still free (nothing is shown when none are).
+  const [spotsLeft, setSpotsLeft] = useState<number | null>(null);
+  useEffect(() => {
+    if (role !== "STARTUP") return;
+    let live = true;
+    foundingSpotsLeftAction().then(
+      (left) => live && setSpotsLeft(left),
+      () => undefined,
+    );
+    return () => {
+      live = false;
+    };
+  }, [role]);
   const [state, submit, pending] = useActionState(async (prev: OnboardingState, formData: FormData) => {
     formData.set("role", role);
     if (role === "CREATOR") {
@@ -105,6 +119,13 @@ export function OnboardingAccountStep({
         </label>
         <NewPasswordField name="password" className="px-4 py-4 text-lg" />
         <p className="text-xs text-neutral-500 dark:text-neutral-400">{fee}</p>
+        {role === "STARTUP" && spotsLeft !== null && spotsLeft > 0 && (
+          <p className="rounded bg-fog px-4 py-3 text-sm font-medium">
+            {spotsLeft === 1
+              ? t("founding.teaserLast", { total: FOUNDING_BRAND_LIMIT })
+              : t("founding.teaser", { total: FOUNDING_BRAND_LIMIT, left: spotsLeft })}
+          </p>
+        )}
       </div>
       {state?.error && <StepError state={{ error: localizeError(state.error, t) }} />}
       <div className={stepActions}>

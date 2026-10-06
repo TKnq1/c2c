@@ -1,5 +1,10 @@
 import { SITE_URL } from "@/lib/site";
-import { PLATFORM_FEE_RATE, PRO_PLATFORM_FEE_RATE, PRO_SUBSCRIPTION_PRICE_CENTS } from "@/lib/constants";
+import {
+  FOUNDING_BRAND_LIMIT,
+  PLATFORM_FEE_RATE,
+  PRO_PLATFORM_FEE_RATE,
+  PRO_SUBSCRIPTION_PRICE_CENTS,
+} from "@/lib/constants";
 import { DEFAULT_LOCALE, type Locale } from "@/lib/i18n/locales";
 
 // The app's emails, in the launch video's look: the white comtor mark and
@@ -60,8 +65,25 @@ type Content = {
 // The first email after sign-up: a welcome with the verification link in
 // it, so a new account gets one email rather than two. Asking for the link
 // again later gets the plain verificationEmail below.
-export function welcomeEmail(url: string, role: "CREATOR" | "STARTUP", locale: Locale = DEFAULT_LOCALE): Email {
+export function welcomeEmail(
+  url: string,
+  role: "CREATOR" | "STARTUP",
+  locale: Locale = DEFAULT_LOCALE,
+  // A brand that got one of the founding places: told right in the welcome.
+  foundingNumber?: number | null,
+): Email {
   const creator = role === "CREATOR";
+  const pro = Math.round(PRO_PLATFORM_FEE_RATE * 100);
+  const standard = Math.round(PLATFORM_FEE_RATE * 100);
+  const founding =
+    !creator && foundingNumber
+      ? " " +
+        pick(
+          locale,
+          `You're founding brand no. ${foundingNumber}: Pro is free for you for as long as your account exists, so ${pro}% instead of ${standard}% goes to comtor on every payment.`,
+          `Du bist Founding Brand Nr. ${foundingNumber}: Pro ist für dich kostenlos, solange dein Konto besteht. Auf jede Zahlung behält comtor ${pro} % statt ${standard} %.`,
+        )
+      : "";
   return render({
     locale,
     subject: pick(locale, "Welcome to comtor – verify your email", "Willkommen bei comtor – bestätige deine E-Mail-Adresse"),
@@ -81,12 +103,57 @@ export function welcomeEmail(url: string, role: "CREATOR" | "STARTUP", locale: L
           locale,
           "Thanks for signing up. Verify your email, then post your first request. Creators come to you.",
           "Danke für deine Anmeldung. Bestätige deine E-Mail-Adresse und poste dann deine erste Anfrage. Creator melden sich bei dir.",
-        ),
+        ) + founding,
     action: { label: pick(locale, "Verify email", "E-Mail bestätigen"), url },
     note: pick(
       locale,
       "The link works for 24 hours. Didn't sign up for comtor? Then you can ignore this email.",
       "Der Link gilt 24 Stunden. Du hast dich nicht bei comtor angemeldet? Dann kannst du diese E-Mail ignorieren.",
+    ),
+  });
+}
+
+// Sent once to the brands that were already on comtor when the founding places came: their account has Pro
+// now. About their own plan, so no advert: no upsell, no opt-out link.
+export function foundingNoticeEmail(
+  foundingNumber: number,
+  locale: Locale = DEFAULT_LOCALE,
+  // The brand also pays for Pro itself, from before.
+  paysForPro = false,
+): Email {
+  const pro = Math.round(PRO_PLATFORM_FEE_RATE * 100);
+  const standard = Math.round(PLATFORM_FEE_RATE * 100);
+  const subscription = paysForPro
+    ? " " +
+      pick(
+        locale,
+        "Your Pro subscription from before is still running and still billed. You can cancel it in Settings and keep Pro.",
+        "Dein bisheriges Pro-Abo läuft weiter und wird weiter abgerechnet. Du kannst es in den Einstellungen kündigen und behältst trotzdem Pro.",
+      )
+    : "";
+  return render({
+    locale,
+    subject: pick(locale, "Pro is free for you, for good", "Pro ist für dich dauerhaft kostenlos"),
+    preview: pick(
+      locale,
+      "You are one of the first brands on comtor.",
+      "Du gehörst zu den ersten Marken auf comtor.",
+    ),
+    heading: pick(locale, "You have Pro, for good.", "Du hast Pro, dauerhaft kostenlos."),
+    body:
+      pick(
+        locale,
+        `You are one of the first ${FOUNDING_BRAND_LIMIT} brands on comtor (founding brand no. ${foundingNumber}). That's why Pro is free for you for as long as your account exists: comtor keeps ${pro}% instead of ${standard}% of every payment. There is nothing you need to do.`,
+        `Du gehörst zu den ersten ${FOUNDING_BRAND_LIMIT} Marken auf comtor (Founding Brand Nr. ${foundingNumber}). Darum ist Pro für dich kostenlos, solange dein Konto besteht: Auf jede Zahlung behält comtor ${pro} % statt ${standard} %. Du musst nichts tun.`,
+      ) + subscription,
+    action: {
+      label: pick(locale, "See your plan", "Zu deinem Tarif"),
+      url: `${SITE_URL}/dashboard/startup/settings#plan`,
+    },
+    note: pick(
+      locale,
+      "You get this email because you have a comtor account. It is about your plan and is not an advert.",
+      "Du bekommst diese E-Mail, weil du ein comtor-Konto hast. Sie betrifft deinen Tarif und ist keine Werbung.",
     ),
   });
 }

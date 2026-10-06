@@ -1,3 +1,4 @@
+import { founding } from "@/lib/i18n/messages/founding-en";
 import { landing } from "@/lib/i18n/messages/landing-en";
 import { screens } from "@/lib/i18n/messages/screens-en";
 
@@ -253,6 +254,7 @@ export const en = {
     },
   },
   landing,
+  founding,
   screens,
 } as const;
 

@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useI18n } from "@/components/i18n-provider";
 import { OnboardingHeardFrom } from "@/components/onboarding-heard-from";
 import type { IconType } from "react-icons";
-import { IoCheckmark, IoChevronForward, IoMailOutline, IoPersonOutline, IoSearchOutline, IoWalletOutline } from "react-icons/io5";
+import { IoCheckmark, IoChevronForward, IoMailOutline, IoPersonOutline, IoSearchOutline, IoSparkles, IoWalletOutline } from "react-icons/io5";
 
 type NextStep = {
   href: string;
@@ -20,6 +20,7 @@ export function OnboardingDone({
   name,
   emailVerified,
   payoutsStarted,
+  foundingNumber = null,
 }: {
   role: "brand" | "creator";
   name: string;
@@ -27,6 +28,8 @@ export function OnboardingDone({
   // The creator went through the payout form in the wizard, so there is no
   // need to point at it again.
   payoutsStarted: boolean;
+  // The brand got one of the founding places: said once more on the last screen.
+  foundingNumber?: number | null;
 }) {
   const { t } = useI18n();
   const settings = role === "brand" ? "/dashboard/startup/settings" : "/dashboard/creator/settings";
@@ -87,6 +90,12 @@ export function OnboardingDone({
           <p className="mt-2 text-pretty text-neutral-600 dark:text-neutral-400">
             {role === "brand" ? t("onboarding.done.brandBody") : t("onboarding.done.creatorBody")}
           </p>
+          {role === "brand" && foundingNumber && (
+            <p className="mt-3 flex items-center justify-center gap-2 rounded bg-fog px-4 py-2.5 text-sm font-medium">
+              <IoSparkles className="h-4 w-4 shrink-0" aria-hidden />
+              {t("founding.doneLine", { n: foundingNumber })}
+            </p>
+          )}
         </div>
       </div>
 

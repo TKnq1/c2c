@@ -6,7 +6,7 @@ import { requireAdminSession } from "@/lib/admin-session";
 import { hasAdminAccess } from "@/lib/admin-access";
 import { formatCents } from "@/lib/format";
 import { parseUserAgent } from "@/lib/user-agent";
-import { deleteUserAction, unsuspendUserAction } from "@/lib/actions/admin";
+import { deleteUserAction, revokeFoundingProAction, unsuspendUserAction } from "@/lib/actions/admin";
 import { Avatar } from "@/components/avatar";
 import { LocalDate } from "@/components/local-date";
 import { ConfirmActionButton } from "@/components/confirm-action-button";
@@ -100,7 +100,11 @@ export default async function AdminUserPage(props: PageProps<"/admin/users/[id]"
             <p className="truncate text-sm text-neutral-500 dark:text-neutral-400">{user.email}</p>
             <div className="mt-2 flex flex-wrap items-center gap-2">
               <RoleBadge role={user.role} isAdmin={user.isAdmin} />
-              {brand?.isPro && <span className="rounded-full bg-ink px-2.5 py-1 text-xs font-medium text-paper">Pro</span>}
+              {brand?.isPro && (
+                <span className="rounded-full bg-ink px-2.5 py-1 text-xs font-medium text-paper">
+                  {brand.foundingNumber ? `Pro · Founding #${brand.foundingNumber}` : "Pro"}
+                </span>
+              )}
               <span className="text-footnote text-neutral-500 dark:text-neutral-400">
                 Joined <LocalDate ms={user.createdAt.getTime()} /> · {user.emailVerified ? "Email verified" : "Email not verified"}
                 {user.totpEnabled && " · 2FA on"}
@@ -111,6 +115,19 @@ export default async function AdminUserPage(props: PageProps<"/admin/users/[id]"
         {canSuspend && (
           <div className="flex flex-wrap items-center gap-2">
             {!user.suspendedAt && <SuspendUserButton userId={user.id} label={name} isBrand={!!brand} />}
+            {brand?.foundingNumber && (
+              <ConfirmActionButton
+                action={revokeFoundingProAction.bind(null, user.id)}
+                successMessage={`${name} is no longer a founding brand.`}
+                title={`Take founding Pro from ${name}?`}
+                description={`Founding brand #${brand.foundingNumber} loses the free Pro (the fee goes back to the standard rate) and the number is free for the next brand. A Pro subscription the brand pays for itself keeps running.`}
+                confirmLabel="Take away"
+                pendingLabel="Taking away…"
+                className="rounded-full border border-neutral-300 px-4 py-2 text-sm font-medium transition hover:border-ink dark:border-neutral-700"
+              >
+                Take founding Pro away
+              </ConfirmActionButton>
+            )}
             <ConfirmActionButton
               action={deleteUserAction.bind(null, user.id)}
               requirePassword
