@@ -28,13 +28,33 @@ export default function GlobalError({ error }: { error: Error & { digest?: strin
           gap: 12,
           padding: 24,
           textAlign: "center",
+          position: "relative",
+          overflow: "hidden",
           background: "#ffffff",
           color: "#070707",
           fontFamily: "ui-sans-serif, system-ui, -apple-system, sans-serif",
         }}
       >
-        <h1 style={{ fontSize: "1.25rem", fontWeight: 600, margin: 0 }}>Something went wrong</h1>
-        <p style={{ color: "#797979", margin: 0, maxWidth: 320, lineHeight: 1.5 }}>
+        {/* Public file, not an app component: the root layout may be what
+            just failed. Same watermark as the other error screens. */}
+        <img
+          src="/logo.png"
+          alt=""
+          aria-hidden
+          style={{
+            position: "absolute",
+            top: "50%",
+            left: "50%",
+            height: "min(168vmin, 78rem)",
+            width: "auto",
+            transform: "translate(-50%, -50%)",
+            opacity: 0.11,
+            pointerEvents: "none",
+            userSelect: "none",
+          }}
+        />
+        <h1 style={{ fontSize: "1.25rem", fontWeight: 600, margin: 0, position: "relative" }}>Something went wrong</h1>
+        <p style={{ color: "#797979", margin: 0, maxWidth: 320, lineHeight: 1.5, position: "relative" }}>
           comtor hit an unexpected error. Reloading usually fixes it.
         </p>
         <button
@@ -42,6 +62,7 @@ export default function GlobalError({ error }: { error: Error & { digest?: strin
           onClick={() => window.location.reload()}
           style={{
             marginTop: 8,
+            position: "relative",
             borderRadius: 4,
             border: "none",
             background: "#070707",

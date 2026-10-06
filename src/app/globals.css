@@ -137,6 +137,12 @@ body {
   background-color: var(--paper);
 }
 
+/* Login and the error screens put a large mark behind the copy. Fields
+   stay on paper so the watermark doesn't show through what you type. */
+.logo-backdrop :where(input:not([type="checkbox"], [type="radio"], [type="range"], [type="file"]), textarea, select) {
+  background-color: var(--paper);
+}
+
 /* Scrollbar follows the theme instead of always rendering light. */
 html {
   scrollbar-color: var(--scrollbar-thumb) transparent;

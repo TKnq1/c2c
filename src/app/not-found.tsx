@@ -1,11 +1,10 @@
 import Link from "next/link";
-import { Logo } from "@/components/logo";
+import { LogoBackdrop } from "@/components/logo-backdrop";
 
 export default function NotFound() {
   return (
-    <main className="flex-1 flex items-center justify-center px-6 py-16">
-      <div className="w-full max-w-sm flex flex-col items-center gap-6 text-center">
-        <Logo large />
+    <LogoBackdrop>
+      <div className="flex flex-col items-center gap-6 text-center">
         <div>
           <p className="text-sm font-medium text-neutral-500 dark:text-neutral-400">404</p>
           <h1 className="font-display text-title-1 font-bold mt-1">Page not found</h1>
@@ -20,6 +19,6 @@ export default function NotFound() {
           Back to dashboard
         </Link>
       </div>
-    </main>
+    </LogoBackdrop>
   );
 }
