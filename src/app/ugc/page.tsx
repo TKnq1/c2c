@@ -25,7 +25,6 @@ export default function UgcPage() {
       <main className="flex-1 px-4 py-12 md:py-16">
         <div className="mx-auto flex max-w-3xl flex-col gap-12">
           <div className="flex flex-col gap-5">
-            <p className="text-sm font-semibold text-neutral-500 dark:text-neutral-400">UGC · Marken und Creator</p>
             <h1 className="font-display text-[40px] leading-[1.02] font-black tracking-[-0.03em] text-balance md:text-[56px]">
               {TITLE}
             </h1>
@@ -48,7 +47,7 @@ export default function UgcPage() {
                   href={ugcNicheHref(page.slug)}
                   className="rounded bg-fog p-5 transition hover:bg-ink/10"
                 >
-                  <h3 className="font-semibold">{page.niche}</h3>
+                  <h3 className="font-semibold">{page.label}</h3>
                   <p className="mt-1 text-sm text-neutral-700 dark:text-neutral-300">{page.heading}</p>
                 </Link>
               ))}

@@ -1,4 +1,5 @@
 import { ImageResponse } from "next/og";
+import { NICHES } from "@/lib/constants";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
@@ -95,7 +96,9 @@ function Bold({
   active?: string;
   size?: number;
 }) {
-  const niches = ["Beauty", "Fitness", "Food", "Fashion", "Tech", "Travel"];
+  // Six chips fit the width: the active niche first, then the others in the usual order.
+  const all: readonly string[] = NICHES;
+  const niches = [...(all.includes(active) ? [active] : []), ...all.filter((n) => n !== active)].slice(0, 6);
   return (
     <div
       style={{

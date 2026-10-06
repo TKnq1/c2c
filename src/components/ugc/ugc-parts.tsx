@@ -115,7 +115,7 @@ export function UgcFooter({ currentSlug }: { currentSlug?: string }) {
           )}
           {others.map((page) => (
             <Link key={page.slug} href={ugcNicheHref(page.slug)} className="transition hover:text-ink">
-              {page.niche}
+              {page.label}
             </Link>
           ))}
         </nav>

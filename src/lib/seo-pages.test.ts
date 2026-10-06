@@ -27,6 +27,10 @@ describe("German search pages", () => {
     expect(getUgcNichePage("does-not-exist")).toBeUndefined();
   });
 
+  it("has a page for every niche", () => {
+    expect(UGC_NICHE_PAGES.map((p) => p.niche).sort()).toEqual([...NICHES].sort());
+  });
+
   it("keeps titles and descriptions within what a search result shows", () => {
     for (const page of UGC_NICHE_PAGES) {
       // The site adds " · comtor" to the title.
@@ -38,9 +42,13 @@ describe("German search pages", () => {
   it("gives every page its own text rather than the same one with another word", () => {
     const leads = UGC_NICHE_PAGES.map((p) => p.lead);
     expect(new Set(leads).size).toBe(leads.length);
+    const headings = UGC_NICHE_PAGES.map((p) => p.heading);
+    expect(new Set(headings).size).toBe(headings.length);
     for (const page of UGC_NICHE_PAGES) {
       expect(page.formats.length).toBeGreaterThanOrEqual(4);
       expect(page.faqs.length).toBeGreaterThanOrEqual(5);
+      const questions = page.faqs.map((f) => f.question);
+      expect(new Set(questions).size).toBe(questions.length);
     }
   });
 

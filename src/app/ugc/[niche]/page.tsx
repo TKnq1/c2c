@@ -35,14 +35,13 @@ export default async function UgcNichePage({ params }: { params: Promise<{ niche
       <UgcBreadcrumbs
         trail={[
           { name: "UGC-Creator finden", path: UGC_PATH },
-          { name: page.niche, path: ugcNicheHref(page.slug) },
+          { name: page.label, path: ugcNicheHref(page.slug) },
         ]}
       />
       <UgcHeader />
       <main className="flex-1 px-4 py-12 md:py-16">
         <div className="mx-auto flex max-w-3xl flex-col gap-12">
           <div className="flex flex-col gap-5">
-            <p className="text-sm font-semibold text-neutral-500 dark:text-neutral-400">UGC · {page.niche}</p>
             <h1 className="font-display text-[40px] leading-[1.02] font-black tracking-[-0.03em] text-balance md:text-[56px]">
               {page.heading}
             </h1>
@@ -53,7 +52,7 @@ export default async function UgcNichePage({ params }: { params: Promise<{ niche
             </p>
           </div>
 
-          <UgcSection title={`Diese Inhalte entstehen in der Nische ${page.niche}`}>
+          <UgcSection title={`Diese Inhalte entstehen in der Nische ${page.label}`}>
             <div className="grid gap-3 sm:grid-cols-2">
               {page.formats.map((format) => (
                 <div key={format.title} className="rounded bg-fog p-5">
@@ -69,7 +68,7 @@ export default async function UgcNichePage({ params }: { params: Promise<{ niche
               <UgcSteps
                 title="Für Marken"
                 steps={[
-                  `Anfrage einstellen: Nische ${page.niche}, Sprache, Mindestzahl an Followern, Budget und Lieferumfang.`,
+                  `Anfrage einstellen: Nische ${page.label}, Sprache, Mindestzahl an Followern, Budget und Lieferumfang.`,
                   "Creator melden sich: Wer passt, sieht die Anfrage im Feed und schreibt dir im Chat.",
                   "Bezahlen und freigeben: Du zahlst über die Plattform und gibst den Beitrag frei, wenn er passt.",
                 ]}
@@ -77,7 +76,7 @@ export default async function UgcNichePage({ params }: { params: Promise<{ niche
               <UgcSteps
                 title="Für Creator"
                 steps={[
-                  `Profil anlegen: Bis zu drei Nischen, zum Beispiel ${page.niche}, und deine Plattformen mit Followerzahl.`,
+                  `Profil anlegen: Bis zu drei Nischen, zum Beispiel ${page.label}, und deine Plattformen mit Followerzahl.`,
                   "Anfragen ansehen: Im Feed siehst du Budget und Anforderungen, bevor du dich meldest.",
                   "Posten und bezahlt werden: Nach dem Post reichst du den Link ein, danach wird die Zahlung freigegeben.",
                 ]}
@@ -89,7 +88,7 @@ export default async function UgcNichePage({ params }: { params: Promise<{ niche
 
           <div className="flex flex-col gap-4 rounded bg-fog p-6">
             <h2 className="font-display text-title-2 font-bold text-balance">
-              Bereit für deinen ersten Auftrag in der Nische {page.niche}?
+              Bereit für deinen ersten Auftrag in der Nische {page.label}?
             </h2>
             <UgcCtas />
             <p className="text-sm text-neutral-600 dark:text-neutral-400">
