@@ -19,6 +19,8 @@ jobs:
           node-version: 24
           cache: npm
       - run: npm ci
+      # PageProps, LayoutProps and RouteContext are generated; a fresh checkout doesn't have them yet.
+      - run: npx next typegen
       - run: npx tsc --noEmit
       - run: npm run lint
       - run: npm test
