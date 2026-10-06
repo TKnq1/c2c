@@ -5,6 +5,7 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { creatorFeedWhere, type FeedCreator } from "@/lib/feed-scope";
 import { getMutualBlockedUserIds } from "@/lib/moderation";
+import { MINUTE, takeIpToken } from "@/lib/rate-limit";
 import { formatBudget } from "@/lib/format";
 import { brandNicheCreatorsInsight, nicheRequestsInsight, reachRequestsInsight } from "@/lib/onboarding-insights";
 import { ONBOARDING_EVENT_KINDS, onboardingStepKeys, type OnboardingInsight } from "@/lib/onboarding-flow";
@@ -147,9 +148,17 @@ async function queryBrandCreators(niche: string, blockedUserIds: string[]): Prom
   return { niche, creators, established, sample };
 }
 
+// The guest wizard's previews run without a session, so anyone can call them (the action ids are
+// in the page's JavaScript). They therefore answer with numbers only, never with names, avatars or
+// request details, and per network address only so often.
+async function guestAllowed(): Promise<boolean> {
+  return takeIpToken("guest-preview", 60, 10 * MINUTE);
+}
+
 // The same numbers the logged-in wizard reads off the profile, computed
 // from answers that only exist in the browser until the account step.
 export async function previewNicheInsightAction(niches: string[]): Promise<OnboardingInsight | null> {
+  if (!(await guestAllowed())) return null;
   const parsed = onboardingNichesSchema.safeParse({ niches: niches.join(",") });
   if (!parsed.success) return null;
   return nicheRequestsInsight(parsed.data.niches).catch(() => null);
@@ -159,6 +168,7 @@ export async function previewReachInsightAction(input: {
   niches: string[];
   platforms: { followerCount: number }[];
 }): Promise<OnboardingInsight | null> {
+  if (!(await guestAllowed())) return null;
   const niches = onboardingNichesSchema.safeParse({ niches: input.niches.join(",") });
   const counts = input.platforms.map((p) => p.followerCount);
   const countsOk = counts.length > 0 && counts.length <= 8 && counts.every((n) => Number.isInteger(n) && n >= 0 && n <= 1_000_000_000);
@@ -174,23 +184,30 @@ export async function previewCreatorMatchesAction(input: {
   niches: string[];
   platforms: { platform: string; followerCount: number; url: string }[];
 }): Promise<CreatorMatchesResult> {
+  if (!(await guestAllowed())) return { error: "Please try again in a moment." };
   const niches = onboardingNichesSchema.safeParse({ niches: input.niches.join(",") });
   const platforms = onboardingPlatformsSchema.safeParse({ platforms: JSON.stringify(input.platforms) });
   if (!niches.success || !platforms.success) return { error: "Not authorized." };
-  return queryCreatorMatches(
+  const result = await queryCreatorMatches(
     { niches: niches.data.niches, contentLanguage: null, platforms: platforms.data.platforms },
     [],
   );
+  // The counts, not the requests behind them (titles, brands and budgets are for members).
+  return "error" in result ? result : { ...result, top: [] };
 }
 
 export async function previewBrandNicheInsightAction(niche: string): Promise<OnboardingInsight | null> {
+  if (!(await guestAllowed())) return null;
   const parsed = onboardingNicheSchema.safeParse({ niche });
   if (!parsed.success) return null;
   return brandNicheCreatorsInsight(parsed.data.niche).catch(() => null);
 }
 
 export async function previewBrandCreatorsAction(niche: string): Promise<BrandCreatorsResult> {
+  if (!(await guestAllowed())) return { error: "Please try again in a moment." };
   const parsed = onboardingNicheSchema.safeParse({ niche });
   if (!parsed.success) return { error: "Choose a niche first." };
-  return queryBrandCreators(parsed.data.niche, []);
+  const result = await queryBrandCreators(parsed.data.niche, []);
+  // The counts, not the creators (names and photos are for members).
+  return "error" in result ? result : { ...result, sample: [] };
 }

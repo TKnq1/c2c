@@ -3,6 +3,7 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { getMutualBlockedUserIds } from "@/lib/moderation";
 import { NICHES } from "@/lib/constants";
+import { MINUTE, takeToken } from "@/lib/rate-limit";
 
 export type SearchResult = {
   kind: "person" | "chat" | "request";
@@ -24,9 +25,13 @@ export async function GET(req: NextRequest) {
   if (!session || (session.user.role !== "STARTUP" && session.user.role !== "CREATOR")) {
     return NextResponse.json({ error: "Not authorized" }, { status: 401 });
   }
-  const q = req.nextUrl.searchParams.get("q")?.trim() ?? "";
-  if (q.length < 2) return NextResponse.json([]);
+  const raw = req.nextUrl.searchParams.get("q")?.trim().slice(0, 64) ?? "";
+  if (raw.length < 2) return NextResponse.json([]);
+  // As-you-type search: generous, but not unlimited.
+  if (!(await takeToken("search", session.user.id, 120, MINUTE))) return NextResponse.json([], { status: 429 });
 
+  // Prisma's `contains` passes % and _ on as wildcards: they're plain characters here.
+  const q = raw.replace(/[\\%_]/g, "\\$&");
   const contains = { contains: q, mode: "insensitive" as const };
   // A creator's niches are a list, which "contains" can't look inside: the
   // niches whose names contain the text are matched instead.

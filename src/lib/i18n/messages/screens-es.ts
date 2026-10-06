@@ -49,7 +49,7 @@ export const screensEs: DeepString<typeof screens> = {
     prefMessages: "Mensajes", prefPayments: "Pagos", prefDeposits: "Depósitos",
     admin: "Admin", adminHint: "Usuarios, pagos, denuncias y disputas en comtor.",
     yourData: "Tus datos", exportData: "Exportar mis datos", exportHint: "Todo lo de tu cuenta, en un archivo JSON.",
-    danger: "Zona de peligro", deleteAccount: "Eliminar cuenta", deleteHint: "Elimina tu cuenta y todo lo que contiene de forma permanente.",
+    danger: "Zona de peligro", deleteAccount: "Eliminar cuenta", deleteHint: "Elimina tu cuenta y tus datos personales de forma permanente. Los registros de pago que deben conservarse permanecen, anonimizados.", signOutEverywhere: "Cerrar sesión en todos los demás sitios", signOutEverywhereHint: "Cierra todas las demás sesiones de tu cuenta. Aquí sigues conectado.", signOutEverywhereTitle: "¿Cerrar sesión en todos los demás dispositivos?", signOutEverywhereBody: "Quien haya iniciado sesión en tu cuenta en otro móvil u ordenador será desconectado en unos minutos. Úsalo si has perdido un dispositivo.", signOutEverywhereConfirm: "Cerrar sesiones", signedOutEverywhere: "Sesión cerrada en todos los demás sitios.",
     deleteTitle: "¿Eliminar tu cuenta?", deleteBody: "Esto elimina tu cuenta y todo lo vinculado: perfil, solicitudes o intereses, mensajes, reseñas, historial de pagos. No se puede deshacer.",
     yourPassword: "Tu contraseña", deleting: "Eliminando…", deleteForever: "Eliminar para siempre",
     legal: "Legal", imprint: "Aviso legal", privacy: "Privacidad", terms: "Términos",

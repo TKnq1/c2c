@@ -166,7 +166,7 @@ export default async function CreatorPaymentsPage() {
                 }
               >
                 {theirs ? (
-                  <OfferResponseButtons interestId={o.id} otherPartyName={brand} />
+                  <OfferResponseButtons interestId={o.id} otherPartyName={brand} amountCents={o.amountCents ?? 0} />
                 ) : (
                   <div className="mt-2">
                     <ActionButton

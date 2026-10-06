@@ -21,6 +21,8 @@ export function TwoFactorSettings({ initialEnabled }: { initialEnabled: boolean 
   const [showDisableForm, setShowDisableForm] = useState(false);
   const [enrollData, setEnrollData] = useState<{ secret: string; qrDataUrl: string } | null>(null);
   const [startError, setStartError] = useState<string | undefined>();
+  const [askPassword, setAskPassword] = useState(false);
+  const [password, setPassword] = useState("");
   const [pendingStart, startTransition] = useTransition();
 
   const isEnabled = disableState?.success ? false : confirmState?.success ? true : initialEnabled;
@@ -79,6 +81,19 @@ export function TwoFactorSettings({ initialEnabled }: { initialEnabled: boolean 
           type="password"
           required
           className="rounded border border-neutral-300 px-3 py-2.5 dark:border-neutral-700"
+        />
+        <label htmlFor="disable2faCode" className="text-sm font-medium mt-1">
+          {t("screens.settings.enterCode")}
+        </label>
+        <input
+          id="disable2faCode"
+          name="code"
+          type="text"
+          inputMode="numeric"
+          required
+          maxLength={32}
+          autoComplete="one-time-code"
+          className="rounded border border-neutral-300 px-3 py-2.5 w-48 tracking-widest dark:border-neutral-700"
         />
         {disableState?.error && <p className="text-sm text-ink">{localizeError(disableState.error, t)}</p>}
         <div className="flex items-center gap-2">
@@ -147,24 +162,76 @@ export function TwoFactorSettings({ initialEnabled }: { initialEnabled: boolean 
     );
   }
 
+  function start() {
+    setStartError(undefined);
+    startTransition(async () => {
+      const result = await startTwoFactorEnrollmentAction(password);
+      setPassword("");
+      if (result.error) setStartError(localizeError(result.error, t));
+      else {
+        setAskPassword(false);
+        setEnrollData({ secret: result.secret!, qrDataUrl: result.qrDataUrl! });
+      }
+    });
+  }
+
+  // Switching it on asks for the password first (see startTwoFactorEnrollmentAction).
+  if (askPassword) {
+    return (
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          start();
+        }}
+        className="flex flex-col gap-2"
+      >
+        <p className="text-sm text-neutral-600 dark:text-neutral-400">{t("screens.settings.twoFactorHint")}</p>
+        <input
+          type="password"
+          name="password"
+          required
+          autoComplete="current-password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          placeholder={t("screens.settings.yourPassword")}
+          aria-label={t("screens.settings.password")}
+          className="rounded border border-neutral-300 bg-transparent px-3 py-2.5 text-base outline-none focus:border-neutral-500 md:text-sm dark:border-neutral-700"
+        />
+        {startError && <p className="text-sm text-ink">{startError}</p>}
+        <div className="flex items-center gap-2">
+          <button
+            type="submit"
+            disabled={pendingStart}
+            className="rounded-full bg-ink px-4 py-2.5 text-sm font-medium text-paper transition hover:bg-graphite disabled:opacity-50"
+          >
+            {pendingStart ? t("screens.settings.starting") : t("screens.settings.enable2fa")}
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setAskPassword(false);
+              setPassword("");
+              setStartError(undefined);
+            }}
+            className="text-sm text-neutral-500 hover:text-neutral-800 transition dark:text-neutral-400 dark:hover:text-neutral-200"
+          >
+            {t("common.cancel")}
+          </button>
+        </div>
+      </form>
+    );
+  }
+
   return (
     <div className="flex flex-col gap-2">
       <div className="flex items-center justify-between gap-3">
         <p className="text-sm text-neutral-600 dark:text-neutral-400">{t("screens.settings.twoFactorHint")}</p>
         <button
           type="button"
-          disabled={pendingStart}
-          onClick={() => {
-            setStartError(undefined);
-            startTransition(async () => {
-              const result = await startTwoFactorEnrollmentAction();
-              if (result.error) setStartError(localizeError(result.error, t));
-              else setEnrollData({ secret: result.secret!, qrDataUrl: result.qrDataUrl! });
-            });
-          }}
-          className="shrink-0 rounded-full border border-neutral-300 px-4 py-2 text-sm font-medium transition hover:border-neutral-400 disabled:opacity-50 dark:border-neutral-700"
+          onClick={() => setAskPassword(true)}
+          className="shrink-0 rounded-full border border-neutral-300 px-4 py-2 text-sm font-medium transition hover:border-neutral-400 dark:border-neutral-700"
         >
-          {pendingStart ? t("screens.settings.starting") : t("screens.settings.enable2fa")}
+          {t("screens.settings.enable2fa")}
         </button>
       </div>
       {startError && <p className="text-sm text-ink">{startError}</p>}

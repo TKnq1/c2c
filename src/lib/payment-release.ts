@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { stripe } from "@/lib/stripe";
 import { notify } from "@/lib/notifications";
 import { formatCents } from "@/lib/format";
+import { flagForReview } from "@/lib/moderation";
 import { RELEASE_REVIEW_DAYS, RELEASE_REVIEW_MS } from "@/lib/constants";
 
 // The only two ways money leaves escrow: to the creator (the brand
@@ -17,6 +18,20 @@ export type MoneyMoveResult = { error?: string };
 
 export type ReleaseTrigger = "approved" | "auto" | "admin";
 export type RefundTrigger = "brand" | "admin";
+
+// Stripe answered and said no, so nothing was created. Anything else (a dropped connection, a timeout, a
+// 5xx) leaves open whether the call went through before the answer was lost.
+function definitelyNotCreated(err: unknown): boolean {
+  const type = err && typeof err === "object" && "type" in err ? String((err as { type: unknown }).type) : "";
+  return [
+    "StripeInvalidRequestError",
+    "StripePermissionError",
+    "StripeAuthenticationError",
+    "StripeRateLimitError",
+    "StripeCardError",
+    "StripeIdempotencyError",
+  ].includes(type);
+}
 
 function revalidatePaymentPaths(requestId: string) {
   revalidatePath(`/dashboard/startup/requests/${requestId}`);
@@ -62,22 +77,41 @@ export async function releaseHeldPayment(interestId: string, trigger: ReleaseTri
   // with the platform under separate charges and transfers. idempotencyKey
   // means a retry of this exact call (e.g. after a network error) can't
   // create a second transfer even if the DB claim above already succeeded.
-  let transfer;
-  try {
-    transfer = await stripe.transfers.create(
-      {
-        amount: interest.payoutCents!,
-        currency: "eur",
-        destination: creator.stripeAccountId,
-        source_transaction: interest.stripeChargeId!,
-      },
-      { idempotencyKey: `release-${interestId}` },
-    );
-  } catch {
+  const transferParams = {
+    amount: interest.payoutCents!,
+    currency: "eur",
+    destination: creator.stripeAccountId,
+    source_transaction: interest.stripeChargeId!,
+  };
+  const idempotencyKey = `release-${interestId}`;
+  const backToHeld = async () => {
     // Back to HELD so it can be retried, instead of a stuck "Released" with
     // no money actually transferred.
     await prisma.interest.update({ where: { id: interestId }, data: { paymentStatus: "HELD", releasedAt: null } });
     return { error: "Releasing the payment failed. Please try again." };
+  };
+
+  let transfer;
+  try {
+    transfer = await stripe.transfers.create(transferParams, { idempotencyKey });
+  } catch (firstErr) {
+    if (definitelyNotCreated(firstErr)) return backToHeld();
+    // Unclear whether Stripe created it before the answer got lost. The same key returns the existing
+    // transfer if there is one, so asking again is safe.
+    try {
+      transfer = await stripe.transfers.create(transferParams, { idempotencyKey });
+    } catch (err) {
+      if (definitelyNotCreated(err)) return backToHeld();
+      // Still unclear. Reverting to HELD here could let a refund pay the brand back as well, so the row
+      // stays as it is and a person checks the transfer.
+      console.error("Transfer outcome unknown", { interestId, err });
+      await flagForReview(
+        creator.userId,
+        "Payout needs reconciliation",
+        `Releasing interest ${interestId}: the transfer call failed without a clear answer. Check Stripe before retrying or refunding.`,
+      );
+      return { error: "Releasing the payment didn't finish. We'll check it and complete it manually." };
+    }
   }
 
   await prisma.interest.update({ where: { id: interestId }, data: { stripeTransferId: transfer.id } });
@@ -131,12 +165,29 @@ export async function refundHeldPayment(interestId: string, trigger: RefundTrigg
   // Nothing was ever transferred out at HELD (separate charges and
   // transfers — the transfer only happens on release), so a plain refund
   // of the original charge is the whole reversal; no transfer to claw back.
-  let refund;
-  try {
-    refund = await stripe.refunds.create({ charge: interest.stripeChargeId! }, { idempotencyKey: `refund-${interestId}` });
-  } catch {
+  const refundIdempotencyKey = `refund-${interestId}`;
+  const refundBackToHeld = async () => {
     await prisma.interest.update({ where: { id: interestId }, data: { paymentStatus: "HELD", refundedAt: null } });
     return { error: "Refunding the payment failed. Please try again." };
+  };
+
+  let refund;
+  try {
+    refund = await stripe.refunds.create({ charge: interest.stripeChargeId! }, { idempotencyKey: refundIdempotencyKey });
+  } catch (firstErr) {
+    if (definitelyNotCreated(firstErr)) return refundBackToHeld();
+    try {
+      refund = await stripe.refunds.create({ charge: interest.stripeChargeId! }, { idempotencyKey: refundIdempotencyKey });
+    } catch (err) {
+      if (definitelyNotCreated(err)) return refundBackToHeld();
+      console.error("Refund outcome unknown", { interestId, err });
+      await flagForReview(
+        interest.request.startup.userId,
+        "Refund needs reconciliation",
+        `Refunding interest ${interestId}: the refund call failed without a clear answer. Check Stripe before retrying or releasing.`,
+      );
+      return { error: "Refunding the payment didn't finish. We'll check it and complete it manually." };
+    }
   }
 
   await prisma.interest.update({ where: { id: interestId }, data: { stripeRefundId: refund.id } });

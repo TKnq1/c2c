@@ -21,8 +21,20 @@ export default async function DiscoverBrandsPage() {
     prisma.startupProfile.findMany({
       // Suspended accounts (see /admin/users) drop out of Discover entirely.
       where: { user: { suspendedAt: null } },
-      include: { socialLinks: true },
+      // Only what the cards show (see the creators' list for why: client components
+      // receive every field of what they're given, including Stripe ids).
+      select: {
+        id: true,
+        companyName: true,
+        avatarUrl: true,
+        niche: true,
+        description: true,
+        website: true,
+        createdAt: true,
+        socialLinks: { select: { platform: true, url: true } },
+      },
       orderBy: { createdAt: "desc" },
+      take: 500,
     }),
   ]);
   // None of these four depend on each other's results (or on anything but
@@ -84,7 +96,13 @@ export default async function DiscoverBrandsPage() {
   const brandsWithRatings = brands.map((b) => {
     const responseTimeMs = computeResponseTimeMs(conversationsByStartupId.get(b.id) ?? [], "STARTUP");
     return {
-      ...b,
+      id: b.id,
+      companyName: b.companyName,
+      avatarUrl: b.avatarUrl,
+      niche: b.niche,
+      description: b.description,
+      website: b.website,
+      socialLinks: b.socialLinks,
       coverUrl: coverByStartupId.get(b.id) ?? null,
       rating: ratingByStartupId.get(b.id) ?? { average: 0, count: 0 },
       completedCollabs: completedByStartupId.get(b.id) ?? 0,

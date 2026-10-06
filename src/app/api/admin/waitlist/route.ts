@@ -1,36 +1,32 @@
-import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { hasAdminAccess } from "@/lib/admin-access";
+import { requireAdmin } from "@/lib/admin-guard";
+import { audit } from "@/lib/audit";
+import { csvRow } from "@/lib/csv";
 
 // The confirmed part of the waitlist as a spreadsheet, for the launch
 // email: an address nobody confirmed must not get it (double opt-in).
 // Admin only.
 
-function csvCell(value: string): string {
-  // A leading = + - or @ would make Excel read the cell as a formula.
-  const safe = /^[=+\-@]/.test(value) ? `'${value}` : value;
-  return /[",\n]/.test(safe) ? `"${safe.replace(/"/g, '""')}"` : safe;
-}
-
 export async function GET() {
-  const session = await auth();
-  if (!session || !hasAdminAccess(session.user)) return new Response("Not authorized", { status: 401 });
+  const session = await requireAdmin();
+  if (!session) return new Response("Not authorized", { status: 401 });
 
   const entries = await prisma.waitlistEntry.findMany({
     where: { confirmedAt: { not: null } },
     orderBy: { createdAt: "asc" },
   });
   const lines = [
-    ["Email", "Side", "Joined", "Confirmed"].join(","),
+    csvRow(["Email", "Side", "Joined", "Confirmed"]),
     ...entries.map((e) =>
-      [
-        csvCell(e.email),
+      csvRow([
+        e.email,
         e.role === "STARTUP" ? "Brand" : e.role === "CREATOR" ? "Creator" : "",
         e.createdAt.toISOString().slice(0, 10),
         e.confirmedAt?.toISOString().slice(0, 10) ?? "",
-      ].join(","),
+      ]),
     ),
   ];
+  await audit(session.user.id, "waitlist.export", undefined, { rows: entries.length });
 
   return new Response(lines.join("\n"), {
     headers: {

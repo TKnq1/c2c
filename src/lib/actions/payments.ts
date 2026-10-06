@@ -10,7 +10,9 @@ import { sendOfferSchema, submitPostSchema, reportProblemSchema } from "@/lib/va
 import { splitPayment } from "@/lib/payment-math";
 import { formatCents } from "@/lib/format";
 import { notify } from "@/lib/notifications";
-import { flagIfAnomalousOffer } from "@/lib/moderation";
+import { flagIfAnomalousOffer, getMutualBlockedUserIds, isBlocked } from "@/lib/moderation";
+import { DAY, takeToken } from "@/lib/rate-limit";
+import { VERIFY_EMAIL_MESSAGE, emailIsVerified } from "@/lib/verified";
 import { RELEASE_REVIEW_DAYS } from "@/lib/constants";
 import { refundHeldPayment, releaseHeldPayment, type MoneyMoveResult } from "@/lib/payment-release";
 import { recordProposal, settleProposal } from "@/lib/offer-events";
@@ -84,17 +86,29 @@ export async function sendOfferAction(
   if (interest.paymentStatus !== null) {
     return { error: "There's already an offer or payment in progress for this creator." };
   }
+  if (!(await emailIsVerified(session.user.id))) return { error: VERIFY_EMAIL_MESSAGE };
+  // A creator who blocked this brand isn't offered anything, however the brand got to the interest.
+  if (await isBlocked(session.user.id, interest.creator.userId)) {
+    return { error: "This interest could not be found." };
+  }
+  if (!(await takeToken("offer", session.user.id, 100, DAY))) {
+    return { error: "You've sent a lot of offers today. Try again tomorrow." };
+  }
 
   const amountCents = parsed.data.amount;
   const { platformFeeCents, payoutCents } = splitPayment(amountCents, startup.isPro);
 
-  await prisma.$transaction(async (tx) => {
-    await tx.interest.update({
-      where: { id: interestId },
+  // Only while nothing is on the table: two parallel sends can't both go through.
+  const opened = await prisma.$transaction(async (tx) => {
+    const claimed = await tx.interest.updateMany({
+      where: { id: interestId, paymentStatus: null },
       data: { amountCents, platformFeeCents, payoutCents, paymentStatus: "OFFERED", offerRole: "STARTUP", offeredAt: new Date() },
     });
+    if (claimed.count !== 1) return false;
     await recordProposal(tx, { interestId, role: "STARTUP", amountCents, payoutCents });
+    return true;
   });
+  if (!opened) return { error: "There's already an offer or payment in progress for this creator." };
 
   // startup.createdAt doubles as account age — the profile is always
   // created in the same insert as the User at signup, never later.
@@ -126,30 +140,43 @@ export async function bulkSendOfferAction(requestId: string, interestIds: string
     throw new Error(parsed.error.issues[0]?.message ?? "Please enter a valid offer amount.");
   }
 
+  if (!(await emailIsVerified(session.user.id))) throw new Error(VERIFY_EMAIL_MESSAGE);
+
   const startup = await prisma.startupProfile.findUniqueOrThrow({ where: { userId: session.user.id } });
   const request = await prisma.request.findUnique({ where: { id: requestId } });
   if (!request || request.startupId !== startup.id) throw new Error("This request could not be found.");
 
-  const interests = await prisma.interest.findMany({
-    where: { id: { in: interestIds }, requestId, paymentStatus: null },
-    include: { creator: true },
-  });
+  // Whoever has blocked this brand (or was blocked by it) is left out of the batch.
+  const blocked = new Set(await getMutualBlockedUserIds(session.user.id));
+  const interests = (
+    await prisma.interest.findMany({
+      where: { id: { in: interestIds.slice(0, 100) }, requestId, paymentStatus: null },
+      include: { creator: true },
+    })
+  ).filter((i) => !blocked.has(i.creator.userId));
+  if (interests.length > 0 && !(await takeToken("offer", session.user.id, 100, DAY))) {
+    throw new Error("You've sent a lot of offers today. Try again tomorrow.");
+  }
 
   const amountCents = parsed.data.amount;
   const { platformFeeCents, payoutCents } = splitPayment(amountCents, startup.isPro);
 
+  const offered: typeof interests = [];
   await prisma.$transaction(async (tx) => {
     for (const interest of interests) {
-      await tx.interest.update({
-        where: { id: interest.id },
+      // Skipped quietly if it was offered elsewhere since the list was read.
+      const claimed = await tx.interest.updateMany({
+        where: { id: interest.id, paymentStatus: null },
         data: { amountCents, platformFeeCents, payoutCents, paymentStatus: "OFFERED", offerRole: "STARTUP", offeredAt: new Date() },
       });
+      if (claimed.count !== 1) continue;
       await recordProposal(tx, { interestId: interest.id, role: "STARTUP", amountCents, payoutCents });
+      offered.push(interest);
     }
   });
 
   await Promise.all(
-    interests.map((interest) =>
+    offered.map((interest) =>
       notify(
         interest.creator.userId,
         `${startup.companyName} sent you an offer of ${formatCents(amountCents)} for "${request.title}"`,
@@ -161,7 +188,7 @@ export async function bulkSendOfferAction(requestId: string, interestIds: string
 
   revalidatePath(`/dashboard/startup/requests/${requestId}`);
   revalidatePath("/dashboard/startup/payments");
-  return { count: interests.length };
+  return { count: offered.length };
 }
 
 // Counters an offer that's currently awaiting the caller's response —
@@ -170,6 +197,8 @@ export async function bulkSendOfferAction(requestId: string, interestIds: string
 // brand countering the creator's counter.
 export async function counterOfferAction(
   interestId: string,
+  // The amount on the offer the person is looking at: the answer only counts if that offer is still the one on the table.
+  expectedAmountCents: number,
   _prevState: PaymentActionState,
   formData: FormData,
 ): Promise<PaymentActionState> {
@@ -192,13 +221,16 @@ export async function counterOfferAction(
   const amountCents = parsed.data.amount;
   const { platformFeeCents, payoutCents } = splitPayment(amountCents, interest.request.startup.isPro);
 
-  await prisma.$transaction(async (tx) => {
-    await tx.interest.update({
-      where: { id: interestId },
+  const countered = await prisma.$transaction(async (tx) => {
+    const claimed = await tx.interest.updateMany({
+      where: { id: interestId, paymentStatus: "OFFERED", offerRole: { not: role }, amountCents: expectedAmountCents },
       data: { amountCents, platformFeeCents, payoutCents, offerRole: role, offeredAt: new Date() },
     });
+    if (claimed.count !== 1) return false;
     await recordProposal(tx, { interestId, role, amountCents, payoutCents });
+    return true;
   });
+  if (!countered) return { error: "The offer changed in the meantime. Please look at the new offer." };
 
   // Same account-age signal as the opening offer, just sourced from
   // whichever side is doing the countering this time.
@@ -231,13 +263,17 @@ export async function withdrawOfferAction(interestId: string) {
     throw new Error("This offer isn't yours to withdraw.");
   }
 
-  await prisma.$transaction(async (tx) => {
-    await tx.interest.update({
-      where: { id: interestId },
+  // Only an offer that is still this person's and unanswered: an accept that lands first stays accepted.
+  const withdrawn = await prisma.$transaction(async (tx) => {
+    const claimed = await tx.interest.updateMany({
+      where: { id: interestId, paymentStatus: "OFFERED", offerRole: role },
       data: { paymentStatus: null, amountCents: null, platformFeeCents: null, payoutCents: null, offerRole: null, offeredAt: null },
     });
+    if (claimed.count !== 1) return false;
     await settleProposal(tx, interestId, "WITHDRAWN");
+    return true;
   });
+  if (!withdrawn) throw new Error("This offer changed in the meantime.");
 
   await notify(
     otherPartyUserId(interest, role),
@@ -253,7 +289,12 @@ export async function withdrawOfferAction(interestId: string) {
 // money actually moves into escrow (still held, not released, until the
 // content is posted). Works for either direction: a creator accepting the
 // brand's offer, or a brand accepting the creator's counter.
-export async function acceptOfferAction(interestId: string) {
+//
+// `expectedAmountCents` is the amount on the card the person pressed Accept on:
+// it only counts if that offer is still the one on the table. Without it, an
+// offer that was withdrawn and re-sent at another price in the meantime was
+// accepted at the new price.
+export async function acceptOfferAction(interestId: string, expectedAmountCents: number) {
   const session = await auth();
   if (!session) throw new Error("Not authorized.");
   const role = session.user.role;
@@ -272,19 +313,22 @@ export async function acceptOfferAction(interestId: string) {
   // Not HELD yet — the brand still has to actually pay via Stripe Checkout
   // (createCheckoutSessionAction). Real money only starts existing once the
   // webhook confirms it, regardless of which side clicked accept here.
-  await prisma.$transaction(async (tx) => {
-    await tx.interest.update({
-      where: { id: interestId },
+  const accepted = await prisma.$transaction(async (tx) => {
+    const claimed = await tx.interest.updateMany({
+      where: { id: interestId, paymentStatus: "OFFERED", offerRole: { not: role }, amountCents: expectedAmountCents },
       data: { paymentStatus: "ACCEPTED", acceptedAt: new Date() },
     });
+    if (claimed.count !== 1) return false;
     await settleProposal(tx, interestId, "ACCEPTED");
+    return true;
   });
+  if (!accepted) throw new Error("The offer changed in the meantime. Please look at the new offer.");
 
   const startupUserId = interest.request.startup.userId;
   const message =
     role === "STARTUP"
-      ? `${actorName(interest, role)} accepted your offer of ${formatCents(interest.amountCents!)} for "${interest.request.title}". Waiting on the brand to complete payment.`
-      : `${actorName(interest, role)} accepted your offer of ${formatCents(interest.amountCents!)} for "${interest.request.title}". Head to Payments to pay and hold it in escrow.`;
+      ? `${actorName(interest, role)} accepted your offer of ${formatCents(expectedAmountCents)} for "${interest.request.title}". Waiting on the brand to complete payment.`
+      : `${actorName(interest, role)} accepted your offer of ${formatCents(expectedAmountCents)} for "${interest.request.title}". Head to Payments to pay and hold it in escrow.`;
   await notify(otherPartyUserId(interest, role), message, paymentsHref(role), "payments");
   // The brand always needs a nudge to actually pay, even when they were the
   // one who clicked accept just now (they already know in that case, but
@@ -292,7 +336,7 @@ export async function acceptOfferAction(interestId: string) {
   if (role === "CREATOR") {
     await notify(
       startupUserId,
-      `Accepted: pay ${formatCents(interest.amountCents!)} for "${interest.request.title}" to hold it in escrow`,
+      `Accepted: pay ${formatCents(expectedAmountCents)} for "${interest.request.title}" to hold it in escrow`,
       "/dashboard/startup/payments",
       "payments",
     );
@@ -319,6 +363,7 @@ export async function createCheckoutSessionAction(interestId: string): Promise<{
 
   if (!interest || interest.request.startupId !== startup.id) return { error: "This interest could not be found." };
   if (interest.paymentStatus !== "ACCEPTED") return { error: "This offer isn't ready for payment." };
+  if (!(await emailIsVerified(session.user.id))) return { error: VERIFY_EMAIL_MESSAGE };
 
   // Reuse a still-open session rather than always minting a new one —
   // stripeCheckoutSessionId is unique per interest, so overwriting it while
@@ -341,36 +386,56 @@ export async function createCheckoutSessionAction(interestId: string): Promise<{
     }
   }
 
-  const checkoutSession = await stripe.checkout.sessions.create({
-    mode: "payment",
-    line_items: [
-      {
-        price_data: {
-          currency: "eur",
-          unit_amount: interest.amountCents!,
-          product_data: { name: `Collab with ${interest.creator.displayName}: "${interest.request.title}"` },
+  // Two parallel clicks start from the same state, so Stripe answers both with the same session
+  // (the key names the amount and the session it replaces). They used to get one each, and the
+  // webhook then couldn't find the interest of the one that was paid.
+  const previousSessionId = interest.stripeCheckoutSessionId;
+  const checkoutSession = await stripe.checkout.sessions.create(
+    {
+      mode: "payment",
+      line_items: [
+        {
+          price_data: {
+            currency: "eur",
+            unit_amount: interest.amountCents!,
+            product_data: { name: `Collab with ${interest.creator.displayName}: "${interest.request.title}"` },
+          },
+          quantity: 1,
         },
-        quantity: 1,
-      },
-    ],
-    // Names the interest so the page knows which row to wait on while the
-    // webhook catches up (see CheckoutReturn).
-    success_url: `${SITE_URL}/dashboard/startup/payments?checkout=success&interest=${interest.id}`,
-    cancel_url: `${SITE_URL}/dashboard/startup/payments?checkout=cancelled`,
-    metadata: { interestId: interest.id },
-  });
+      ],
+      // Names the interest so the page knows which row to wait on while the
+      // webhook catches up (see CheckoutReturn).
+      success_url: `${SITE_URL}/dashboard/startup/payments?checkout=success&interest=${interest.id}`,
+      cancel_url: `${SITE_URL}/dashboard/startup/payments?checkout=cancelled`,
+      metadata: { interestId: interest.id },
+    },
+    { idempotencyKey: `checkout-${interest.id}-${interest.amountCents}-${previousSessionId ?? "none"}` },
+  );
 
-  await prisma.interest.update({
-    where: { id: interestId },
+  const saved = await prisma.interest.updateMany({
+    where: { id: interestId, paymentStatus: "ACCEPTED", stripeCheckoutSessionId: previousSessionId },
     data: { stripeCheckoutSessionId: checkoutSession.id },
   });
+  if (saved.count === 0) {
+    // A parallel click got the very same session (see above): nothing to undo.
+    const current = await prisma.interest.findUnique({
+      where: { id: interestId },
+      select: { paymentStatus: true, stripeCheckoutSessionId: true },
+    });
+    if (current?.paymentStatus === "ACCEPTED" && current.stripeCheckoutSessionId === checkoutSession.id) {
+      return { url: checkoutSession.url! };
+    }
+    // The offer moved on or another session was recorded: don't leave a payable session nobody records.
+    await stripe.checkout.sessions.expire(checkoutSession.id).catch(() => undefined);
+    return { error: "This payment changed in the meantime. Reload the page." };
+  }
 
   return { url: checkoutSession.url! };
 }
 
 // Declines a proposal awaiting the caller's response — clears it back to
 // "not paid yet" so the other side can start over with a new offer.
-export async function declineOfferAction(interestId: string) {
+export async function declineOfferAction(interestId: string, expectedAmountCents: number) {
   const session = await auth();
   if (!session) throw new Error("Not authorized.");
   const role = session.user.role;
@@ -382,13 +447,16 @@ export async function declineOfferAction(interestId: string) {
     throw new Error("This offer isn't awaiting your response.");
   }
 
-  await prisma.$transaction(async (tx) => {
-    await tx.interest.update({
-      where: { id: interestId },
+  const declined = await prisma.$transaction(async (tx) => {
+    const claimed = await tx.interest.updateMany({
+      where: { id: interestId, paymentStatus: "OFFERED", offerRole: { not: role }, amountCents: expectedAmountCents },
       data: { paymentStatus: null, amountCents: null, platformFeeCents: null, payoutCents: null, offerRole: null, offeredAt: null },
     });
+    if (claimed.count !== 1) return false;
     await settleProposal(tx, interestId, "DECLINED");
+    return true;
   });
+  if (!declined) throw new Error("The offer changed in the meantime. Please look at the new offer.");
 
   await notify(
     otherPartyUserId(interest, role),

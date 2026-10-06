@@ -19,7 +19,11 @@ export async function GET() {
           requests: {
             include: {
               images: { orderBy: { position: "asc" } },
-              interests: { include: { creator: true, messages: true, reviews: true } },
+              // The other side by name only: their profile row holds payment ids and account data that
+              // are theirs, not part of this person's data.
+              interests: {
+                include: { creator: { select: { id: true, displayName: true } }, messages: true, reviews: true },
+              },
             },
           },
           reviews: true,
@@ -34,7 +38,13 @@ export async function GET() {
         include: {
           platforms: true,
           reviews: true,
-          interests: { include: { request: { include: { startup: true } }, messages: true, reviews: true } },
+          interests: {
+            include: {
+              request: { include: { startup: { select: { id: true, companyName: true } } } },
+              messages: true,
+              reviews: true,
+            },
+          },
           favoritedBy: {
             where: { favoritedByRole: "CREATOR" },
             include: { startup: { select: { companyName: true } } },
@@ -49,7 +59,7 @@ export async function GET() {
       }),
       prisma.report.findMany({
         where: { reporterId: user.id },
-        select: { reason: true, details: true, status: true, createdAt: true, reported: { select: { email: true } } },
+        select: { reason: true, details: true, status: true, createdAt: true },
       }),
       prisma.report.findMany({
         where: { reportedId: user.id },
@@ -57,7 +67,7 @@ export async function GET() {
       }),
       prisma.block.findMany({
         where: { blockerId: user.id },
-        select: { createdAt: true, blocked: { select: { email: true } } },
+        select: { createdAt: true },
       }),
     ]);
 
@@ -85,6 +95,8 @@ export async function GET() {
     headers: {
       "Content-Type": "application/json; charset=utf-8",
       "Content-Disposition": 'attachment; filename="my-comtor-data.json"',
+      "Cache-Control": "no-store",
+      "X-Content-Type-Options": "nosniff",
     },
   });
 }

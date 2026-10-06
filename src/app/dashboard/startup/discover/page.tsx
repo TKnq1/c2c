@@ -38,8 +38,21 @@ export default async function DiscoverCreatorsPage() {
     prisma.creatorProfile.findMany({
       // Suspended accounts (see /admin/users) drop out of Discover entirely.
       where: { userId: { notIn: blockedUserIds }, user: { suspendedAt: null } },
-      include: { platforms: true },
+      // Only what the cards show. This list is handed to a client component, which
+      // ships every field of every row to the browser: never `include` a whole
+      // profile here (it carries the Stripe account id and the user id).
+      select: {
+        id: true,
+        displayName: true,
+        avatarUrl: true,
+        niches: true,
+        bio: true,
+        contentLanguage: true,
+        createdAt: true,
+        platforms: { select: { platform: true, followerCount: true } },
+      },
       orderBy: { createdAt: "desc" },
+      take: 500,
     }),
     prisma.review.groupBy({
       by: ["creatorId"],
@@ -74,7 +87,13 @@ export default async function DiscoverCreatorsPage() {
   const creatorsWithRatings = creators.map((c) => {
     const responseTimeMs = computeResponseTimeMs(conversationsByCreatorId.get(c.id) ?? [], "CREATOR");
     return {
-      ...c,
+      id: c.id,
+      displayName: c.displayName,
+      avatarUrl: c.avatarUrl,
+      niches: c.niches,
+      bio: c.bio,
+      contentLanguage: c.contentLanguage,
+      platforms: c.platforms,
       rating: ratingByCreatorId.get(c.id) ?? { average: 0, count: 0 },
       completedCollabs: completedByCreatorId.get(c.id) ?? 0,
       isFavorited: favoritedCreatorIds.has(c.id),

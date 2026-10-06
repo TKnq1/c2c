@@ -127,6 +127,9 @@ const APNS_INVALID_TOKEN_REASONS = new Set(["BadDeviceToken", "Unregistered", "D
 
 export async function sendApns(deviceToken: string, payload: PushPayload): Promise<NativeSendResult> {
   if (!apnsConfigured) return "error";
+  // The token becomes part of a request path to Apple: tokens saved before they were checked on the way in
+  // could hold anything, so it's checked again here. A bad one is as good as unregistered.
+  if (!/^[0-9a-fA-F]{64,200}$/.test(deviceToken)) return "invalid";
   try {
     const { status, reason } = await apnsRequest(deviceToken, {
       aps: { alert: { title: payload.title, body: payload.body }, sound: "default" },

@@ -61,7 +61,7 @@ export async function BrandProfileView({ id, variant }: { id: string; variant: "
         orderBy: { createdAt: "desc" },
       }),
     ]);
-  if (!startup) notFound();
+  if (!startup || blockedUserIds.includes(startup.userId)) notFound();
 
   const [myInterests, feed, favorite, photos] = await Promise.all([
     prisma.interest.findMany({
@@ -69,7 +69,7 @@ export async function BrandProfileView({ id, variant }: { id: string; variant: "
       select: { id: true, requestId: true },
     }),
     // "all": what a creator may reach out about doesn't depend on their niches.
-    getCreatorFeed(creator, blockedUserIds, "all"),
+    getCreatorFeed(creator, blockedUserIds, "all", { startupId: id }),
     prisma.favorite.findUnique({
       where: {
         startupId_creatorId_favoritedByRole: { startupId: startup.id, creatorId: creator.id, favoritedByRole: "CREATOR" },
@@ -106,7 +106,7 @@ export async function BrandProfileView({ id, variant }: { id: string; variant: "
             <div className="flex items-center gap-2">
               <StartConversationAsCreator
                 existingInterestId={myInterests[0]?.id ?? null}
-                matchingRequests={matchingRequests}
+                matchingRequests={matchingRequests.map(({ id, title }) => ({ id, title }))}
               />
               {/* The star's own -m-1 would otherwise eat into the gap. */}
               <span className="flex shrink-0 p-1">

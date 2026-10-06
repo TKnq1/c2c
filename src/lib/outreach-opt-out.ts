@@ -3,8 +3,12 @@ import { SITE_URL } from "@/lib/site";
 
 type Side = "CREATOR" | "STARTUP";
 
+// Its own key (OPT_OUT_SECRET), the session secret only as a fallback until one is set. Never an empty
+// key: with nothing configured every link would be forgeable.
 function secret() {
-  return process.env.AUTH_SECRET?.trim() ?? "";
+  const key = process.env.OPT_OUT_SECRET?.trim() || process.env.AUTH_SECRET?.trim();
+  if (!key) throw new Error("OPT_OUT_SECRET (or AUTH_SECRET) must be set to sign opt-out links.");
+  return key;
 }
 
 export function isOutreachSide(value: string): value is Side {

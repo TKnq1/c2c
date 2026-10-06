@@ -7,7 +7,7 @@ const privateKey = process.env.VAPID_PRIVATE_KEY;
 const webPushConfigured = Boolean(publicKey && privateKey);
 
 if (webPushConfigured) {
-  webpush.setVapidDetails("mailto:support@example.com", publicKey!, privateKey!);
+  webpush.setVapidDetails("mailto:info@comtor.app", publicKey!, privateKey!);
 }
 
 // Fans out to every device the user enabled push on: browsers via Web Push

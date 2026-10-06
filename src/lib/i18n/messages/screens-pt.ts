@@ -48,7 +48,7 @@ export const screensPt: DeepString<typeof screens> = {
     prefMessages: "Mensagens", prefPayments: "Pagamentos", prefDeposits: "Depósitos",
     admin: "Admin", adminHint: "Utilizadores, pagamentos, denúncias e disputas no comtor.",
     yourData: "Os teus dados", exportData: "Exportar os meus dados", exportHint: "Tudo na tua conta, num ficheiro JSON.",
-    danger: "Zona de perigo", deleteAccount: "Eliminar conta", deleteHint: "Remove a conta e tudo o que ela contém de forma permanente.",
+    danger: "Zona de perigo", deleteAccount: "Eliminar conta", deleteHint: "Remove a conta e os teus dados pessoais de forma permanente. Os registos de pagamento que têm de ser guardados ficam, anonimizados.", signOutEverywhere: "Terminar sessão em todos os outros sítios", signOutEverywhereHint: "Termina todas as outras sessões da tua conta. Aqui continuas com sessão iniciada.", signOutEverywhereTitle: "Terminar sessão em todos os outros dispositivos?", signOutEverywhereBody: "Quem tiver sessão iniciada na tua conta noutro telemóvel ou computador é desligado em poucos minutos. Usa isto se perdeste um dispositivo.", signOutEverywhereConfirm: "Terminar sessões", signedOutEverywhere: "Sessão terminada em todos os outros sítios.",
     deleteTitle: "Eliminar a tua conta?", deleteBody: "Isto elimina a conta e tudo o que está ligado: perfil, pedidos ou interesses, mensagens, avaliações, histórico de pagamentos. Não dá para anular.",
     yourPassword: "A tua palavra-passe", deleting: "A eliminar…", deleteForever: "Eliminar para sempre",
     legal: "Legal", imprint: "Informação legal", privacy: "Privacidade", terms: "Termos",

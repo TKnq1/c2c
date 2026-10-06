@@ -113,9 +113,10 @@ export default async function AdminUserPage(props: PageProps<"/admin/users/[id]"
             {!user.suspendedAt && <SuspendUserButton userId={user.id} label={name} isBrand={!!brand} />}
             <ConfirmActionButton
               action={deleteUserAction.bind(null, user.id)}
+              requirePassword
               successMessage={`${name} is deleted.`}
               title={`Delete ${name}?`}
-              description={`${user.email} is deleted for good, with everything that belongs to the account: the profile${brand ? ", its requests" : ""}, interests, messages, reviews and notifications. This can't be undone.`}
+              description={`${user.email} is deleted for good, with everything that belongs to the account: the profile${brand ? ", its requests" : ""}, interests, messages, reviews and notifications. Payment records, if there are any, stay without the person. This can't be undone.`}
               confirmLabel="Delete"
               pendingLabel="Deleting…"
               redirectTo="/admin/users"

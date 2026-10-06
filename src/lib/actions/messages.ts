@@ -5,6 +5,7 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { notify } from "@/lib/notifications";
 import { isBlocked, detectSuspiciousText, flagForReview, flagIfMessageBurst } from "@/lib/moderation";
+import { MINUTE, takeToken } from "@/lib/rate-limit";
 
 export type MessageActionState = { error?: string } | undefined;
 
@@ -19,6 +20,11 @@ export async function sendMessageAction(
   const body = String(formData.get("body") ?? "").trim();
   if (!body) return { error: "Message can't be empty." };
   if (body.length > 2000) return { error: "Message is too long." };
+  // A person types a few messages a minute; more than this is a script. (The burst check below only
+  // flags it for review afterwards.)
+  if (!(await takeToken("message", session.user.id, 30, MINUTE))) {
+    return { error: "You're sending messages too fast. Wait a moment." };
+  }
 
   const interest = await prisma.interest.findUnique({
     where: { id: interestId },

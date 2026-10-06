@@ -2,7 +2,7 @@ import { notFound, redirect } from "next/navigation";
 import { IoArrowForward, IoLanguageOutline } from "react-icons/io5";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { hasBlocked } from "@/lib/moderation";
+import { hasBlocked, isBlocked } from "@/lib/moderation";
 import { computeResponseTimeMs, formatResponseTimeShort } from "@/lib/response-time";
 import { PlatformIcon } from "@/components/platform-icons";
 import { ReviewsList } from "@/components/reviews-list";
@@ -65,6 +65,9 @@ export async function CreatorProfileView({ id, variant }: { id: string; variant:
       where: { creatorId: creator.id, paymentStatus: "RELEASED" },
     }),
   ]);
+  // A creator who blocked this brand isn't reachable by a link either. (The brand's own block stays
+  // visible here: that's where it can be lifted again.)
+  if (!blockedByMe && (await isBlocked(session.user.id, creator.userId))) notFound();
   const t = await getT();
   const locale = await getLocale();
   const responseTime = formatResponseTimeShort(

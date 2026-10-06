@@ -1,9 +1,11 @@
 import { describe, expect, it } from "vitest";
 import {
   createRequestSchema,
+  loginSchema,
   onboardingNichesSchema,
   onboardingPlatformsSchema,
   sendOfferSchema,
+  signupSchema,
   updateCreatorProfileSchema,
 } from "@/lib/validation";
 
@@ -187,5 +189,30 @@ describe("updateCreatorProfileSchema", () => {
 
   it("rejects a profile without a niche", () => {
     expect(updateCreatorProfileSchema.safeParse({ ...valid, niches: "" }).success).toBe(false);
+  });
+});
+
+describe("links and accounts (security)", () => {
+  const platforms = (url: string) => JSON.stringify([{ platform: "Instagram", followerCount: 100, url }]);
+
+  it("accepts http(s) links only in profile fields", () => {
+    expect(onboardingPlatformsSchema.safeParse({ platforms: platforms("https://instagram.com/x") }).success).toBe(true);
+    for (const bad of ["javascript:alert(1)", "data:text/html,<script>1</script>", "file:///etc/passwd", "ftp://x.example/a", "vbscript:x"]) {
+      expect(onboardingPlatformsSchema.safeParse({ platforms: platforms(bad) }).success).toBe(false);
+    }
+  });
+
+  it("lower-cases and trims email addresses", () => {
+    const result = loginSchema.safeParse({ email: "  Victim@Example.COM ", password: "x" });
+    expect(result.success).toBe(true);
+    if (result.success) expect(result.data.email).toBe("victim@example.com");
+  });
+
+  it("holds new passwords to 10 to 128 characters but lets existing ones sign in", () => {
+    const base = { role: "CREATOR" as const, email: "a@b.co" };
+    expect(signupSchema.safeParse({ ...base, password: "123456789" }).success).toBe(false);
+    expect(signupSchema.safeParse({ ...base, password: "1234567890" }).success).toBe(true);
+    expect(signupSchema.safeParse({ ...base, password: "x".repeat(129) }).success).toBe(false);
+    expect(loginSchema.safeParse({ email: "a@b.co", password: "short8ch" }).success).toBe(true);
   });
 });

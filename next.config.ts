@@ -45,6 +45,9 @@ const CSP = [
   `frame-ancestors ${frameAncestors}`,
   "base-uri 'self'",
   "form-action 'self'",
+  "object-src 'none'",
+  // (Not in development: plain http://localhost would be rewritten to https.)
+  ...(isDev ? [] : ["upgrade-insecure-requests"]),
 ].join("; ");
 
 const nextConfig: NextConfig = {
@@ -69,6 +72,10 @@ const nextConfig: NextConfig = {
           { key: "X-Content-Type-Options", value: "nosniff" },
           { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
           { key: "Strict-Transport-Security", value: "max-age=63072000; includeSubDomains; preload" },
+          // camera and payment stay unset: Stripe's embedded onboarding (identity check) needs the camera
+          // inside its own frame, and a policy that names them would block handing it over.
+          { key: "Permissions-Policy", value: "microphone=(), geolocation=(), usb=(), bluetooth=()" },
+          { key: "Cross-Origin-Opener-Policy", value: "same-origin-allow-popups" },
         ],
       },
     ];

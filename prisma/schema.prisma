@@ -23,9 +23,15 @@ model User {
   keptSessionId     String?
   role              Role
   emailVerified     Boolean   @default(false)
+  // Encrypted at rest when TOTP_ENCRYPTION_KEY is set (see src/lib/secret-box.ts).
   totpSecret        String?
   totpEnabled       Boolean   @default(false)
+  // The last 30-second step a code was accepted for, so one code can't be used twice.
+  totpLastStep      Int?
   createdAt         DateTime  @default(now())
+  // Set when the account was deleted but its payment records had to stay
+  // (see deleteAccountAction): the person is anonymised, the rows are not.
+  deletedAt         DateTime?
 
   // Set by an admin from /admin/users. A suspended account can't sign in,
   // and an existing session ends at its next periodic check (see auth.ts).
@@ -175,6 +181,44 @@ model LoginAttempt {
 
   @@index([email, createdAt])
   @@index([userId, createdAt])
+  @@index([ipAddress, createdAt])
+}
+
+// One row per counted action of a rate-limited kind (see src/lib/rate-limit.ts).
+// Old rows are deleted by the daily cron.
+model RateLimitHit {
+  id        String   @id @default(cuid())
+  bucket    String
+  key       String
+  createdAt DateTime @default(now())
+
+  @@index([bucket, key, createdAt])
+  @@index([createdAt])
+}
+
+// Sessions that were logged out on purpose: the jwt callback checks the id
+// at its periodic re-check (see src/lib/auth.ts). Rows can go once the
+// session's own expiry has passed.
+model RevokedSession {
+  sid       String   @id
+  expiresAt DateTime
+
+  @@index([expiresAt])
+}
+
+// Who did what from /admin, for every action that changes an account, a
+// payment or sends mail to people.
+model AdminAuditLog {
+  id        String   @id @default(cuid())
+  adminId   String
+  action    String
+  targetId  String?
+  details   Json?
+  createdAt DateTime @default(now())
+
+  @@index([adminId, createdAt])
+  @@index([targetId])
+  @@index([createdAt])
 }
 
 // No userId — a signup by definition doesn't have an account yet, so IP is
@@ -205,7 +249,10 @@ model PasswordResetToken {
   id        String    @id @default(cuid())
   userId    String
   user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  token     String    @unique
+  // Only the SHA-256 of the token is stored (tokenHash); `token` is the old
+  // plaintext column, emptied by a migration and no longer written.
+  token     String?   @unique
+  tokenHash String?   @unique
   expiresAt DateTime
   usedAt    DateTime?
   createdAt DateTime  @default(now())
@@ -217,7 +264,10 @@ model EmailVerificationToken {
   id        String    @id @default(cuid())
   userId    String
   user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  token     String    @unique
+  // Only the SHA-256 of the token is stored (tokenHash); `token` is the old
+  // plaintext column, emptied by a migration and no longer written.
+  token     String?   @unique
+  tokenHash String?   @unique
   expiresAt DateTime
   usedAt    DateTime?
   createdAt DateTime  @default(now())
@@ -419,6 +469,8 @@ model Request {
   postBy          DateTime?      @db.Date
   productIncluded Boolean        @default(false)
   status          RequestStatus  @default(OPEN)
+  // Closed by an admin (moderation): the brand can't reopen it itself.
+  closedByAdmin   Boolean        @default(false)
   createdAt       DateTime       @default(now())
 
   images    RequestImage[]

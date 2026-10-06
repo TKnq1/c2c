@@ -6,6 +6,7 @@ import { SITE_URL } from "@/lib/site";
 import { EditProfileForm } from "@/components/edit-profile-form";
 import { CopyProfileLink } from "@/components/copy-profile-link";
 import { ChangePasswordForm } from "@/components/change-password-form";
+import { SignOutEverywhere } from "@/components/sign-out-everywhere";
 import { TwoFactorSettings } from "@/components/two-factor-settings";
 import { LoginActivity } from "@/components/login-activity";
 import { LogoutButton } from "@/components/logout-button";
@@ -124,6 +125,9 @@ export default async function CreatorSettingsPage() {
 
       <SettingsSection id="password" title={t("screens.settings.password")}>
         <ChangePasswordForm />
+        <div className="mt-4 border-t border-ink/10 pt-4">
+          <SignOutEverywhere />
+        </div>
       </SettingsSection>
 
       <SettingsSection id="two-factor" title={t("screens.settings.twoFactor")}>

@@ -96,6 +96,7 @@ export default async function AdminModerationPage(props: PageProps<"/admin/moder
                 <div className="flex flex-wrap items-center gap-2 pt-1">
                   <ConfirmActionButton
                     action={releaseDisputedPaymentAction.bind(null, d.id)}
+                    requirePassword
                     successMessage="Released to the creator."
                     title="Release to the creator?"
                     description={`${d.creator.displayName} gets ${formatCents(d.payoutCents!)} (after the platform fee) and the dispute is closed. This can't be undone.`}
@@ -107,6 +108,7 @@ export default async function AdminModerationPage(props: PageProps<"/admin/moder
                   </ConfirmActionButton>
                   <ConfirmActionButton
                     action={refundDisputedPaymentAction.bind(null, d.id)}
+                    requirePassword
                     successMessage="Refunded to the brand."
                     title="Refund the brand?"
                     description={`${d.request.startup.companyName} gets the full ${formatCents(d.amountCents!)} back and ${d.creator.displayName} isn't paid. This can't be undone.`}

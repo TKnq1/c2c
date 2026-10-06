@@ -6,9 +6,13 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { createRequestSchema } from "@/lib/validation";
 import { getCreatorFeed } from "@/lib/visibility";
-import { getMutualBlockedUserIds } from "@/lib/moderation";
+import { getMutualBlockedUserIds, isBlocked } from "@/lib/moderation";
 import { notify } from "@/lib/notifications";
-import { MAX_REQUEST_PHOTOS, REQUEST_PHOTO_TYPES } from "@/lib/request-photo-types";
+import { MAX_REQUEST_PHOTOS } from "@/lib/request-photo-types";
+import { sniffImage, type ImageType } from "@/lib/image-sniff";
+import { DAY, takeToken } from "@/lib/rate-limit";
+import { VERIFY_EMAIL_MESSAGE, emailIsVerified } from "@/lib/verified";
+import { REQUEST_PHOTO_TYPES } from "@/lib/request-photo-types";
 
 export type ActionState = { error?: string } | undefined;
 
@@ -23,11 +27,18 @@ type PhotoToken = { kind: "new"; index: number } | { kind: "existing"; id: strin
 // order (cover first), of "new:<n>" (the n-th file in `photos`),
 // "existing:<id>" (a RequestImage this request already has) or "legacy"
 // (the one image an older request keeps in imageUrl).
-function readPhotos(formData: FormData): { tokens: PhotoToken[]; files: File[] } | { error: string } {
-  const files = formData.getAll("photos").filter((f): f is File => f instanceof File && f.size > 0);
-  for (const file of files) {
-    if (!REQUEST_PHOTO_TYPES.includes(file.type)) return { error: "Photos have to be JPEG, PNG or WebP images." };
+async function readPhotos(
+  formData: FormData,
+): Promise<{ tokens: PhotoToken[]; files: { type: ImageType; data: Uint8Array<ArrayBuffer> }[] } | { error: string }> {
+  const uploads = formData.getAll("photos").filter((f): f is File => f instanceof File && f.size > 0);
+  // What a file is comes from its first bytes, not from the type the sender names.
+  const files: { type: ImageType; data: Uint8Array<ArrayBuffer> }[] = [];
+  for (const file of uploads) {
     if (file.size > MAX_PHOTO_BYTES) return { error: "One of the photos is too large. Try a smaller one." };
+    const data = new Uint8Array(await file.arrayBuffer());
+    const type = sniffImage(data);
+    if (!type) return { error: "Photos have to be JPEG, PNG or WebP images." };
+    files.push({ type, data });
   }
   let raw: unknown;
   try {
@@ -110,20 +121,27 @@ export async function createRequestAction(_prevState: ActionState, formData: For
     return { error: "Not authorized." };
   }
 
+  if (!(await emailIsVerified(session.user.id))) return { error: VERIFY_EMAIL_MESSAGE };
+
   const parsed = createRequestSchema.safeParse(Object.fromEntries(formData));
   if (!parsed.success) {
     return { error: parsed.error.issues[0]?.message ?? "Please fill in all fields correctly." };
   }
 
-  const photos = readPhotos(formData);
+  // A request notifies every matching creator and stores up to five photos in the database.
+  if (!(await takeToken("create-request", session.user.id, 10, DAY))) {
+    return { error: "You've reached today's limit for new requests. Try again tomorrow." };
+  }
+  const openRequests = await prisma.request.count({ where: { startup: { userId: session.user.id }, status: "OPEN" } });
+  if (openRequests >= 50) return { error: "You have 50 open requests. Close some before posting new ones." };
+
+  const photos = await readPhotos(formData);
   if ("error" in photos) return { error: photos.error };
   if (photos.tokens.some((t) => t.kind !== "new")) return { error: "Something went wrong with the photos. Try adding them again." };
-  const images = await Promise.all(
-    photos.tokens.map(async (t, position) => {
-      const file = photos.files[(t as { index: number }).index];
-      return { position, contentType: file.type, data: new Uint8Array(await file.arrayBuffer()) };
-    }),
-  );
+  const images = photos.tokens.map((t, position) => {
+    const file = photos.files[(t as { index: number }).index];
+    return { position, contentType: file.type, data: file.data };
+  });
 
   const startup = await prisma.startupProfile.findUniqueOrThrow({ where: { userId: session.user.id } });
 
@@ -146,6 +164,14 @@ export async function createRequestAction(_prevState: ActionState, formData: For
 export async function duplicateRequestAction(requestId: string) {
   const session = await auth();
   if (!session || session.user.role !== "STARTUP") throw new Error("Not authorized.");
+  if (!(await emailIsVerified(session.user.id))) redirect("/dashboard/verify-email");
+  // A copy goes live and notifies creators like a new request, so it counts against the same limits.
+  if (!(await takeToken("create-request", session.user.id, 10, DAY))) {
+    throw new Error("You've reached today's limit for new requests.");
+  }
+  if ((await prisma.request.count({ where: { startup: { userId: session.user.id }, status: "OPEN" } })) >= 50) {
+    throw new Error("You have 50 open requests. Close some before posting new ones.");
+  }
 
   const startup = await prisma.startupProfile.findUniqueOrThrow({ where: { userId: session.user.id } });
   const source = await prisma.request.findUnique({
@@ -203,7 +229,7 @@ export async function updateRequestAction(
     return { error: parsed.error.issues[0]?.message ?? "Please fill in all fields correctly." };
   }
 
-  const photos = readPhotos(formData);
+  const photos = await readPhotos(formData);
   if ("error" in photos) return { error: photos.error };
 
   const startup = await prisma.startupProfile.findUniqueOrThrow({ where: { userId: session.user.id } });
@@ -229,7 +255,7 @@ export async function updateRequestAction(
       if (legacy) plan.push({ position, ...legacy });
     } else {
       const file = photos.files[t.index];
-      plan.push({ position, contentType: file.type, data: new Uint8Array(await file.arrayBuffer()) });
+      plan.push({ position, contentType: file.type, data: file.data });
     }
   }
   const keptIds = plan.flatMap((p) => ("id" in p ? [p.id] : []));
@@ -270,8 +296,10 @@ export async function reopenRequestAction(requestId: string) {
   const startup = await prisma.startupProfile.findUniqueOrThrow({ where: { userId: session.user.id } });
   const request = await prisma.request.findUnique({ where: { id: requestId } });
   if (!request || request.startupId !== startup.id) throw new Error("This request could not be found.");
+  // Closed by moderation: only an admin can open it again.
+  if (request.closedByAdmin) throw new Error("This request was closed by moderation and can't be reopened.");
 
-  await prisma.request.update({ where: { id: requestId }, data: { status: "OPEN" } });
+  await prisma.request.update({ where: { id: requestId }, data: { status: "OPEN", closedByAdmin: false } });
 
   revalidatePath(`/dashboard/startup/requests/${requestId}`);
   revalidatePath("/dashboard/startup");
@@ -317,7 +345,7 @@ async function createInterestAsCreator(
   // server-side against the same live feed computation. "all", not
   // "forYou": the Feed's All tab offers requests outside the creator's niches.
   const blockedUserIds = await getMutualBlockedUserIds(userId);
-  const matches = await getCreatorFeed(creator, blockedUserIds, "all");
+  const matches = await getCreatorFeed(creator, blockedUserIds, "all", { requestId });
   const match = matches.find((r) => r.id === requestId);
   if (!match) return null;
 
@@ -434,6 +462,8 @@ export async function startConversationAsStartupAction(creatorId: string, formDa
   if (!session || session.user.role !== "STARTUP") {
     throw new Error("Not authorized.");
   }
+  // Reaching out is what throwaway accounts are made for: it needs a verified address.
+  if (!(await emailIsVerified(session.user.id))) redirect("/dashboard/verify-email");
 
   const requestId = formData.get("requestId");
   if (typeof requestId !== "string" || !requestId) {
@@ -445,10 +475,24 @@ export async function startConversationAsStartupAction(creatorId: string, formDa
   if (!request || request.startupId !== startup.id) {
     throw new Error("This request could not be found.");
   }
+  if (request.status !== "OPEN") throw new Error("This request is closed.");
+
+  // The creator has to exist, be active, and not have blocked this brand (or the other way round).
+  // Without this a block did nothing against a brand that called the action directly.
+  const creator = await prisma.creatorProfile.findFirst({
+    where: { id: creatorId, user: { suspendedAt: null } },
+    select: { id: true, userId: true },
+  });
+  if (!creator || (await isBlocked(session.user.id, creator.userId))) {
+    throw new Error("This creator could not be found.");
+  }
+  if (!(await takeToken("start-conversation", session.user.id, 30, DAY))) {
+    throw new Error("You've reached today's limit for new conversations.");
+  }
 
   const interest = await prisma.interest.upsert({
-    where: { requestId_creatorId: { requestId, creatorId } },
-    create: { requestId, creatorId, initiatedBy: "STARTUP" },
+    where: { requestId_creatorId: { requestId, creatorId: creator.id } },
+    create: { requestId, creatorId: creator.id, initiatedBy: "STARTUP" },
     update: {},
   });
 

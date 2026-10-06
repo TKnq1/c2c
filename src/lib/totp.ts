@@ -63,16 +63,22 @@ export function generateTotpSecret(): string {
 }
 
 // Accepts the current 30s window plus one step before/after to tolerate
-// normal clock drift between server and authenticator app.
-export function verifyTotpCode(base32Secret: string, code: string, at: number = Date.now()): boolean {
+// normal clock drift between server and authenticator app. Returns the step
+// the code belongs to, so the caller can refuse a step that was already used
+// (a code is otherwise valid for up to ~90 seconds and for any number of sign-ins).
+export function matchTotpStep(base32Secret: string, code: string, at: number = Date.now()): number | null {
   const trimmed = code.trim();
-  if (!/^\d{6}$/.test(trimmed)) return false;
+  if (!/^\d{6}$/.test(trimmed)) return null;
   const counter = Math.floor(at / 1000 / STEP_SECONDS);
   const secret = base32Decode(base32Secret);
   for (const drift of [0, -1, 1]) {
-    if (hotp(secret, counter + drift) === trimmed) return true;
+    if (hotp(secret, counter + drift) === trimmed) return counter + drift;
   }
-  return false;
+  return null;
+}
+
+export function verifyTotpCode(base32Secret: string, code: string, at: number = Date.now()): boolean {
+  return matchTotpStep(base32Secret, code, at) !== null;
 }
 
 export function totpUri(base32Secret: string, email: string, issuer = "comtor"): string {

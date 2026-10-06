@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
+import { hashToken } from "@/lib/tokens";
 import { ResetPasswordForm } from "@/components/reset-password-form";
 import { Logo } from "@/components/logo";
 import { ImprintLink } from "@/components/imprint-link";
@@ -13,7 +14,7 @@ export default async function ResetPasswordPage({ params }: { params: Promise<{ 
   const t = await getT();
   const { token } = await params;
 
-  const resetToken = await prisma.passwordResetToken.findUnique({ where: { token } });
+  const resetToken = await prisma.passwordResetToken.findUnique({ where: { tokenHash: hashToken(token) } });
   const isValid = !!resetToken && !resetToken.usedAt && resetToken.expiresAt > new Date();
 
   return (
