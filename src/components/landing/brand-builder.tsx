@@ -64,7 +64,8 @@ export function BrandBuilder({ onPhoto }: { onPhoto: (photo: PhotoKey) => void }
   );
 
   return (
-    <div className="flex w-full flex-col items-center lg:flex-row lg:items-center lg:justify-center">
+    // overflow-anchor: none, so a control that changes the form's height can't make the browser scroll the page.
+    <div className="flex w-full flex-col items-center [overflow-anchor:none] lg:flex-row lg:items-center lg:justify-center">
       {/* Phones: the top of the phone, down to the card's bottom edge, then
           fading out under the controls, so the card and what changes it
           fit on one screen. */}
@@ -77,7 +78,7 @@ export function BrandBuilder({ onPhoto }: { onPhoto: (photo: PhotoKey) => void }
 
       <div className="relative z-10 order-last -mt-8 w-full max-w-[360px] lg:order-none lg:mt-0 lg:w-[640px] lg:max-w-none">
         {/* From lg: the window around the form. Below that these wrappers add nothing. */}
-        <div className="lg:lp-window-lg lg:flex lg:flex-col lg:overflow-hidden lg:rounded-[14px] lg:bg-paper lg:text-left">
+        <div className="lp-window-lg lg:flex lg:flex-col lg:overflow-hidden lg:rounded-[14px] lg:bg-paper lg:text-left">
           <MacTitleBar className="hidden lg:flex" />
           <div className="lg:flex">
             <DesktopSidebar side="brand" active="requests" className="hidden lg:flex" />
@@ -166,7 +167,9 @@ export function BrandBuilder({ onPhoto }: { onPhoto: (photo: PhotoKey) => void }
 
                 <fieldset>
                   <legend className="mb-2 text-sm font-medium">{t("landing.builder.content")}</legend>
-                  <div className="flex flex-wrap gap-2">
+                  {/* Room for two rows on phones, where three presets wrap and two don't, so changing the
+                      platform never changes the height of the form. */}
+                  <div className="flex min-h-[76px] flex-wrap content-start gap-2 lg:min-h-[34px]">
                     {CONTENT[platform].map((c) => (
                       <button
                         key={c}
