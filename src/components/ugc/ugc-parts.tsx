@@ -12,8 +12,7 @@ const SECONDARY =
 
 // The mark, huge, behind the whole page: the same shape as on the login and error screens (see
 // LogoWatermark), about a third bigger. Fixed, so it stays put while the page scrolls; the grey boxes are
-// solid and sit on top of it. Dark mode inverts it, a little fainter than there because these pages are long
-// stretches of small text.
+// solid and sit on top of it. Light mode a faint black, dark mode the same black at full strength, as there.
 export function UgcWatermark() {
   return (
     <div aria-hidden className="pointer-events-none fixed inset-0 z-0 overflow-hidden">
@@ -23,7 +22,7 @@ export function UgcWatermark() {
         width={2000}
         height={2000}
         priority
-        className="absolute top-1/2 left-1/2 h-[min(220vmin,104rem)] w-auto max-w-none -translate-x-1/2 -translate-y-1/2 opacity-[0.11] select-none dark:invert dark:opacity-[0.16]"
+        className="absolute top-1/2 left-1/2 h-[min(220vmin,104rem)] w-auto max-w-none -translate-x-1/2 -translate-y-1/2 opacity-[0.11] select-none dark:opacity-100"
       />
     </div>
   );
