@@ -108,6 +108,8 @@ export function OnboardingAccountStep({
       </div>
       {state?.error && <StepError state={{ error: localizeError(state.error, t) }} />}
       <div className={stepActions}>
+        <TermsConsent />
+        <MarketingConsentCheckbox />
         <StepFooter onBack={onBack} pending={pending} label={t("screens.auth.create")} />
         <p className="text-center text-sm text-neutral-600 dark:text-neutral-400">
           {t("screens.ui.alreadyAccount")}{" "}
@@ -115,8 +117,6 @@ export function OnboardingAccountStep({
             {t("screens.auth.logIn")}
           </Link>
         </p>
-        <TermsConsent />
-        <MarketingConsentCheckbox />
       </div>
     </form>
   );
