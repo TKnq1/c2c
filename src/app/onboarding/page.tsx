@@ -30,14 +30,14 @@ export default async function OnboardingPage(props: PageProps<"/onboarding">) {
       isOnboardingComplete(session.user.id, session.user.role),
       prisma.user.findUnique({
         where: { id: session.user.id },
-        select: { emailVerified: true },
+        select: { emailVerified: true, startupProfile: { select: { foundingNumber: true } } },
       }),
     ]);
     if (complete) redirect(session.user.role === "STARTUP" ? "/dashboard/startup" : "/dashboard/creator");
     const emailVerified = !!user?.emailVerified;
     body =
       session.user.role === "STARTUP" ? (
-        <BrandOnboarding emailVerified={emailVerified} />
+        <BrandOnboarding emailVerified={emailVerified} foundingNumber={user?.startupProfile?.foundingNumber ?? null} />
       ) : (
         <CreatorOnboarding emailVerified={emailVerified} />
       );

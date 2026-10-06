@@ -67,7 +67,16 @@ export async function anonymiseAccount(userId: string, role: Role) {
     }),
     prisma.startupProfile.updateMany({
       where: { userId },
-      data: { companyName: "Deleted brand", avatarUrl: null, website: null, description: null, lookingFor: null },
+      data: {
+        companyName: "Deleted brand",
+        avatarUrl: null,
+        website: null,
+        description: null,
+        lookingFor: null,
+        // The founding number goes back to the pool; a paid subscription was cancelled before this runs.
+        foundingNumber: null,
+        isPro: false,
+      },
     }),
     prisma.favorite.deleteMany({ where: { OR: [{ creator: { userId } }, { startup: { userId } }] } }),
     prisma.requestPass.deleteMany({ where: { creator: { userId } } }),

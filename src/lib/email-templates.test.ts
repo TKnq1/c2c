@@ -72,6 +72,19 @@ describe("welcomeEmail", () => {
     expect(welcomeEmail(url, "CREATOR", "en").text).toContain("brand deals");
     expect(welcomeEmail(url, "STARTUP", "en").text).toContain("first request");
   });
+
+  it("tells a founding brand about its place, in the language of the account", () => {
+    expect(welcomeEmail(url, "STARTUP", "en", 17).text).toContain("founding brand no. 17");
+    const de = welcomeEmail(url, "STARTUP", "de", 17).text;
+    expect(de).toContain("Founding Brand Nr. 17");
+    expect(de).toContain("3 % statt 10 %");
+  });
+
+  it("says nothing about founding to other brands and to creators", () => {
+    expect(welcomeEmail(url, "STARTUP", "en").text).not.toMatch(/founding/i);
+    expect(welcomeEmail(url, "STARTUP", "en", null).text).not.toMatch(/founding/i);
+    expect(welcomeEmail(url, "CREATOR", "en", 17).text).not.toMatch(/founding/i);
+  });
 });
 
 describe("marketingConsentEmail", () => {

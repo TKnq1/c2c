@@ -60,8 +60,25 @@ type Content = {
 // The first email after sign-up: a welcome with the verification link in
 // it, so a new account gets one email rather than two. Asking for the link
 // again later gets the plain verificationEmail below.
-export function welcomeEmail(url: string, role: "CREATOR" | "STARTUP", locale: Locale = DEFAULT_LOCALE): Email {
+export function welcomeEmail(
+  url: string,
+  role: "CREATOR" | "STARTUP",
+  locale: Locale = DEFAULT_LOCALE,
+  // A brand that got one of the founding places: told right in the welcome.
+  foundingNumber?: number | null,
+): Email {
   const creator = role === "CREATOR";
+  const pro = Math.round(PRO_PLATFORM_FEE_RATE * 100);
+  const standard = Math.round(PLATFORM_FEE_RATE * 100);
+  const founding =
+    !creator && foundingNumber
+      ? " " +
+        pick(
+          locale,
+          `You're founding brand no. ${foundingNumber}: Pro is free for you for as long as your account exists, so ${pro}% instead of ${standard}% goes to comtor on every payment.`,
+          `Du bist Founding Brand Nr. ${foundingNumber}: Pro ist für dich kostenlos, solange dein Konto besteht. Auf jede Zahlung behält comtor ${pro} % statt ${standard} %.`,
+        )
+      : "";
   return render({
     locale,
     subject: pick(locale, "Welcome to comtor – verify your email", "Willkommen bei comtor – bestätige deine E-Mail-Adresse"),
@@ -81,7 +98,7 @@ export function welcomeEmail(url: string, role: "CREATOR" | "STARTUP", locale: L
           locale,
           "Thanks for signing up. Verify your email, then post your first request. Creators come to you.",
           "Danke für deine Anmeldung. Bestätige deine E-Mail-Adresse und poste dann deine erste Anfrage. Creator melden sich bei dir.",
-        ),
+        ) + founding,
     action: { label: pick(locale, "Verify email", "E-Mail bestätigen"), url },
     note: pick(
       locale,

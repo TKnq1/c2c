@@ -101,6 +101,7 @@ describe("buildFunnel", () => {
       "logo",
       "creators",
       "account",
+      "founding",
       "alerts",
       "done",
     ]);

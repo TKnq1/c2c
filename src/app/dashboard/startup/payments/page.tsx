@@ -122,6 +122,8 @@ export default async function StartupPaymentsPage(props: PageProps<"/dashboard/s
   const requestHref = (requestId: string) => `/dashboard/startup/requests/${requestId}`;
   // No Pro upsell in the store apps, see canSellProSubscription.
   const showProOffer = !startup.isPro && (await canSellProSubscription());
+  // A founding brand's Pro has no subscription behind it, so there is nothing to manage (unless it also pays for one).
+  const showManage = startup.isPro && (!startup.foundingNumber || !!startup.stripeSubscriptionId);
 
   return (
     <div className="page-wide flex flex-col gap-8">
@@ -158,7 +160,13 @@ export default async function StartupPaymentsPage(props: PageProps<"/dashboard/s
       <div className="flex items-center justify-between gap-3 rounded bg-fog px-4 py-3 no-print">
         <p className="text-sm text-neutral-700 dark:text-neutral-300">
           {startup.isPro
-            ? t("screens.payments.proFeeLine", { pro: PRO_PLATFORM_FEE_RATE * 100, standard: PLATFORM_FEE_RATE * 100 })
+            ? startup.foundingNumber
+              ? t("founding.feeLine", {
+                  n: startup.foundingNumber,
+                  pro: PRO_PLATFORM_FEE_RATE * 100,
+                  standard: PLATFORM_FEE_RATE * 100,
+                })
+              : t("screens.payments.proFeeLine", { pro: PRO_PLATFORM_FEE_RATE * 100, standard: PLATFORM_FEE_RATE * 100 })
             : showProOffer
               ? t("screens.payments.proOfferLine", {
                   standard: PLATFORM_FEE_RATE * 100,
@@ -167,7 +175,7 @@ export default async function StartupPaymentsPage(props: PageProps<"/dashboard/s
                 })
               : t("screens.payments.standardFeeLine", { rate: PLATFORM_FEE_RATE * 100 })}
         </p>
-        {(startup.isPro || showProOffer) && (
+        {(showManage || showProOffer) && (
           <Link
             href="/dashboard/startup/settings#plan"
             className={

@@ -6,6 +6,7 @@ import { hasAdminAccess } from "@/lib/admin-access";
 import { confirmAdminPassword, requireAdmin } from "@/lib/admin-guard";
 import { anonymiseAccount, hasPaymentRecords, moneyInFlight } from "@/lib/account-deletion";
 import { audit } from "@/lib/audit";
+import { revokeFoundingPro } from "@/lib/founding";
 import { prisma } from "@/lib/prisma";
 import { sendEmail } from "@/lib/email";
 import { accountSuspendedEmail, testEmail } from "@/lib/email-templates";
@@ -71,6 +72,23 @@ export async function unsuspendUserAction(userId: string): Promise<AdminActionRe
   await prisma.user.update({ where: { id: userId }, data: { suspendedAt: null, suspendedReason: null } });
 
   await audit(session.user.id, "user.unsuspend", userId);
+  revalidateAdmin();
+  return {};
+}
+
+// Takes the founding Pro away from a brand (e.g. a fake account) and frees its number for the next brand.
+export async function revokeFoundingProAction(userId: string): Promise<AdminActionResult> {
+  const session = await requireAdmin();
+  if (!session) return { error: "Not authorized." };
+
+  const profile = await prisma.startupProfile.findUnique({
+    where: { userId },
+    select: { id: true, foundingNumber: true },
+  });
+  if (!profile?.foundingNumber) return { error: "This brand isn't a founding brand." };
+
+  await revokeFoundingPro(profile.id);
+  await audit(session.user.id, "user.revokeFoundingPro", userId, { foundingNumber: profile.foundingNumber });
   revalidateAdmin();
   return {};
 }

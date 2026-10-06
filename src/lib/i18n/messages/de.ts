@@ -1,4 +1,5 @@
 import type { Catalog } from "@/lib/i18n/messages/types";
+import { foundingDe as founding } from "@/lib/i18n/messages/founding-de";
 import { landingDe as landing } from "@/lib/i18n/messages/landing-de";
 import { screensDe as screens } from "@/lib/i18n/messages/screens-de";
 
@@ -252,5 +253,6 @@ export const de: Catalog = {
     },
   },
   landing,
+  founding,
   screens,
 };

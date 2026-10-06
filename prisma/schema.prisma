@@ -345,6 +345,10 @@ model StartupProfile {
   proSince             DateTime?
   stripeCustomerId     String?
   stripeSubscriptionId String?
+  // The first brands (FOUNDING_BRAND_LIMIT) get Pro for as long as the account exists: number 1..N, no
+  // subscription behind it. isPro is true for them too, so fees need no special case. A deleted account
+  // gives its number back (see src/lib/founding.ts).
+  foundingNumber       Int?      @unique
 
   requests       Request[]
   socialLinks    StartupSocialLink[]

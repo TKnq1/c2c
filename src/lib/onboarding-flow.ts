@@ -22,6 +22,8 @@ export const BRAND_STEPS = [
   { key: "logo", label: "Logo" },
   { key: "creators", label: "Your creators" },
   { key: "account", label: "Account" },
+  // Only for brands that got one of the founding places (see src/lib/founding.ts).
+  { key: "founding", label: "Founding Pro" },
   { key: "alerts", label: "Notifications" },
   { key: "done", label: "All set" },
 ] as const;

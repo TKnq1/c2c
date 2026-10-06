@@ -18,7 +18,10 @@ import {
 
 // insight: a real number from the database for the next step to show (see
 // onboarding-insights.ts). Leaving it out is always fine.
-export type OnboardingState = { error?: string; success?: boolean; insight?: OnboardingInsight } | undefined;
+// foundingNumber: set by the sign-up when the brand got one of the founding places (see src/lib/founding.ts).
+export type OnboardingState =
+  | { error?: string; success?: boolean; insight?: OnboardingInsight; foundingNumber?: number | null }
+  | undefined;
 
 export async function saveCompanyNameAction(
   _prevState: OnboardingState,

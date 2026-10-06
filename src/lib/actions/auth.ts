@@ -21,6 +21,7 @@ import { hashPassword, verifyPassword } from "@/lib/password";
 import { hashToken, newToken } from "@/lib/tokens";
 import { DAY, MINUTE, takeToken } from "@/lib/rate-limit";
 import { sendEmail } from "@/lib/email";
+import { claimFoundingProForUser } from "@/lib/founding";
 import { passwordChangedEmail, passwordResetEmail, verificationEmail, welcomeEmail } from "@/lib/email-templates";
 import { SITE_URL } from "@/lib/site";
 import { getLocale } from "@/lib/i18n/server";
@@ -157,7 +158,9 @@ export async function signupAction(_prevState: ActionState, formData: FormData):
   // the link is waiting once onboarding is done; after the response (it
   // still runs through the redirect below), so signing up doesn't wait on
   // the mail provider.
-  after(() => sendVerificationEmail(user.id, user.email, locale, data.role));
+  // The first brands get Pro for good: decided here, so the welcome mail and the wizard both know.
+  const foundingNumber = data.role === "STARTUP" ? await claimFoundingProForUser(user.id).catch(() => null) : null;
+  after(() => sendVerificationEmail(user.id, user.email, locale, data.role, foundingNumber));
 
   try {
     await signIn("credentials", {
@@ -330,13 +333,19 @@ export async function generateEmailVerificationAction(): Promise<GenerateVerific
 
 // A fresh 24-hour link, mailed: inside the welcome email right after
 // sign-up (pass the new account's role), on its own when asked for again.
-async function sendVerificationEmail(userId: string, email: string, locale: Locale, welcomeAs?: "CREATOR" | "STARTUP") {
+async function sendVerificationEmail(
+  userId: string,
+  email: string,
+  locale: Locale,
+  welcomeAs?: "CREATOR" | "STARTUP",
+  foundingNumber?: number | null,
+) {
   const token = newToken();
   await prisma.emailVerificationToken.create({
     data: { userId, tokenHash: hashToken(token), expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000) },
   });
   const url = `${SITE_URL}/verify-email/${token}`;
-  await sendEmail({ to: email, ...(welcomeAs ? welcomeEmail(url, welcomeAs, locale) : verificationEmail(url, locale)) });
+  await sendEmail({ to: email, ...(welcomeAs ? welcomeEmail(url, welcomeAs, locale, foundingNumber) : verificationEmail(url, locale)) });
 }
 
 // After every change and reset, so a change someone else made doesn't go

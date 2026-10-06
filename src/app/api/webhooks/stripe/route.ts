@@ -119,8 +119,9 @@ export async function POST(req: Request) {
       const customerId = typeof subscription.customer === "string" ? subscription.customer : null;
       if (!customerId) break;
 
+      // A founding brand's Pro doesn't depend on a subscription, so it stays on whatever Stripe says.
       await prisma.startupProfile.updateMany({
-        where: { stripeCustomerId: customerId },
+        where: { stripeCustomerId: customerId, foundingNumber: null },
         data: { isPro: subscription.status === "active" || subscription.status === "trialing" },
       });
       break;
@@ -132,8 +133,13 @@ export async function POST(req: Request) {
       if (!customerId) break;
 
       await prisma.startupProfile.updateMany({
-        where: { stripeCustomerId: customerId },
+        where: { stripeCustomerId: customerId, foundingNumber: null },
         data: { isPro: false, stripeSubscriptionId: null },
+      });
+      // Founding brands keep isPro; only the ended subscription is forgotten.
+      await prisma.startupProfile.updateMany({
+        where: { stripeCustomerId: customerId, foundingNumber: { not: null } },
+        data: { stripeSubscriptionId: null },
       });
       break;
     }

@@ -10,6 +10,7 @@ import { OnboardingPhotoStep } from "@/components/onboarding-photo-step";
 import { OnboardingDone } from "@/components/onboarding-done";
 import { BrandAha } from "@/components/onboarding-aha";
 import { OnboardingAccountStep } from "@/components/onboarding-account-step";
+import { FoundingStep } from "@/components/onboarding-founding";
 import { OnboardingPushStep, usePushOffer } from "@/components/onboarding-push-step";
 import {
   FIELD_CLASS,
@@ -43,10 +44,14 @@ export function BrandOnboarding({
   emailVerified,
   mode = "account",
   onLeave,
+  foundingNumber: initialFoundingNumber = null,
 }: {
   emailVerified: boolean;
   mode?: "guest" | "account";
   onLeave?: () => void;
+  // The brand already has one of the founding places (signed up with the plain form). Guests learn it from
+  // the account step instead.
+  foundingNumber?: number | null;
 }) {
   const { t } = useI18n();
   const guest = mode === "guest";
@@ -56,6 +61,7 @@ export function BrandOnboarding({
   const [photoDataUrl, setPhotoDataUrl] = useState<string | null>(null);
   const [skipped, setSkipped] = useState<string[]>([]);
   const [booted, setBooted] = useState(!guest);
+  const [foundingNumber, setFoundingNumber] = useState<number | null>(initialFoundingNumber);
   const pushOffer = usePushOffer();
   const sealed = useRef(false);
 
@@ -172,12 +178,21 @@ export function BrandOnboarding({
                 niche={niche}
                 photoDataUrl={photoDataUrl}
                 onBack={() => back(i)}
-                onDone={() => {
+                onDone={(state) => {
+                  setFoundingNumber(state.foundingNumber ?? null);
                   replayGuestSteps(i);
                   finish(i);
                 }}
               />
             ),
+          },
+        ]
+      : []),
+    ...(foundingNumber
+      ? [
+          {
+            key: "founding" as const,
+            render: (i: number) => <FoundingStep active={step === i} number={foundingNumber} onNext={() => finish(i)} />,
           },
         ]
       : []),
@@ -199,7 +214,7 @@ export function BrandOnboarding({
   if (guest && !booted) return <div className="flex flex-1" />;
 
   if (finished) {
-    return <OnboardingDone role="brand" name={name} emailVerified={emailVerified} payoutsStarted={false} />;
+    return <OnboardingDone role="brand" name={name} emailVerified={emailVerified} payoutsStarted={false} foundingNumber={foundingNumber} />;
   }
 
   const bar = guest ? BAR_STEPS : SETUP_STEPS;

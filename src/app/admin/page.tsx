@@ -51,7 +51,8 @@ export default async function AdminOverviewPage() {
     // on the release.
     prisma.interest.aggregate({ where: { paymentStatus: "RELEASED" }, _sum: { platformFeeCents: true } }),
     prisma.interest.aggregate({ where: { paymentStatus: "HELD" }, _sum: { platformFeeCents: true } }),
-    prisma.startupProfile.count({ where: { isPro: true } }),
+    // Only the brands that pay: founding brands have Pro without a subscription.
+    prisma.startupProfile.count({ where: { isPro: true, foundingNumber: null } }),
     prisma.report.count({ where: { status: "OPEN" } }),
     prisma.interest.count({ where: { paymentStatus: "HELD", disputedAt: { not: null } } }),
     prisma.interest.count({

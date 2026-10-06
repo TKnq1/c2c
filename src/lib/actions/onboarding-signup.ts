@@ -10,6 +10,7 @@ import { prisma } from "@/lib/prisma";
 import { processAvatarUpload } from "@/lib/avatar-upload";
 import { creatorNicheColumns } from "@/lib/creator-niches";
 import { sendEmail } from "@/lib/email";
+import { claimFoundingProForUser } from "@/lib/founding";
 import { welcomeEmail } from "@/lib/email-templates";
 import { LOCALE_COOKIE, parseLocale, type Locale } from "@/lib/i18n/locales";
 import { isSignupRateLimited, logSignupAttempt, SIGNUP_RATE_LIMIT_MESSAGE } from "@/lib/login-security";
@@ -133,9 +134,12 @@ export async function signupFromDraftAction(_prevState: OnboardingState, formDat
         },
       });
       revalidatePath("/");
-      after(() => sendWelcome(user.id, user.email, "STARTUP", locale));
+      // One of the first brands? Then the wizard's next screen says so, and so does the welcome mail.
+      const foundingNumber = await claimFoundingProForUser(user.id).catch(() => null);
+      after(() => sendWelcome(user.id, user.email, "STARTUP", locale, foundingNumber));
       if (field(formData, "marketing") === "yes") queueMarketingConsent(user.id);
-      return await signInWithoutLeaving(data.email, data.password);
+      const result = await signInWithoutLeaving(data.email, data.password);
+      return result?.success ? { ...result, foundingNumber } : result;
     }
   } catch (error) {
     if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
@@ -170,10 +174,16 @@ async function signInWithoutLeaving(email: string, password: string): Promise<On
   return { success: true };
 }
 
-async function sendWelcome(userId: string, email: string, welcomeAs: "CREATOR" | "STARTUP", locale: Locale) {
+async function sendWelcome(
+  userId: string,
+  email: string,
+  welcomeAs: "CREATOR" | "STARTUP",
+  locale: Locale,
+  foundingNumber?: number | null,
+) {
   const token = newToken();
   await prisma.emailVerificationToken.create({
     data: { userId, tokenHash: hashToken(token), expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000) },
   });
-  await sendEmail({ to: email, ...welcomeEmail(`${SITE_URL}/verify-email/${token}`, welcomeAs, locale) });
+  await sendEmail({ to: email, ...welcomeEmail(`${SITE_URL}/verify-email/${token}`, welcomeAs, locale, foundingNumber) });
 }

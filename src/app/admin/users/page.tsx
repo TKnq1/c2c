@@ -39,7 +39,7 @@ export default async function AdminUsersPage(props: PageProps<"/admin/users">) {
       skip: (page - 1) * PAGE_SIZE,
       take: PAGE_SIZE,
       include: {
-        startupProfile: { select: { companyName: true, isPro: true } },
+        startupProfile: { select: { companyName: true, isPro: true, foundingNumber: true } },
         creatorProfile: { select: { displayName: true, niches: true } },
         _count: { select: { reportsReceived: { where: { status: "OPEN" } } } },
       },
@@ -100,7 +100,11 @@ export default async function AdminUsersPage(props: PageProps<"/admin/users">) {
                   <span className="min-w-0">
                     <span className="block truncate text-sm font-medium">
                       {name}
-                      {u.startupProfile?.isPro && <span className="ml-2 text-xs font-medium">Pro</span>}
+                      {u.startupProfile?.isPro && (
+                        <span className="ml-2 text-xs font-medium">
+                          {u.startupProfile.foundingNumber ? `Pro · Founding #${u.startupProfile.foundingNumber}` : "Pro"}
+                        </span>
+                      )}
                     </span>
                     <span className="block truncate text-footnote text-neutral-500 dark:text-neutral-400">
                       {u.email}
