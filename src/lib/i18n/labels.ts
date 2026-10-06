@@ -46,6 +46,10 @@ const ERROR_KEYS: Record<string, MessageKey> = {
   "Please fill in all fields correctly.": "screens.errors.fillFields",
   "Please accept the terms and the privacy policy.": "screens.errors.acceptTerms",
   "Not authorized.": "screens.errors.notAuthorized",
+  // The landing page's waitlist form (see joinWaitlistAction).
+  "Enter a valid email address.": "landing.waitlist.errorInvalid",
+  "Too many attempts. Try again later.": "landing.waitlist.errorTooMany",
+  "That didn't work. Try again in a moment.": "landing.waitlist.errorFailed",
 };
 
 export function nicheLabel(t: TFunction, niche: string): string {

@@ -6,9 +6,9 @@ import { SITE_URL } from "@/lib/site";
 // Pieces shared by the German search pages (/ugc and /ugc/<niche>). Plain server components: no script,
 // no tracking, so there is nothing to ask consent for.
 
-const PRIMARY = "rounded bg-ink px-6 py-3.5 text-center font-semibold text-paper transition hover:bg-graphite";
+const PRIMARY = "rounded-full bg-ink px-6 py-3.5 text-center font-semibold text-paper transition hover:bg-graphite";
 const SECONDARY =
-  "rounded border border-neutral-300 px-6 py-3.5 text-center font-semibold transition hover:border-ink dark:border-neutral-700";
+  "rounded-full border border-neutral-300 px-6 py-3.5 text-center font-semibold transition hover:border-ink dark:border-neutral-700";
 
 // The mark, huge, behind the whole page: the same shape as on the login and error screens (see
 // LogoWatermark), about a third bigger. Fixed, so it stays put while the page scrolls; the grey boxes are

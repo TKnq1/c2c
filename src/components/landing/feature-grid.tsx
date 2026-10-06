@@ -9,76 +9,92 @@ import { Spinner } from "@/components/spinner";
 import { AppHeader, PhoneFrame } from "@/components/landing/phone-frame";
 import { Reveal } from "@/components/landing/reveal";
 import { PHOTOS, deck } from "@/components/landing/landing-data";
-
-const [ODD_BLOOM, KIEZ_GOODS] = deck(0);
+import { getLocale, getT } from "@/lib/i18n/server";
+import { nicheLabel, presetLabel } from "@/lib/i18n/labels";
+import type { TFunction } from "@/lib/i18n/translate";
 
 type Feature = { icon: string; title: string; body: string; mockup: React.ReactNode };
+type Example = ReturnType<typeof deck>[number];
+type Ctx = { t: TFunction; odd: Example; kiez: Example };
 
 // The deal from each side, in the order it happens. The money lines follow
 // src/lib/constants.ts and the FAQ: 10% fee (3% for Pro brands), 3 days
 // to approve before the payment is released anyway.
-const CREATOR_FEATURES: Feature[] = [
-  {
-    icon: "swipe",
-    title: "Swipe through brand deals",
-    body: "Right means you're interested. The brand sees your profile and can message you.",
-    mockup: <SwipeMock />,
-  },
-  {
-    icon: "money-bag",
-    title: "The budget is on the card",
-    body: "No more DMs about rates. Every request says what it pays, what to post and whether the product comes with it.",
-    mockup: <BudgetMock />,
-  },
-  {
-    icon: "locked",
-    title: "Paid before you post",
-    body: "Accept an offer and the brand pays first. The money is held until your post is up.",
-    mockup: <CreatorOfferMock />,
-  },
-  {
-    icon: "money-wings",
-    title: "You keep 90%",
-    body: "The brand has 3 days to approve your post. If they don't answer, it's released to you anyway.",
-    mockup: <PayoutMock />,
-  },
-];
+function creatorFeatures(c: Ctx): Feature[] {
+  const { t } = c;
+  return [
+    {
+      icon: "swipe",
+      title: t("landing.features.creator1Title"),
+      body: t("landing.features.creator1Body"),
+      mockup: <SwipeMock {...c} />,
+    },
+    {
+      icon: "money-bag",
+      title: t("landing.features.creator2Title"),
+      body: t("landing.features.creator2Body"),
+      mockup: <BudgetMock {...c} />,
+    },
+    {
+      icon: "locked",
+      title: t("landing.features.creator3Title"),
+      body: t("landing.features.creator3Body"),
+      mockup: <CreatorOfferMock {...c} />,
+    },
+    {
+      icon: "money-wings",
+      title: t("landing.features.creator4Title"),
+      body: t("landing.features.creator4Body"),
+      mockup: <PayoutMock {...c} />,
+    },
+  ];
+}
 
-const BRAND_FEATURES: Feature[] = [
-  {
-    icon: "megaphone",
-    title: "Post a request in a minute",
-    body: "Photos, budget, platform and what to post. Creators get it as a card in their feed.",
-    mockup: <RequestMock />,
-  },
-  {
-    icon: "bell",
-    title: "Creators come to you",
-    body: "Creators in your niche swipe right on it. You see their reach and reviews and pick who fits.",
-    mockup: <InterestedMock />,
-  },
-  {
-    icon: "speech-balloon",
-    title: "Agree on it in the chat",
-    body: "Send an offer. When they accept, you pay, and the money is held until the post is live.",
-    mockup: <BrandOfferMock />,
-  },
-  {
-    icon: "camera-flash",
-    title: "Approve the post, then it's paid out",
-    body: `Check the live post first. No base fee: comtor keeps ${Math.round(PLATFORM_FEE_RATE * 100)}% of each payment, or ${Math.round(PRO_PLATFORM_FEE_RATE * 100)}% with Pro (€${PRO_SUBSCRIPTION_PRICE_CENTS / 100} a month).`,
-    mockup: <ApproveMock />,
-  },
-];
+function brandFeatures(c: Ctx): Feature[] {
+  const { t } = c;
+  return [
+    {
+      icon: "megaphone",
+      title: t("landing.features.brand1Title"),
+      body: t("landing.features.brand1Body"),
+      mockup: <RequestMock {...c} />,
+    },
+    {
+      icon: "bell",
+      title: t("landing.features.brand2Title"),
+      body: t("landing.features.brand2Body"),
+      mockup: <InterestedMock {...c} />,
+    },
+    {
+      icon: "speech-balloon",
+      title: t("landing.features.brand3Title"),
+      body: t("landing.features.brand3Body"),
+      mockup: <BrandOfferMock {...c} />,
+    },
+    {
+      icon: "camera-flash",
+      title: t("landing.features.brand4Title"),
+      body: t("landing.features.brand4Body", {
+        standard: Math.round(PLATFORM_FEE_RATE * 100),
+        pro: Math.round(PRO_PLATFORM_FEE_RATE * 100),
+        price: PRO_SUBSCRIPTION_PRICE_CENTS / 100,
+      }),
+      mockup: <ApproveMock {...c} />,
+    },
+  ];
+}
 
-export function FeatureGrid() {
+export async function FeatureGrid() {
+  const t = await getT();
+  const [odd, kiez] = deck(0, await getLocale());
+  const ctx: Ctx = { t, odd, kiez };
   return (
     <section id="how-it-works" className="scroll-mt-24 bg-paper px-4 py-20 md:py-28">
       <div className="mx-auto max-w-6xl">
-        <FeatureSet role="creator" heading="From swipe to payout." features={CREATOR_FEATURES} />
-        <FeatureSet role="brand" heading="From request to live post." features={BRAND_FEATURES} />
+        <FeatureSet role="creator" heading={t("landing.features.creatorHeading")} features={creatorFeatures(ctx)} />
+        <FeatureSet role="brand" heading={t("landing.features.brandHeading")} features={brandFeatures(ctx)} />
         <p className="mt-8 text-center text-footnote text-neutral-600 dark:text-neutral-400">
-          The screens show example data. The people, brands, prices and numbers in them are made up.
+          {t("landing.features.note")}
         </p>
       </div>
     </section>
@@ -195,7 +211,7 @@ function Toast({ children }: { children: React.ReactNode }) {
   );
 }
 
-function FeedCard({ request }: { request: typeof ODD_BLOOM }) {
+function FeedCard({ request }: { request: Example }) {
   return (
     <div className="relative mt-3 h-[440px]">
       <div className="absolute inset-0 rounded-b-[28px] shadow-xl">
@@ -207,21 +223,21 @@ function FeedCard({ request }: { request: typeof ODD_BLOOM }) {
   );
 }
 
-function SwipeMock() {
+function SwipeMock({ t, kiez }: Ctx) {
   return (
     <>
       <CroppedPhone>
-        <AppHeader title="Feed" />
-        <FeedCard request={KIEZ_GOODS} />
+        <AppHeader title={t("nav.feed")} />
+        <FeedCard request={kiez} />
       </CroppedPhone>
       <Floating className="top-[34%] right-[4%] rotate-[-3deg] sm:right-[10%]">
-        <Toast>Interest sent.</Toast>
+        <Toast>{t("landing.mock.interestSent")}</Toast>
       </Floating>
     </>
   );
 }
 
-function BudgetMock() {
+function BudgetMock({ t, odd }: Ctx) {
   return (
     <>
       <CroppedPhone>
@@ -230,48 +246,56 @@ function BudgetMock() {
         </div>
         <div className="flex flex-col gap-3 p-3 text-left">
           <div className="flex items-center gap-2.5">
-            <Avatar src={null} name={ODD_BLOOM.companyName} size={32} />
+            <Avatar src={null} name={odd.companyName} size={32} />
             <div className="min-w-0">
-              <p className="truncate text-sm font-medium">{ODD_BLOOM.companyName}</p>
-              <RatingSummary average={ODD_BLOOM.rating.average} count={ODD_BLOOM.rating.count} />
+              <p className="truncate text-sm font-medium">{odd.companyName}</p>
+              <RatingSummary average={odd.rating.average} count={odd.rating.count} />
             </div>
           </div>
-          <RequestFacts request={ODD_BLOOM} />
+          <RequestFacts request={odd} />
         </div>
       </CroppedPhone>
       <Floating className="top-[20%] left-[4%] rotate-[-5deg] sm:left-[10%]">
         <span className="flex items-baseline gap-1.5 rounded-full bg-white px-5 py-2.5 text-neutral-900 shadow-xl">
           <span className="text-[30px] leading-none font-black">250 €</span>
-          <span className="text-sm font-semibold text-neutral-500">budget</span>
+          <span className="text-sm font-semibold text-neutral-500">{t("landing.mock.budgetWord")}</span>
         </span>
       </Floating>
     </>
   );
 }
 
-function CreatorOfferMock() {
+function CreatorOfferMock({ t, odd }: Ctx) {
   return (
     <>
       <CroppedPhone>
-        <ChatHeader name="Odd Bloom" />
+        <ChatHeader name={odd.companyName} />
         <div className="flex flex-col gap-1 px-3 pt-3">
-          <Bubble>One TikTok for 250 €?</Bubble>
-          <Bubble mine>Deal!</Bubble>
+          <Bubble>{t("landing.mock.oneTikTok")}</Bubble>
+          <Bubble mine>{t("landing.mock.deal")}</Bubble>
         </div>
       </CroppedPhone>
       <Floating className="top-[56%] left-1/2 w-[80%] max-w-[290px] -translate-x-1/2">
         <div className="lp-cycle grid items-start">
-          <OfferCard eyebrow="Offer accepted" amount="250,00 €" detail="Odd Bloom pays next. It's held until you post." />
-          <OfferCard eyebrow="Offer accepted" amount="250,00 €" detail="Odd Bloom pays next. It's held until you post.">
+          <OfferCard
+            eyebrow={t("landing.mock.offerAccepted")}
+            amount="250,00 €"
+            detail={t("landing.mock.payNext", { brand: odd.companyName })}
+          />
+          <OfferCard
+            eyebrow={t("landing.mock.offerAccepted")}
+            amount="250,00 €"
+            detail={t("landing.mock.payNext", { brand: odd.companyName })}
+          >
             <p className="mt-2.5 flex items-center justify-center gap-2 rounded-full bg-fog px-4 py-1.5 text-sm font-medium text-neutral-500 dark:text-neutral-400">
               <Spinner />
-              Waiting for payment
+              {t("landing.mock.waitingPayment")}
             </p>
           </OfferCard>
           <OfferCard
-            eyebrow="Paid · held"
+            eyebrow={t("landing.mock.paidHeld")}
             amount="250,00 €"
-            detail="Post the content, then submit the link. You get 225,00 € once Odd Bloom approves it."
+            detail={t("landing.mock.postThenSubmit", { brand: odd.companyName })}
           />
         </div>
       </Floating>
@@ -279,15 +303,15 @@ function CreatorOfferMock() {
   );
 }
 
-function PayoutMock() {
+function PayoutMock({ t, odd, kiez }: Ctx) {
   return (
     <>
       <CroppedPhone>
-        <AppHeader title="Payments" />
+        <AppHeader title={t("nav.payments")} />
         <div className="flex flex-col gap-2 p-3 text-left">
           {[
-            { name: "Odd Bloom", title: "Serum launch, first impressions", status: "Released" },
-            { name: "Kiez Goods", title: "Iced matcha for the summer menu", status: "Held" },
+            { name: odd.companyName, title: odd.title, status: t("landing.mock.released") },
+            { name: kiez.companyName, title: kiez.title, status: t("landing.mock.held") },
           ].map((p) => (
             <div key={p.name} className="flex items-center gap-2.5 rounded bg-fog p-3">
               <Avatar src={null} name={p.name} size={32} />
@@ -302,17 +326,17 @@ function PayoutMock() {
       </CroppedPhone>
       <Floating className="top-[60%] right-[4%] rotate-[2deg] sm:right-[9%]">
         <div className="w-[228px] rounded border border-ink/10 bg-paper px-3.5 py-3 text-left shadow-xl">
-          <p className="text-[11px] font-medium tracking-wide text-neutral-500 uppercase dark:text-neutral-400">Payment released</p>
+          <p className="text-[11px] font-medium tracking-wide text-neutral-500 uppercase dark:text-neutral-400">{t("landing.mock.paymentReleased")}</p>
           <div className="mt-2 flex justify-between text-sm">
-            <span>Odd Bloom paid</span>
+            <span>{t("landing.mock.brandPaid", { brand: odd.companyName })}</span>
             <span className="tabular-nums">250,00 €</span>
           </div>
           <div className="flex justify-between text-sm text-neutral-500 dark:text-neutral-400">
-            <span>comtor fee (10%)</span>
+            <span>{t("landing.mock.feeLine")}</span>
             <span className="tabular-nums">−25,00 €</span>
           </div>
           <div className="mt-1.5 flex items-baseline justify-between border-t border-ink/10 pt-1.5">
-            <span className="text-sm font-medium">You get</span>
+            <span className="text-sm font-medium">{t("landing.mock.youGet")}</span>
             <span className="font-display text-[26px] leading-none font-black tabular-nums">
               <span className="lp-count" style={{ "--lp-to": 225 } as React.CSSProperties} />
               ,00 €
@@ -324,29 +348,28 @@ function PayoutMock() {
   );
 }
 
-const REQUEST_ROWS: [string, React.ReactNode][] = [
-  ["Title", "Our new fragrance"],
-  ["Budget", "300 €"],
-  [
-    "Platform",
-    <span key="p" className="inline-flex items-center gap-1.5">
-      <PlatformIcon platform="Instagram" className="h-3.5 w-3.5" />
-      Instagram
-    </span>,
-  ],
-  ["Content", "1 Reel"],
-  ["Post by", "Flexible"],
-  ["Product", "Cosmetics · included"],
-];
-
-function RequestMock() {
+function RequestMock({ t }: Ctx) {
+  const rows: [string, React.ReactNode][] = [
+    [t("landing.mock.rowTitle"), t("landing.mock.fragrance")],
+    [t("landing.mock.rowBudget"), "300 €"],
+    [
+      t("landing.mock.rowPlatform"),
+      <span key="p" className="inline-flex items-center gap-1.5">
+        <PlatformIcon platform="Instagram" className="h-3.5 w-3.5" />
+        Instagram
+      </span>,
+    ],
+    [t("landing.mock.rowContent"), presetLabel(t, "1 Reel")],
+    [t("landing.mock.rowPostBy"), t("landing.mock.flexible")],
+    [t("landing.mock.rowProduct"), t("landing.mock.cosmeticsIncluded")],
+  ];
   return (
     <>
       <CroppedPhone>
-        <AppHeader title="New request" />
+        <AppHeader title={t("nav.newRequest")} />
         <div className="p-3">
           <div className="rounded bg-fog px-3 text-sm">
-            {REQUEST_ROWS.map(([label, value]) => (
+            {rows.map(([label, value]) => (
               <div key={label} className="flex items-center justify-between gap-3 border-ink/10 py-2.5 [&+&]:border-t">
                 <span className="text-neutral-500 dark:text-neutral-400">{label}</span>
                 <span className="truncate font-medium">{value}</span>
@@ -356,7 +379,7 @@ function RequestMock() {
         </div>
       </CroppedPhone>
       <Floating className="top-[80%] right-[4%] rotate-[-2deg] sm:right-[10%]">
-        <Toast>Request posted.</Toast>
+        <Toast>{t("landing.mock.requestPosted")}</Toast>
       </Floating>
     </>
   );
@@ -368,13 +391,13 @@ const CREATORS = [
   { name: "Aria N.", niche: "Beauty", platform: "YouTube", followers: "34K" },
 ];
 
-function InterestedMock() {
+function InterestedMock({ t }: Ctx) {
   return (
     <>
       <CroppedPhone>
-        <AppHeader title="Requests" />
+        <AppHeader title={t("nav.requests")} />
         <div className="p-3 text-left">
-          <p className="px-1 text-footnote text-neutral-500 dark:text-neutral-400">Interested creators</p>
+          <p className="px-1 text-footnote text-neutral-500 dark:text-neutral-400">{t("landing.mock.interestedCreators")}</p>
           <div className="mt-1.5 divide-y divide-ink/10 rounded bg-fog">
             {CREATORS.map((c) => (
               <div key={c.name} className="flex items-center gap-2.5 px-3 py-2.5">
@@ -382,7 +405,7 @@ function InterestedMock() {
                 <div className="min-w-0">
                   <p className="text-sm font-medium">{c.name}</p>
                   <p className="flex items-center gap-1 text-xs text-neutral-500 dark:text-neutral-400">
-                    {c.niche} ·
+                    {nicheLabel(t, c.niche)} ·
                     <PlatformIcon platform={c.platform} className="h-3 w-3" />
                     {c.followers}
                   </p>
@@ -402,9 +425,9 @@ function InterestedMock() {
           <span className="min-w-0 flex-1 text-[13px] leading-snug">
             <span className="flex items-baseline justify-between gap-2">
               <span className="font-semibold">comtor</span>
-              <span className="text-[11px] text-neutral-500 dark:text-neutral-400">now</span>
+              <span className="text-[11px] text-neutral-500 dark:text-neutral-400">{t("landing.mock.now")}</span>
             </span>
-            <span className="block">Mia K. is interested in &ldquo;Our new fragrance&rdquo;</span>
+            <span className="block">{t("landing.mock.pushText", { name: "Mia K.", title: t("landing.mock.fragrance") })}</span>
           </span>
         </div>
       </Floating>
@@ -412,36 +435,36 @@ function InterestedMock() {
   );
 }
 
-function BrandOfferMock() {
+function BrandOfferMock({ t }: Ctx) {
   return (
     <>
       <CroppedPhone>
         <ChatHeader name="Mia K." />
         <div className="flex flex-col gap-1 px-3 pt-3">
-          <Bubble>Hi! I&apos;d love to do this.</Bubble>
-          <Bubble mine>Great, sending an offer.</Bubble>
+          <Bubble>{t("landing.mock.helloLove")}</Bubble>
+          <Bubble mine>{t("landing.mock.sendingOffer")}</Bubble>
         </div>
       </CroppedPhone>
       <Floating className="top-[56%] left-1/2 w-[80%] max-w-[290px] -translate-x-1/2">
         <div className="lp-cycle grid items-start">
-          <OfferCard eyebrow="Your offer" amount="300,00 €" detail="Mia K. would get 270,00 € after the 10% fee." />
-          <OfferCard eyebrow="Offer accepted" amount="300,00 €" detail="Pay through Stripe. It's held until Mia K. posts and you approve it.">
-            <span className="mt-2.5 flex justify-center rounded-full bg-ink px-4 py-1.5 text-sm font-medium text-paper">Pay now</span>
+          <OfferCard eyebrow={t("landing.mock.yourOffer")} amount="300,00 €" detail={t("landing.mock.wouldGet", { name: "Mia K." })} />
+          <OfferCard eyebrow={t("landing.mock.offerAccepted")} amount="300,00 €" detail={t("landing.mock.payThrough", { name: "Mia K." })}>
+            <span className="mt-2.5 flex justify-center rounded-full bg-ink px-4 py-1.5 text-sm font-medium text-paper">{t("landing.mock.payNow")}</span>
           </OfferCard>
-          <OfferCard eyebrow="Paid · held" amount="300,00 €" detail="Released to Mia K. once they post and you approve it." />
+          <OfferCard eyebrow={t("landing.mock.paidHeld")} amount="300,00 €" detail={t("landing.mock.releasedWhen", { name: "Mia K." })} />
         </div>
       </Floating>
     </>
   );
 }
 
-function ApproveMock() {
+function ApproveMock({ t }: Ctx) {
   return (
     <>
       <CroppedPhone>
         <ChatHeader name="Mia K." />
         <div className="flex flex-col gap-1 px-3 pt-3">
-          <Bubble>It&apos;s live! Here&apos;s the link.</Bubble>
+          <Bubble>{t("landing.mock.itsLive")}</Bubble>
           <div className="mt-1 flex items-center gap-2 rounded bg-fog p-2.5 text-left text-xs">
             <PlatformIcon platform="TikTok" className="h-4 w-4 shrink-0" />
             <span className="truncate">tiktok.com/@miak/video/7428</span>
@@ -451,21 +474,21 @@ function ApproveMock() {
       </CroppedPhone>
       <Floating className="top-[56%] left-1/2 w-[80%] max-w-[290px] -translate-x-1/2">
         <div className="lp-cycle grid items-start">
-          <OfferCard eyebrow="Post submitted" amount="300,00 €" detail="Check the post, then approve it or report a problem within 3 days.">
+          <OfferCard eyebrow={t("landing.mock.postSubmitted")} amount="300,00 €" detail={t("landing.mock.checkPost")}>
             <span className="mt-2.5 flex gap-2">
-              <span className="flex-1 rounded-full bg-ink px-4 py-1.5 text-center text-sm font-medium text-paper">Approve</span>
+              <span className="flex-1 rounded-full bg-ink px-4 py-1.5 text-center text-sm font-medium text-paper">{t("landing.mock.approve")}</span>
               <span className="flex-1 rounded-full border border-neutral-300 px-4 py-1.5 text-center text-sm font-medium dark:border-neutral-700">
-                Report
+                {t("landing.mock.report")}
               </span>
             </span>
           </OfferCard>
-          <OfferCard eyebrow="Post submitted" amount="300,00 €" detail="Check the post, then approve it or report a problem within 3 days.">
+          <OfferCard eyebrow={t("landing.mock.postSubmitted")} amount="300,00 €" detail={t("landing.mock.checkPost")}>
             <span className="mt-2.5 flex items-center justify-center gap-2 rounded-full bg-ink px-4 py-1.5 text-sm font-medium text-paper">
               <Spinner />
-              Approving
+              {t("landing.mock.approving")}
             </span>
           </OfferCard>
-          <OfferCard eyebrow="Payment released" amount="300,00 €" detail="Mia K. received 270,00 €." />
+          <OfferCard eyebrow={t("landing.mock.paymentReleased")} amount="300,00 €" detail={t("landing.mock.received", { name: "Mia K." })} />
         </div>
       </Floating>
     </>

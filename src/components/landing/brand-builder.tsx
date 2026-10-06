@@ -3,10 +3,12 @@
 import { useState } from "react";
 import Image from "next/image";
 import { FiCheck, FiHeart, FiX } from "react-icons/fi";
+import { useI18n } from "@/components/i18n-provider";
 import { RequestCardFace, type CardRequest } from "@/components/request-card-face";
 import { PlatformIcon } from "@/components/platform-icons";
 import { Switch } from "@/components/switch";
 import { formatBudget } from "@/lib/format";
+import { presetLabel } from "@/lib/i18n/labels";
 import { AppHeader, AppTabBar, PhoneFrame } from "@/components/landing/phone-frame";
 import { PHOTOS, cardPhoto, type PhotoKey } from "@/components/landing/landing-data";
 
@@ -25,21 +27,22 @@ const CONTENT: Record<Platform, string[]> = {
 // On phones the card sits right above the controls; from lg up it's in a
 // phone next to them. The chosen photo colours the hero (onPhoto).
 export function BrandBuilder({ onPhoto }: { onPhoto: (photo: PhotoKey) => void }) {
+  const { locale, t } = useI18n();
   const [photo, setPhoto] = useState<PhotoKey>("flask");
-  const [title, setTitle] = useState("Our new fragrance, first impressions");
+  const [title, setTitle] = useState(() => t("landing.builder.defaultTitle"));
   const [budget, setBudget] = useState(300);
   const [platform, setPlatform] = useState<Platform>("Instagram");
   const [content, setContent] = useState("1 Reel");
   const [productIncluded, setProductIncluded] = useState(true);
 
   const request: CardRequest = {
-    title: title.trim() || "Your request",
+    title: title.trim() || t("landing.builder.fallbackTitle"),
     description: "",
     niche: "Beauty",
-    languages: ["English"],
+    languages: [locale === "de" ? "German" : "English"],
     minFollowers: 1000,
     productCategory: "Cosmetics",
-    companyName: "Your brand",
+    companyName: t("landing.builder.brandName"),
     companyAvatarUrl: null,
     rating: { average: 0, count: 0 },
     photos: [cardPhoto(photo)],
@@ -66,7 +69,7 @@ export function BrandBuilder({ onPhoto }: { onPhoto: (photo: PhotoKey) => void }
           fit on one screen. */}
       <div className="lp-phone-crop relative h-[540px] w-full max-w-[350px] overflow-hidden px-5 pt-2 lg:hidden">
         <PhoneFrame className="h-[640px] w-full">
-          <AppHeader title="Feed" />
+          <AppHeader title={t("nav.feed")} />
           <div className="relative mt-3 h-[380px] shrink-0">{card}</div>
         </PhoneFrame>
       </div>
@@ -75,7 +78,7 @@ export function BrandBuilder({ onPhoto }: { onPhoto: (photo: PhotoKey) => void }
         <div className="flex flex-col gap-5 rounded border border-ink/10 bg-paper/85 p-5 text-left shadow-xl backdrop-blur-xl">
           <div className="flex flex-col gap-1.5">
             <label htmlFor="lp-title" className="text-sm font-medium">
-              Title
+              {t("landing.builder.title")}
             </label>
             <input
               id="lp-title"
@@ -87,7 +90,7 @@ export function BrandBuilder({ onPhoto }: { onPhoto: (photo: PhotoKey) => void }
           </div>
 
           <fieldset className="flex flex-col gap-1.5">
-            <legend className="mb-1.5 text-sm font-medium">Photo</legend>
+            <legend className="mb-1.5 text-sm font-medium">{t("landing.builder.photo")}</legend>
             <div className="flex gap-2">
               {PHOTO_CHOICES.map((key) => (
                 <button
@@ -97,7 +100,7 @@ export function BrandBuilder({ onPhoto }: { onPhoto: (photo: PhotoKey) => void }
                     setPhoto(key);
                     onPhoto(key);
                   }}
-                  aria-label={`Use photo ${PHOTO_CHOICES.indexOf(key) + 1}`}
+                  aria-label={t("landing.builder.usePhoto", { n: PHOTO_CHOICES.indexOf(key) + 1 })}
                   aria-pressed={photo === key}
                   className={`relative h-14 w-14 overflow-hidden rounded transition ${
                     photo === key ? "ring-2 ring-ink ring-offset-2 ring-offset-paper" : "opacity-70 hover:opacity-100"
@@ -112,7 +115,7 @@ export function BrandBuilder({ onPhoto }: { onPhoto: (photo: PhotoKey) => void }
           <div className="flex flex-col gap-1.5">
             <div className="flex items-baseline justify-between">
               <label htmlFor="lp-budget" className="text-sm font-medium">
-                Budget
+                {t("landing.builder.budget")}
               </label>
               <span className="font-display text-title-3 font-black tabular-nums">{formatBudget(budget * 100, budget * 100)}</span>
             </div>
@@ -129,7 +132,7 @@ export function BrandBuilder({ onPhoto }: { onPhoto: (photo: PhotoKey) => void }
           </div>
 
           <fieldset>
-            <legend className="mb-2 text-sm font-medium">Platform</legend>
+            <legend className="mb-2 text-sm font-medium">{t("landing.builder.platform")}</legend>
             <div className="flex flex-wrap gap-2">
               {PLATFORMS.map((p) => (
                 <button
@@ -152,7 +155,7 @@ export function BrandBuilder({ onPhoto }: { onPhoto: (photo: PhotoKey) => void }
           </fieldset>
 
           <fieldset>
-            <legend className="mb-2 text-sm font-medium">Content</legend>
+            <legend className="mb-2 text-sm font-medium">{t("landing.builder.content")}</legend>
             <div className="flex flex-wrap gap-2">
               {CONTENT[platform].map((c) => (
                 <button
@@ -165,24 +168,24 @@ export function BrandBuilder({ onPhoto }: { onPhoto: (photo: PhotoKey) => void }
                   }`}
                 >
                   {content === c && <FiCheck className="h-3.5 w-3.5" />}
-                  {c}
+                  {presetLabel(t, c)}
                 </button>
               ))}
             </div>
           </fieldset>
 
           <div className="flex items-center justify-between">
-            <span className="text-sm font-medium">Product included</span>
-            <Switch checked={productIncluded} onChange={setProductIncluded} label="Product included" />
+            <span className="text-sm font-medium">{t("landing.builder.productIncluded")}</span>
+            <Switch checked={productIncluded} onChange={setProductIncluded} label={t("landing.builder.productIncluded")} />
           </div>
         </div>
       </div>
 
       {/* From lg: the card in a phone, in the Feed, as creators get it. */}
       <div className="relative hidden lg:block">
-        <p className="mb-4 text-center text-sm font-medium text-graphite">What creators see</p>
+        <p className="mb-4 text-center text-sm font-medium text-graphite">{t("landing.builder.whatCreatorsSee")}</p>
         <PhoneFrame className="h-[660px] w-[320px]">
-          <AppHeader title="Feed" />
+          <AppHeader title={t("nav.feed")} />
           <div className="relative mt-3 flex-1">{card}</div>
           <div aria-hidden="true" className="grid shrink-0 grid-cols-5 items-center py-3">
             <span />

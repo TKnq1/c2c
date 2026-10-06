@@ -15,7 +15,9 @@ export const APP_LOCALES = [
 
 export type Locale = (typeof APP_LOCALES)[number]["id"];
 
-export const DEFAULT_LOCALE: Locale = "en";
+// German first: comtor starts in the German-speaking countries. Anyone without a language choice (a first visit,
+// a search engine, a link preview) gets German; the landing page offers a switch to English.
+export const DEFAULT_LOCALE: Locale = "de";
 
 export const LOCALE_COOKIE = "locale";
 

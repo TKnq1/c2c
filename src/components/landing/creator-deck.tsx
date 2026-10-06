@@ -3,6 +3,7 @@
 import { useRef, useState } from "react";
 import { FiCheck, FiHeart, FiRotateCcw, FiX } from "react-icons/fi";
 import { IoStar, IoStarOutline } from "react-icons/io5";
+import { useI18n } from "@/components/i18n-provider";
 import { SwipeCard, type SwipeCardHandle } from "@/components/swipe-card";
 import { AppHeader, AppTabBar, PhoneFrame } from "@/components/landing/phone-frame";
 import { deck, type PhotoKey } from "@/components/landing/landing-data";
@@ -13,7 +14,8 @@ type Card = ReturnType<typeof deck>[number];
 // flick or tap the buttons; nothing is sent anywhere. The deck deals itself
 // again when it runs out, and the photo on top colours the hero (onTop).
 export function CreatorDeck({ onTop }: { onTop: (photo: PhotoKey) => void }) {
-  const [stack, setStack] = useState<Card[]>(() => deck(0));
+  const { locale, t } = useI18n();
+  const [stack, setStack] = useState<Card[]>(() => deck(0, locale));
   const [round, setRound] = useState(0);
   const [lastPassed, setLastPassed] = useState<Card | null>(null);
   const [restored, setRestored] = useState<string | null>(null);
@@ -46,7 +48,7 @@ export function CreatorDeck({ onTop }: { onTop: (photo: PhotoKey) => void }) {
   function handleSwipe(card: Card, direction: "left" | "right") {
     let next = stack.filter((c) => c.id !== card.id);
     if (next.length === 0) {
-      next = deck(round + 1);
+      next = deck(round + 1, locale);
       setRound(round + 1);
     }
     show(next);
@@ -71,7 +73,7 @@ export function CreatorDeck({ onTop }: { onTop: (photo: PhotoKey) => void }) {
   return (
     <div className="relative">
       <PhoneFrame className="h-[600px] w-[290px] max-w-full sm:h-[660px] sm:w-[320px]">
-        <AppHeader title="Feed" />
+        <AppHeader title={t("nav.feed")} />
         <div
           ref={deckRef}
           className={`relative mt-3 flex-1 ${touched ? "" : "lp-nudge"}`}
@@ -111,7 +113,7 @@ export function CreatorDeck({ onTop }: { onTop: (photo: PhotoKey) => void }) {
               setTouched(true);
               topRef.current?.triggerExit("left");
             }}
-            aria-label="Pass"
+            aria-label={t("landing.deck.pass")}
             className="flex h-12 w-12 items-center justify-center justify-self-center rounded-full border border-ink/10 text-neutral-600 transition hover:border-ink hover:text-ink dark:text-neutral-400 dark:hover:text-white"
           >
             <FiX className="h-5 w-5" />
@@ -127,7 +129,7 @@ export function CreatorDeck({ onTop }: { onTop: (photo: PhotoKey) => void }) {
                 return next;
               })
             }
-            aria-label={topStarred ? "Remove brand from favorites" : "Save brand to favorites"}
+            aria-label={topStarred ? t("landing.deck.favRemove") : t("landing.deck.favSave")}
             aria-pressed={topStarred}
             className={`flex h-9 w-9 items-center justify-center justify-self-center rounded-full border transition-colors ${
               topStarred ? "border-amber-400 bg-amber-400 text-white" : "border-ink/10 text-neutral-400 hover:border-ink hover:text-ink dark:hover:text-white"
@@ -141,7 +143,7 @@ export function CreatorDeck({ onTop }: { onTop: (photo: PhotoKey) => void }) {
               setTouched(true);
               topRef.current?.triggerExit("right");
             }}
-            aria-label="Interested"
+            aria-label={t("landing.deck.interested")}
             className="flex h-12 w-12 items-center justify-center justify-self-center rounded-full bg-ink text-paper transition hover:bg-graphite"
           >
             <FiHeart className="h-5 w-5" />
@@ -150,7 +152,7 @@ export function CreatorDeck({ onTop }: { onTop: (photo: PhotoKey) => void }) {
             type="button"
             onClick={undo}
             disabled={!lastPassed}
-            aria-label="Undo last pass"
+            aria-label={t("landing.deck.undo")}
             className="flex h-9 w-9 items-center justify-center justify-self-center rounded-full border border-ink/10 text-neutral-400 transition-colors hover:border-ink hover:text-ink disabled:opacity-40 disabled:hover:border-ink/10 disabled:hover:text-neutral-400 dark:hover:text-white"
           >
             <FiRotateCcw className="h-4 w-4" />
@@ -166,7 +168,7 @@ export function CreatorDeck({ onTop }: { onTop: (photo: PhotoKey) => void }) {
             className="lp-toast absolute inset-x-3 bottom-[150px] z-40 flex items-center gap-2 rounded border border-ink/10 bg-paper px-3.5 py-3 text-sm shadow-lg"
           >
             <FiCheck className="h-4 w-4 shrink-0" />
-            Interest sent to {toast.brand}.
+            {t("landing.deck.toast", { brand: toast.brand })}
           </div>
         )}
         <AppTabBar />
