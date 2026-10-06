@@ -1,5 +1,6 @@
 import { createContext, useContext } from "react";
-import { Easing, interpolate, useCurrentFrame } from "remotion";
+import { Easing, interpolate } from "remotion";
+import { useFrame } from "./frame";
 
 // The scene a component is drawn in: its length and the camera's zoom from its first to its last frame.
 export type SceneCamera = { duration: number; zoom: [number, number] };
@@ -9,7 +10,7 @@ export const SceneContext = createContext<SceneCamera | null>(null);
 // A slow push-in over the whole scene. 0..1 progress plus the zoom at this frame; no scene, no movement.
 export function useCamera() {
   const scene = useContext(SceneContext);
-  const frame = useCurrentFrame();
+  const frame = useFrame();
   if (!scene) return { progress: 0, zoom: 1 };
   const progress = interpolate(frame, [0, scene.duration], [0, 1], {
     extrapolateLeft: "clamp",

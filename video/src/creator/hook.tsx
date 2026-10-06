@@ -1,4 +1,5 @@
-import { Easing, useCurrentFrame } from "remotion";
+import { Easing } from "remotion";
+import { useFrame } from "../frame";
 import { ease, enterUp, mix, pop, popIn, ramp, shake } from "../anim";
 import { Sfx } from "../audio";
 import { DealCard, ODD_BLOOM, SampleNote, SceneHeader, Stage, Subline } from "../components/ui";
@@ -10,7 +11,7 @@ const STAMP = 13;
 
 // First second decides whether people keep watching: no empty frame, motion and the money from frame 0.
 export const C00Hook: React.FC = () => {
-  const frame = useCurrentFrame();
+  const frame = useFrame();
   const fall = ramp(frame, 0, SLAM, Easing.in(Easing.quad));
   const settle = frame < SLAM ? 0 : Math.exp(-(frame - SLAM) / 5) * Math.cos((frame - SLAM) / 1.6);
   const { x, y } = shake(frame, SLAM);

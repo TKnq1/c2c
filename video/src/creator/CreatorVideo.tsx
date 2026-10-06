@@ -1,13 +1,14 @@
 import { fade } from "@remotion/transitions/fade";
 import { slide } from "@remotion/transitions/slide";
 import { wipe } from "@remotion/transitions/wipe";
-import { BEAT, type Scene, SceneSeries, seriesDuration, type VideoProps } from "../series";
+import { BEAT, fitToVoice, type Scene, SceneSeries, seriesDuration, type VideoProps } from "../series";
+import VOICE from "../voice/creator.json";
 import { C00Hook, HOOK_BLUR } from "./hook";
 import { C01Hook, C02Twist, C03Problem, C04Logo } from "./intro";
 import { C10Payout, C11Founding, C12Cta } from "./outro";
 import { C05Profile, C06Swipe, C07Chat, C08Paid, C09Post } from "./steps";
 
-// Storyboard timings (STORYBOARD.md), in whole beats of the music. scripts/make-audio.py has the same scene starts.
+// The scenes as drawn (STORYBOARD.md), in whole beats of the music. The video fits them to the voiceover.
 export const CREATOR_SCENES: Scene[] = [
   { id: "C00", component: C00Hook, duration: 5 * BEAT, keyframe: 70, blur: HOOK_BLUR },
   { id: "C01", component: C01Hook, duration: 7 * BEAT, keyframe: 100, enter: slide({ direction: "from-right" }), blur: [[14, 50]] },
@@ -26,6 +27,9 @@ export const CREATOR_SCENES: Scene[] = [
   { id: "C12", component: C12Cta, duration: 7 * BEAT, keyframe: 95, enter: slide({ direction: "from-bottom" }), whoosh: false },
 ];
 
-export const CREATOR_DURATION = seriesDuration(CREATOR_SCENES);
+// The scenes as they play: each as long as its voiceover line (see fitToVoice).
+export const CREATOR_CUT = fitToVoice(CREATOR_SCENES, VOICE);
 
-export const CreatorVideo: React.FC<VideoProps> = (props) => <SceneSeries scenes={CREATOR_SCENES} bed="music/creator-bed.mp3" {...props} />;
+export const CREATOR_DURATION = seriesDuration(CREATOR_CUT);
+
+export const CreatorVideo: React.FC<VideoProps> = (props) => <SceneSeries scenes={CREATOR_CUT} bed="music/creator-bed.mp3" {...props} />;

@@ -1,5 +1,6 @@
 import type { CSSProperties, ReactNode } from "react";
-import { Easing, useCurrentFrame } from "remotion";
+import { Easing } from "remotion";
+import { useFrame } from "../frame";
 import { IoCheckmark, IoLink, IoLockClosed, IoLogoInstagram, IoLogoTiktok, IoPaperPlane, IoStar } from "react-icons/io5";
 import { browserIn, ease, enterUp, mix, path, pop, popIn, ramp } from "../anim";
 import { Sfx, SfxRepeat } from "../audio";
@@ -69,7 +70,7 @@ const TYPE_BUDGET = [62, 70] as const;
 const TYPE_CONTENT = [86, 98] as const;
 
 export const B05Request: React.FC = () => {
-  const frame = useCurrentFrame();
+  const frame = useFrame();
   const blink = Math.floor(frame / 8) % 2 === 0;
   const between = (range: readonly [number, number]) => frame >= range[0] - 2 && frame <= range[1] + 2;
   const title = typed(TITLE, frame, ...TYPE_TITLE);
@@ -205,7 +206,7 @@ const CREATORS = [
 ];
 
 export const B06Creators: React.FC = () => {
-  const frame = useCurrentFrame();
+  const frame = useFrame();
   return (
     <Stage>
       <SceneHeader parts={["Passende Creator", { mark: "kommen zu dir." }]} size={100} start={0} />
@@ -254,7 +255,7 @@ const FLOW = [
 const APPROVE = 78;
 
 export const B07Safe: React.FC = () => {
-  const frame = useCurrentFrame();
+  const frame = useFrame();
   // Pointer onto the last card (about 1390 px down the frame), click, away.
   const cursorX = path(frame, [62, 74, 84, 96], [900, 600, 600, 760]);
   const cursorY = path(frame, [62, 74, 84, 96], [1700, 1400, 1400, 1560]);

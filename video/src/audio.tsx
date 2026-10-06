@@ -1,5 +1,6 @@
 import { createContext, useContext } from "react";
 import { Html5Audio, Sequence, staticFile } from "remotion";
+import { useSceneSpeed } from "./frame";
 
 // Synthesised by scripts/make-audio.py, except success (the app's own sound, scripts/make-success-sound.py).
 const FILES = {
@@ -24,11 +25,12 @@ export type SfxName = keyof typeof FILES;
 // Lets a render switch the sound effects off, e.g. for a music-only stem.
 export const SfxEnabled = createContext(true);
 
-// One sound effect, `at` frames into the current sequence.
+// One sound effect, `at` frames into the current scene as drawn: a scene the video plays faster has it sooner.
 export const Sfx: React.FC<{ name: SfxName; at: number; volume?: number }> = ({ name, at, volume = 0.6 }) => {
+  const speed = useSceneSpeed();
   if (!useContext(SfxEnabled)) return null;
   return (
-    <Sequence from={at} layout="none">
+    <Sequence from={Math.round(at / speed)} layout="none">
       <Html5Audio src={staticFile(FILES[name])} volume={volume} />
     </Sequence>
   );

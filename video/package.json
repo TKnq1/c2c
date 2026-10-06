@@ -4,13 +4,14 @@
   "private": true,
   "scripts": {
     "studio": "remotion studio",
-    "render:creator": "remotion render CreatorVideo out/creator.mp4",
-    "render:creator:stems": "remotion render CreatorVideo out/creator-music.wav --codec=wav --props='{\"music\":true,\"sfx\":false}' && remotion render CreatorVideo out/creator-sfx.wav --codec=wav --props='{\"music\":false,\"sfx\":true}'",
-    "render:brand": "remotion render BrandVideo out/brand.mp4",
-    "render:brand:stems": "remotion render BrandVideo out/brand-music.wav --codec=wav --props='{\"music\":true,\"sfx\":false}' && remotion render BrandVideo out/brand-sfx.wav --codec=wav --props='{\"music\":false,\"sfx\":true}'",
+    "render:creator": "remotion render CreatorVideo out/creator.mp4 && python3 scripts/master.py out/creator.mp4",
+    "render:creator:stems": "remotion render CreatorVideo out/creator-voice.wav --codec=wav --props='{\"music\":false,\"sfx\":false,\"voice\":true}' && remotion render CreatorVideo out/creator-music.wav --codec=wav --props='{\"music\":true,\"sfx\":false,\"voice\":false}' && remotion render CreatorVideo out/creator-sfx.wav --codec=wav --props='{\"music\":false,\"sfx\":true,\"voice\":false}'",
+    "render:brand": "remotion render BrandVideo out/brand.mp4 && python3 scripts/master.py out/brand.mp4",
+    "render:brand:stems": "remotion render BrandVideo out/brand-voice.wav --codec=wav --props='{\"music\":false,\"sfx\":false,\"voice\":true}' && remotion render BrandVideo out/brand-music.wav --codec=wav --props='{\"music\":true,\"sfx\":false,\"voice\":false}' && remotion render BrandVideo out/brand-sfx.wav --codec=wav --props='{\"music\":false,\"sfx\":true,\"voice\":false}'",
     "styleframes": "node scripts/render-styleframes.mjs",
-    "audio": "python3 scripts/make-audio.py",
-    "typecheck": "tsc --noEmit"
+    "audio": "tsx scripts/grid.ts && python3 scripts/make-audio.py",
+    "typecheck": "tsc --noEmit",
+    "voice": "python3 scripts/make-voiceover.py && npm run audio"
   },
   "dependencies": {
     "@remotion/bundler": "^4.0.533",
@@ -26,6 +27,7 @@
   },
   "devDependencies": {
     "@types/react": "^19.3.0",
+    "tsx": "^4.23.15",
     "typescript": "^5.9.3"
   }
 }

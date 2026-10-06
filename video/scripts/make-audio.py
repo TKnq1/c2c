@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """Generates the music bed and the sound effects of the videos.
 
-    video/public/music/creator-bed.mp3   music for the creator video (48 s, 120 BPM)
-    video/public/music/brand-bed.mp3     music for the brand video (33.5 s, 120 BPM)
+    video/public/music/creator-bed.mp3   music for the creator video (120 BPM)
+    video/public/music/brand-bed.mp3     music for the brand video (120 BPM)
     video/public/sfx/*.wav               UI sounds (pop, click, swipe, coin, ...)
 
 Everything is synthesised from code (oscillators and filtered noise, no samples, nothing third-party), so it
@@ -11,8 +11,8 @@ ffmpeg (with libmp3lame):
 
     python3 scripts/make-audio.py
 
-The music follows the scene grid of each video (src/creator/CreatorVideo.tsx, src/brand/BrandVideo.tsx): one beat
-is 15 frames, and every scene starts on a beat. If scene durations change there, change CREATOR / BRAND below.
+The music follows the scene grid of each video (src/voice/grid.json, written by scripts/grid.ts): one beat is 15
+frames, and every scene starts on a beat. `npm run audio` writes the grid and then the music.
 """
 import json
 import subprocess
@@ -202,39 +202,59 @@ AM7, FMAJ7, CMAJ7, G6 = ([57, 60, 64, 67], 45), ([53, 57, 60, 64], 41), ([55, 60
 FINAL = ([60, 64, 67, 71, 74], 36)  # Cmaj9 under the call to action
 ARP = [0, 1, 2, 3, 2, 1, 3, 2]
 
-# Scene starts in beats (frame / 15), from src/creator/CreatorVideo.tsx and src/brand/BrandVideo.tsx.
+# The music follows the scenes as the videos play them (fitted to the voiceover): src/voice/grid.json has each
+# scene's start in beats (frame / 15), written by scripts/grid.ts. The markers below name scenes, not beats.
+GRID = json.loads((ROOT.parent / "src" / "voice" / "grid.json").read_text())
+
 CREATOR = {
+    "video": "creator",
     "file": "creator-bed.mp3",
     "chords": [AM7, FMAJ7, CMAJ7, G6],  # vi - IV - I - V
-    "scenes": [0, 4, 10, 16, 23, 27, 36, 49, 58, 65, 73, 79, 89],
-    "hook": (0, 4),  # C00: kick and bass under the card slam, then the music drops back
-    "hats_from": 10,  # C02
-    "kicks_from": 16,  # C03
-    "logo": 23,  # C04, logo on black
-    "drop": 27,  # C05, first step: the groove starts
-    "lift": 49,  # C07, the chat: 16th shaker on top
-    "accents": [73, 79],  # C10 the payout, C11 the founding offer: fill and crash
-    "breakdown": (79, 83),  # no kick or bass for the first two bars of the offer
+    "hook": ("C00", "C01"),  # kick and bass under the card slam, then the music drops back
+    "hats_from": "C02",
+    "kicks_from": "C03",
+    "logo": "C04",  # logo on black
+    "drop": "C05",  # first step: the groove starts
+    "lift": "C07",  # the chat: 16th shaker on top
+    "accents": ["C10", "C11"],  # the payout, the founding offer: fill and crash
+    "breakdown": "C11",  # no kick or bass for the first two bars of the offer
     "cta_riser": True,
-    "cta": 89,  # C12
-    "end": 96,  # 48 s
+    "cta": "C12",
 }
 BRAND = {
+    "video": "brand",
     "file": "brand-bed.mp3",
     "chords": [CMAJ7, G6, AM7, FMAJ7],  # I - V - vi - IV
-    "scenes": [0, 5, 13, 20, 24, 34, 42, 49, 59],
-    "hook": (0, 5),  # B01: the ad flicked away
-    "hats_from": 9,
-    "kicks_from": 13,  # B03
-    "logo": 20,  # B04
-    "drop": 24,  # B05, the request
-    "lift": 34,  # B06, creators coming in
-    "accents": [49],  # B08, the founding offer
-    "breakdown": (49, 53),  # no kick or bass for the first two bars of the offer
+    "hook": ("B01", "B02"),  # the ads flicked away
+    "hats_from": "B02",
+    "kicks_from": "B03",
+    "logo": "B04",
+    "drop": "B05",  # the request
+    "lift": "B06",  # creators coming in
+    "accents": ["B08"],  # the founding offer
+    "breakdown": "B08",
     "cta_riser": True,
-    "cta": 59,  # B09
-    "end": 67,  # 33.5 s
+    "cta": "B09",
 }
+
+
+def resolve(spec):
+    """The spec's scene names turned into beats on the video's grid."""
+    grid = GRID[spec["video"]]
+    at = grid["scenes"]
+    return {
+        **spec,
+        "hook": (at[spec["hook"][0]], at[spec["hook"][1]]),
+        "hats_from": at[spec["hats_from"]],
+        "kicks_from": at[spec["kicks_from"]],
+        "logo": at[spec["logo"]],
+        "drop": at[spec["drop"]],
+        "lift": at[spec["lift"]],
+        "accents": [at[name] for name in spec["accents"]],
+        "breakdown": (at[spec["breakdown"]], at[spec["breakdown"]] + 4) if spec["breakdown"] else None,
+        "cta": at[spec["cta"]],
+        "end": grid["end"],
+    }
 
 
 def beat_t(beat):
@@ -505,7 +525,7 @@ def seed(name):
 def main():
     for spec in (CREATOR, BRAND):
         seed(spec["file"])
-        write_mp3(ROOT / "music" / spec["file"], make_bed(spec), peak=0.8)
+        write_mp3(ROOT / "music" / spec["file"], make_bed(resolve(spec)), peak=0.8)
     effects = {
         "whoosh": lambda: sfx_whoosh(),
         "swipe": lambda: sfx_whoosh(0.26, 600, 9000),

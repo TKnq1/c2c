@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
-import { Easing, useCurrentFrame } from "remotion";
+import { Easing } from "remotion";
+import { useFrame } from "../frame";
 import { IoBookmarkOutline, IoChatbubbleOutline, IoHeart, IoHeartOutline, IoPaperPlaneOutline } from "react-icons/io5";
 import { Sfx } from "../audio";
 import { ease, mix, pop, popIn, ramp } from "../anim";
@@ -32,7 +33,7 @@ const POST_STEP = 860;
 const OTHER_LIKES = ["812", "2.391", "", "96"];
 
 export const C01Hook: React.FC = () => {
-  const frame = useCurrentFrame();
+  const frame = useFrame();
   const phone = ease(frame, 6, { stiffness: 90 });
   const scroll = ramp(frame, 14, 60, Easing.out(Easing.quad));
   const heart = pop(frame, 66);
@@ -127,7 +128,7 @@ const Coin: React.FC<{ x: number; y: number; size: number; rotate: number }> = (
 );
 
 export const C02Twist: React.FC = () => {
-  const frame = useCurrentFrame();
+  const frame = useFrame();
   const swap = ramp(frame, 16, 26);
 
   return (
@@ -180,7 +181,7 @@ const DMS = [
 ];
 
 export const C03Problem: React.FC = () => {
-  const frame = useCurrentFrame();
+  const frame = useFrame();
   const question = pop(frame, 44);
 
   return (

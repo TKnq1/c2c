@@ -27,7 +27,48 @@ statt 10 %. Die ersten 50 Marken und die ersten 100 Creator bekommen Pro kostenl
 - Pro Zeile ruhig mehrere Varianten generieren und die beste nehmen. Ein Bindestrich oder Komma setzt eine kurze
   Pause.
 
-## Creator-Video (ca. 48 s)
+## Kurze Fassung (eingesprochen, aktuell im Video)
+
+Die Aufnahmen liegen in `voice/source/`. Die Videos richten sich nach ihrer Länge: Creator ca. 39 s, Marken ca. 30 s.
+
+*Creator*
+
+| ID | Text |
+|---|---|
+| C00 | Zweihundertfünfzig Euro für ein TikTok? |
+| C01 | Du postest sowieso. |
+| C02 | Dann lass dich dafür bezahlen. |
+| C03 | Schluss mit Preis-DMs. |
+| C04 | Das ist comtor. |
+| C05 | Profil anlegen, Nische wählen. |
+| C06 | Durch Deals wischen – das Budget steht auf der Karte. |
+| C07 | Deal im Chat klarmachen. |
+| C08 | Die Marke zahlt zuerst. |
+| C09 | Posten, Link schicken, fertig. |
+| C10 | Du behältst neunzig Prozent. |
+| C11 | Die ersten hundert Creator bekommen Pro kostenlos – dann sind es siebenundneunzig. |
+| C12 | Jetzt auf comtor punkt app. |
+
+*Marken*
+
+| ID | Text |
+|---|---|
+| B01 | Jeder scrollt an Werbung vorbei. |
+| B02 | Aber echten Creatorn hören die Leute zu. |
+| B03 | U-G-C konvertiert besser als klassische Werbung. |
+| B04 | comtor bringt dir U-G-C-Creator. |
+| B05 | Anfrage in einer Minute. |
+| B06 | Passende Creator melden sich bei dir. |
+| B07 | Ausgezahlt wird erst, wenn der Post online ist. |
+| B08 | Die ersten fünfzig Marken bekommen Pro kostenlos. |
+| B09 | Sichere dir deinen Platz auf comtor punkt app. |
+
+Eine neue Aufnahme muss dieselben Sätze in derselben Reihenfolge haben (Kommas und Gedankenstriche inklusive, an ihnen
+werden die Zeilen erkannt). Dann `npm run voice` und neu rendern.
+
+## Lange Fassung (für Website oder Erklärvideo)
+
+### Creator-Video (ca. 48 s)
 
 | ID | Szene | Zeit | Text |
 |---|---|---|---|
@@ -45,7 +86,7 @@ statt 10 %. Die ersten 50 Marken und die ersten 100 Creator bekommen Pro kostenl
 | C11 | 100 Founding Creator | 5,5 s | Und jetzt das Beste: Die ersten hundert Creator bekommen Pro kostenlos – lebenslang, solange dein Konto besteht. Dann behältst du siebenundneunzig Prozent. |
 | C12 | CTA | 3,5 s | Wisch dich zu deinem ersten bezahlten Deal – jetzt auf comtor punkt app. |
 
-## Marken-Video (ca. 33,5 s)
+### Marken-Video (ca. 33,5 s)
 
 | ID | Szene | Zeit | Text |
 |---|---|---|---|

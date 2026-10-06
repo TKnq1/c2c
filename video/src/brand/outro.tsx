@@ -1,4 +1,5 @@
-import { useCurrentFrame } from "remotion";
+
+import { useFrame } from "../frame";
 import { ease, enterUp, pop, popIn } from "../anim";
 import { Sfx } from "../audio";
 import { FoundingScene, SlotGrid } from "../components/founding";
@@ -21,7 +22,7 @@ export const B08Founding: React.FC = () => (
 );
 
 export const B09Cta: React.FC = () => {
-  const frame = useCurrentFrame();
+  const frame = useFrame();
   return (
     <Stage dark>
       <div style={{ position: "absolute", top: 200, left: 0, right: 0, display: "flex", justifyContent: "center", ...enterUp(ease(frame, 2), 30) }}>

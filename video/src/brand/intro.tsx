@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
-import { Easing, useCurrentFrame } from "remotion";
+import { Easing } from "remotion";
+import { useFrame } from "../frame";
 import { IoChatbubble, IoHeart, IoPlay, IoShareSocial } from "react-icons/io5";
 import { ease, enterUp, path, pop, popIn, ramp } from "../anim";
 import { MATCH_CUT_HEADER } from "../series";
@@ -55,7 +56,7 @@ const AdCard: React.FC<{ big: string; small: string; button: string }> = ({ big,
 // First second decides whether people keep watching: the feed is moving from frame 0, ad after ad flicked away,
 // and it only stops for a creator's video. That video carries straight into the next scene (match cut).
 export const B01Hook: React.FC = () => {
-  const frame = useCurrentFrame();
+  const frame = useFrame();
   // Each flick moves the feed one screen; the last one lands with a small bounce.
   const scrolled = FLICKS.reduce((total, [from, to], i) => {
     const p = i === FLICKS.length - 1 ? ease(frame, from, { damping: 13, stiffness: 120 }) : ramp(frame, from, to, Easing.inOut(Easing.cubic));
@@ -169,7 +170,7 @@ function compact(value: number) {
 }
 
 export const B02Ugc: React.FC = () => {
-  const frame = useCurrentFrame();
+  const frame = useFrame();
   const counted = ramp(frame, 20, 75);
   const words = Math.floor(ramp(frame, 22, 70, Easing.linear) * CAPTION.split(" ").length);
 
@@ -213,7 +214,7 @@ const CONVERSION = [
 ];
 
 export const B03Growth: React.FC = () => {
-  const frame = useCurrentFrame();
+  const frame = useFrame();
 
   return (
     <Stage>

@@ -1,12 +1,12 @@
 import type { CSSProperties } from "react";
-import { useCurrentFrame } from "remotion";
 import { ease, enterUp, popIn } from "../anim";
+import { useFrame } from "../frame";
 import { colors, GUTTER } from "../theme";
 import { Logo, Stage, Subline } from "./ui";
 
 // Black screen with the logo and one line under it, between the hook and the walkthrough.
 export const LogoReveal: React.FC<{ line: string }> = ({ line }) => {
-  const frame = useCurrentFrame();
+  const frame = useFrame();
   return (
     <Stage dark>
       <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 48 }}>

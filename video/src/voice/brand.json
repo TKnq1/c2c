@@ -1,0 +1,38 @@
+{
+  "B01": {
+    "file": "vo/B01.mp3",
+    "seconds": 1.99
+  },
+  "B02": {
+    "file": "vo/B02.mp3",
+    "seconds": 2.56
+  },
+  "B03": {
+    "file": "vo/B03.mp3",
+    "seconds": 2.99
+  },
+  "B04": {
+    "file": "vo/B04.mp3",
+    "seconds": 2.67
+  },
+  "B05": {
+    "file": "vo/B05.mp3",
+    "seconds": 1.77
+  },
+  "B06": {
+    "file": "vo/B06.mp3",
+    "seconds": 2.0
+  },
+  "B07": {
+    "file": "vo/B07.mp3",
+    "seconds": 2.74
+  },
+  "B08": {
+    "file": "vo/B08.mp3",
+    "seconds": 3.03
+  },
+  "B09": {
+    "file": "vo/B09.mp3",
+    "seconds": 3.2
+  }
+}

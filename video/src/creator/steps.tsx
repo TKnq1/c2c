@@ -1,5 +1,6 @@
 import type { CSSProperties, ReactNode } from "react";
-import { Easing, useCurrentFrame } from "remotion";
+import { Easing } from "remotion";
+import { useFrame } from "../frame";
 import {
   IoAirplane,
   IoArrowForward,
@@ -39,7 +40,7 @@ const PLATFORMS = [
 ];
 
 export const C05Profile: React.FC = () => {
-  const frame = useCurrentFrame();
+  const frame = useFrame();
   const cursorX = path(frame, [34, 46, 58, 82], [700, 182, 468, 760]);
   const cursorY = path(frame, [34, 46, 58, 82], [760, 235, 235, 660]);
   const cursorOpacity = ramp(frame, 32, 38) * (1 - ramp(frame, 80, 90));
@@ -187,7 +188,7 @@ const ChatHeader: React.FC<{ avatar?: number; text?: number }> = ({ avatar = 1, 
 );
 
 export const C06Swipe: React.FC = () => {
-  const frame = useCurrentFrame();
+  const frame = useFrame();
 
   // Lumo Audio: dragged left, then thrown out.
   const lumoDrag = ramp(frame, 40, 58, Easing.inOut(Easing.quad));
@@ -270,7 +271,7 @@ const TypingDots: React.FC<{ frame: number }> = ({ frame }) => (
 );
 
 export const C07Chat: React.FC = () => {
-  const frame = useCurrentFrame();
+  const frame = useFrame();
   const bubble = (delay: number): CSSProperties => ({ alignSelf: "flex-start", maxWidth: "78%", transformOrigin: "left bottom", ...popIn(pop(frame, delay), 0.7) });
   const stamp = pop(frame, 118);
 
@@ -369,7 +370,7 @@ const StatusRow: React.FC<{ label: string; done?: number; active?: number; icon?
 };
 
 export const C08Paid: React.FC = () => {
-  const frame = useCurrentFrame();
+  const frame = useFrame();
   const lock = pop(frame, 50);
 
   return (
@@ -409,7 +410,7 @@ export const C08Paid: React.FC = () => {
 const POST_LINK = "tiktok.com/@mia/video/7342…";
 
 export const C09Post: React.FC = () => {
-  const frame = useCurrentFrame();
+  const frame = useFrame();
   const typed = Math.floor(POST_LINK.length * ramp(frame, 26, 58, Easing.linear));
   const caret = frame < 62 && Math.floor(frame / 8) % 2 === 0;
   const submitted = frame >= 68;

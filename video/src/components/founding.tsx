@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
-import { Easing, useCurrentFrame } from "remotion";
+import { Easing } from "remotion";
+import { useFrame } from "../frame";
 import { IoCheckmark } from "react-icons/io5";
 import { ease, enterUp, pop, popIn, ramp } from "../anim";
 import { Sfx, SfxRepeat } from "../audio";
@@ -75,7 +76,7 @@ export const FoundingScene: React.FC<{
   cell: number;
   gap: number;
 }> = ({ slots, who, feePerk, cell, gap }) => {
-  const frame = useCurrentFrame();
+  const frame = useFrame();
   const count = Math.round(slots * ramp(frame, COUNT[0], COUNT[1], Easing.out(Easing.cubic)));
   const strike = ramp(frame, STRIKE_AT, STRIKE_AT + 8);
   const zero = pop(frame, ZERO_AT);

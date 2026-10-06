@@ -1,5 +1,6 @@
 import type { CSSProperties, ReactNode } from "react";
-import { AbsoluteFill, Img, staticFile, useCurrentFrame } from "remotion";
+import { AbsoluteFill, Img, staticFile } from "remotion";
+import { useFrame } from "../frame";
 import { ease, enterUp, pop, popIn, ramp } from "../anim";
 import { cameraDrift, HEADER_DEPTH, useCamera } from "../camera";
 import { IoGiftOutline, IoLogoInstagram, IoLogoTiktok, IoStar } from "react-icons/io5";
@@ -44,7 +45,7 @@ export const Headline: React.FC<{
   start?: number;
   style?: CSSProperties;
 }> = ({ parts, size = 104, dark, align = "left", start, style }) => {
-  const frame = useCurrentFrame();
+  const frame = useFrame();
   const at = (delay: number) => (start === undefined ? 1 : ease(frame, start + delay, { stiffness: 140 }));
   const barAt = (delay: number) => (start === undefined ? 1 : ramp(frame, start + delay, start + delay + 9));
   let word = 0;
@@ -109,7 +110,7 @@ export const SceneHeader: React.FC<{
   top?: number;
   start?: number;
 }> = ({ step, parts, sub, size = 92, dark, top = 150, start }) => {
-  const frame = useCurrentFrame();
+  const frame = useFrame();
   const headlineStart = start === undefined ? undefined : start + (step ? 5 : 0);
   const stepP = start === undefined ? 1 : pop(frame, start);
   const subP = headlineStart === undefined ? 1 : ease(frame, headlineStart + headlineLength(parts) + 4);

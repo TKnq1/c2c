@@ -1,12 +1,13 @@
 import { fade } from "@remotion/transitions/fade";
 import { slide } from "@remotion/transitions/slide";
 import { wipe } from "@remotion/transitions/wipe";
-import { BEAT, type Scene, SceneSeries, seriesDuration, type VideoProps } from "../series";
+import { BEAT, fitToVoice, type Scene, SceneSeries, seriesDuration, type VideoProps } from "../series";
+import VOICE from "../voice/brand.json";
 import { B01_BLUR, B01Hook, B02Ugc, B03Growth, B04Logo } from "./intro";
 import { B08Founding, B09Cta } from "./outro";
 import { B05Request, B06Creators, B07Safe } from "./steps";
 
-// Storyboard timings (STORYBOARD.md), in whole beats of the music. scripts/make-audio.py has the same scene starts.
+// The scenes as drawn (STORYBOARD.md), in whole beats of the music. The video fits them to the voiceover.
 export const BRAND_SCENES: Scene[] = [
   { id: "B01", component: B01Hook, duration: 6 * BEAT, keyframe: 15, blur: B01_BLUR },
   // Match cut: the hook ends on this scene's phone, so only the headline crossfades.
@@ -20,6 +21,9 @@ export const BRAND_SCENES: Scene[] = [
   { id: "B09", component: B09Cta, duration: 8 * BEAT, keyframe: 110, enter: slide({ direction: "from-bottom" }), whoosh: false },
 ];
 
-export const BRAND_DURATION = seriesDuration(BRAND_SCENES);
+// The scenes as they play: each as long as its voiceover line (see fitToVoice).
+export const BRAND_CUT = fitToVoice(BRAND_SCENES, VOICE);
 
-export const BrandVideo: React.FC<VideoProps> = (props) => <SceneSeries scenes={BRAND_SCENES} bed="music/brand-bed.mp3" {...props} />;
+export const BRAND_DURATION = seriesDuration(BRAND_CUT);
+
+export const BrandVideo: React.FC<VideoProps> = (props) => <SceneSeries scenes={BRAND_CUT} bed="music/brand-bed.mp3" {...props} />;

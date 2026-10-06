@@ -1,4 +1,5 @@
-import { Easing, useCurrentFrame } from "remotion";
+import { Easing } from "remotion";
+import { useFrame } from "../frame";
 import { IoCheckmarkCircle } from "react-icons/io5";
 import { Sfx, SfxRepeat } from "../audio";
 import { ease, enterUp, euro, mix, pop, popIn, ramp } from "../anim";
@@ -30,7 +31,7 @@ const Row: React.FC<{ label: string; value: string; muted?: boolean; p: number }
 );
 
 export const C10Payout: React.FC = () => {
-  const frame = useCurrentFrame();
+  const frame = useFrame();
   const amount = 225 * ramp(frame, 40, PAYOUT_AT, Easing.out(Easing.cubic));
   const burst = ease(frame, PAYOUT_AT, { damping: 16, stiffness: 120 });
   const drift = Math.max(0, frame - PAYOUT_AT);
@@ -107,7 +108,7 @@ export const C11Founding: React.FC = () => (
 );
 
 export const C12Cta: React.FC = () => {
-  const frame = useCurrentFrame();
+  const frame = useFrame();
   return (
     <Stage dark>
       <div style={{ position: "absolute", top: 200, left: 0, right: 0, display: "flex", justifyContent: "center", ...enterUp(ease(frame, 2), 30) }}>
