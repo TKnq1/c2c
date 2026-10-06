@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import type Stripe from "stripe";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { stripe } from "@/lib/stripe";
@@ -8,6 +9,21 @@ import { SITE_URL } from "@/lib/site";
 import { canSellProSubscription } from "@/lib/native-app-server";
 import { canWithdrawPro } from "@/lib/pro-withdrawal";
 import { findProProfile, planPath, updateProProfile } from "@/lib/pro-profile";
+
+// Stripe Tax on the Pro plan, off unless STRIPE_AUTOMATIC_TAX=1. It needs the head office address and an active
+// registration in Stripe (Tax → Locations) first; without one Stripe collects nothing and the customer only gets an
+// extra address form. The Price is tax-inclusive, so the total stays at the advertised price.
+function proTaxParams(): Partial<Stripe.Checkout.SessionCreateParams> {
+  if (process.env.STRIPE_AUTOMATIC_TAX !== "1") return {};
+  return {
+    automatic_tax: { enabled: true },
+    // The customer is created without an address: Checkout asks for it and saves it on the customer, so every
+    // renewal is taxed at the same place. Businesses can add their VAT ID (reverse charge across EU borders).
+    billing_address_collection: "required",
+    customer_update: { address: "auto", name: "auto" },
+    tax_id_collection: { enabled: true },
+  };
+}
 
 function revalidateSubscriptionPaths() {
   revalidatePath("/dashboard/startup/settings");
@@ -50,6 +66,7 @@ export async function createProCheckoutSessionAction(): Promise<{ url: string } 
     mode: "subscription",
     customer: customerId,
     line_items: [{ price: process.env.STRIPE_PRO_PRICE_ID!, quantity: 1 }],
+    ...proTaxParams(),
     success_url: `${SITE_URL}${planPath(profile.side)}`,
     cancel_url: `${SITE_URL}${planPath(profile.side)}`,
   });
