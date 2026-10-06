@@ -10,6 +10,7 @@ import type { OnboardingState } from "@/lib/actions/onboarding";
 import { localizeError } from "@/lib/i18n/labels";
 import { TermsConsent } from "@/components/terms-consent";
 import { MarketingConsentCheckbox } from "@/components/marketing-consent-checkbox";
+import { keepFieldsOnSubmit } from "@/lib/keep-fields";
 import { PLATFORM_FEE_RATE, PRO_PLATFORM_FEE_RATE, RELEASE_REVIEW_DAYS } from "@/lib/constants";
 import type { PlatformDraft } from "@/components/platform-chips";
 import type { SignupRole } from "@/lib/signup-role";
@@ -84,7 +85,7 @@ export function OnboardingAccountStep({
         });
 
   return (
-    <form action={submit} className={stepScreen}>
+    <form onSubmit={keepFieldsOnSubmit(submit)} className={stepScreen}>
       <StepHeading
         title={t("onboarding.account.title")}
         description={role === "STARTUP" ? t("onboarding.account.brandDescription") : t("onboarding.account.description")}

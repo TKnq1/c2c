@@ -16,7 +16,9 @@ export const metadata: Metadata = {
   description: DESCRIPTION,
   alternates: canonical("/"),
   openGraph: { title: TITLE, description: DESCRIPTION },
-  twitter: { title: TITLE, description: DESCRIPTION },
+  // A page's twitter block replaces the layout's whole one, so the card type has to be repeated here: without it
+  // X shows the 1200x630 image as a small square thumbnail.
+  twitter: { card: "summary_large_image", title: TITLE, description: DESCRIPTION },
 };
 
 export default function Home() {
