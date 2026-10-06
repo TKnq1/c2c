@@ -359,3 +359,11 @@ html:not([data-lp-js]) .lp-count {
 .lp-phone-crop {
   mask-image: linear-gradient(to bottom, #000 calc(100% - 48px), transparent);
 }
+
+/* Copy that sits straight on a photo colour gets a soft halo in the page colour (no box): the photo stays
+   visible behind it, and the letters keep their edge on any colour. */
+.lp-glow {
+  text-shadow:
+    0 0 16px color-mix(in srgb, var(--paper) 80%, transparent),
+    0 0 4px color-mix(in srgb, var(--paper) 55%, transparent);
+}

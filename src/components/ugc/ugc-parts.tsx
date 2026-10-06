@@ -1,8 +1,9 @@
 import Image from "next/image";
 import Link from "next/link";
+import { auth } from "@/lib/auth";
 import { getLocale, getT } from "@/lib/i18n/server";
 import type { MessageKey } from "@/lib/i18n/translate";
-import { UGC_NICHE_PAGES, UGC_PATH, ugcNicheHref } from "@/lib/seo-pages";
+import { UGC_CREATOR_PATH, UGC_NICHE_PAGES, UGC_PATH, ugcNicheHref } from "@/lib/seo-pages";
 import { SITE_URL } from "@/lib/site";
 
 // Pieces shared by the German search pages (/ugc and /ugc/<niche>). Plain server components: no script,
@@ -32,6 +33,8 @@ export function UgcWatermark() {
 
 export async function UgcHeader() {
   const t = await getT();
+  // Someone who is signed in (the legal pages are linked from Settings) goes back to the dashboard, not to "log in".
+  const signedIn = Boolean(await auth());
   return (
     <header className="relative z-10 border-b border-ink/10 px-4 pt-[calc(var(--safe-top)+12px)] pb-3">
       <div className="mx-auto flex max-w-3xl items-center justify-between">
@@ -39,8 +42,11 @@ export async function UgcHeader() {
           <Image src="/logo.png" alt="" width={32} height={32} className="dark:invert" />
           <span className="font-display text-[24px] font-black tracking-tight">comtor</span>
         </Link>
-        <Link href="/login" className="text-sm text-neutral-600 transition hover:text-ink dark:text-neutral-400">
-          {t("landing.nav.logIn")}
+        <Link
+          href={signedIn ? "/dashboard" : "/login"}
+          className="text-sm text-neutral-600 transition hover:text-ink dark:text-neutral-400"
+        >
+          {signedIn ? t("onboarding.done.goDashboard") : t("landing.nav.logIn")}
         </Link>
       </div>
     </header>
@@ -146,6 +152,9 @@ export async function UgcFooter({ currentSlug, onHub = false }: { currentSlug?: 
                 {t("landing.footer.ugc")}
               </Link>
             )}
+            <Link href={UGC_CREATOR_PATH} className="transition hover:text-ink">
+              Creator werden
+            </Link>
             {others.map((page) => (
               <Link key={page.slug} href={ugcNicheHref(page.slug)} className="transition hover:text-ink">
                 {page.label}

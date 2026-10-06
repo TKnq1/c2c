@@ -41,7 +41,7 @@ function sharedFaqs(): { question: string; answer: string }[] {
       answer: `Die Anmeldung ist kostenlos und es gibt keine Grundgebühr. comtor behält ${FEE} jeder Zahlung. Die Gebühr wird von der Auszahlung des Creators abgezogen. Die Marke zahlt genau den vereinbarten Betrag. Für Marken, die regelmäßig Aufträge vergeben, gibt es ein optionales Pro-Abo mit niedrigerer Gebühr.`,
     },
     {
-      question: "Müssen bezahlte Beiträge als Werbung gekennzeichnet werden?",
+      question: "Müssen bezahlte Posts als Werbung gekennzeichnet werden?",
       answer:
         "In Deutschland müssen bezahlte Posts in der Regel als Werbung gekennzeichnet werden. Klärt die Kennzeichnung vor dem Posten im Chat ab. Das ist keine Rechtsberatung.",
     },
@@ -468,3 +468,81 @@ export const UGC_HUB_FAQS: { question: string; answer: string }[] = [
 
 export const UGC_PATH = "/ugc";
 export const ugcNicheHref = (slug: string) => `${UGC_PATH}/${slug}`;
+
+// The page for the other side of the market: creators looking for paid work (/ugc/creator-werden). It sits
+// under /ugc next to the niche pages, so its slug is reserved (the proxy lets it through, see src/proxy.ts).
+export const UGC_CREATOR_PATH = `${UGC_PATH}/creator-werden`;
+export const UGC_RESERVED_SLUGS = ["creator-werden"] as const;
+
+export const UGC_CREATOR_PAGE = {
+  title: "Als UGC-Creator Geld verdienen",
+  description:
+    "Als UGC-Creator bezahlte Aufträge von Marken finden: Anfragen mit Budget ansehen, im Chat absprechen, über die Plattform bezahlt werden. Kostenlos.",
+  heading: "Als UGC-Creator Geld verdienen",
+  ogLines: ["Als UGC-Creator", "Geld verdienen."] as [string, string],
+  lead: "UGC-Creator machen Videos und Fotos für Marken, so wie echte Kunden ein Produkt zeigen würden. Auf comtor siehst du bezahlte Anfragen mit Budget und Anforderungen, zeigst mit einem Tipp Interesse und sprichst alles Weitere im Chat ab. Bezahlt wirst du über die Plattform.",
+  doing: [
+    {
+      title: "Produktvideos",
+      text: "Ein Produkt ausprobieren, filmen und ehrlich zeigen, wie es im Alltag funktioniert.",
+    },
+    {
+      title: "Unboxings und erste Eindrücke",
+      text: "Auspacken, ausprobieren, sagen, was auffällt. Ohne Studio, dafür glaubwürdig.",
+    },
+    {
+      title: "Anwendungen und Tutorials",
+      text: "Schritt für Schritt zeigen, wie ein Produkt benutzt wird und was es leichter macht.",
+    },
+    {
+      title: "Fotos in echten Situationen",
+      text: "Produktfotos im Alltag, für Shop, Social Media und Anzeigen der Marke.",
+    },
+  ],
+  steps: [
+    "Profil anlegen: Wähle bis zu drei Nischen, trage deine Plattformen jeweils mit der Followerzahl ein und gib die Sprache deiner Inhalte an.",
+    "Anfragen ansehen: Im Feed siehst du Budget, Plattform und Lieferumfang, bevor du dich meldest.",
+    "Interesse zeigen: Mit „Interessiert“ öffnest du den Chat mit der Marke und sprichst Details und Termin ab.",
+    "Posten und Link einreichen: Nach dem Post reichst du den Link zu deinem Post ein.",
+    `Bezahlt werden: Die Marke gibt den Post frei, spätestens nach ${RELEASE_REVIEW_DAYS} Tagen, und die Zahlung wird an dich ausgezahlt.`,
+  ],
+  tips: [
+    {
+      title: "Zeig das Produkt früh",
+      text: "In den ersten Sekunden sollte klar sein, worum es geht und was das Produkt kann.",
+    },
+    {
+      title: "Sprich natürlich",
+      text: "Ehrliche Eindrücke in deinen eigenen Worten überzeugen meist mehr als ein auswendig gelernter Text.",
+    },
+    {
+      title: "Achte auf Licht und Ton",
+      text: "Tageslicht und ein ruhiger Ort reichen oft. Gutes Bild und klarer Ton fallen auf.",
+    },
+    {
+      title: "Kläre die Nutzung vorher",
+      text: "Sprich im Chat ab, wo die Marke deine Inhalte verwenden darf, bevor du drehst.",
+    },
+  ],
+  faqs: [
+    {
+      question: "Brauche ich viele Follower?",
+      answer:
+        "Das legt die Marke fest: Jede Anfrage nennt eine Mindestzahl an Followern, manche Marken setzen keine Untergrenze. Unter „Für dich“ siehst du Anfragen aus deinen Nischen und unter „Alle“ alles, was zu deiner Sprache und Reichweite passt.",
+    },
+    {
+      question: "Auf welchen Plattformen kann ich posten?",
+      answer: `Du trägst deine Plattformen mit der Followerzahl ein: ${PLATFORM_LIST}. Die Marke legt in ihrer Anfrage fest, wo gepostet werden soll.`,
+    },
+    {
+      question: "Wie schnell bekomme ich mein Geld?",
+      answer: `Sobald die Marke deinen Post freigibt, geht die Zahlung an dich. Die Marke hat dafür ${RELEASE_REVIEW_DAYS} Tage Zeit, antwortet sie nicht, wird die Zahlung automatisch freigegeben. Die Auszahlung läuft über Stripe.`,
+    },
+    {
+      question: "Muss ich als UGC-Creator ein Gewerbe anmelden?",
+      answer:
+        "Das hängt von deiner Situation ab, etwa davon, wie oft und wie viel du verdienst. Einnahmen musst du in Deutschland in der Regel steuerlich angeben. Frag im Zweifel eine Steuerberatung. Das ist keine Steuer- oder Rechtsberatung.",
+    },
+    ...sharedFaqs(),
+  ],
+};

@@ -4,9 +4,10 @@ import { prisma } from "@/lib/prisma";
 import { LogoBackdrop } from "@/components/logo-backdrop";
 import { ImprintLink } from "@/components/imprint-link";
 import { ConfirmWaitlistForm, WaitlistConfirmed } from "@/components/confirm-waitlist-form";
-import { NO_INDEX } from "@/lib/seo";
+import { NO_INDEX, metadataFor } from "@/lib/seo";
 
-export const metadata: Metadata = { title: "Confirm your email", robots: NO_INDEX };
+export const generateMetadata = (): Promise<Metadata> =>
+  metadataFor({ title: "Confirm your email", robots: NO_INDEX }, { title: "E-Mail bestätigen", robots: NO_INDEX });
 
 // Where the waitlist's confirmation email leads (see joinWaitlistAction).
 // Opening it confirms nothing yet; the button does.

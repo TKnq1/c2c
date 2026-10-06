@@ -4,7 +4,16 @@ import { canonical } from "@/lib/seo";
 import { getLocale } from "@/lib/i18n/server";
 import { LEGAL_UPDATED } from "@/lib/legal/version";
 
-export const metadata: Metadata = { title: "Open-source licenses", alternates: canonical("/legal/licenses") };
+export async function generateMetadata(): Promise<Metadata> {
+  const german = (await getLocale()) === "de";
+  return {
+    title: german ? "Open-Source-Lizenzen" : "Open-source licenses",
+    description: german
+      ? "Welche Software, Schriften und Bilder comtor verwendet, und unter welchen Lizenzen."
+      : "Which software, fonts and images comtor uses, and under which licences.",
+    alternates: canonical("/legal/licenses"),
+  };
+}
 
 const EN: { title: string; body: string[] }[] = [
   {
@@ -63,14 +72,14 @@ const DE: { title: string; body: string[] }[] = [
 export default async function LicensesPage() {
   const german = (await getLocale()) === "de";
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-8">
       <LegalDocument
         title={german ? "Open-Source-Lizenzen" : "Open-source licenses"}
         updated={german ? LEGAL_UPDATED.de : LEGAL_UPDATED.en}
         intro={german ? "Welche Software, Schriften und Bilder comtor verwendet, und unter welchen Lizenzen." : "Which software, fonts and images comtor uses, and under which licences."}
         sections={german ? DE : EN}
       />
-      <p className="text-sm">
+      <p className="rounded bg-fog p-5 text-sm">
         <a href="/third-party-notices.txt" className="font-medium underline underline-offset-2">
           {german ? "Lizenztexte aller Open-Source-Pakete (Textdatei)" : "Licence texts of all open-source packages (text file)"}
         </a>

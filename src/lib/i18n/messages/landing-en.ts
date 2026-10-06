@@ -130,6 +130,9 @@ export const landing = {
     startBrand: "Start as a brand",
     startCreator: "Start as a creator",
   },
+  legal: {
+    updated: "Last updated",
+  },
   faq: {
     title: "Frequently asked questions",
     lead: "How the platform works, in plain terms.",
