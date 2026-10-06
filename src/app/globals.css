@@ -143,8 +143,23 @@ body {
   background-color: var(--paper);
 }
 
-/* The dark mark is solid black. Muted copy has to sit well above that,
-   or it disappears into the shape. */
+/* The dark watermark is a mid gray. Secondary copy in that same range
+   disappears where the mark passes behind it, so the column gets a soft
+   paper veil and the muted text steps up toward white. */
+.dark .onboarding-stage > main::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  inset: -20vh -50vw;
+  pointer-events: none;
+  background: radial-gradient(
+    ellipse at center,
+    color-mix(in srgb, var(--paper) 88%, transparent) 0%,
+    color-mix(in srgb, var(--paper) 45%, transparent) 46%,
+    transparent 72%
+  );
+}
+
 .dark .onboarding-stage :where(.text-neutral-400, .text-neutral-500, .text-neutral-600) {
   color: #e4e4e4;
 }
