@@ -16,6 +16,14 @@ if (process.env.VERCEL_ENV && process.env.VERCEL_ENV !== "production") {
   process.exit(0);
 }
 
+// Emergency switch: SKIP_MIGRATIONS=1 in the project's environment variables lets a build go through
+// without touching the database, e.g. while the build machines can't reach it but the schema is already
+// current. Remove it again afterwards: with it set, new migrations are NOT applied.
+if (process.env.SKIP_MIGRATIONS === "1") {
+  console.log("SKIP_MIGRATIONS=1: not running migrations.");
+  process.exit(0);
+}
+
 // Prisma Migrate needs a direct connection, not Neon's pooler (it can't
 // hold the lock migrations take). Neon's Vercel integration provides one;
 // otherwise derive it from the pooled host (ep-…-pooler → ep-…).
