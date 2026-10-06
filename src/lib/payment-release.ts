@@ -65,8 +65,10 @@ export async function releaseHeldPayment(interestId: string, trigger: ReleaseTri
       : trigger === "approved"
         ? { paymentStatus: "HELD", disputedAt: null, proofSubmittedAt: { not: null } }
         : { paymentStatus: "HELD", disputedAt: null, proofSubmittedAt: { lte: new Date(Date.now() - RELEASE_REVIEW_MS) } };
+  // payoutCents is part of the claim: if the deal was moved to the Pro fee since it was read above (see
+  // open-deal-fees.ts), the transfer below would send the old amount, so the claim fails and a retry reads the new one.
   const claimed = await prisma.interest.updateMany({
-    where: { id: interestId, ...claimWhere },
+    where: { id: interestId, ...claimWhere, payoutCents: interest.payoutCents },
     data: { paymentStatus: "RELEASED", releasedAt: new Date() },
   });
   if (claimed.count === 0) return { error: "This payment can't be released right now. Refresh the page." };

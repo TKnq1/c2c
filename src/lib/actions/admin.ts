@@ -8,6 +8,7 @@ import { anonymiseAccount, hasPaymentRecords, moneyInFlight } from "@/lib/accoun
 import { audit } from "@/lib/audit";
 import { revokeFoundingPro } from "@/lib/founding";
 import { sendFoundingNotices } from "@/lib/founding-notice";
+import { repriceOpenDeals } from "@/lib/open-deal-fees";
 import { prisma } from "@/lib/prisma";
 import { sendEmail } from "@/lib/email";
 import { accountSuspendedEmail, testEmail } from "@/lib/email-templates";
@@ -112,6 +113,25 @@ export async function sendFoundingNoticesAction(password: string): Promise<Admin
   revalidateAdmin();
   if (result.failed > 0) {
     return { error: `${result.sent} sent, ${result.failed} failed (they stay on the list). Check /admin/email, then try again.` };
+  }
+  return {};
+}
+
+// Moves the open deals (offered, awaiting payment, in escrow) of a brand or creator with Pro from the standard fee to the
+// Pro fee (see src/lib/open-deal-fees.ts). It changes what creators are paid out, so it asks for the password.
+export async function repriceOpenDealsAction(password: string): Promise<AdminActionResult> {
+  const session = await requireAdmin();
+  if (!session) return { error: "Not authorized." };
+  const passwordError = await confirmAdminPassword(session.user.id, password);
+  if (passwordError) return { error: passwordError };
+
+  const result = await repriceOpenDeals();
+  await audit(session.user.id, "deals.reprice", undefined, result);
+  revalidateAdmin();
+  revalidatePath("/dashboard/startup/payments");
+  revalidatePath("/dashboard/creator/payments");
+  if (result.skipped > 0) {
+    return { error: `${result.updated} updated, ${result.skipped} changed in the meantime and were skipped. Press it again to pick them up.` };
   }
   return {};
 }
