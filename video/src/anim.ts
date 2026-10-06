@@ -1,8 +1,8 @@
 import type { CSSProperties } from "react";
 import { Easing, interpolate, spring, type SpringConfig } from "remotion";
-import { FPS } from "./theme";
+import { FPS, GUTTER } from "./theme";
 
-// FPS is fixed instead of read from useVideoConfig, so a scene frozen inside a <Still> (fps 1) animates the same.
+// FPS is fixed instead of read from useVideoConfig, so timings don't depend on the composition a scene runs in.
 
 // 0 → 1, settles without overshoot.
 export function ease(frame: number, delay: number, config: Partial<SpringConfig> = {}) {
@@ -38,4 +38,14 @@ export function euro(value: number) {
 
 export function thousands(value: number) {
   return Math.round(value).toLocaleString("de-DE");
+}
+
+// The browser window rising into place from below the frame.
+export function browserIn(frame: number, top: number, delay = 8): CSSProperties {
+  return { position: "absolute", top, left: GUTTER, transform: `translateY(${(1 - ease(frame, delay, { stiffness: 80 })) * 1300}px)` };
+}
+
+// Interpolate with clamping and a soft in-out curve, for pointer paths.
+export function path(frame: number, frames: number[], values: number[]) {
+  return interpolate(frame, frames, values, { extrapolateLeft: "clamp", extrapolateRight: "clamp", easing: Easing.inOut(Easing.cubic) });
 }

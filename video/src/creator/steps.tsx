@@ -1,5 +1,5 @@
 import type { CSSProperties, ReactNode } from "react";
-import { Easing, interpolate, useCurrentFrame } from "remotion";
+import { Easing, useCurrentFrame } from "remotion";
 import {
   IoAirplane,
   IoArrowForward,
@@ -18,20 +18,10 @@ import {
   IoSparkles,
 } from "react-icons/io5";
 import { Sfx, SfxRepeat } from "../audio";
-import { ease, enterUp, mix, pop, popIn, ramp, thousands } from "../anim";
+import { browserIn, ease, enterUp, mix, path, pop, popIn, ramp, thousands } from "../anim";
 import { Cursor, pressAt } from "../components/shared-scenes";
 import { Avatar, BrowserWindow, Bubble, type Deal, DealCard, KIEZ_GOODS, ODD_BLOOM, Photo, SampleNote, SceneHeader, Stage, Toast } from "../components/ui";
-import { colors, GUTTER } from "../theme";
-
-// The browser window rising into place from below the frame.
-function browserIn(frame: number, top: number, delay = 8): CSSProperties {
-  return { position: "absolute", top, left: GUTTER, transform: `translateY(${(1 - ease(frame, delay, { stiffness: 80 })) * 1300}px)` };
-}
-
-// Interpolate with clamping and a soft in-out curve, for pointer paths.
-function path(frame: number, frames: number[], values: number[]) {
-  return interpolate(frame, frames, values, { extrapolateLeft: "clamp", extrapolateRight: "clamp", easing: Easing.inOut(Easing.cubic) });
-}
+import { colors } from "../theme";
 
 const NICHES = [
   { label: "Beauty", icon: IoSparkles, click: 48 },

@@ -7,6 +7,7 @@
     "render:creator": "remotion render CreatorVideo out/creator.mp4",
     "render:creator:stems": "remotion render CreatorVideo out/creator-music.wav --codec=wav --props='{\"music\":true,\"sfx\":false}' && remotion render CreatorVideo out/creator-sfx.wav --codec=wav --props='{\"music\":false,\"sfx\":true}'",
     "render:brand": "remotion render BrandVideo out/brand.mp4",
+    "render:brand:stems": "remotion render BrandVideo out/brand-music.wav --codec=wav --props='{\"music\":true,\"sfx\":false}' && remotion render BrandVideo out/brand-sfx.wav --codec=wav --props='{\"music\":false,\"sfx\":true}'",
     "styleframes": "node scripts/render-styleframes.mjs",
     "audio": "python3 scripts/make-audio.py",
     "typecheck": "tsc --noEmit"
