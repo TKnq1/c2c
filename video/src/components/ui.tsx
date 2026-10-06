@@ -1,5 +1,6 @@
 import type { CSSProperties, ReactNode } from "react";
-import { AbsoluteFill, Img, staticFile } from "remotion";
+import { AbsoluteFill, Img, staticFile, useCurrentFrame } from "remotion";
+import { ease, enterUp, pop, popIn, ramp } from "../anim";
 import { IoGiftOutline, IoLogoInstagram, IoLogoTiktok, IoStar } from "react-icons/io5";
 import { colors, FONT, GUTTER, PHOTOS, type PhotoKey } from "../theme";
 
@@ -19,50 +20,79 @@ export const Stage: React.FC<{ dark?: boolean; children: ReactNode }> = ({ dark,
 // A plain string, or a word set on an inverted bar.
 export type HeadlinePart = string | { mark: string };
 
+// Frames between two words of an animated headline.
+const WORD_STAGGER = 3;
+
+export function headlineLength(parts: HeadlinePart[]) {
+  return parts.reduce((n, part) => n + (typeof part === "string" ? part.split(" ").length : 1), 0) * WORD_STAGGER;
+}
+
+// With `start`, the words rise in one after another from that frame and each mark's bar wipes in before its text.
+// Without it, the headline is simply there.
 export const Headline: React.FC<{
   parts: HeadlinePart[];
   size?: number;
   dark?: boolean;
   align?: "left" | "center";
+  start?: number;
   style?: CSSProperties;
-}> = ({ parts, size = 104, dark, align = "left", style }) => (
-  <div
-    style={{
-      fontSize: size,
-      fontWeight: 900,
-      lineHeight: 1.08,
-      letterSpacing: -2,
-      textAlign: align,
-      ...style,
-    }}
-  >
-    {parts.map((part, i) =>
-      typeof part === "string" ? (
-        <span key={i}>{part} </span>
-      ) : (
-        <span key={i}>
-          <span
-            style={{
-              backgroundColor: dark ? colors.paper : colors.ink,
-              color: dark ? colors.ink : colors.paper,
-              padding: "0 18px",
-              boxDecorationBreak: "clone",
-              WebkitBoxDecorationBreak: "clone",
-            }}
-          >
-            {part.mark}
-          </span>{" "}
-        </span>
-      ),
-    )}
-  </div>
-);
+}> = ({ parts, size = 104, dark, align = "left", start, style }) => {
+  const frame = useCurrentFrame();
+  const at = (delay: number) => (start === undefined ? 1 : ease(frame, start + delay, { stiffness: 140 }));
+  const barAt = (delay: number) => (start === undefined ? 1 : ramp(frame, start + delay, start + delay + 9));
+  let word = 0;
+
+  return (
+    <div
+      style={{
+        fontSize: size,
+        fontWeight: 900,
+        lineHeight: 1.08,
+        letterSpacing: -2,
+        textAlign: align,
+        ...style,
+      }}
+    >
+      {parts.map((part, i) => {
+        if (typeof part === "string") {
+          return part.split(" ").map((text, j) => {
+            const p = at(word++ * WORD_STAGGER);
+            return (
+              <span key={`${i}-${j}`}>
+                <span style={{ display: "inline-block", ...enterUp(p, size * 0.5) }}>{text}</span>{" "}
+              </span>
+            );
+          });
+        }
+        const delay = word++ * WORD_STAGGER;
+        const ink = dark ? colors.paper : colors.ink;
+        return (
+          <span key={i}>
+            <span
+              style={{
+                backgroundImage: `linear-gradient(${ink}, ${ink})`,
+                backgroundRepeat: "no-repeat",
+                backgroundSize: `${barAt(delay) * 100}% 100%`,
+                color: dark ? colors.ink : colors.paper,
+                padding: "0 18px",
+                boxDecorationBreak: "clone",
+                WebkitBoxDecorationBreak: "clone",
+              }}
+            >
+              <span style={{ opacity: start === undefined ? 1 : ramp(frame, start + delay + 5, start + delay + 10) }}>{part.mark}</span>
+            </span>{" "}
+          </span>
+        );
+      })}
+    </div>
+  );
+};
 
 export const Subline: React.FC<{ children: ReactNode; dark?: boolean; style?: CSSProperties }> = ({ children, dark, style }) => (
   <div style={{ fontSize: 40, lineHeight: 1.3, color: dark ? colors.stone : colors.graphite, ...style }}>{children}</div>
 );
 
-// Top block of a scene: optional step pill, headline, optional subline.
+// Top block of a scene: optional step pill, headline, optional subline. `start` animates it in (see Headline).
 export const SceneHeader: React.FC<{
   step?: { n: number; label: string };
   parts: HeadlinePart[];
@@ -70,13 +100,28 @@ export const SceneHeader: React.FC<{
   size?: number;
   dark?: boolean;
   top?: number;
-}> = ({ step, parts, sub, size = 92, dark, top = 150 }) => (
-  <div style={{ position: "absolute", top, left: GUTTER, right: GUTTER, display: "flex", flexDirection: "column", gap: 28 }}>
-    {step && <StepLabel n={step.n} label={step.label} dark={dark} />}
-    <Headline parts={parts} size={size} dark={dark} />
-    {sub && <Subline dark={dark}>{sub}</Subline>}
-  </div>
-);
+  start?: number;
+}> = ({ step, parts, sub, size = 92, dark, top = 150, start }) => {
+  const frame = useCurrentFrame();
+  const headlineStart = start === undefined ? undefined : start + (step ? 5 : 0);
+  const stepP = start === undefined ? 1 : pop(frame, start);
+  const subP = headlineStart === undefined ? 1 : ease(frame, headlineStart + headlineLength(parts) + 4);
+  return (
+    <div style={{ position: "absolute", top, left: GUTTER, right: GUTTER, display: "flex", flexDirection: "column", gap: 28 }}>
+      {step && (
+        <div style={{ alignSelf: "flex-start", transformOrigin: "left center", ...popIn(stepP, 0.5) }}>
+          <StepLabel n={step.n} label={step.label} dark={dark} />
+        </div>
+      )}
+      <Headline parts={parts} size={size} dark={dark} start={headlineStart} />
+      {sub && (
+        <div style={enterUp(subP, 30)}>
+          <Subline dark={dark}>{sub}</Subline>
+        </div>
+      )}
+    </div>
+  );
+};
 
 export const StepLabel: React.FC<{ n: number; label: string; dark?: boolean }> = ({ n, label, dark }) => (
   <div

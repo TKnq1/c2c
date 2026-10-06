@@ -14,7 +14,7 @@ import {
 } from "react-icons/io5";
 import { Avatar, BrowserWindow, DealCard, Headline, Logo, Photo, PhoneOutline, SampleNote, SceneHeader, Stage, Subline, Toast } from "../components/ui";
 import { colors, GUTTER, type PhotoKey } from "../theme";
-import { LogoReveal, UrlPill } from "./creator";
+import { LogoReveal, UrlPill } from "../components/shared-scenes";
 
 export const B01Hook: React.FC = () => (
   <Stage>
