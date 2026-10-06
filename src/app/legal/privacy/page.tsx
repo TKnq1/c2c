@@ -5,7 +5,16 @@ import { getLocale } from "@/lib/i18n/server";
 import { dePrivacy } from "@/lib/legal/de";
 import { LEGAL_UPDATED } from "@/lib/legal/version";
 
-export const metadata: Metadata = { title: "Privacy Policy", alternates: canonical("/legal/privacy") };
+export async function generateMetadata(): Promise<Metadata> {
+  const german = (await getLocale()) === "de";
+  return {
+    title: german ? "Datenschutzerklärung" : "Privacy Policy",
+    description: german
+      ? "Welche personenbezogenen Daten comtor verarbeitet, warum, und welche Rechte du hast."
+      : "What personal data comtor processes, why, and what rights you have.",
+    alternates: canonical("/legal/privacy"),
+  };
+}
 
 // Describes what the app actually does with personal data — keep it in step
 // with the code when that changes (new data, a new service provider).

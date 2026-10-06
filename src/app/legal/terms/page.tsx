@@ -7,7 +7,14 @@ import { getLocale } from "@/lib/i18n/server";
 import { deTerms } from "@/lib/legal/de";
 import { LEGAL_UPDATED } from "@/lib/legal/version";
 
-export const metadata: Metadata = { title: "Terms of Service", alternates: canonical("/legal/terms") };
+export async function generateMetadata(): Promise<Metadata> {
+  const german = (await getLocale()) === "de";
+  return {
+    title: german ? "Allgemeine Geschäftsbedingungen (AGB)" : "Terms of Service",
+    description: german ? "Die Bedingungen für die Nutzung von comtor." : "The terms for using comtor.",
+    alternates: canonical("/legal/terms"),
+  };
+}
 
 const SECTIONS: { title: string; body: string[] }[] = [
   {
@@ -109,6 +116,7 @@ export default async function TermsPage() {
     <LegalDocument
       title={german ? "Allgemeine Geschäftsbedingungen" : "Terms of Service"}
       updated={german ? LEGAL_UPDATED.de : LEGAL_UPDATED.en}
+      intro={german ? "Die Bedingungen für die Nutzung von comtor." : "The terms for using comtor."}
       sections={german ? deTerms() : SECTIONS}
     />
   );

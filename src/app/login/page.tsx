@@ -5,10 +5,14 @@ import { DeletedAccountToast } from "@/components/deleted-account-toast";
 import { LogoBackdrop } from "@/components/logo-backdrop";
 import { ImprintLink } from "@/components/imprint-link";
 import { WelcomeLogoPreload } from "@/components/welcome-overlay";
-import { canonical } from "@/lib/seo";
+import { canonical, metadataFor } from "@/lib/seo";
 import { getT } from "@/lib/i18n/server";
 
-export const metadata: Metadata = { title: "Log in", alternates: canonical("/login") };
+export const generateMetadata = (): Promise<Metadata> =>
+  metadataFor(
+    { title: "Log in", description: "Log in to comtor.", alternates: canonical("/login") },
+    { title: "Anmelden", description: "Melde dich bei comtor an.", alternates: canonical("/login") },
+  );
 
 export default async function LoginPage() {
   const t = await getT();

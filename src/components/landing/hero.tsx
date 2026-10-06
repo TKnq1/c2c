@@ -116,14 +116,14 @@ export function Hero({ brands, creators }: { brands: number; creators: number })
 
         <p
           data-for="creator"
-          className="lp-rise mt-6 max-w-[36ch] rounded bg-paper/60 px-4 py-3 text-[19px] leading-snug text-ink backdrop-blur-xl md:text-[22px]"
+          className="lp-rise lp-glow mt-6 max-w-[36ch] text-[19px] leading-snug font-medium text-ink md:text-[22px]"
           style={delay(250)}
         >
           {t("landing.hero.creatorBody")}
         </p>
         <p
           data-for="brand"
-          className="lp-rise mt-6 max-w-[38ch] rounded bg-paper/60 px-4 py-3 text-[19px] leading-snug text-ink backdrop-blur-xl md:text-[22px]"
+          className="lp-rise lp-glow mt-6 max-w-[38ch] text-[19px] leading-snug font-medium text-ink md:text-[22px]"
           style={delay(250)}
         >
           {t("landing.hero.brandBody")}
@@ -176,7 +176,7 @@ function CrowdLine({ side, count, one, many }: { side: "creator" | "brand"; coun
   return (
     <p
       data-for={side}
-      className="lp-rise mt-4 rounded bg-paper/60 px-4 py-2 text-[19px] leading-snug text-ink backdrop-blur-xl md:text-[22px]"
+      className="lp-rise lp-glow mt-4 text-[19px] leading-snug font-medium text-ink md:text-[22px]"
       style={delay(300)}
     >
       <CountUp to={count} />{" "}

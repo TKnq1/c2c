@@ -3,7 +3,7 @@ import Link from "next/link";
 import { UgcBreadcrumbs, UgcCtas, UgcFaq, UgcFooter, UgcHeader, UgcSection, UgcSteps, UgcWatermark } from "@/components/ugc/ugc-parts";
 import { RELEASE_REVIEW_DAYS } from "@/lib/constants";
 import { canonical } from "@/lib/seo";
-import { UGC_HUB_FAQS, UGC_NICHE_PAGES, UGC_PATH, ugcNicheHref } from "@/lib/seo-pages";
+import { UGC_CREATOR_PATH, UGC_HUB_FAQS, UGC_NICHE_PAGES, UGC_PATH, ugcNicheHref } from "@/lib/seo-pages";
 
 const TITLE = "UGC-Creator finden und beauftragen";
 const DESCRIPTION =
@@ -40,6 +40,13 @@ export default function UgcPage() {
               Kostenlos anmelden. comtor läuft im Browser, die Sprache wählst du beim Start.
             </p>
           </div>
+
+          <Link href={UGC_CREATOR_PATH} className="rounded bg-fog p-5 transition hover:bg-ink/10">
+            <h2 className="font-display text-title-2 font-bold">Du bist Creator?</h2>
+            <p className="mt-1 text-sm text-neutral-700 dark:text-neutral-300">
+              So findest du bezahlte UGC-Aufträge und wirst über die Plattform bezahlt: Als UGC-Creator Geld verdienen.
+            </p>
+          </Link>
 
           <UgcSection title="UGC nach Nische">
             <div className="grid gap-3 sm:grid-cols-2">

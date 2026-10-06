@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { hasAdminAccess } from "@/lib/admin-access";
-import { getUgcNichePage } from "@/lib/seo-pages";
+import { getUgcNichePage, UGC_RESERVED_SLUGS } from "@/lib/seo-pages";
 import { parseSignupRole } from "@/lib/signup-role";
 
 // Pre-launch gate — flip to false once setup is finished and the site is
@@ -77,7 +77,7 @@ export default auth((req) => {
   // A niche page that doesn't exist is a real 404. notFound() inside the page answers 200 (the response has
   // already started streaming), which search engines count as a soft error.
   const ugcSlug = /^\/ugc\/([^/]+)\/?$/.exec(pathname)?.[1];
-  if (ugcSlug && ugcSlug !== "opengraph-image" && !getUgcNichePage(ugcSlug)) {
+  if (ugcSlug && ugcSlug !== "opengraph-image" && !(UGC_RESERVED_SLUGS as readonly string[]).includes(ugcSlug) && !getUgcNichePage(ugcSlug)) {
     return NextResponse.rewrite(new URL("/__not-found", req.url));
   }
 

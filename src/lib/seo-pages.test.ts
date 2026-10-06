@@ -1,11 +1,26 @@
 import { describe, expect, it } from "vitest";
 import { NICHES } from "@/lib/constants";
 import sitemap from "@/app/sitemap";
-import { getUgcNichePage, UGC_HUB_FAQS, UGC_NICHE_PAGES, ugcNicheHref } from "@/lib/seo-pages";
+import {
+  getUgcNichePage,
+  UGC_CREATOR_PAGE,
+  UGC_CREATOR_PATH,
+  UGC_HUB_FAQS,
+  UGC_NICHE_PAGES,
+  UGC_RESERVED_SLUGS,
+  ugcNicheHref,
+} from "@/lib/seo-pages";
 
 const allTexts = () =>
   [
     ...UGC_HUB_FAQS.flatMap((f) => [f.question, f.answer]),
+    UGC_CREATOR_PAGE.title,
+    UGC_CREATOR_PAGE.description,
+    UGC_CREATOR_PAGE.lead,
+    ...UGC_CREATOR_PAGE.doing.flatMap((d) => [d.title, d.text]),
+    ...UGC_CREATOR_PAGE.steps,
+    ...UGC_CREATOR_PAGE.tips.flatMap((t) => [t.title, t.text]),
+    ...UGC_CREATOR_PAGE.faqs.flatMap((f) => [f.question, f.answer]),
     ...UGC_NICHE_PAGES.flatMap((p) => [
       p.title,
       p.description,
@@ -66,5 +81,14 @@ describe("German search pages", () => {
     const urls = sitemap().map((entry) => entry.url);
     expect(urls.some((u) => u.endsWith("/ugc"))).toBe(true);
     for (const page of UGC_NICHE_PAGES) expect(urls.some((u) => u.endsWith(ugcNicheHref(page.slug)))).toBe(true);
+  });
+
+  it("has a page for creators next to the niche pages", () => {
+    expect(UGC_CREATOR_PAGE.title.length + 9).toBeLessThanOrEqual(60);
+    expect(UGC_CREATOR_PAGE.description.length).toBeLessThanOrEqual(160);
+    expect(UGC_CREATOR_PAGE.faqs.length).toBeGreaterThanOrEqual(5);
+    // Its slug is taken: no niche page may use it.
+    for (const slug of UGC_RESERVED_SLUGS) expect(getUgcNichePage(slug)).toBeUndefined();
+    expect(sitemap().some((entry) => entry.url.endsWith(UGC_CREATOR_PATH))).toBe(true);
   });
 });

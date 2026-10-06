@@ -46,7 +46,7 @@ export function WaitlistForm() {
 
   return (
     <form action={action} className="mx-auto mt-8 w-full max-w-md text-left">
-      <p className="mb-3 text-center text-sm font-medium text-ink">
+      <p className="mx-auto mb-3 w-fit rounded bg-paper/65 px-3 py-1.5 text-center text-sm font-medium text-ink backdrop-blur-xl">
         {t("landing.waitlist.want")}
       </p>
       <input type="hidden" name="role" value={role ?? ""} />
@@ -89,14 +89,14 @@ export function WaitlistForm() {
           {localizeError(state.error, t)}
         </p>
       )}
-      <p className="mt-3 text-center text-footnote text-neutral-700 dark:text-neutral-300">
+      <p className="mx-auto mt-3 w-fit rounded bg-paper/65 px-3 py-1.5 text-center text-footnote text-ink backdrop-blur-xl">
         {t("landing.waitlist.confirmFirst")}{" "}
         <Link href="/legal/privacy" className="underline underline-offset-2">
           {t("screens.settings.privacy")}
         </Link>
         .
       </p>
-      <p className="mt-6 text-center text-sm text-neutral-800 dark:text-neutral-200">
+      <p className="mx-auto mt-6 w-fit rounded bg-paper/65 px-3 py-1.5 text-center text-sm text-ink backdrop-blur-xl">
         {t("landing.waitlist.haveAccount")}{" "}
         <Link href="/login" className="font-semibold underline underline-offset-2">
           {t("landing.waitlist.logIn")}

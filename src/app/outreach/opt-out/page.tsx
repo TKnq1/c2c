@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
 import { confirmOutreachOptOut } from "@/lib/actions/outreach-opt-out";
 import { isOutreachSide, outreachOptOutMatches } from "@/lib/outreach-opt-out";
-import { NO_INDEX } from "@/lib/seo";
+import { NO_INDEX, metadataFor } from "@/lib/seo";
 
-export const metadata: Metadata = { title: "Stop these emails", robots: NO_INDEX };
+export const generateMetadata = (): Promise<Metadata> =>
+  metadataFor({ title: "Stop these emails", robots: NO_INDEX }, { title: "Diese E-Mails abbestellen", robots: NO_INDEX });
 
 export default async function OutreachOptOutPage(props: PageProps<"/outreach/opt-out">) {
   const params = await props.searchParams;

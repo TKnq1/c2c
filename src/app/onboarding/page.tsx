@@ -9,13 +9,11 @@ import { BrandOnboarding } from "@/components/brand-onboarding";
 import { CreatorOnboarding } from "@/components/creator-onboarding";
 import { GuestOnboarding } from "@/components/guest-onboarding";
 import type { Metadata } from "next";
-import { NO_INDEX } from "@/lib/seo";
+import { metadataFor, NO_INDEX } from "@/lib/seo";
 import { parseSignupRole } from "@/lib/signup-role";
 
-export const metadata: Metadata = {
-  title: "Set up your profile",
-  robots: NO_INDEX,
-};
+export const generateMetadata = (): Promise<Metadata> =>
+  metadataFor({ title: "Set up your profile", robots: NO_INDEX }, { title: "Profil einrichten", robots: NO_INDEX });
 
 export default async function OnboardingPage(props: PageProps<"/onboarding">) {
   const session = await auth();

@@ -1,5 +1,5 @@
 import type { MetadataRoute } from "next";
-import { UGC_NICHE_PAGES, UGC_PATH, ugcNicheHref } from "@/lib/seo-pages";
+import { UGC_CREATOR_PATH, UGC_NICHE_PAGES, UGC_PATH, ugcNicheHref } from "@/lib/seo-pages";
 import { SITE_URL } from "@/lib/site";
 
 // The pages worth finding through search, landing page first. Login and the
@@ -12,6 +12,7 @@ const PUBLIC_ROUTES = [
   "/faq",
   // The German search pages: the overview and one per niche.
   UGC_PATH,
+  UGC_CREATOR_PATH,
   ...UGC_NICHE_PAGES.map((page) => ugcNicheHref(page.slug)),
   "/legal/imprint",
   "/legal/terms",

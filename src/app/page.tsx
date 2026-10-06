@@ -3,6 +3,7 @@ import { LandingPage } from "@/components/landing/landing-page";
 import { LANDING_ROLE_SCRIPT } from "@/components/landing/landing-role-script";
 import { getLocale, getT } from "@/lib/i18n/server";
 import { canonical } from "@/lib/seo";
+import { SITE_URL } from "@/lib/site";
 
 // The crowd counts are read on each visit, so a new account shows up
 // without waiting for the next deploy.
@@ -24,9 +25,21 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
-export default function Home() {
+export default async function Home() {
+  const t = await getT();
+  const german = (await getLocale()) === "de";
+  // Tells search engines what the site is and in which language: the name, the address, the description.
+  const webSite = {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    name: "comtor",
+    url: SITE_URL,
+    inLanguage: german ? "de-DE" : "en",
+    description: t("landing.meta.siteDescription"),
+  };
   return (
     <>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(webSite) }} />
       {/* Before any of the page paints: which side to show (see
           landing-role-script.ts). */}
       <script dangerouslySetInnerHTML={{ __html: LANDING_ROLE_SCRIPT }} />

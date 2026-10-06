@@ -138,6 +138,9 @@ export const landingDe: DeepString<typeof landing> = {
     startBrand: "Als Marke starten",
     startCreator: "Als Creator starten",
   },
+  legal: {
+    updated: "Zuletzt aktualisiert",
+  },
   faq: {
     title: "Häufige Fragen",
     lead: "So funktioniert die Plattform, einfach erklärt.",
