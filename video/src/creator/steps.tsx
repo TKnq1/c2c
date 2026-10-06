@@ -17,6 +17,7 @@ import {
   IoShirt,
   IoSparkles,
 } from "react-icons/io5";
+import { Sfx, SfxRepeat } from "../audio";
 import { ease, enterUp, mix, pop, popIn, ramp, thousands } from "../anim";
 import { Cursor, pressAt } from "../components/shared-scenes";
 import { Avatar, BrowserWindow, Bubble, type Deal, DealCard, KIEZ_GOODS, ODD_BLOOM, Photo, SampleNote, SceneHeader, Stage, Toast } from "../components/ui";
@@ -120,6 +121,11 @@ export const C05Profile: React.FC = () => {
         <Cursor x={cursorX} y={cursorY} pressed={pressAt(frame, 48) + pressAt(frame, 64)} opacity={cursorOpacity} />
       </BrowserWindow>
       <SampleNote />
+      <Sfx name="click" at={48} volume={0.7} />
+      <Sfx name="click" at={64} volume={0.7} />
+      {PLATFORMS.map(({ name, delay }) => (
+        <Sfx key={name} name="pop-low" at={delay} volume={0.35} />
+      ))}
     </Stage>
   );
 };
@@ -229,6 +235,12 @@ export const C06Swipe: React.FC = () => {
         <Cursor x={cursorX} y={cursorY} pressed={grabbing} opacity={ramp(frame, 28, 34) * (1 - ramp(frame, 156, 166))} />
       </BrowserWindow>
       <SampleNote />
+      <Sfx name="click" at={38} volume={0.55} />
+      <Sfx name="swipe" at={58} volume={0.7} />
+      <Sfx name="click" at={98} volume={0.55} />
+      <Sfx name="click" at={140} volume={0.5} />
+      <Sfx name="like" at={146} volume={0.7} />
+      <Sfx name="swipe" at={178} volume={0.7} />
     </Stage>
   );
 };
@@ -295,6 +307,11 @@ export const C07Chat: React.FC = () => {
         </div>
       </BrowserWindow>
       <SampleNote />
+      <Sfx name="pop" at={28} volume={0.45} />
+      <Sfx name="pop" at={46} volume={0.45} />
+      <SfxRepeat name="tick" from={62} to={78} every={4} volume={0.2} />
+      <Sfx name="pop" at={80} volume={0.55} />
+      <Sfx name="stamp" at={118} volume={0.8} />
     </Stage>
   );
 };
@@ -370,6 +387,9 @@ export const C08Paid: React.FC = () => {
         </div>
       </BrowserWindow>
       <SampleNote />
+      <Sfx name="pop" at={26} volume={0.45} />
+      <Sfx name="pop" at={44} volume={0.45} />
+      <Sfx name="lock" at={50} volume={0.8} />
     </Stage>
   );
 };
@@ -429,6 +449,9 @@ export const C09Post: React.FC = () => {
         </div>
       </BrowserWindow>
       <SampleNote />
+      <SfxRepeat name="tick" from={26} to={58} every={2} volume={0.28} />
+      <Sfx name="click" at={66} volume={0.7} />
+      <Sfx name="like" at={88} volume={0.6} />
     </Stage>
   );
 };

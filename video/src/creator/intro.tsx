@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { Easing, useCurrentFrame } from "remotion";
 import { IoBookmarkOutline, IoChatbubbleOutline, IoHeart, IoHeartOutline, IoPaperPlaneOutline } from "react-icons/io5";
+import { Sfx } from "../audio";
 import { ease, mix, pop, popIn, ramp } from "../anim";
 import { LogoReveal } from "../components/shared-scenes";
 import { Bubble, PhoneOutline, SceneHeader, Stage } from "../components/ui";
@@ -85,6 +86,9 @@ export const C01Hook: React.FC = () => {
       >
         <IoHeart size={34} /> +1
       </div>
+      <Sfx name="whoosh" at={4} volume={0.35} />
+      <Sfx name="like" at={66} volume={0.7} />
+      <Sfx name="pop" at={72} volume={0.45} />
     </Stage>
   );
 };
@@ -162,6 +166,9 @@ export const C02Twist: React.FC = () => {
           </div>
         );
       })}
+      {COINS.map(({ delay }, i) => (
+        <Sfx key={i} name="coin" at={delay} volume={0.3 + i * 0.04} />
+      ))}
     </Stage>
   );
 };
@@ -227,6 +234,12 @@ export const C03Problem: React.FC = () => {
       >
         ?
       </div>
+      {DMS.map((dm) => (
+        <Sfx key={dm.text} name="pop" at={dm.in} volume={0.45} />
+      ))}
+      {DMS.map((dm) => dm.strike !== undefined && <Sfx key={dm.text} name="strike" at={dm.strike} volume={0.6} />)}
+      <Sfx name="pop-low" at={44} volume={0.5} />
+      <Sfx name="swipe" at={92} volume={0.4} />
     </Stage>
   );
 };

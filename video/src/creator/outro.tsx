@@ -1,5 +1,6 @@
-import { Easing, Html5Audio, Sequence, staticFile, useCurrentFrame } from "remotion";
+import { Easing, useCurrentFrame } from "remotion";
 import { IoCheckmarkCircle } from "react-icons/io5";
+import { Sfx, SfxRepeat } from "../audio";
 import { ease, enterUp, euro, mix, pop, popIn, ramp } from "../anim";
 import { UrlPill } from "../components/shared-scenes";
 import { Headline, Logo, SampleNote, SceneHeader, Stage, Subline } from "../components/ui";
@@ -79,10 +80,12 @@ export const C10Payout: React.FC = () => {
           <span style={{ fontSize: 120, fontWeight: 900, letterSpacing: -3, transform: `scale(${1 + 0.06 * Math.max(0, 1 - Math.abs(frame - PAYOUT_AT - 3) / 6)})` }}>{euro(amount)}</span>
         </div>
       </div>
-      <Sequence from={PAYOUT_AT} layout="none">
-        <Html5Audio src={staticFile("sounds/success.mp3")} volume={0.6} />
-      </Sequence>
       <SampleNote />
+      <Sfx name="tick" at={16} volume={0.3} />
+      <Sfx name="tick" at={24} volume={0.3} />
+      <SfxRepeat name="tick" from={40} to={PAYOUT_AT} every={3} volume={0.18} />
+      <Sfx name="success" at={PAYOUT_AT} volume={0.8} />
+      <Sfx name="coin" at={PAYOUT_AT} volume={0.35} />
     </Stage>
   );
 };
@@ -103,6 +106,7 @@ export const C11Cta: React.FC = () => {
           </Subline>
         </div>
       </div>
+      <Sfx name="pop" at={40} volume={0.55} />
     </Stage>
   );
 };

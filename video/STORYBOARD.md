@@ -14,7 +14,7 @@ Zwei Videos, beide in Remotion (`video/`), 2D-Flat-Animation im comtor-Look.
 | Bewegung | Spring-Animationen (Remotion `spring`), harte Schnitte zwischen Szenen per Wisch/Maske, kinetische Typo Wort für Wort |
 | Daten | Nur Beispieldaten von der Landingpage (Odd Bloom, Kiez Goods, Lumo Audio …). Kleiner Hinweis „Beispieldaten“ unten im Bild, sobald UI zu sehen ist |
 | Wording | „zurückgehalten“, nie „Treuhand“ (siehe `docs/legal-readiness.md`) |
-| Ton | Musik-Bed + UI-Sounds aus `public/sounds/` (swipe-right, success). Voiceover optional (siehe offene Punkte) |
+| Ton | Eigene, per Code erzeugte Musik (120 BPM, Schnitte auf dem Beat) + UI-Sounds (`scripts/make-audio.py`). Voiceover spricht ihr selbst ein |
 
 ---
 
