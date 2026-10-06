@@ -141,7 +141,7 @@ export function Hero({ brands, creators }: { brands: number; creators: number })
           >
             {t("landing.nav.getApp")}
           </a>
-          <p className="rounded bg-paper/60 px-3 py-2 text-footnote text-ink backdrop-blur-xl">
+          <p className="lp-glow text-footnote font-medium text-ink">
             {t("landing.hero.liveOnWeb")}{" "}
             <Link href="/login" className="font-semibold underline underline-offset-2">
               {t("landing.hero.logIn")}
@@ -160,10 +160,10 @@ export function Hero({ brands, creators }: { brands: number; creators: number })
             <BrandBuilder onPhoto={setBrandPhoto} />
           </div>
         </div>
-        <p className="lp-rise mt-5 rounded bg-paper/60 px-3 py-1.5 text-footnote text-ink backdrop-blur-xl" style={delay(900)}>
+        <p className="lp-rise lp-glow mt-5 text-footnote font-medium text-ink" style={delay(900)}>
           {t("landing.hero.examples")}
         </p>
-        <p data-for="creator" className="lp-rise mt-2 rounded bg-paper/60 px-3 py-1.5 text-sm text-ink backdrop-blur-xl" style={delay(900)}>
+        <p data-for="creator" className="lp-rise lp-glow mt-2 text-sm font-medium text-ink" style={delay(900)}>
           {t("landing.hero.drag")}
         </p>
       </div>

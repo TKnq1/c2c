@@ -31,7 +31,7 @@ export async function ComingSoon() {
           {t("landing.comingSoon.cta")}
           <FiArrowRight className="h-4 w-4" />
         </SignupLink>
-        <p className="mx-auto mt-9 w-fit rounded bg-paper/65 px-3 py-1.5 text-sm text-ink backdrop-blur-xl">
+        <p className="lp-glow mx-auto mt-9 text-sm font-medium text-ink">
           {t("landing.comingSoon.note")}
         </p>
         <WaitlistForm />

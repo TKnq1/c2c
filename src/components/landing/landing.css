@@ -360,9 +360,8 @@ html:not([data-lp-js]) .lp-count {
   mask-image: linear-gradient(to bottom, #000 calc(100% - 48px), transparent);
 }
 
-/* Copy that sits straight on a photo colour gets a soft halo in the page colour instead of a box: still the
-   photo behind it, but the letters keep their edge on any colour. Small grey notes get a frosted box (see
-   the notes in hero.tsx and coming-soon.tsx). */
+/* Copy that sits straight on a photo colour gets a soft halo in the page colour (no box): the photo stays
+   visible behind it, and the letters keep their edge on any colour. */
 .lp-glow {
   text-shadow:
     0 0 16px color-mix(in srgb, var(--paper) 80%, transparent),
