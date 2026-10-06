@@ -217,7 +217,7 @@ export const en = {
     payout: {
       title: "Where should we send the money?",
       description: "Add your payout details now, so the first yes can be paid.",
-      point1: "A brand pays into escrow before you create anything.",
+      point1: "A brand pays before you create anything, and the money is held until you've posted.",
       point2: "The money is released to you once the post is live.",
       point3:
         "Setting it up now takes about two minutes, and means the first brand that picks you can pay straight away.",

@@ -1,7 +1,7 @@
 "use client";
 
 import { FiStar } from "react-icons/fi";
-import { FaStar } from "react-icons/fa";
+import { IoStar } from "react-icons/io5";
 import { useUrlState } from "@/lib/use-url-state";
 import { useI18n } from "@/components/i18n-provider";
 
@@ -25,7 +25,7 @@ export function FavoritesOnlyToggle() {
         active ? "border-ink bg-ink text-paper" : "border-neutral-300 text-neutral-400 hover:text-ink hover:border-ink dark:border-neutral-700 dark:text-neutral-500"
       }`}
     >
-      {active ? <FaStar className="h-4 w-4" /> : <FiStar className="h-4 w-4" />}
+      {active ? <IoStar className="h-4 w-4" /> : <FiStar className="h-4 w-4" />}
     </button>
   );
 }

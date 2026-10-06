@@ -4,28 +4,24 @@ import { useState, useTransition } from "react";
 import type { OutreachSide } from "@prisma/client";
 import { addOutreachAddressAction, removeOutreachAddressAction, sendOutreachAction } from "@/lib/actions/outreach";
 
-type Address = { id: string; name: string; email: string; sent: number; opened: number; clicked: number };
-
-function trackLine({ sent, opened, clicked }: Pick<Address, "sent" | "opened" | "clicked">) {
-  if (sent === 0) return null;
-  return [`Sent ${sent}`, opened > 0 ? `Opened ${opened}` : "Not opened", clicked > 0 ? `Clicked ${clicked}` : null]
-    .filter(Boolean)
-    .join(" · ");
-}
+type Address = { id: string; name: string; email: string; consentNote: string | null; sent: number };
 
 export function OutreachList({
   side,
   title,
   blurb,
   addresses,
+  enabled,
 }: {
   side: OutreachSide;
   title: string;
   blurb: string;
   addresses: Address[];
+  enabled: boolean;
 }) {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
+  const [consent, setConsent] = useState("");
   const [subject, setSubject] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [status, setStatus] = useState<string | null>(null);
@@ -50,11 +46,12 @@ export function OutreachList({
     setError(null);
     setStatus(null);
     startTransition(async () => {
-      const result = await addOutreachAddressAction(side, name, email);
+      const result = await addOutreachAddressAction(side, name, email, consent);
       if (result.error) setError(result.error);
       else {
         setName("");
         setEmail("");
+        setConsent("");
       }
     });
   };
@@ -144,12 +141,27 @@ export function OutreachList({
           />
           <button
             type="submit"
-            disabled={pending}
+            disabled={pending || !enabled}
             className="shrink-0 rounded-full border border-ink px-4 py-2.5 text-sm font-medium transition hover:bg-fog disabled:opacity-50"
           >
             Add
           </button>
         </div>
+        <label className="sr-only" htmlFor={`consent-${side}`}>
+          How this person agreed
+        </label>
+        <input
+          id={`consent-${side}`}
+          type="text"
+          required
+          minLength={10}
+          maxLength={300}
+          value={consent}
+          onChange={(e) => setConsent(e.target.value)}
+          placeholder="How they agreed, e.g. ticked the box on our form, 2026-10-01"
+          autoComplete="off"
+          className="w-full rounded border border-neutral-300 bg-background px-3 py-2.5 text-sm outline-none focus:border-ink dark:border-neutral-700"
+        />
       </form>
 
       {addresses.length === 0 ? (
@@ -168,7 +180,6 @@ export function OutreachList({
           {open && (
             <ul className="rounded bg-fog">
               {addresses.map((row) => {
-                const tracking = trackLine(row);
                 return (
                   <li key={row.id} className="flex items-center gap-3 px-3 py-2.5 [&+&]:border-t [&+&]:border-ink/10">
                     <input
@@ -181,7 +192,10 @@ export function OutreachList({
                     <span className="min-w-0 flex-1">
                       <span className="block truncate text-sm font-medium">{row.name}</span>
                       <span className="block truncate text-footnote text-neutral-500">{row.email}</span>
-                      {tracking && <span className="block text-footnote text-neutral-500">{tracking}</span>}
+                      <span className="block text-footnote text-neutral-500">
+                        {row.consentNote ? `Agreed: ${row.consentNote}` : "No consent recorded, can't be mailed"}
+                        {row.sent > 0 ? ` · Sent ${row.sent}` : ""}
+                      </span>
                     </span>
                     <button
                       type="button"
@@ -216,7 +230,7 @@ export function OutreachList({
       <button
         type="button"
         onClick={send}
-        disabled={pending}
+        disabled={pending || !enabled}
         className="rounded-full bg-ink px-4 py-2.5 text-sm font-medium text-paper transition hover:bg-graphite disabled:opacity-50"
       >
         {pending ? "Sending…" : selected.length === 0 ? "Send" : `Send to ${selected.length}`}

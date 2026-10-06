@@ -31,7 +31,7 @@ const FAQS: { question: string; answer: string }[] = [
   {
     question: "How do payments work?",
     answer:
-      `A brand pays a creator through the platform, not directly. The payment is held in escrow until the creator posts the content and submits the link. The brand then has ${RELEASE_REVIEW_DAYS} days to approve it, which releases it right away, or to report a problem. If the brand doesn't respond, it's released automatically. The platform keeps a ${PLATFORM_FEE_RATE * 100}% fee out of every payment by default.${PRO_OFFER_MARKER}`,
+      `A brand pays a creator through the platform, not directly. The payment is held until the creator posts the content and submits the link. The brand then has ${RELEASE_REVIEW_DAYS} days to approve it, which releases it right away, or to report a problem. If the brand doesn't respond, it's released automatically. The platform keeps a ${PLATFORM_FEE_RATE * 100}% fee out of every payment by default.${PRO_OFFER_MARKER}`,
   },
   {
     question: PRO_QUESTION,

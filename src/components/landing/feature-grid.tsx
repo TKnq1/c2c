@@ -1,4 +1,5 @@
 import Image from "next/image";
+import { PLATFORM_FEE_RATE, PRO_PLATFORM_FEE_RATE, PRO_SUBSCRIPTION_PRICE_CENTS } from "@/lib/constants";
 import { FiCheck, FiChevronLeft, FiExternalLink } from "react-icons/fi";
 import { Avatar } from "@/components/avatar";
 import { PlatformIcon } from "@/components/platform-icons";
@@ -32,7 +33,7 @@ const CREATOR_FEATURES: Feature[] = [
   {
     icon: "locked",
     title: "Paid before you post",
-    body: "Accept an offer and the brand pays first. The money waits in escrow until your post is up.",
+    body: "Accept an offer and the brand pays first. The money is held until your post is up.",
     mockup: <CreatorOfferMock />,
   },
   {
@@ -59,13 +60,13 @@ const BRAND_FEATURES: Feature[] = [
   {
     icon: "speech-balloon",
     title: "Agree on it in the chat",
-    body: "Send an offer. When they accept, you pay, and the money is held in escrow until the post is live.",
+    body: "Send an offer. When they accept, you pay, and the money is held until the post is live.",
     mockup: <BrandOfferMock />,
   },
   {
     icon: "camera-flash",
     title: "Approve the post, then it's paid out",
-    body: "Check the live post first. No subscription: comtor keeps 10% of each payment, or 3% on Pro.",
+    body: `Check the live post first. No base fee: comtor keeps ${Math.round(PLATFORM_FEE_RATE * 100)}% of each payment, or ${Math.round(PRO_PLATFORM_FEE_RATE * 100)}% with Pro (€${PRO_SUBSCRIPTION_PRICE_CENTS / 100} a month).`,
     mockup: <ApproveMock />,
   },
 ];
@@ -76,6 +77,9 @@ export function FeatureGrid() {
       <div className="mx-auto max-w-6xl">
         <FeatureSet role="creator" heading="From swipe to payout." features={CREATOR_FEATURES} />
         <FeatureSet role="brand" heading="From request to live post." features={BRAND_FEATURES} />
+        <p className="mt-8 text-center text-footnote text-neutral-600 dark:text-neutral-400">
+          The screens show example data. The people, brands, prices and numbers in them are made up.
+        </p>
       </div>
     </section>
   );
@@ -257,15 +261,15 @@ function CreatorOfferMock() {
       </CroppedPhone>
       <Floating className="top-[56%] left-1/2 w-[80%] max-w-[290px] -translate-x-1/2">
         <div className="lp-cycle grid items-start">
-          <OfferCard eyebrow="Offer accepted" amount="250,00 €" detail="Odd Bloom pays next. It's held in escrow until you post." />
-          <OfferCard eyebrow="Offer accepted" amount="250,00 €" detail="Odd Bloom pays next. It's held in escrow until you post.">
+          <OfferCard eyebrow="Offer accepted" amount="250,00 €" detail="Odd Bloom pays next. It's held until you post." />
+          <OfferCard eyebrow="Offer accepted" amount="250,00 €" detail="Odd Bloom pays next. It's held until you post.">
             <p className="mt-2.5 flex items-center justify-center gap-2 rounded-full bg-fog px-4 py-1.5 text-sm font-medium text-neutral-500 dark:text-neutral-400">
               <Spinner />
               Waiting for payment
             </p>
           </OfferCard>
           <OfferCard
-            eyebrow="Paid · held in escrow"
+            eyebrow="Paid · held"
             amount="250,00 €"
             detail="Post the content, then submit the link. You get 225,00 € once Odd Bloom approves it."
           />
@@ -283,7 +287,7 @@ function PayoutMock() {
         <div className="flex flex-col gap-2 p-3 text-left">
           {[
             { name: "Odd Bloom", title: "Serum launch, first impressions", status: "Released" },
-            { name: "Kiez Goods", title: "Iced matcha for the summer menu", status: "In escrow" },
+            { name: "Kiez Goods", title: "Iced matcha for the summer menu", status: "Held" },
           ].map((p) => (
             <div key={p.name} className="flex items-center gap-2.5 rounded bg-fog p-3">
               <Avatar src={null} name={p.name} size={32} />
@@ -421,10 +425,10 @@ function BrandOfferMock() {
       <Floating className="top-[56%] left-1/2 w-[80%] max-w-[290px] -translate-x-1/2">
         <div className="lp-cycle grid items-start">
           <OfferCard eyebrow="Your offer" amount="300,00 €" detail="Mia K. would get 270,00 € after the 10% fee." />
-          <OfferCard eyebrow="Offer accepted" amount="300,00 €" detail="Pay through Stripe. It's held in escrow until Mia K. posts and you approve it.">
+          <OfferCard eyebrow="Offer accepted" amount="300,00 €" detail="Pay through Stripe. It's held until Mia K. posts and you approve it.">
             <span className="mt-2.5 flex justify-center rounded-full bg-ink px-4 py-1.5 text-sm font-medium text-paper">Pay now</span>
           </OfferCard>
-          <OfferCard eyebrow="Paid · held in escrow" amount="300,00 €" detail="Released to Mia K. once they post and you approve it." />
+          <OfferCard eyebrow="Paid · held" amount="300,00 €" detail="Released to Mia K. once they post and you approve it." />
         </div>
       </Floating>
     </>

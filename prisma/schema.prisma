@@ -33,6 +33,12 @@ model User {
   // (see deleteAccountAction): the person is anonymised, the rows are not.
   deletedAt         DateTime?
 
+  // Proof of what was accepted at sign-up: when, and which version of the terms and privacy policy
+  // (see src/lib/legal/version.ts). Null for accounts from before this was recorded.
+  termsAcceptedAt DateTime?
+  termsVersion    String?
+  ageConfirmedAt  DateTime?
+
   // Set by an admin from /admin/users. A suspended account can't sign in,
   // and an existing session ends at its next periodic check (see auth.ts).
   suspendedAt     DateTime?
@@ -336,10 +342,10 @@ model StartupProfile {
   stripeCustomerId     String?
   stripeSubscriptionId String?
 
-  requests      Request[]
-  socialLinks   StartupSocialLink[]
-  reviews       Review[]
-  favorites     Favorite[]
+  requests       Request[]
+  socialLinks    StartupSocialLink[]
+  reviews        Review[]
+  favorites      Favorite[]
   proWithdrawals ProWithdrawal[]
 
   @@index([stripeCustomerId])
@@ -639,12 +645,15 @@ enum OutreachSide {
 }
 
 model OutreachAddress {
-  id         String             @id @default(cuid())
-  name       String
-  email      String
-  side       OutreachSide
-  createdAt  DateTime           @default(now())
-  deliveries OutreachDelivery[]
+  id          String             @id @default(cuid())
+  name        String
+  email       String
+  side        OutreachSide
+  createdAt   DateTime           @default(now())
+  // How and when this person agreed to hear from comtor. Without it the address is never mailed.
+  consentNote String?
+  consentAt   DateTime?
+  deliveries  OutreachDelivery[]
 
   @@unique([email, side])
   @@index([side, createdAt])
@@ -654,6 +663,14 @@ model OutreachAddress {
 // on the webhook and match this row by resendId.
 // One press of Send. The people who got that mail stay here even if the
 // address is later taken off the creator or brand list.
+// Addresses that asked to stop (or were removed), as SHA-256 of the lower-case address, so nobody can add
+// them again by mistake and the address itself isn't kept.
+model OutreachSuppression {
+  id        String   @id @default(cuid())
+  emailHash String   @unique
+  createdAt DateTime @default(now())
+}
+
 model OutreachMailing {
   id         String             @id @default(cuid())
   side       OutreachSide
@@ -686,11 +703,11 @@ model OutreachDelivery {
 
 // The webhook id, so a retry does not count the same open or click twice.
 model OutreachDeliveryEvent {
-  id         String           @id
+  id         String            @id
   deliveryId String
-  delivery   OutreachDelivery @relation(fields: [deliveryId], references: [id], onDelete: Cascade)
+  delivery   OutreachDelivery  @relation(fields: [deliveryId], references: [id], onDelete: Cascade)
   kind       OutreachEventKind
-  createdAt  DateTime         @default(now())
+  createdAt  DateTime          @default(now())
 }
 
 enum OutreachEventKind {

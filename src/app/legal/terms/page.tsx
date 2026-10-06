@@ -5,6 +5,7 @@ import { LegalDocument } from "@/components/legal-document";
 import { canonical } from "@/lib/seo";
 import { getLocale } from "@/lib/i18n/server";
 import { deTerms } from "@/lib/legal/de";
+import { LEGAL_UPDATED } from "@/lib/legal/version";
 
 export const metadata: Metadata = { title: "Terms of Service", alternates: canonical("/legal/terms") };
 
@@ -63,6 +64,8 @@ const SECTIONS: { title: string; body: string[] }[] = [
     body: [
       "Don't invent follower counts, post fake reviews, upload something you have no right to, or move a deal off comtor to avoid the fee. We can remove content and suspend or close an account that breaks these terms or the law.",
       "To report illegal content, or to ask us to look again at something we removed, write to info@comtor.app. We'll review it and tell you the result.",
+      "If we remove content or suspend an account, we tell you the reason by email. You can object to the decision at info@comtor.app. We will look at it again and answer you.",
+      "Only users whose collaboration was completed and paid out through comtor can leave a review.",
     ],
   },
   {
@@ -94,7 +97,9 @@ const SECTIONS: { title: string; body: string[] }[] = [
   },
   {
     title: "Changes",
-    body: ["We can update these terms. We'll email you about a significant change before it applies."],
+    body: [
+      "We can update these terms. We'll email you about a significant change at least 15 days before it applies. If you don't want it, you can delete your account until then.",
+    ],
   },
 ];
 
@@ -103,7 +108,7 @@ export default async function TermsPage() {
   return (
     <LegalDocument
       title={german ? "Allgemeine Geschäftsbedingungen" : "Terms of Service"}
-      updated={german ? "5. Oktober 2026" : "October 5, 2026"}
+      updated={german ? LEGAL_UPDATED.de : LEGAL_UPDATED.en}
       sections={german ? deTerms() : SECTIONS}
     />
   );

@@ -2,7 +2,7 @@
 
 import { useRef, useState } from "react";
 import { FiStar } from "react-icons/fi";
-import { FaStar } from "react-icons/fa";
+import { IoStar } from "react-icons/io5";
 import { toast } from "@/lib/toast";
 import { haptic } from "@/lib/haptics";
 import { errorMessage } from "@/lib/error-message";
@@ -87,7 +87,7 @@ export function FavoriteButton({
             }`
       }
     >
-      {favorited ? <FaStar className="h-4 w-4" /> : <FiStar className="h-4 w-4" />}
+      {favorited ? <IoStar className="h-4 w-4" /> : <FiStar className="h-4 w-4" />}
     </button>
   );
 }

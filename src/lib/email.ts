@@ -22,7 +22,13 @@ export function emailSetup() {
 
 export type SendEmailResult = { ok: true; id: string } | { ok: false; error: string };
 
-export async function sendEmail({ to, subject, html, text }: Email & { to: string }): Promise<SendEmailResult> {
+export async function sendEmail({
+  to,
+  subject,
+  html,
+  text,
+  headers,
+}: Email & { to: string; headers?: Record<string, string> }): Promise<SendEmailResult> {
   try {
     // Constructed here, not at module scope — the Resend constructor throws
     // immediately on a missing key, and Next.js evaluates this module while
@@ -31,7 +37,7 @@ export async function sendEmail({ to, subject, html, text }: Email & { to: strin
     // from a hosting dashboard paste breaks the Authorization header, not
     // the key itself.
     const resend = new Resend(process.env.RESEND_API_KEY?.trim());
-    const { data, error } = await resend.emails.send({ from: FROM_EMAIL, to, subject, html, text });
+    const { data, error } = await resend.emails.send({ from: FROM_EMAIL, to, subject, html, text, ...(headers && { headers }) });
     if (error) return failed(subject, `${error.name}: ${error.message}`);
     return { ok: true, id: data?.id ?? "" };
   } catch (err) {

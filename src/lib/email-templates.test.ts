@@ -9,6 +9,7 @@ import {
   marketingEntryUrl,
   marketingWelcomeEmail,
   welcomeEmail,
+  accountSuspendedEmail,
 } from "@/lib/email-templates";
 
 describe("verificationEmail", () => {
@@ -104,8 +105,8 @@ describe("marketingWelcomeEmail", () => {
     expect(creator.text).toContain("No more DMs about your rate.");
     expect(creator.text).toContain("Signing up is on the page.");
     expect(brand.text).toContain("Creators in your niche swipe right.");
-    expect(brand.text).toContain("No subscription:");
-    expect(brand.text).toContain("3% on Pro.");
+    expect(brand.text).toContain("No base fee:");
+    expect(brand.text).toContain("3% with Pro (€49 a month).");
     expect(creator.html).toContain("/email/band-mark.jpg");
     expect(creator.html).not.toContain("mark-white.png");
     expect(creator.html).not.toContain("Button not working");
@@ -114,6 +115,21 @@ describe("marketingWelcomeEmail", () => {
     expect(brand.text).toContain("Glow, grow your brand with content creators.");
     expect(brand.text).toContain("Post your first deal");
     expect(brand.html).toContain("https://www.comtor.app/?for=brands");
+  });
+
+  it("tells the recipient why they get it, from the consent note, and how to stop", () => {
+    const mail = marketingWelcomeEmail(
+      "https://www.comtor.app/?for=creators",
+      "CREATOR",
+      "A note from comtor",
+      "Mia",
+      2,
+      "https://www.comtor.app/outreach/opt-out?x=1",
+      "you ticked the box on our form on 2026-10-01",
+    );
+    expect(mail.text).toContain("You are getting this email because you agreed to hear from comtor (you ticked the box on our form on 2026-10-01).");
+    expect(mail.text).toContain("Stop these emails: https://www.comtor.app/outreach/opt-out?x=1");
+    expect(mail.text).not.toContain("not for a private person");
   });
 
   it("opens the landing page on the matching side", () => {
@@ -133,5 +149,14 @@ describe("testEmail", () => {
 
   it("links to the site", () => {
     expect(email.html).toContain('href="https://www.comtor.app"');
+  });
+});
+
+describe("accountSuspendedEmail", () => {
+  it("gives the reason and says how to object", () => {
+    const mail = accountSuspendedEmail("Fake follower numbers.");
+    expect(mail.subject).toBe("Your comtor account was suspended");
+    expect(mail.text).toContain("Reason: Fake follower numbers.");
+    expect(mail.text).toContain("info@comtor.app");
   });
 });

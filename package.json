@@ -17,7 +17,8 @@
     "cap:sync": "cap sync",
     "cap:android": "cap open android",
     "cap:ios": "cap open ios",
-    "capacitor:copy:before": "node scripts/write-app-config.mjs"
+    "capacitor:copy:before": "node scripts/write-app-config.mjs",
+    "licenses:generate": "node scripts/generate-notices.mjs"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"

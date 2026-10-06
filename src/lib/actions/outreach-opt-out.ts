@@ -1,7 +1,7 @@
 "use server";
 
 import { redirect } from "next/navigation";
-import { prisma } from "@/lib/prisma";
+import { completeOutreachOptOut } from "@/lib/outreach-suppression";
 import { isOutreachSide, outreachOptOutMatches } from "@/lib/outreach-opt-out";
 
 export async function confirmOutreachOptOut(formData: FormData) {
@@ -9,6 +9,6 @@ export async function confirmOutreachOptOut(formData: FormData) {
   const side = String(formData.get("side") ?? "");
   const token = String(formData.get("token") ?? "");
   if (!isOutreachSide(side) || !outreachOptOutMatches(email, side, token)) redirect("/outreach/opt-out");
-  await prisma.outreachAddress.deleteMany({ where: { email: email.trim().toLowerCase(), side } });
+  await completeOutreachOptOut(email);
   redirect("/outreach/opt-out?done=1");
 }

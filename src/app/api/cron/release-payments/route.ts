@@ -33,6 +33,11 @@ export async function GET(req: Request) {
     prisma.emailVerificationToken.deleteMany({ where: { expiresAt: { lt: new Date(now - DAY) } } }),
     prisma.loginAttempt.deleteMany({ where: { createdAt: { lt: new Date(now - 90 * DAY) } } }),
     prisma.signupAttempt.deleteMany({ where: { createdAt: { lt: new Date(now - 7 * DAY) } } }),
+    // Who a marketing mail went out to isn't kept longer than that is useful (the mailing itself, which holds
+    // only its subject, stays).
+    prisma.outreachDelivery.deleteMany({ where: { sentAt: { lt: new Date(now - 90 * DAY) } } }),
+    // Waitlist addresses nobody confirmed (the privacy policy says 30 days).
+    prisma.waitlistEntry.deleteMany({ where: { confirmedAt: null, createdAt: { lt: new Date(now - 30 * DAY) } } }),
   ]).catch((err) => console.error("Housekeeping failed:", err));
 
   const due = await prisma.interest.findMany({

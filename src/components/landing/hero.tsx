@@ -149,7 +149,10 @@ export function Hero({ brands, creators }: { brands: number; creators: number })
             <BrandBuilder onPhoto={setBrandPhoto} />
           </div>
         </div>
-        <p data-for="creator" className="lp-rise mt-6 text-sm text-neutral-700 dark:text-neutral-300" style={delay(900)}>
+        <p className="lp-rise mt-5 text-footnote text-neutral-700 dark:text-neutral-300" style={delay(900)}>
+          Examples: the brands, creators, ratings and numbers shown here are made up.
+        </p>
+        <p data-for="creator" className="lp-rise mt-2 text-sm text-neutral-700 dark:text-neutral-300" style={delay(900)}>
           Drag the card: right is interested, left is pass.
         </p>
       </div>

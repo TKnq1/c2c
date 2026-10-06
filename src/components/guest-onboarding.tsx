@@ -31,6 +31,9 @@ export function GuestOnboarding({ initialRole }: { initialRole: SignupRole | nul
     // is the role question, even if an older draft is still in this tab.
     if (initialRole) return;
     clearOnboardingDraft();
+    // The draft lives in the browser's session storage, so this can only run after mount; until then the
+    // page renders the empty shell (see `booted` below).
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- one-off, after the client-only clear above
     setBooted(true);
   }, [initialRole]);
 

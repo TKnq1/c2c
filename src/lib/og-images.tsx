@@ -69,7 +69,7 @@ function Clean() {
           <span>the right creators.</span>
         </div>
         <div style={{ fontSize: 32, color: "#5a5a5a", marginTop: 22 }}>
-          Post a request, get matched, pay safely through escrow.
+          Post a request, get matched, pay once the deal is agreed.
         </div>
       </div>
       <div style={{ display: "flex", justifyContent: "space-between", fontSize: 28 }}>
@@ -215,7 +215,7 @@ function Product() {
       >
         <div style={{ fontSize: 15, color: "#777", letterSpacing: "0.06em" }}>OFFER ACCEPTED</div>
         <div style={{ fontSize: 46, fontWeight: 900, marginTop: 4 }}>250,00 €</div>
-        <div style={{ fontSize: 20, color: "#777", marginTop: 6 }}>Held in escrow until you approve the post.</div>
+        <div style={{ fontSize: 20, color: "#777", marginTop: 6 }}>Held until you approve the post.</div>
       </div>
     </div>
   );
