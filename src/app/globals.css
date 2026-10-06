@@ -143,6 +143,31 @@ body {
   background-color: var(--paper);
 }
 
+/* The dark watermark is a mid gray. Secondary copy in that same range
+   disappears where the mark passes behind it, so the column gets a soft
+   paper veil and the muted text steps up toward white. */
+.dark .onboarding-stage > main::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  inset: -20vh -50vw;
+  pointer-events: none;
+  background: radial-gradient(
+    ellipse at center,
+    color-mix(in srgb, var(--paper) 88%, transparent) 0%,
+    color-mix(in srgb, var(--paper) 45%, transparent) 46%,
+    transparent 72%
+  );
+}
+
+.dark .onboarding-stage :where(.text-neutral-400, .text-neutral-500, .text-neutral-600) {
+  color: #e4e4e4;
+}
+
+.dark .onboarding-stage :where(input, textarea)::placeholder {
+  color: #c8c8c8;
+}
+
 /* Scrollbar follows the theme instead of always rendering light. */
 html {
   scrollbar-color: var(--scrollbar-thumb) transparent;
