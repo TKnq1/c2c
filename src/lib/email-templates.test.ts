@@ -213,10 +213,10 @@ describe("German emails", () => {
     const brand = marketingWelcomeEmail(url, "STARTUP", "Hallo", "", 1, undefined, undefined, "de");
     expect(creator.text).toContain("Mia, verdiene Geld mit Posts in sozialen Medien.");
     expect(creator.text).toContain("1.234 Marken sind schon dabei");
-    expect(creator.text).toContain("Du behältst 90 %.");
-    expect(brand.text).toContain("Bring deine Marke mit Content-Creatorn voran.");
+    expect(creator.text).toContain("Du behältst 90 %.");
+    expect(brand.text).toContain("Bring deine Marke mit Creatorn voran.");
     expect(brand.text).toContain("1 Creator ist schon dabei");
-    expect(brand.text).toContain("comtor behält 10 % jeder Zahlung, mit Pro (49 € im Monat) 3 %.");
+    expect(brand.text).toContain("comtor behält 10 % jeder Zahlung, mit Pro (49 € im Monat) nur 3 %.");
   });
 
   it("tells the recipient why they get it, and how to stop, in German", () => {
@@ -230,7 +230,7 @@ describe("German emails", () => {
       "du hast am 01.10.2026 auf unserem Formular zugestimmt",
       "de",
     );
-    expect(mail.text).toContain("Du bekommst diese E-Mail, weil du zugestimmt hast, von comtor zu hören (du hast am 01.10.2026 auf unserem Formular zugestimmt).");
+    expect(mail.text).toContain("Du bekommst diese E-Mail, weil du zugestimmt hast, E-Mails von comtor zu erhalten (du hast am 01.10.2026 auf unserem Formular zugestimmt).");
     expect(mail.text).toContain("Diese E-Mails abbestellen: https://www.comtor.app/outreach/opt-out?x=1");
   });
 

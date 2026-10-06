@@ -10,6 +10,7 @@ export const landing = {
   },
   nav: {
     main: "Main",
+    home: "comtor, back to the home page",
     toggleLabel: "Show comtor for",
     creators: "Creators",
     brands: "Brands",
@@ -124,6 +125,15 @@ export const landing = {
     report: "Report",
     approving: "Approving",
     received: "{name} received 270,00 €.",
+  },
+  ugc: {
+    startBrand: "Start as a brand",
+    startCreator: "Start as a creator",
+  },
+  faq: {
+    title: "Frequently asked questions",
+    lead: "How the platform works, in plain terms.",
+    ctaTitle: "Ready to try it?",
   },
   comingSoon: {
     title: "Coming soon to iOS & Android",

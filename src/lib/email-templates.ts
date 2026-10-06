@@ -111,7 +111,7 @@ function marketingNote(locale: Locale, consentNote?: string): string {
   return pick(
     locale,
     `You are getting this email because you agreed to hear from comtor${reason ? ` (${reason})` : ""}. You can stop it at any time with the link below.`,
-    `Du bekommst diese E-Mail, weil du zugestimmt hast, von comtor zu hören${reason ? ` (${reason})` : ""}. Du kannst das jederzeit mit dem Link unten beenden.`,
+    `Du bekommst diese E-Mail, weil du zugestimmt hast, E-Mails von comtor zu erhalten${reason ? ` (${reason})` : ""}. Du kannst das jederzeit mit dem Link unten beenden.`,
   );
 }
 
@@ -142,7 +142,7 @@ export function marketingWelcomeEmail(
       body: pick(
         locale,
         "comtor is where brands post a paid deal and you swipe the ones you want. The budget is on the card, they pay before you post, and you keep 90%.",
-        "Auf comtor posten Marken bezahlte Deals, und du wischst die, die du willst. Das Budget steht auf der Karte, die Marke zahlt, bevor du postest, und du behältst 90 %.",
+        "Auf comtor posten Marken bezahlte Deals, und du wischst die, die du willst. Das Budget steht auf der Karte, die Marke zahlt, bevor du postest, und du behältst 90 %.",
       ),
       steps: [
         {
@@ -151,7 +151,7 @@ export function marketingWelcomeEmail(
           text: pick(
             locale,
             "Right means you want it, left means you pass. The brand sees your profile and can message you.",
-            "Rechts heißt: Du willst ihn, links: Du lässt ihn. Die Marke sieht dein Profil und kann dir schreiben.",
+            "Rechts heißt: Du willst ihn, links: Du überspringst ihn. Die Marke sieht dein Profil und kann dir schreiben.",
           ),
         },
         {
@@ -169,16 +169,16 @@ export function marketingWelcomeEmail(
           text: pick(
             locale,
             "Accept the offer and the brand pays first. The money waits until your post is up.",
-            "Nimmst du das Angebot an, zahlt die Marke zuerst. Das Geld wartet, bis dein Post online ist.",
+            "Nimmst du das Angebot an, zahlt die Marke zuerst. Das Geld wird zurückgehalten, bis dein Post online ist.",
           ),
         },
         {
           icon: "money-wings",
-          title: pick(locale, "You keep 90%.", "Du behältst 90 %."),
+          title: pick(locale, "You keep 90%.", "Du behältst 90 %."),
           text: pick(
             locale,
             "The brand has 3 days to approve your post. If they don't answer, it's released to you anyway.",
-            "Die Marke hat 3 Tage Zeit, deinen Post zu bestätigen. Antwortet sie nicht, wird die Zahlung trotzdem an dich freigegeben.",
+            "Die Marke hat 3 Tage Zeit, deinen Post freizugeben. Antwortet sie nicht, geht die Zahlung trotzdem an dich.",
           ),
         },
       ],
@@ -191,16 +191,16 @@ export function marketingWelcomeEmail(
       optOut,
     });
   }
-  const headline = pick(locale, "grow your brand with content creators.", "bring deine Marke mit Content-Creatorn voran.");
+  const headline = pick(locale, "grow your brand with content creators.", "bring deine Marke mit Creatorn voran.");
   return render({
     locale,
     subject,
-    preview: pick(locale, "Grow your brand with content creators.", "Bring deine Marke mit Content-Creatorn voran."),
+    preview: pick(locale, "Grow your brand with content creators.", "Bring deine Marke mit Creatorn voran."),
     heading: who ? `${who}, ${headline}` : headline.charAt(0).toUpperCase() + headline.slice(1),
     body: pick(
       locale,
       "comtor is where you post the product, the budget, and what to make. Creators who fit swipe right and come to you. You pay when you agree, and the money waits until the post is live.",
-      "Auf comtor stellst du Produkt, Budget und gewünschten Inhalt ein. Passende Creator wischen nach rechts und melden sich bei dir. Du zahlst, wenn ihr euch einig seid, und das Geld wartet, bis der Post online ist.",
+      "Auf comtor stellst du Produkt, Budget und gewünschten Inhalt ein. Passende Creator wischen nach rechts und melden sich bei dir. Du zahlst, wenn ihr euch einig seid, und das Geld wird zurückgehalten, bis der Post online ist.",
     ),
     steps: [
       {
@@ -209,7 +209,7 @@ export function marketingWelcomeEmail(
         text: pick(
           locale,
           "Photos, the budget, the platform, and what to post. Creators get it as a card in their feed.",
-          "Fotos, Budget, Plattform und Inhalt. Creator bekommen es als Karte in ihrem Feed.",
+          "Fotos, Budget, Plattform und Inhalt. Creator bekommen die Anfrage als Karte in ihrem Feed.",
         ),
       },
       {
@@ -223,7 +223,7 @@ export function marketingWelcomeEmail(
       },
       {
         icon: "speech-balloon",
-        title: pick(locale, "Agree on it in the chat.", "Stimmt euch im Chat ab."),
+        title: pick(locale, "Agree on it in the chat.", "Sprich dich im Chat ab."),
         text: pick(
           locale,
           "Send an offer. When they accept, you pay, and the money is held until the post is live.",
@@ -236,7 +236,7 @@ export function marketingWelcomeEmail(
         text: pick(
           locale,
           `You check the live post first. No base fee: comtor keeps ${fee}% of each payment, or ${proFee}% with Pro (€${price} a month).`,
-          `Du prüfst zuerst den Live-Post. Keine Grundgebühr: comtor behält ${fee} % jeder Zahlung, mit Pro (${price} € im Monat) ${proFee} %.`,
+          `Du prüfst zuerst den Live-Post. Keine Grundgebühr: comtor behält ${fee} % jeder Zahlung, mit Pro (${price} € im Monat) nur ${proFee} %.`,
         ),
       },
     ],
@@ -293,7 +293,7 @@ export function passwordResetEmail(url: string, locale: Locale = DEFAULT_LOCALE)
     note: pick(
       locale,
       "The link works once, for 1 hour. A new password logs you out everywhere. Didn't ask for this? Then ignore this email and your password stays the same.",
-      "Der Link funktioniert einmal und gilt 1 Stunde. Mit einem neuen Passwort wirst du überall abgemeldet. Du hast das nicht angefordert? Dann ignoriere diese E-Mail, dein Passwort bleibt, wie es ist.",
+      "Der Link lässt sich nur einmal verwenden und gilt 1 Stunde. Mit einem neuen Passwort wirst du überall abgemeldet. Du hast das nicht angefordert? Dann ignoriere diese E-Mail, dein Passwort bleibt, wie es ist.",
     ),
   });
 }
@@ -379,23 +379,23 @@ export function testEmail(url: string, locale: Locale = DEFAULT_LOCALE): Email {
 export function marketingConsentEmail(url: string, locale: Locale = DEFAULT_LOCALE): Email {
   return render({
     locale,
-    subject: pick(locale, "Confirm news from comtor", "Bestätige Neuigkeiten von comtor"),
+    subject: pick(locale, "Confirm news from comtor", "Bestätige Produkt-News von comtor"),
     preview: pick(
       locale,
       "One button, then we can send occasional news about comtor.",
       "Ein Klick, dann dürfen wir dir gelegentlich Neuigkeiten zu comtor schicken.",
     ),
-    heading: pick(locale, "Confirm product news.", "Produktneuigkeiten bestätigen."),
+    heading: pick(locale, "Confirm product news.", "Produkt-News bestätigen."),
     body: pick(
       locale,
       "You asked for occasional emails about comtor. Press the button on the next page to confirm. Until then, this address gets no product news.",
-      "Du hast um gelegentliche E-Mails zu comtor gebeten. Drücke auf der nächsten Seite den Button, um zu bestätigen. Bis dahin bekommt diese Adresse keine Produktneuigkeiten.",
+      "Du hast um gelegentliche E-Mails zu comtor gebeten. Klicke auf der nächsten Seite auf „Ja, schickt mir News“, um zuzustimmen. Bis dahin bekommt diese Adresse keine Produkt-News.",
     ),
     action: { label: pick(locale, "Review and confirm", "Prüfen und bestätigen"), url },
     note: pick(
       locale,
       "Didn't ask for this? Ignore the email. Nothing is turned on until you press the button.",
-      "Du hast das nicht angefragt? Ignoriere die E-Mail. Es wird nichts aktiviert, bevor du den Button drückst.",
+      "Du hast das nicht angefordert? Ignoriere die E-Mail. Es wird nichts aktiviert, bevor du auf der Seite zugestimmt hast.",
     ),
   });
 }

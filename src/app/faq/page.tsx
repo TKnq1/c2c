@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { PLATFORM_FEE_RATE, PRO_PLATFORM_FEE_RATE, PRO_SUBSCRIPTION_PRICE_CENTS, RELEASE_REVIEW_DAYS } from "@/lib/constants";
 import { formatCents } from "@/lib/format";
 import { canSellProSubscription } from "@/lib/native-app-server";
 import { getLocale } from "@/lib/i18n/server";
 import { canonical } from "@/lib/seo";
+import { UgcBreadcrumbs, UgcCtas, UgcFooter, UgcHeader, UgcWatermark } from "@/components/ugc/ugc-parts";
+import { getT } from "@/lib/i18n/server";
 
 export async function generateMetadata(): Promise<Metadata> {
   const german = (await getLocale()) === "de";
@@ -21,7 +22,7 @@ export async function generateMetadata(): Promise<Metadata> {
 // apps (which can't sell Pro, see canSellProSubscription) can drop it.
 const PRO_OFFER_MARKER = "{{pro-offer}}";
 const PRO_OFFER_SENTENCE = ` Brands doing regular volume can subscribe to Pro for ${formatCents(PRO_SUBSCRIPTION_PRICE_CENTS)}/month to drop that to ${PRO_PLATFORM_FEE_RATE * 100}%.`;
-const PRO_OFFER_SENTENCE_DE = ` Marken mit regelmäßigem Volumen können Pro für ${formatCents(PRO_SUBSCRIPTION_PRICE_CENTS)}/Monat abonnieren und die Gebühr auf ${PRO_PLATFORM_FEE_RATE * 100} % senken.`;
+const PRO_OFFER_SENTENCE_DE = ` Marken, die regelmäßig Anfragen stellen, können Pro für ${formatCents(PRO_SUBSCRIPTION_PRICE_CENTS)}/Monat abonnieren und die Gebühr auf ${PRO_PLATFORM_FEE_RATE * 100} % senken.`;
 const PRO_QUESTION = "What's the Pro plan?";
 const PRO_QUESTION_DE = "Was ist der Pro-Tarif?";
 
@@ -76,24 +77,24 @@ const FAQS_DE: { question: string; answer: string }[] = [
   {
     question: "Wie funktioniert das Matching?",
     answer:
-      "Marken stellen eine Anfrage mit Nische, den Sprachen des Inhalts, einer Mindestzahl an Followern und einer Produktkategorie ein. Creator wählen bis zu drei Nischen und sehen Anfragen daraus unter „Für dich“, solange die Anfrage in ihrer Inhaltssprache ist und mindestens eine ihrer Plattformen die Follower-Schwelle erreicht. Unter „Alle“ sehen sie jede Anfrage, die zu Sprache und Reichweite passt, egal in welcher Nische. Es gibt keine manuelle Freigabe: Passt es, erscheint es im Feed.",
+      "Marken stellen eine Anfrage mit Nische, den Sprachen des Inhalts, einer Mindestzahl an Followern und einer Produktkategorie ein. Creator wählen bis zu drei Nischen und sehen Anfragen daraus unter „Für dich“, sofern die Anfrage in ihrer Inhaltssprache verfasst ist und mindestens eine ihrer Plattformen die Mindestzahl an Followern erreicht. Unter „Alle“ sehen sie jede Anfrage, die zu Sprache und Reichweite passt, egal in welcher Nische. comtor prüft Anfragen nicht manuell: Passt eine Anfrage, erscheint sie im Feed.",
   },
   {
     question: "Wie nehme ich Kontakt auf?",
     answer:
-      "Ein Creator tippt bei einer passenden Anfrage auf „Interessiert“. Das öffnet eine Unterhaltung, in der sich beide Seiten direkt schreiben können. Zusätzlich sehen sie gegenseitig die Kontakt-E-Mail-Adresse.",
+      "Ein Creator tippt bei einer passenden Anfrage auf „Interessiert“. Das öffnet einen Chat, in dem sich beide Seiten direkt schreiben können. Zusätzlich sehen beide Seiten die Kontakt-E-Mail-Adresse der jeweils anderen.",
   },
   {
     question: "Wie laufen Zahlungen?",
-    answer: `Eine Marke bezahlt einen Creator über die Plattform, nicht direkt. Die Zahlung wird zurückgehalten, bis der Creator den Inhalt gepostet und den Link eingereicht hat. Danach hat die Marke ${RELEASE_REVIEW_DAYS} Tage Zeit, ihn zu bestätigen, womit die Zahlung sofort freigegeben wird, oder ein Problem zu melden. Antwortet die Marke nicht, wird die Zahlung automatisch freigegeben. Die Plattform behält standardmäßig ${PLATFORM_FEE_RATE * 100} % jeder Zahlung ein.${PRO_OFFER_MARKER}`,
+    answer: `Eine Marke bezahlt einen Creator über die Plattform, nicht direkt. Die Zahlung wird zurückgehalten, bis der Creator den Inhalt gepostet und den Link eingereicht hat. Danach hat die Marke ${RELEASE_REVIEW_DAYS} Tage Zeit, den Post freizugeben (die Zahlung geht dann sofort an den Creator) oder ein Problem zu melden. Antwortet die Marke nicht, wird die Zahlung automatisch freigegeben. Die Plattform behält standardmäßig ${PLATFORM_FEE_RATE * 100}\u00a0% jeder Zahlung ein.${PRO_OFFER_MARKER}`,
   },
   {
     question: PRO_QUESTION_DE,
-    answer: `Ein optionales Monatsabo für Marken (${formatCents(PRO_SUBSCRIPTION_PRICE_CENTS)}/Monat), das die Plattformgebühr bei jedem Angebot von ${PLATFORM_FEE_RATE * 100} % auf ${PRO_PLATFORM_FEE_RATE * 100} % senkt. Es rechnet sich, sobald du etwa ${formatCents(Math.round(PRO_SUBSCRIPTION_PRICE_CENTS / (PLATFORM_FEE_RATE - PRO_PLATFORM_FEE_RATE)))} im Monat oder mehr an Angeboten verschickst. Abgerechnet wird monatlich über Stripe. Verwalten oder kündigen kannst du es in den Einstellungen.`,
+    answer: `Ein optionales Monatsabo für Marken (${formatCents(PRO_SUBSCRIPTION_PRICE_CENTS)}/Monat), das die Plattformgebühr bei jedem Angebot von ${PLATFORM_FEE_RATE * 100}\u00a0% auf ${PRO_PLATFORM_FEE_RATE * 100}\u00a0% senkt. Es rechnet sich, sobald du etwa ${formatCents(Math.round(PRO_SUBSCRIPTION_PRICE_CENTS / (PLATFORM_FEE_RATE - PRO_PLATFORM_FEE_RATE)))} im Monat oder mehr an Angeboten verschickst. Abgerechnet wird monatlich über Stripe. Verwalten oder kündigen kannst du es in den Einstellungen.`,
   },
   {
     question: "Was, wenn der Creator nie postet?",
-    answer: `Eine Marke kann eine Zahlung jederzeit stornieren und bekommt den vollen Betrag zurück, bevor der Creator seinen Post einreicht. Ist ein Post eingereicht, aber stimmt etwas nicht (er fehlt, wurde gelöscht oder entspricht nicht der Absprache), kann die Marke innerhalb von ${RELEASE_REVIEW_DAYS} Tagen ein Problem melden. Die Zahlung bleibt dann zurückgehalten, während wir den Fall prüfen, und wir geben sie entweder an den Creator frei oder erstatten sie der Marke. Eine freigegebene Zahlung lässt sich nicht rückgängig machen. Bewertungen beider Seiten helfen allen einzuschätzen, wer verlässlich ist, bevor sie zahlen.`,
+    answer: `Eine Marke kann eine Zahlung jederzeit stornieren, solange der Creator seinen Post noch nicht eingereicht hat, und bekommt den vollen Betrag zurück. Wurde ein Post eingereicht, stimmt aber etwas nicht (er fehlt, wurde gelöscht oder entspricht nicht der Absprache), kann die Marke innerhalb von ${RELEASE_REVIEW_DAYS} Tagen ein Problem melden. Die Zahlung bleibt dann zurückgehalten, während wir den Fall prüfen, und wir geben sie entweder an den Creator frei oder erstatten sie der Marke. Eine freigegebene Zahlung lässt sich nicht rückgängig machen. Bewertungen beider Seiten helfen allen einzuschätzen, wer verlässlich ist, bevor sie zahlen.`,
   },
   {
     question: "Ist das echtes Geld?",
@@ -101,9 +102,9 @@ const FAQS_DE: { question: string; answer: string }[] = [
       "Ja. Zahlungen für Kooperationen und das Pro-Abo laufen über Stripe, und echtes Geld fließt zwischen echten Bankkonten.",
   },
   {
-    question: "Wie werden Follower-Zahlen geprüft?",
+    question: "Wie werden Followerzahlen geprüft?",
     answer:
-      "Sie sind selbst angegeben. Jede Plattform, die ein Creator einträgt, verlinkt direkt auf den echten Account, sodass jeder die tatsächliche Zahl selbst prüfen kann, bevor er Kontakt aufnimmt.",
+      "Die Zahlen geben die Creator selbst an. Jede Plattform, die ein Creator einträgt, verlinkt direkt auf den echten Account, sodass jeder die tatsächliche Zahl selbst prüfen kann, bevor er Kontakt aufnimmt.",
   },
   {
     question: "Kann ich eine Bewertung abgeben?",
@@ -112,7 +113,7 @@ const FAQS_DE: { question: string; answer: string }[] = [
   },
   {
     question: "Wie erreiche ich euch?",
-    answer: "Nutze die Angaben auf der Impressum-Seite.",
+    answer: "Unsere Kontaktdaten findest du im Impressum.",
   },
 ];
 
@@ -141,46 +142,44 @@ function FaqJsonLd({ faqs }: { faqs: typeof FAQS }) {
   return <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />;
 }
 
+// The same shell as the other public subpages (header, huge faint mark, grey boxes, footer), in the reader's
+// language.
 export default async function FaqPage() {
   const german = (await getLocale()) === "de";
+  const t = await getT();
   const faqs = faqsFor(!(await canSellProSubscription()), german);
 
   return (
-    <main className="flex-1 px-6 py-16">
-      <FaqJsonLd faqs={faqs} />
-      <div className="max-w-2xl mx-auto flex flex-col gap-8">
-        <div>
-          <h1 className="font-display text-title-1 font-bold">{german ? "Häufige Fragen" : "Frequently asked questions"}</h1>
-          <p className="text-sm text-neutral-600 mt-1 dark:text-neutral-400">
-            {german ? "So funktioniert die Plattform, einfach erklärt." : "How the platform works, in plain terms."}
-          </p>
-        </div>
+    <div lang={german ? "de" : "en"} className="relative flex flex-1 flex-col">
+      <UgcBreadcrumbs trail={[{ name: "FAQ", path: "/faq" }]} />
+      <UgcWatermark />
+      <UgcHeader />
+      <main className="relative z-10 flex-1 px-4 py-12 md:py-16">
+        <FaqJsonLd faqs={faqs} />
+        <div className="mx-auto flex max-w-3xl flex-col gap-10">
+          <div className="flex flex-col gap-4">
+            <h1 className="font-display text-[40px] leading-[1.02] font-black tracking-[-0.03em] text-balance md:text-[56px]">
+              {t("landing.faq.title")}
+            </h1>
+            <p className="max-w-[60ch] text-lg text-neutral-700 dark:text-neutral-300">{t("landing.faq.lead")}</p>
+          </div>
 
-        <div className="flex flex-col gap-6">
-          {faqs.map((f) => (
-            <div key={f.question}>
-              <h2 className="font-semibold">{f.question}</h2>
-              <p className="text-sm text-neutral-700 mt-1 dark:text-neutral-300">{f.answer}</p>
-            </div>
-          ))}
-        </div>
+          <div className="flex flex-col gap-3">
+            {faqs.map((f) => (
+              <section key={f.question} className="rounded bg-fog p-5">
+                <h2 className="font-semibold">{f.question}</h2>
+                <p className="mt-1.5 text-sm text-neutral-700 dark:text-neutral-300">{f.answer}</p>
+              </section>
+            ))}
+          </div>
 
-        <p className="text-sm text-neutral-500 dark:text-neutral-400">
-          {german ? "Siehe auch " : "See also our "}
-          <Link href="/legal/terms" className="underline">
-            {german ? "AGB" : "Terms"}
-          </Link>
-          {german ? ", " : ", "}
-          <Link href="/legal/privacy" className="underline">
-            {german ? "Datenschutzerklärung" : "Privacy Policy"}
-          </Link>
-          {german ? " und " : ", and "}
-          <Link href="/legal/imprint" className="underline">
-            {german ? "Impressum" : "Imprint"}
-          </Link>
-          .
-        </p>
-      </div>
-    </main>
+          <div className="flex flex-col gap-4 rounded bg-fog p-6">
+            <h2 className="font-display text-title-2 font-bold text-balance">{t("landing.faq.ctaTitle")}</h2>
+            <UgcCtas />
+          </div>
+        </div>
+      </main>
+      <UgcFooter />
+    </div>
   );
 }

@@ -36,7 +36,7 @@ export function WaitlistForm() {
           <FiMail className="h-5 w-5 shrink-0" />
           {t("landing.waitlist.checkInbox")}
         </p>
-        <p className="text-sm text-neutral-700 dark:text-neutral-300">
+        <p className="text-sm text-neutral-800 dark:text-neutral-200">
           {t("landing.waitlist.confirmBefore")} <span className="font-semibold text-ink">{email}</span>{" "}
           {t("landing.waitlist.confirmAfter")}
         </p>
@@ -46,7 +46,7 @@ export function WaitlistForm() {
 
   return (
     <form action={action} className="mx-auto mt-8 w-full max-w-md text-left">
-      <p className="mb-3 text-center text-sm font-medium text-neutral-700 dark:text-neutral-300">
+      <p className="mb-3 text-center text-sm font-medium text-ink">
         {t("landing.waitlist.want")}
       </p>
       <input type="hidden" name="role" value={role ?? ""} />
@@ -89,14 +89,14 @@ export function WaitlistForm() {
           {localizeError(state.error, t)}
         </p>
       )}
-      <p className="mt-3 text-center text-footnote text-neutral-600 dark:text-neutral-400">
+      <p className="mt-3 text-center text-footnote text-neutral-700 dark:text-neutral-300">
         {t("landing.waitlist.confirmFirst")}{" "}
         <Link href="/legal/privacy" className="underline underline-offset-2">
           {t("screens.settings.privacy")}
         </Link>
         .
       </p>
-      <p className="mt-6 text-center text-sm text-neutral-700 dark:text-neutral-300">
+      <p className="mt-6 text-center text-sm text-neutral-800 dark:text-neutral-200">
         {t("landing.waitlist.haveAccount")}{" "}
         <Link href="/login" className="font-semibold underline underline-offset-2">
           {t("landing.waitlist.logIn")}

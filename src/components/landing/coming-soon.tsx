@@ -20,18 +20,19 @@ export async function ComingSoon() {
         <PhotoBackdrop photo="flask" />
       </div>
       <div aria-hidden="true" className="lp-grain lp-fade-in" />
-      <Reveal className="mx-auto max-w-2xl text-center">
+      {/* A frosted panel, like the nav: the small grey copy and the form stay readable on whatever photo colour is behind. */}
+      <Reveal className="mx-auto max-w-2xl rounded bg-paper/65 px-5 py-10 text-center backdrop-blur-xl md:px-12 md:py-14">
         <h2 className="font-display text-[44px] leading-[0.98] font-black tracking-[-0.035em] text-balance md:text-[72px]">
           {t("landing.comingSoon.title")}
         </h2>
-        <p className="mx-auto mt-5 max-w-[34ch] text-[19px] leading-snug text-neutral-700 md:text-[22px] dark:text-neutral-300">
+        <p className="mx-auto mt-5 max-w-[34ch] text-[19px] leading-snug text-neutral-800 md:text-[22px] dark:text-neutral-200">
           {t("landing.comingSoon.body")}
         </p>
         <SignupLink className="mt-7 inline-flex items-center gap-2 rounded-full bg-ink px-6 py-3.5 font-semibold text-paper transition hover:bg-graphite">
           {t("landing.comingSoon.cta")}
           <FiArrowRight className="h-4 w-4" />
         </SignupLink>
-        <p className="mx-auto mt-9 text-sm text-neutral-700 dark:text-neutral-300">
+        <p className="mx-auto mt-9 text-sm text-neutral-800 dark:text-neutral-200">
           {t("landing.comingSoon.note")}
         </p>
         <WaitlistForm />

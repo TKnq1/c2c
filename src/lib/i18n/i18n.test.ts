@@ -27,7 +27,7 @@ describe("createT", () => {
 
 describe("landing page text", () => {
   it("is German by default and English for the languages that are not translated yet", () => {
-    expect(createT("de")("landing.hero.creatorTitleA")).toBe("Wisch nach rechts");
+    expect(createT("de")("landing.hero.creatorTitleA")).toBe("Wisch bezahlte");
     expect(createT("en")("landing.hero.creatorTitleA")).toBe("Swipe right on");
     expect(createT("fr")("landing.hero.creatorTitleA")).toBe("Swipe right on");
   });

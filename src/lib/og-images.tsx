@@ -75,7 +75,7 @@ const OG_TEXT = {
     boldB: "Creator treffen.",
     prodA: "Swipen. Matchen.",
     prodB: "Bezahlt werden.",
-    prodSub: "Der Marktplatz für Marken × Creator.",
+    prodSub: "Der Marktplatz für Kooperationen.",
     prodSize: 64,
     cardBrand: "Glow Beauty Co",
     cardTitle: "Serum-Launch-Reel",
@@ -83,7 +83,7 @@ const OG_TEXT = {
     chipA: "1 Reel + 2 Stories",
     chipB: "Produkt inklusive",
     offer: "ANGEBOT ANGENOMMEN",
-    offerNote: "Zurückgehalten, bis du den Post bestätigst.",
+    offerNote: "Zurückgehalten, bis du den Post freigibst.",
   },
 } as const;
 

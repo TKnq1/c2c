@@ -1,5 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
+import { getLocale, getT } from "@/lib/i18n/server";
+import type { MessageKey } from "@/lib/i18n/translate";
 import { UGC_NICHE_PAGES, UGC_PATH, ugcNicheHref } from "@/lib/seo-pages";
 import { SITE_URL } from "@/lib/site";
 
@@ -28,16 +30,17 @@ export function UgcWatermark() {
   );
 }
 
-export function UgcHeader() {
+export async function UgcHeader() {
+  const t = await getT();
   return (
     <header className="relative z-10 border-b border-ink/10 px-4 pt-[calc(var(--safe-top)+12px)] pb-3">
       <div className="mx-auto flex max-w-3xl items-center justify-between">
-        <Link href="/" className="flex items-center gap-2.5" aria-label="comtor, zur Startseite">
+        <Link href="/" className="flex items-center gap-2.5" aria-label={t("landing.nav.home")}>
           <Image src="/logo.png" alt="" width={32} height={32} className="dark:invert" />
           <span className="font-display text-[24px] font-black tracking-tight">comtor</span>
         </Link>
         <Link href="/login" className="text-sm text-neutral-600 transition hover:text-ink dark:text-neutral-400">
-          Anmelden
+          {t("landing.nav.logIn")}
         </Link>
       </div>
     </header>
@@ -45,14 +48,15 @@ export function UgcHeader() {
 }
 
 // The two ways in. The link carries the side, so the first screen of the wizard is already the right one.
-export function UgcCtas({ className = "" }: { className?: string }) {
+export async function UgcCtas({ className = "" }: { className?: string }) {
+  const t = await getT();
   return (
     <div className={`flex flex-col gap-3 sm:flex-row ${className}`}>
       <Link href="/onboarding?role=brand" className={PRIMARY}>
-        Als Marke starten
+        {t("landing.ugc.startBrand")}
       </Link>
       <Link href="/onboarding?role=creator" className={SECONDARY}>
-        Als Creator starten
+        {t("landing.ugc.startCreator")}
       </Link>
     </div>
   );
@@ -120,36 +124,41 @@ export function UgcBreadcrumbs({ trail }: { trail: { name: string; path: string 
   return <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />;
 }
 
-export function UgcFooter({ currentSlug }: { currentSlug?: string }) {
+const LEGAL: { href: string; label: MessageKey }[] = [
+  { href: "/legal/imprint", label: "screens.settings.imprint" },
+  { href: "/legal/privacy", label: "screens.settings.privacy" },
+  { href: "/legal/terms", label: "screens.settings.terms" },
+  { href: "/legal/licenses", label: "screens.settings.licenses" },
+];
+
+// The niche pages exist in German only, so their links are shown to German readers.
+export async function UgcFooter({ currentSlug, onHub = false }: { currentSlug?: string; onHub?: boolean }) {
+  const t = await getT();
+  const german = (await getLocale()) === "de";
   const others = UGC_NICHE_PAGES.filter((page) => page.slug !== currentSlug);
   return (
     <footer className="relative z-10 border-t border-ink/10 px-4 pt-8 pb-[calc(var(--safe-bottom)+28px)]">
       <div className="mx-auto flex max-w-3xl flex-col gap-6 text-sm text-neutral-600 dark:text-neutral-400">
-        <nav aria-label="UGC nach Nische" className="flex flex-wrap gap-x-5 gap-y-2">
-          {currentSlug && (
-            <Link href={UGC_PATH} className="transition hover:text-ink">
-              UGC-Creator finden
-            </Link>
-          )}
-          {others.map((page) => (
-            <Link key={page.slug} href={ugcNicheHref(page.slug)} className="transition hover:text-ink">
-              {page.label}
+        {german && (
+          <nav aria-label="UGC nach Nische" className="flex flex-wrap gap-x-5 gap-y-2">
+            {!onHub && (
+              <Link href={UGC_PATH} className="transition hover:text-ink">
+                {t("landing.footer.ugc")}
+              </Link>
+            )}
+            {others.map((page) => (
+              <Link key={page.slug} href={ugcNicheHref(page.slug)} className="transition hover:text-ink">
+                {page.label}
+              </Link>
+            ))}
+          </nav>
+        )}
+        <nav aria-label={t("landing.footer.label")} className="flex flex-wrap gap-x-5 gap-y-2">
+          {LEGAL.map((l) => (
+            <Link key={l.href} href={l.href} className="transition hover:text-ink">
+              {t(l.label)}
             </Link>
           ))}
-        </nav>
-        <nav aria-label="Rechtliches" className="flex flex-wrap gap-x-5 gap-y-2">
-          <Link href="/legal/imprint" className="transition hover:text-ink">
-            Impressum
-          </Link>
-          <Link href="/legal/privacy" className="transition hover:text-ink">
-            Datenschutz
-          </Link>
-          <Link href="/legal/terms" className="transition hover:text-ink">
-            AGB
-          </Link>
-          <Link href="/legal/licenses" className="transition hover:text-ink">
-            Lizenzen
-          </Link>
         </nav>
         <p className="text-footnote text-neutral-500 dark:text-neutral-400">© 2026 comtor</p>
       </div>
