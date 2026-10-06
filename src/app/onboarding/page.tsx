@@ -30,7 +30,11 @@ export default async function OnboardingPage(props: PageProps<"/onboarding">) {
       isOnboardingComplete(session.user.id, session.user.role),
       prisma.user.findUnique({
         where: { id: session.user.id },
-        select: { emailVerified: true, startupProfile: { select: { foundingNumber: true } } },
+        select: {
+          emailVerified: true,
+          startupProfile: { select: { foundingNumber: true } },
+          creatorProfile: { select: { foundingNumber: true } },
+        },
       }),
     ]);
     if (complete) redirect(session.user.role === "STARTUP" ? "/dashboard/startup" : "/dashboard/creator");
@@ -39,7 +43,7 @@ export default async function OnboardingPage(props: PageProps<"/onboarding">) {
       session.user.role === "STARTUP" ? (
         <BrandOnboarding emailVerified={emailVerified} foundingNumber={user?.startupProfile?.foundingNumber ?? null} />
       ) : (
-        <CreatorOnboarding emailVerified={emailVerified} />
+        <CreatorOnboarding emailVerified={emailVerified} foundingNumber={user?.creatorProfile?.foundingNumber ?? null} />
       );
   } else if (session) {
     redirect("/dashboard");

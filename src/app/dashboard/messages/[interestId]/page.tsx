@@ -13,7 +13,8 @@ import { ChatLiveUpdates } from "@/components/chat-live-updates";
 import { ChatViewport } from "@/components/chat-viewport";
 import { buildCollabTimeline } from "@/lib/collab-timeline";
 import { chatThreadVersion } from "@/lib/chat-version";
-import { DEPOSITS_ENABLED, PLATFORM_FEE_RATE, PRO_PLATFORM_FEE_RATE } from "@/lib/constants";
+import { DEPOSITS_ENABLED } from "@/lib/constants";
+import { feeRatePercent as feeRateFor } from "@/lib/payment-math";
 import { ChatInfoPanel } from "@/components/chat-info-panel";
 import { getT } from "@/lib/i18n/server";
 
@@ -70,7 +71,7 @@ export default async function MessageThreadPage({ params }: { params: Promise<{ 
   const latestUnreadId =
     interest.messages.findLast((m) => m.senderRole !== session.user.role && !m.read)?.id ?? null;
 
-  const feeRatePercent = (interest.request.startup.isPro ? PRO_PLATFORM_FEE_RATE : PLATFORM_FEE_RATE) * 100;
+  const feeRatePercent = feeRateFor(interest.request.startup, interest.creator);
   // The current offer, shown as a card in the conversation at the time it
   // was made (see ChatOfferCard) rather than pinned above it.
   const offer =

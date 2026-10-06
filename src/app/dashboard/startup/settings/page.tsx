@@ -90,6 +90,7 @@ export default async function StartupSettingsPage() {
 
       <SettingsSection id="plan" title={t("screens.settings.plan")}>
         <ProPlanCard
+          side="brand"
           key={String(startup.isPro)}
           isPro={startup.isPro}
           proSince={startup.proSince}

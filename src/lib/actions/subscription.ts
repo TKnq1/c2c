@@ -7,13 +7,17 @@ import { stripe } from "@/lib/stripe";
 import { SITE_URL } from "@/lib/site";
 import { canSellProSubscription } from "@/lib/native-app-server";
 import { canWithdrawPro } from "@/lib/pro-withdrawal";
+import { findProProfile, planPath, updateProProfile } from "@/lib/pro-profile";
 
 function revalidateSubscriptionPaths() {
   revalidatePath("/dashboard/startup/settings");
   revalidatePath("/dashboard/startup/payments");
+  revalidatePath("/dashboard/creator/settings");
+  revalidatePath("/dashboard/creator/payments");
 }
 
-// Starts a real Stripe Checkout Session for the Pro subscription —
+// Starts a real Stripe Checkout Session for the Pro subscription, for a brand
+// or a creator —
 // mode: "subscription" instead of the one-time "payment" mode used for
 // collab payments (see payments.ts), but the same redirect-based Checkout
 // pattern rather than an embedded flow just for this one form. isPro only
@@ -22,22 +26,21 @@ function revalidateSubscriptionPaths() {
 // the moment this link is generated.
 export async function createProCheckoutSessionAction(): Promise<{ url: string } | { error: string }> {
   const session = await auth();
-  if (!session || session.user.role !== "STARTUP") return { error: "Not authorized." };
+  const profile = session ? await findProProfile(session.user.id, session.user.role) : null;
+  if (!session || !profile) return { error: "Not authorized." };
   // Mirrors the hidden upgrade UI in the store apps, see canSellProSubscription.
   if (!(await canSellProSubscription())) return { error: "Pro isn't available in the app." };
+  if (profile.isPro) return { error: "You're already on Pro." };
 
-  const startup = await prisma.startupProfile.findUniqueOrThrow({ where: { userId: session.user.id } });
-  if (startup.isPro) return { error: "You're already on Pro." };
-
-  let customerId = startup.stripeCustomerId;
+  let customerId = profile.stripeCustomerId;
   if (!customerId) {
     const customer = await stripe.customers.create({
       email: session.user.email ?? undefined,
-      name: startup.companyName,
-      metadata: { startupId: startup.id },
+      name: profile.name || undefined,
+      metadata: profile.side === "brand" ? { startupId: profile.id } : { creatorId: profile.id },
     });
     customerId = customer.id;
-    await prisma.startupProfile.update({ where: { id: startup.id }, data: { stripeCustomerId: customerId } });
+    await updateProProfile(profile, { stripeCustomerId: customerId });
   }
 
   // Do NOT pass payment_method_types here — Stripe determines eligible
@@ -47,8 +50,8 @@ export async function createProCheckoutSessionAction(): Promise<{ url: string } 
     mode: "subscription",
     customer: customerId,
     line_items: [{ price: process.env.STRIPE_PRO_PRICE_ID!, quantity: 1 }],
-    success_url: `${SITE_URL}/dashboard/startup/settings#plan`,
-    cancel_url: `${SITE_URL}/dashboard/startup/settings#plan`,
+    success_url: `${SITE_URL}${planPath(profile.side)}`,
+    cancel_url: `${SITE_URL}${planPath(profile.side)}`,
   });
 
   return { url: checkoutSession.url! };
@@ -60,50 +63,48 @@ export async function createProCheckoutSessionAction(): Promise<{ url: string } 
 // remainder of the current billing period.
 export async function cancelProAction() {
   const session = await auth();
-  if (!session || session.user.role !== "STARTUP") throw new Error("Not authorized.");
+  const profile = session ? await findProProfile(session.user.id, session.user.role) : null;
+  if (!profile) throw new Error("Not authorized.");
+  if (!profile.stripeSubscriptionId) throw new Error("No active subscription found.");
 
-  const startup = await prisma.startupProfile.findUniqueOrThrow({ where: { userId: session.user.id } });
-  if (!startup.stripeSubscriptionId) throw new Error("No active subscription found.");
-
-  await stripe.subscriptions.cancel(startup.stripeSubscriptionId);
+  await stripe.subscriptions.cancel(profile.stripeSubscriptionId);
   // The customer.subscription.deleted webhook will also flip isPro false,
   // but updating it here too means the UI reflects it immediately instead
-  // of waiting on webhook delivery. A founding brand's Pro doesn't depend on the subscription.
-  await prisma.startupProfile.update({
-    where: { id: startup.id },
-    data: { isPro: startup.foundingNumber !== null, stripeSubscriptionId: null },
-  });
+  // of waiting on webhook delivery. A founding place's Pro doesn't depend on the subscription.
+  await updateProProfile(profile, { isPro: profile.foundingNumber !== null, stripeSubscriptionId: null });
 
   revalidateSubscriptionPaths();
 }
 
-// Within 14 days of the first charge the brand can end Pro and get that
-// payment back. Ordinary cancellation (above) does not refund.
+// Within 14 days of the first charge a brand or a creator can end Pro and get
+// that payment back. Ordinary cancellation (above) does not refund.
 export async function withdrawProAction(): Promise<{ error?: string }> {
   const session = await auth();
-  if (!session || session.user.role !== "STARTUP") return { error: "Not authorized." };
+  const profile = session ? await findProProfile(session.user.id, session.user.role) : null;
+  if (!profile) return { error: "Not authorized." };
 
-  const startup = await prisma.startupProfile.findUnique({ where: { userId: session.user.id } });
-  if (!startup?.isPro || !startup.stripeSubscriptionId || !startup.proSince) {
+  if (!profile.isPro || !profile.stripeSubscriptionId || !profile.proSince) {
     return { error: "Pro can't be withdrawn right now." };
   }
-  if (!canWithdrawPro(startup.proSince)) {
+  if (!canWithdrawPro(profile.proSince)) {
     return { error: "The 14 days to withdraw have passed. You can still cancel Pro." };
   }
 
   try {
-    const refund = await refundLatestProPayment(startup.stripeSubscriptionId, startup.id);
+    const refund = await refundLatestProPayment(profile.stripeSubscriptionId, profile.id);
     if (!refund) return { error: "No payment to refund." };
-    await stripe.subscriptions.cancel(startup.stripeSubscriptionId);
-    await prisma.$transaction([
-      prisma.startupProfile.update({
-        where: { id: startup.id },
-        data: { isPro: startup.foundingNumber !== null, stripeSubscriptionId: null },
-      }),
-      prisma.proWithdrawal.create({
-        data: { startupId: startup.id, amountCents: refund.amount, stripeRefundId: refund.id },
-      }),
-    ]);
+    await stripe.subscriptions.cancel(profile.stripeSubscriptionId);
+    const isPro = profile.foundingNumber !== null;
+    const withdrawal = { amountCents: refund.amount, stripeRefundId: refund.id };
+    await prisma.$transaction(async (tx) => {
+      if (profile.side === "brand") {
+        await tx.startupProfile.update({ where: { id: profile.id }, data: { isPro, stripeSubscriptionId: null } });
+        await tx.proWithdrawal.create({ data: { ...withdrawal, startupId: profile.id } });
+      } else {
+        await tx.creatorProfile.update({ where: { id: profile.id }, data: { isPro, stripeSubscriptionId: null } });
+        await tx.proWithdrawal.create({ data: { ...withdrawal, creatorId: profile.id } });
+      }
+    });
   } catch (err) {
     console.error("Pro withdrawal failed:", err);
     return { error: "The withdrawal didn't go through. Try again, or write to info@comtor.app." };
@@ -114,11 +115,11 @@ export async function withdrawProAction(): Promise<{ error?: string }> {
   return {};
 }
 
-async function refundLatestProPayment(subscriptionId: string, startupId: string) {
+async function refundLatestProPayment(subscriptionId: string, profileId: string) {
   const invoices = await stripe.invoices.list({ subscription: subscriptionId, status: "paid", limit: 1 });
   const invoice = invoices.data[0];
   if (!invoice) return null;
-  const key = `pro-withdraw-${startupId}-${invoice.id}`;
+  const key = `pro-withdraw-${profileId}-${invoice.id}`;
   const legacyCharge = (invoice as { charge?: string | null }).charge;
   if (typeof legacyCharge === "string") return stripe.refunds.create({ charge: legacyCharge }, { idempotencyKey: key });
 

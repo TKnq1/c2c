@@ -7,7 +7,7 @@ import { prisma } from "@/lib/prisma";
 import { stripe } from "@/lib/stripe";
 import { SITE_URL } from "@/lib/site";
 import { sendOfferSchema, submitPostSchema, reportProblemSchema } from "@/lib/validation";
-import { splitPayment } from "@/lib/payment-math";
+import { hasProRate, splitPayment } from "@/lib/payment-math";
 import { formatCents } from "@/lib/format";
 import { notify } from "@/lib/notifications";
 import { flagIfAnomalousOffer, getMutualBlockedUserIds, isBlocked } from "@/lib/moderation";
@@ -96,7 +96,7 @@ export async function sendOfferAction(
   }
 
   const amountCents = parsed.data.amount;
-  const { platformFeeCents, payoutCents } = splitPayment(amountCents, startup.isPro);
+  const { platformFeeCents, payoutCents } = splitPayment(amountCents, hasProRate(startup, interest.creator));
 
   // Only while nothing is on the table: two parallel sends can't both go through.
   const opened = await prisma.$transaction(async (tx) => {
@@ -159,11 +159,12 @@ export async function bulkSendOfferAction(requestId: string, interestIds: string
   }
 
   const amountCents = parsed.data.amount;
-  const { platformFeeCents, payoutCents } = splitPayment(amountCents, startup.isPro);
 
   const offered: typeof interests = [];
   await prisma.$transaction(async (tx) => {
     for (const interest of interests) {
+      // Per creator: one with Pro gets the Pro rate even when the brand has none.
+      const { platformFeeCents, payoutCents } = splitPayment(amountCents, hasProRate(startup, interest.creator));
       // Skipped quietly if it was offered elsewhere since the list was read.
       const claimed = await tx.interest.updateMany({
         where: { id: interest.id, paymentStatus: null },
@@ -219,7 +220,7 @@ export async function counterOfferAction(
   }
 
   const amountCents = parsed.data.amount;
-  const { platformFeeCents, payoutCents } = splitPayment(amountCents, interest.request.startup.isPro);
+  const { platformFeeCents, payoutCents } = splitPayment(amountCents, hasProRate(interest.request.startup, interest.creator));
 
   const countered = await prisma.$transaction(async (tx) => {
     const claimed = await tx.interest.updateMany({

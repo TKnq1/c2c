@@ -47,6 +47,8 @@ export default async function AdminUserPage(props: PageProps<"/admin/users/[id]"
 
   const brand = user.startupProfile;
   const creator = user.creatorProfile;
+  // Pro and the founding place, on whichever side the account is.
+  const pro = brand ?? creator;
   const paymentWhere = brand
     ? { request: { startupId: brand.id }, paymentStatus: { not: null } }
     : creator
@@ -100,9 +102,9 @@ export default async function AdminUserPage(props: PageProps<"/admin/users/[id]"
             <p className="truncate text-sm text-neutral-500 dark:text-neutral-400">{user.email}</p>
             <div className="mt-2 flex flex-wrap items-center gap-2">
               <RoleBadge role={user.role} isAdmin={user.isAdmin} />
-              {brand?.isPro && (
+              {pro?.isPro && (
                 <span className="rounded-full bg-ink px-2.5 py-1 text-xs font-medium text-paper">
-                  {brand.foundingNumber ? `Pro · Founding #${brand.foundingNumber}` : "Pro"}
+                  {pro.foundingNumber ? `Pro · Founding #${pro.foundingNumber}` : "Pro"}
                 </span>
               )}
               <span className="text-footnote text-neutral-500 dark:text-neutral-400">
@@ -115,12 +117,12 @@ export default async function AdminUserPage(props: PageProps<"/admin/users/[id]"
         {canSuspend && (
           <div className="flex flex-wrap items-center gap-2">
             {!user.suspendedAt && <SuspendUserButton userId={user.id} label={name} isBrand={!!brand} />}
-            {brand?.foundingNumber && (
+            {pro?.foundingNumber && (
               <ConfirmActionButton
                 action={revokeFoundingProAction.bind(null, user.id)}
-                successMessage={`${name} is no longer a founding brand.`}
+                successMessage={`${name} no longer has a founding place.`}
                 title={`Take founding Pro from ${name}?`}
-                description={`Founding brand #${brand.foundingNumber} loses the free Pro (the fee goes back to the standard rate) and the number is free for the next brand. A Pro subscription the brand pays for itself keeps running.`}
+                description={`Founding ${brand ? "brand" : "creator"} #${pro.foundingNumber} loses the free Pro (the fee goes back to the standard rate) and the number is free for the next ${brand ? "brand" : "creator"}. A Pro subscription paid for separately keeps running.`}
                 confirmLabel="Take away"
                 pendingLabel="Taking away…"
                 className="rounded-full border border-neutral-300 px-4 py-2 text-sm font-medium transition hover:border-ink dark:border-neutral-700"

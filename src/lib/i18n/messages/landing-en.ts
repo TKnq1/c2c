@@ -71,7 +71,8 @@ export const landing = {
     creator3Title: "Paid before you post",
     creator3Body: "Accept an offer and the brand pays first. The money is held until your post is up.",
     creator4Title: "You keep 90%",
-    creator4Body: "The brand has 3 days to approve your post. If they don't answer, it's released to you anyway.",
+    creator4Body:
+      "The brand has 3 days to approve your post. If they don't answer, it's released to you anyway. With Pro (€{price} a month) you keep {keepPro}%.",
     brand1Title: "Post a request in a minute",
     brand1Body: "Photos, budget, platform and what to post. Creators get it as a card in their feed.",
     brand2Title: "Creators come to you",
@@ -80,7 +81,7 @@ export const landing = {
     brand3Body: "Send an offer. When they accept, you pay, and the money is held until the post is live.",
     brand4Title: "Approve the post, then it's paid out",
     brand4Body:
-      "Check the live post first. No base fee: comtor keeps {standard}% of each payment, or {pro}% with Pro (€{price} a month).",
+      "Check the live post first. No base fee: comtor keeps {standard}% of each payment, or {pro}% when you or the creator has Pro (€{price} a month).",
   },
   mock: {
     interestSent: "Interest sent.",

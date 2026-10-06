@@ -38,10 +38,10 @@ export async function POST(req: Request) {
           typeof checkoutSession.subscription === "string" ? checkoutSession.subscription : null;
         if (!customerId || !subscriptionId) break;
 
-        await prisma.startupProfile.updateMany({
-          where: { stripeCustomerId: customerId },
-          data: { isPro: true, proSince: new Date(), stripeSubscriptionId: subscriptionId },
-        });
+        // A brand's or a creator's: a Stripe customer belongs to exactly one profile, so at most one matches.
+        const data = { isPro: true, proSince: new Date(), stripeSubscriptionId: subscriptionId };
+        await prisma.startupProfile.updateMany({ where: { stripeCustomerId: customerId }, data });
+        await prisma.creatorProfile.updateMany({ where: { stripeCustomerId: customerId }, data });
         break;
       }
 
@@ -119,11 +119,11 @@ export async function POST(req: Request) {
       const customerId = typeof subscription.customer === "string" ? subscription.customer : null;
       if (!customerId) break;
 
-      // A founding brand's Pro doesn't depend on a subscription, so it stays on whatever Stripe says.
-      await prisma.startupProfile.updateMany({
-        where: { stripeCustomerId: customerId, foundingNumber: null },
-        data: { isPro: subscription.status === "active" || subscription.status === "trialing" },
-      });
+      // A founding place's Pro doesn't depend on a subscription, so it stays on whatever Stripe says.
+      const where = { stripeCustomerId: customerId, foundingNumber: null };
+      const data = { isPro: subscription.status === "active" || subscription.status === "trialing" };
+      await prisma.startupProfile.updateMany({ where, data });
+      await prisma.creatorProfile.updateMany({ where, data });
       break;
     }
 
@@ -132,15 +132,13 @@ export async function POST(req: Request) {
       const customerId = typeof subscription.customer === "string" ? subscription.customer : null;
       if (!customerId) break;
 
-      await prisma.startupProfile.updateMany({
-        where: { stripeCustomerId: customerId, foundingNumber: null },
-        data: { isPro: false, stripeSubscriptionId: null },
-      });
-      // Founding brands keep isPro; only the ended subscription is forgotten.
-      await prisma.startupProfile.updateMany({
-        where: { stripeCustomerId: customerId, foundingNumber: { not: null } },
-        data: { stripeSubscriptionId: null },
-      });
+      const ended = { where: { stripeCustomerId: customerId, foundingNumber: null }, data: { isPro: false, stripeSubscriptionId: null } };
+      // Founding places keep isPro; only the ended subscription is forgotten.
+      const founding = { where: { stripeCustomerId: customerId, foundingNumber: { not: null } }, data: { stripeSubscriptionId: null } };
+      await prisma.startupProfile.updateMany(ended);
+      await prisma.startupProfile.updateMany(founding);
+      await prisma.creatorProfile.updateMany(ended);
+      await prisma.creatorProfile.updateMany(founding);
       break;
     }
 

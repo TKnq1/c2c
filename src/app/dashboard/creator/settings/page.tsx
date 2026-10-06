@@ -21,6 +21,9 @@ import { AppearanceSettings } from "@/components/appearance-settings";
 import { OnboardingChecklist } from "@/components/onboarding-checklist";
 import { MarketingConsentSettings } from "@/components/marketing-consent-settings";
 import { PageTitle } from "@/components/page-title";
+import { ProPlanCard } from "@/components/pro-plan-card";
+import { canWithdrawPro } from "@/lib/pro-withdrawal";
+import { canSellProSubscription } from "@/lib/native-app-server";
 import { getT } from "@/lib/i18n/server";
 
 export default async function CreatorSettingsPage() {
@@ -89,6 +92,19 @@ export default async function CreatorSettingsPage() {
         <div className="mt-4 border-t border-ink/10 pt-4">
           <CopyProfileLink url={`${SITE_URL}/dashboard/startup/discover/${creator.id}`} />
         </div>
+      </SettingsSection>
+
+      <SettingsSection id="plan" title={t("screens.settings.plan")}>
+        <ProPlanCard
+          side="creator"
+          key={String(creator.isPro)}
+          isPro={creator.isPro}
+          proSince={creator.proSince}
+          foundingNumber={creator.foundingNumber}
+          hasSubscription={!!creator.stripeSubscriptionId}
+          canWithdraw={creator.isPro && !!creator.stripeSubscriptionId && canWithdrawPro(creator.proSince)}
+          canPurchase={await canSellProSubscription()}
+        />
       </SettingsSection>
 
       <SettingsSection id="payouts" title={t("screens.settings.payouts")}>

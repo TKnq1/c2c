@@ -76,7 +76,7 @@ export const landingDe: DeepString<typeof landing> = {
     creator3Body: "Nimmst du ein Angebot an, zahlt die Marke zuerst. Das Geld wird zurückgehalten, bis dein Post online ist.",
     creator4Title: "Du behältst 90 %",
     creator4Body:
-      "Die Marke hat 3 Tage Zeit, deinen Post freizugeben. Antwortet sie nicht, geht die Zahlung trotzdem an dich.",
+      "Die Marke hat 3 Tage Zeit, deinen Post freizugeben. Antwortet sie nicht, geht die Zahlung trotzdem an dich. Mit Pro ({price} € im Monat) behältst du {keepPro} %.",
     brand1Title: "Anfrage in einer Minute",
     brand1Body: "Fotos, Budget, Plattform und Inhalt. Creator bekommen sie als Karte in ihrem Feed.",
     brand2Title: "Creator kommen zu dir",
@@ -87,7 +87,7 @@ export const landingDe: DeepString<typeof landing> = {
       "Schick ein Angebot. Nimmt der Creator es an, zahlst du, und das Geld wird zurückgehalten, bis der Post online ist.",
     brand4Title: "Post freigeben, dann wird ausgezahlt",
     brand4Body:
-      "Prüfe zuerst den Live-Post. Keine Grundgebühr: comtor behält {standard} % jeder Zahlung, mit Pro ({price} € im Monat) nur {pro} %.",
+      "Prüfe zuerst den Live-Post. Keine Grundgebühr: comtor behält {standard} % jeder Zahlung, nur {pro} %, wenn du oder der Creator Pro hat ({price} € im Monat).",
   },
   mock: {
     interestSent: "Interesse gesendet.",

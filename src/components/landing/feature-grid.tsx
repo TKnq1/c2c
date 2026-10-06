@@ -44,7 +44,10 @@ function creatorFeatures(c: Ctx): Feature[] {
     {
       icon: "money-wings",
       title: t("landing.features.creator4Title"),
-      body: t("landing.features.creator4Body"),
+      body: t("landing.features.creator4Body", {
+        price: PRO_SUBSCRIPTION_PRICE_CENTS / 100,
+        keepPro: 100 - Math.round(PRO_PLATFORM_FEE_RATE * 100),
+      }),
       mockup: <PayoutMock {...c} />,
     },
   ];

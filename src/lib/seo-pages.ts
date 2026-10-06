@@ -1,4 +1,4 @@
-import { NICHES, PLATFORM_FEE_RATE, PLATFORMS, RELEASE_REVIEW_DAYS } from "@/lib/constants";
+import { NICHES, PLATFORM_FEE_RATE, PLATFORMS, PRO_PLATFORM_FEE_RATE, PRO_SUBSCRIPTION_PRICE_CENTS, RELEASE_REVIEW_DAYS } from "@/lib/constants";
 
 // The German search landing pages (/ugc and /ugc/<slug>). One page per niche, each with its own text: a
 // page only earns its place in search if it says something the others don't. Add a niche by adding an entry
@@ -28,6 +28,8 @@ export type UgcNichePage = {
 
 const NBSP = " ";
 const FEE = `${PLATFORM_FEE_RATE * 100}${NBSP}%`;
+const PRO_FEE = `${PRO_PLATFORM_FEE_RATE * 100}${NBSP}%`;
+const PRO_PRICE = `${PRO_SUBSCRIPTION_PRICE_CENTS / 100}${NBSP}€`;
 
 // Questions every page answers the same way, because the answer is the same.
 function sharedFaqs(): { question: string; answer: string }[] {
@@ -38,7 +40,7 @@ function sharedFaqs(): { question: string; answer: string }[] {
     },
     {
       question: "Was kostet comtor?",
-      answer: `Die Anmeldung ist kostenlos und es gibt keine Grundgebühr. comtor behält ${FEE} jeder Zahlung. Die Gebühr wird von der Auszahlung des Creators abgezogen. Die Marke zahlt genau den vereinbarten Betrag. Für Marken, die regelmäßig Aufträge vergeben, gibt es ein optionales Pro-Abo mit niedrigerer Gebühr.`,
+      answer: `Die Anmeldung ist kostenlos und es gibt keine Grundgebühr. comtor behält ${FEE} jeder Zahlung. Die Gebühr wird von der Auszahlung des Creators abgezogen. Die Marke zahlt genau den vereinbarten Betrag. Marken und Creator können ein optionales Pro-Abo für ${PRO_PRICE} im Monat buchen. Dann sind es ${PRO_FEE} bei jeder Zahlung, bei der eine der beiden Seiten Pro hat.`,
     },
     {
       question: "Müssen bezahlte Posts als Werbung gekennzeichnet werden?",
