@@ -13,12 +13,13 @@ import { unlockSounds } from "@/lib/sounds";
 export const PRIMARY_BUTTON =
   "flex-1 rounded-full bg-ink px-4 py-3.5 font-medium text-paper transition hover:bg-graphite disabled:opacity-40 disabled:hover:bg-ink";
 const SECONDARY_BUTTON =
-  "rounded-full border border-neutral-300 px-5 py-3.5 font-medium text-neutral-600 transition hover:border-ink dark:border-neutral-700 dark:text-neutral-400";
+  "rounded-full border border-neutral-300 bg-paper px-5 py-3.5 font-medium text-neutral-600 transition hover:border-ink dark:border-neutral-700 dark:text-neutral-400";
 
 // One step is a column: the question, the answer, then the action. On a
-// phone the action sits on the bottom edge; on a wider screen it follows
-// the answer, because the column is no longer the whole screen.
-export const stepScreen = "flex flex-1 flex-col gap-5";
+// phone the column fills the screen so the action can sit on the bottom
+// edge. On a wider screen the column shrinks to its content and the page
+// centers it.
+export const stepScreen = "flex flex-1 flex-col gap-5 sm:my-auto sm:flex-none";
 export const stepActions = "mt-auto flex flex-col gap-3 pt-2 sm:mt-0";
 
 export const FIELD_CLASS =
