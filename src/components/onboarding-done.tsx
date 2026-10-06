@@ -76,7 +76,7 @@ export function OnboardingDone({
   const secondary = role === "brand" ? { href: "/dashboard/startup", label: t("onboarding.done.goDashboard") } : null;
 
   return (
-    <div className="flex flex-1 flex-col gap-5">
+    <div className="flex flex-1 flex-col gap-5 sm:my-auto sm:flex-none">
       <div className="flex flex-1 flex-col items-center justify-center gap-4 py-4 text-center sm:flex-none sm:py-2">
         <span className="animate-pop-in flex h-16 w-16 items-center justify-center rounded-full bg-ink text-paper">
           <IoCheckmark className="h-8 w-8" aria-hidden />

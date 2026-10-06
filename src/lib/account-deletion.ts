@@ -94,6 +94,10 @@ export async function anonymiseAccount(userId: string, role: Role) {
         sessionsRevokedAt: now,
         keptSessionId: null,
         isAdmin: false,
+        marketingConsentAt: null,
+        marketingTokenHash: null,
+        marketingTokenExpiresAt: null,
+        marketingSentAt: null,
       },
     }),
   ]);

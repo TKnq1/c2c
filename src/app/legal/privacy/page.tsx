@@ -43,6 +43,7 @@ const SECTIONS: { title: string; body: string[] }[] = [
     title: "Emails we send you",
     body: [
       "Account emails (verification, password reset, a changed password) are sent because you have an account (Art. 6(1)(b) GDPR). They go out through Resend.",
+      "Occasional product news is separate and optional. If you tick that box when you create an account, or turn it on in Settings, we email you a link. Consent is the button on that page, not opening the mail. We store the time you confirmed (Art. 6(1)(a) GDPR). You can stop it in Settings, and we then stop. An unconfirmed request is not consent.",
       "We send promotional email only to people who agreed to it beforehand (Art. 6(1)(a) GDPR, Section 7(2) no. 3 UWG). An address saved on a list is not enough. We store the name and email address, a note on how and when you agreed, and which message we sent you (send log, 90 days). We do not record whether you open an email or click a link. Each of these emails tells you why you get it and has an unsubscribe link (also as one-click unsubscribe in your mail program).",
       "You can withdraw your consent at any time, with the link in the email or by writing to info@comtor.app. We then delete your address and the send log. We keep only a hash of the address, so we don't write to you again by mistake (Art. 6(1)(c) and (f) GDPR).",
     ],

@@ -9,6 +9,7 @@ import { FIELD_CLASS, StepError, StepFooter, StepHeading, stepActions, stepScree
 import type { OnboardingState } from "@/lib/actions/onboarding";
 import { localizeError } from "@/lib/i18n/labels";
 import { TermsConsent } from "@/components/terms-consent";
+import { MarketingConsentCheckbox } from "@/components/marketing-consent-checkbox";
 import { PLATFORM_FEE_RATE, PRO_PLATFORM_FEE_RATE, RELEASE_REVIEW_DAYS } from "@/lib/constants";
 import type { PlatformDraft } from "@/components/platform-chips";
 import type { SignupRole } from "@/lib/signup-role";
@@ -114,6 +115,7 @@ export function OnboardingAccountStep({
           </Link>
         </p>
         <TermsConsent />
+        <MarketingConsentCheckbox />
       </div>
     </form>
   );

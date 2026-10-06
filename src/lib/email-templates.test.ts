@@ -5,6 +5,7 @@ import {
   testEmail,
   verificationEmail,
   waitlistConfirmationEmail,
+  marketingConsentEmail,
   marketingEntryUrl,
   marketingWelcomeEmail,
   welcomeEmail,
@@ -70,6 +71,16 @@ describe("welcomeEmail", () => {
   it("tells creators and brands what comes next", () => {
     expect(welcomeEmail(url, "CREATOR").text).toContain("brand deals");
     expect(welcomeEmail(url, "STARTUP").text).toContain("first request");
+  });
+});
+
+describe("marketingConsentEmail", () => {
+  it("points at the confirm page and does not treat the mail itself as a yes", () => {
+    const url = "https://www.comtor.app/marketing/confirm/abc";
+    const email = marketingConsentEmail(url);
+    expect(email.subject).toBe("Confirm news from comtor");
+    expect(email.text).toContain(url);
+    expect(email.text).toContain("Nothing is turned on until you press the button");
   });
 });
 

@@ -229,6 +229,19 @@ export function testEmail(url: string): Email {
   });
 }
 
+// Product news. The link opens a page; the button on that page is the
+// consent (see confirmMarketingConsent). Opening the mail is not a yes.
+export function marketingConsentEmail(url: string): Email {
+  return render({
+    subject: "Confirm news from comtor",
+    preview: "One button, then we can send occasional news about comtor.",
+    heading: "Confirm product news.",
+    body: "You asked for occasional emails about comtor. Press the button on the next page to confirm. Until then, this address gets no product news.",
+    action: { label: "Review and confirm", url },
+    note: "Didn't ask for this? Ignore the email. Nothing is turned on until you press the button.",
+  });
+}
+
 // The waitlist's double opt-in: nobody gets the launch email without
 // clicking this first (see joinWaitlistAction).
 export function waitlistConfirmationEmail(url: string): Email {
