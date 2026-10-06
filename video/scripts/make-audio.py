@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Generates the music bed and the sound effects of the videos.
 
-    video/public/music/creator-bed.mp3   music for the creator video (43 s, 120 BPM)
+    video/public/music/creator-bed.mp3   music for the creator video (48 s, 120 BPM)
     video/public/music/brand-bed.mp3     music for the brand video (33.5 s, 120 BPM)
     video/public/sfx/*.wav               UI sounds (pop, click, swipe, coin, ...)
 
@@ -206,18 +206,18 @@ ARP = [0, 1, 2, 3, 2, 1, 3, 2]
 CREATOR = {
     "file": "creator-bed.mp3",
     "chords": [AM7, FMAJ7, CMAJ7, G6],  # vi - IV - I - V
-    "scenes": [0, 4, 10, 16, 23, 27, 36, 49, 58, 65, 73, 79],
+    "scenes": [0, 4, 10, 16, 23, 27, 36, 49, 58, 65, 73, 79, 89],
     "hook": (0, 4),  # C00: kick and bass under the card slam, then the music drops back
     "hats_from": 10,  # C02
     "kicks_from": 16,  # C03
     "logo": 23,  # C04, logo on black
     "drop": 27,  # C05, first step: the groove starts
     "lift": 49,  # C07, the chat: 16th shaker on top
-    "accents": [73],  # C10, the payout: fill and crash
-    "breakdown": None,
-    "cta_riser": False,
-    "cta": 79,  # C11
-    "end": 86,  # 43 s
+    "accents": [73, 79],  # C10 the payout, C11 the founding offer: fill and crash
+    "breakdown": (79, 83),  # no kick or bass for the first two bars of the offer
+    "cta_riser": True,
+    "cta": 89,  # C12
+    "end": 96,  # 48 s
 }
 BRAND = {
     "file": "brand-bed.mp3",

@@ -4,7 +4,7 @@ import { wipe } from "@remotion/transitions/wipe";
 import { BEAT, type Scene, SceneSeries, seriesDuration, type VideoProps } from "../series";
 import { C00Hook, HOOK_BLUR } from "./hook";
 import { C01Hook, C02Twist, C03Problem, C04Logo } from "./intro";
-import { C10Payout, C11Cta } from "./outro";
+import { C10Payout, C11Founding, C12Cta } from "./outro";
 import { C05Profile, C06Swipe, C07Chat, C08Paid, C09Post } from "./steps";
 
 // Storyboard timings (STORYBOARD.md), in whole beats of the music. scripts/make-audio.py has the same scene starts.
@@ -21,7 +21,9 @@ export const CREATOR_SCENES: Scene[] = [
   { id: "C08", component: C08Paid, duration: 8 * BEAT, keyframe: 110, enter: slide({ direction: "from-right" }) },
   { id: "C09", component: C09Post, duration: 9 * BEAT, keyframe: 120, enter: slide({ direction: "from-right" }) },
   { id: "C10", component: C10Payout, duration: 7 * BEAT, keyframe: 90, enter: slide({ direction: "from-right" }), blur: [[66, 80]] },
-  { id: "C11", component: C11Cta, duration: 7 * BEAT, keyframe: 95, enter: wipe({ direction: "from-bottom" }), whoosh: false },
+  // The first 100 creators get Pro for good; wipes onto black on the music's accent.
+  { id: "C11", component: C11Founding, duration: 11 * BEAT, keyframe: 160, enter: wipe({ direction: "from-right" }), whoosh: false },
+  { id: "C12", component: C12Cta, duration: 7 * BEAT, keyframe: 95, enter: slide({ direction: "from-bottom" }), whoosh: false },
 ];
 
 export const CREATOR_DURATION = seriesDuration(CREATOR_SCENES);

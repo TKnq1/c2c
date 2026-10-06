@@ -2,6 +2,7 @@ import { Easing, useCurrentFrame } from "remotion";
 import { IoCheckmarkCircle } from "react-icons/io5";
 import { Sfx, SfxRepeat } from "../audio";
 import { ease, enterUp, euro, mix, pop, popIn, ramp } from "../anim";
+import { FoundingScene } from "../components/founding";
 import { UrlPill } from "../components/shared-scenes";
 import { Headline, Logo, SampleNote, SceneHeader, Stage, Subline } from "../components/ui";
 import { colors, GUTTER } from "../theme";
@@ -90,7 +91,22 @@ export const C10Payout: React.FC = () => {
   );
 };
 
-export const C11Cta: React.FC = () => {
+// The first 100 creators get Pro for as long as their account exists (the app's FOUNDING_CREATOR_LIMIT).
+export const C11Founding: React.FC = () => (
+  <FoundingScene
+    slots={100}
+    who="Founding Creator"
+    cell={54}
+    gap={10}
+    feePerk={
+      <>
+        Du behältst <b>97 %</b> statt 90 % jeder Zahlung
+      </>
+    }
+  />
+);
+
+export const C12Cta: React.FC = () => {
   const frame = useCurrentFrame();
   return (
     <Stage dark>
@@ -100,7 +116,10 @@ export const C11Cta: React.FC = () => {
       <div style={{ position: "absolute", top: 640, left: GUTTER, right: GUTTER, display: "flex", flexDirection: "column", gap: 70 }}>
         <Headline parts={["Wisch bezahlte Marken-Deals", { mark: "nach rechts." }]} size={120} align="center" dark start={6} style={{ letterSpacing: -3, lineHeight: 1.05 }} />
         <UrlPill style={popIn(pop(frame, 40), 0.6)} />
-        <div style={enterUp(ease(frame, 52), 30)}>
+        <div style={{ display: "flex", flexDirection: "column", gap: 14, ...enterUp(ease(frame, 52), 30) }}>
+          <Subline dark style={{ textAlign: "center", color: colors.paper, fontWeight: 700 }}>
+            Die ersten 100 Creator bekommen Pro kostenlos.
+          </Subline>
           <Subline dark style={{ textAlign: "center" }}>
             Jetzt im Web · Bald für iOS & Android
           </Subline>

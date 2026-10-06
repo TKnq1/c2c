@@ -8,7 +8,7 @@ import { B05Request, B06Creators, B07Safe } from "./steps";
 
 // Storyboard timings (STORYBOARD.md), in whole beats of the music. scripts/make-audio.py has the same scene starts.
 export const BRAND_SCENES: Scene[] = [
-  { id: "B01", component: B01Hook, duration: 6 * BEAT, keyframe: 30, blur: B01_BLUR },
+  { id: "B01", component: B01Hook, duration: 6 * BEAT, keyframe: 15, blur: B01_BLUR },
   // Match cut: the hook ends on this scene's phone, so only the headline crossfades.
   { id: "B02", component: B02Ugc, duration: 9 * BEAT, keyframe: 130, enter: fade(), whoosh: false, zoom: [1.03, 1.06] },
   { id: "B03", component: B03Growth, duration: 8 * BEAT, keyframe: 110, enter: slide({ direction: "from-bottom" }) },

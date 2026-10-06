@@ -20,7 +20,7 @@ Zwei Videos, beide in Remotion (`video/`), 2D-Flat-Animation im comtor-Look.
 
 ## Video 1: Creator, „Geld verdienen mit deinen Posts“
 
-Länge: ca. 43 s (Zeiten der Szenen unten vom ersten Entwurf; aktuelle Zeiten in `VOICEOVER.md`)
+Länge: ca. 48 s (Zeiten der Szenen unten vom ersten Entwurf; aktuelle Zeiten in `VOICEOVER.md`)
 
 ### Szene 0 – Hook (0:00–0:02)
 - **Bild:** Ab dem ersten Frame fällt die Odd-Bloom-Deal-Karte mit Bewegungsunschärfe ins Bild und schlägt nach 8 Frames ein (Impact-Sound, Kamera-Wackler). Ein großer „250 €“-Stempel knallt schräg auf die Karte.
@@ -78,7 +78,14 @@ Länge: ca. 43 s (Zeiten der Szenen unten vom ersten Entwurf; aktuelle Zeiten in
 - **Bild:** Abrechnungs-Karte baut sich zeilenweise auf: „Odd Bloom hat gezahlt 250,00 €“, „comtor-Gebühr (10 %) −25,00 €“, Trennlinie, „Du bekommst **225,00 €**“ – Zahl zählt hoch, success-Sound, kurzer Konfetti-Burst in Grautönen.
 - **Text:** „Du behältst 90 %.“
 
-### Szene 11 – CTA (0:42–0:45)
+### Szene 11 – Angebot: 100 Founding Creator
+- **Bild:** Schwarzer Screen wie bei den Founding Brands: „100 Plätze“ zählt hoch, ein Raster aus 100 freien Plätzen (10 × 10) baut sich auf, eine Lichtwelle läuft darüber.
+- **Text:** „**100 Plätze** für Founding Creator.“ → „Pro kostenlos. Solange dein Konto besteht.“ → „Du behältst 97 % statt 90 % jeder Zahlung“, „~~10 € im Monat~~ 0 €“, „Kein Abo, nichts zu kündigen“.
+
+### Szene 12 – CTA
+- Wie zuvor, zusätzlich „Die ersten 100 Creator bekommen Pro kostenlos.“ über „Jetzt im Web · Bald für iOS & Android“.
+
+### (alt) Szene 11 – CTA (0:42–0:45)
 - **Bild:** Schwarzer Screen, Logo oben, große Headline, darunter URL-Pill.
 - **Text:** „Wisch bezahlte Marken-Deals nach rechts.“ / „Jetzt im Web: comtor.app“ / klein: „Bald für iOS & Android“
 - **VO:** „comtor. Jetzt kostenlos im Web starten.“
@@ -89,9 +96,9 @@ Länge: ca. 43 s (Zeiten der Szenen unten vom ersten Entwurf; aktuelle Zeiten in
 
 Länge: ca. 33,5 s (Zeiten der Szenen unten vom ersten Entwurf; aktuelle Zeiten in `VOICEOVER.md`)
 
-### Szene 1 – Hook (0:00–0:02)
-- **Bild:** Die Anzeige steht ab dem ersten Frame im Handy, ein Daumen hält sie. Nach einer halben Sekunde wischt er sie mit Schwung weg (Bewegungsunschärfe), dahinter schiebt sich ein Creator-Video hoch.
-- **Text:** „Deine Werbung?“ (ab Frame 0, mit Impact-Sound) → beim Wegwischen knallt „**Weggewischt.**“ darunter.
+### Szene 1 – Hook (0:00–0:03)
+- **Bild:** Ab dem ersten Frame wischt ein Daumen im Feed schnell durch drei Anzeigen („SALE −20 %“, „NEU Kollektion“, „GRATIS Versand“), mit Bewegungsunschärfe. Der Feed bleibt erst bei einem Creator-Video stehen.
+- **Text:** „Jeder scrollt **an Werbung vorbei.**“
 - **Übergang (Match-Cut):** Das Handy mit dem Creator-Video bleibt stehen und wird zu Szene 2, nur die Überschrift wechselt.
 
 ### Szene 2 – UGC als Antwort (0:04–0:09)
@@ -99,9 +106,9 @@ Länge: ca. 33,5 s (Zeiten der Szenen unten vom ersten Entwurf; aktuelle Zeiten 
 - **Text:** „Echte Creator. Echte Videos. **Echtes Vertrauen.**“
 - **VO (optional):** „Menschen kaufen von Menschen. Genau das ist UGC.“
 
-### Szene 3 – Wachstum (0:09–0:13)
-- **Bild:** Das eine Video vervielfältigt sich zu einem 3×3-Grid aus Creator-Videos (Produktfotos der Landingpage). Darunter zeichnet sich eine Linie im Diagramm nach oben (ohne Zahlen, nur Kurve).
-- **Text:** „Mehr Content. Mehr Reichweite. Schnelleres Wachstum.“
+### Szene 3 – Conversion (0:06–0:10)
+- **Bild:** 3×3-Raster aus Creator-Videos, darunter eine Karte „Conversion“ mit zwei Balken: „Klassische Anzeige“ kurz und grau, „UGC“ lang und schwarz. Keine Zahlen, nur der Vergleich.
+- **Text:** „UGC konvertiert besser **als klassische Werbung.**“ (Für „höchste Conversion-Rate“ braucht es einen Beleg, siehe `VOICEOVER.md`.)
 
 ### Szene 4 – Logo-Reveal (0:13–0:15)
 - **Bild:** Grid zoomt raus, schwarzer Wipe, comtor-Logo.
@@ -121,7 +128,7 @@ Länge: ca. 33,5 s (Zeiten der Szenen unten vom ersten Entwurf; aktuelle Zeiten 
 
 ### Szene 8 – Angebot: 50 Founding Brands (0:27–0:32)
 - **Bild:** Schwarzer Screen. Ein Raster aus 50 kleinen Quadraten (5 × 10), alle frei (Umrisse). Eine Lichtwelle läuft einmal diagonal darüber. Groß darüber ein Zähler.
-- **Text:** „**50 Plätze** für Founding Brands“ → „Pro kostenlos. Solange dein Konto besteht.“ → Perk-Zeilen: „3 % statt 10 % Gebühr“, „Kein Abo, nichts zu kündigen“ (durchgestrichen „49 €/Monat“).
+- **Text:** „**50 Plätze** für Founding Brands“ → „Pro kostenlos. Solange dein Konto besteht.“ → Perk-Zeilen: „3 % statt 10 % Gebühr“, „Kein Abo, nichts zu kündigen“ (durchgestrichen „10 €/Monat“).
 - **VO:** „Die ersten 50 Marken bekommen Pro kostenlos, für immer.“
 
 ### Szene 9 – CTA (0:32–0:35)

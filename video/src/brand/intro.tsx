@@ -5,89 +5,92 @@ import { ease, enterUp, path, pop, popIn, ramp } from "../anim";
 import { MATCH_CUT_HEADER } from "../series";
 import { Sfx } from "../audio";
 import { Cursor, LogoReveal } from "../components/shared-scenes";
-import { Avatar, Headline, Photo, PhoneOutline, SceneHeader, Stage } from "../components/ui";
+import { Avatar, Photo, PhoneOutline, SceneHeader, Stage } from "../components/ui";
 import { colors, GUTTER, type PhotoKey } from "../theme";
 
-// The flick that throws the ad out, and the creator video sliding up behind it.
-const FLICK = 14;
-const NEXT = 20;
+// Three ads flicked past, then the feed stops on a creator's video. Frames of each flick [from, to].
+const FLICKS = [
+  [3, 13],
+  [16, 26],
+  [29, 42],
+] as const;
+// Height of one item in the feed: the phone's screen.
+const ITEM = 1240;
 
-// First second decides whether people keep watching: the ad and the question are there from frame 0, the flick
-// follows half a second later.
+const ADS = [
+  { big: "SALE", small: "−20 %", button: "Jetzt kaufen" },
+  { big: "NEU", small: "Kollektion", button: "Jetzt shoppen" },
+  { big: "GRATIS", small: "Versand", button: "Zum Angebot" },
+];
+
+const AdCard: React.FC<{ big: string; small: string; button: string }> = ({ big, small, button }) => (
+  <div style={{ height: ITEM, display: "flex", alignItems: "center", justifyContent: "center" }}>
+    <div
+      style={{
+        width: 560,
+        height: 860,
+        borderRadius: 12,
+        backgroundColor: colors.fog,
+        border: `2px solid ${colors.line}`,
+        position: "relative",
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
+        gap: 20,
+      }}
+    >
+      <span style={{ position: "absolute", top: 24, left: 24, fontSize: 24, fontWeight: 700, padding: "6px 14px", borderRadius: 4, backgroundColor: colors.stone, color: colors.paper }}>
+        Anzeige
+      </span>
+      <span style={{ fontSize: 110, fontWeight: 900, color: colors.stone }}>{big}</span>
+      <span style={{ fontSize: 56, fontWeight: 900, color: colors.stone }}>{small}</span>
+      <span style={{ marginTop: 20, padding: "16px 40px", borderRadius: 4, backgroundColor: colors.stone, color: colors.paper, fontSize: 30, fontWeight: 700 }}>
+        {button}
+      </span>
+    </div>
+  </div>
+);
+
+// First second decides whether people keep watching: the feed is moving from frame 0, ad after ad flicked away,
+// and it only stops for a creator's video. That video carries straight into the next scene (match cut).
 export const B01Hook: React.FC = () => {
   const frame = useCurrentFrame();
-  const drag = ramp(frame, 2, FLICK, Easing.inOut(Easing.quad));
-  const thrown = ramp(frame, FLICK, FLICK + 12, Easing.in(Easing.quad));
-  const dx = -50 * drag - 900 * thrown;
-  const rotate = -4 * drag - 28 * thrown;
-  const lines = ramp(frame, FLICK, FLICK + 6) * (1 - ramp(frame, FLICK + 16, FLICK + 26));
-  const next = ease(frame, NEXT, { stiffness: 120 });
-  // The thumb holds the ad's centre (phone coordinates) from the first frame and lets go on the flick.
-  const cursorX = path(frame, [0, FLICK, FLICK + 8], [320, 320 - 50 * 0.9, 220]);
-  const cursorY = path(frame, [0, FLICK, FLICK + 8], [490, 480, 520]);
+  // Each flick moves the feed one screen; the last one lands with a small bounce.
+  const scrolled = FLICKS.reduce((total, [from, to], i) => {
+    const p = i === FLICKS.length - 1 ? ease(frame, from, { damping: 13, stiffness: 120 }) : ramp(frame, from, to, Easing.inOut(Easing.cubic));
+    return total + p;
+  }, 0);
+  // The thumb swipes up for each flick and lets go after the last one.
+  const flick = FLICKS.find(([from, to]) => frame >= from - 2 && frame <= to);
+  const thumbY = flick ? path(frame, [flick[0] - 2, flick[1]], [860, 360]) : 860;
+  const thumbOpacity = 1 - ramp(frame, FLICKS[2][1], FLICKS[2][1] + 8);
 
   return (
     <Stage>
-      <div style={{ position: "absolute", top: 150, left: GUTTER, right: GUTTER, display: "flex", flexDirection: "column", gap: 10 }}>
-        <Headline parts={["Deine", "Werbung?"]} size={124} start={-7} />
-        <Headline parts={[{ mark: "Weggewischt." }]} size={124} start={FLICK} />
-      </div>
+      <SceneHeader parts={["Jeder scrollt", { mark: "an Werbung vorbei." }]} size={112} start={-6} />
       <PhoneOutline width={640} height={1240} style={{ position: "absolute", top: 600, left: 220 }}>
-        <div style={{ position: "absolute", inset: 0, transform: `translateY(${(1 - next) * 1240}px)`, opacity: next > 0.001 ? 1 : 0 }}>
-          <Photo photo="serum" />
-          <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to top, rgba(0,0,0,0.6), transparent 45%)" }} />
-        </div>
-        <div style={{ position: "absolute", inset: 0, paddingTop: 110, display: "flex", flexDirection: "column", alignItems: "center" }}>
-          <div
-            style={{
-              width: 560,
-              height: 760,
-              borderRadius: 12,
-              backgroundColor: colors.fog,
-              border: `2px solid ${colors.line}`,
-              position: "relative",
-              transform: `translateX(${dx}px) rotate(${rotate}deg)`,
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-              justifyContent: "center",
-              gap: 20,
-            }}
-          >
-            <span style={{ position: "absolute", top: 24, left: 24, fontSize: 24, fontWeight: 700, padding: "6px 14px", borderRadius: 4, backgroundColor: colors.stone, color: colors.paper }}>
-              Anzeige
-            </span>
-            <span style={{ fontSize: 96, fontWeight: 900, color: colors.stone }}>SALE</span>
-            <span style={{ fontSize: 56, fontWeight: 900, color: colors.stone }}>−20 %</span>
-            <span style={{ marginTop: 20, padding: "16px 40px", borderRadius: 4, backgroundColor: colors.stone, color: colors.paper, fontSize: 30, fontWeight: 700 }}>Jetzt kaufen</span>
+        <div style={{ position: "absolute", inset: 0, transform: `translateY(${-scrolled * ITEM}px)` }}>
+          {ADS.map((ad) => (
+            <AdCard key={ad.big} {...ad} />
+          ))}
+          <div style={{ height: ITEM, position: "relative" }}>
+            <Photo photo="serum" />
+            <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to top, rgba(0,0,0,0.6), transparent 45%)" }} />
           </div>
         </div>
-        {[300, 420, 540].map((top, i) => (
-          <div
-            key={top}
-            style={{
-              position: "absolute",
-              top: top + 200,
-              left: 330 + i * 30,
-              width: 200 - i * 40,
-              height: 10,
-              borderRadius: 999,
-              backgroundColor: colors.stone,
-              opacity: lines,
-              transform: `translateX(${(1 - lines) * 60}px)`,
-            }}
-          />
-        ))}
-        <Cursor x={cursorX} y={cursorY} pressed={frame < FLICK + 2 ? 1 : 0} opacity={1 - ramp(frame, FLICK + 2, FLICK + 10)} />
+        <Cursor x={320} y={thumbY} pressed={flick ? 1 : 0} opacity={thumbOpacity} />
       </PhoneOutline>
-      <Sfx name="hit" at={0} volume={0.55} />
-      <Sfx name="swipe" at={FLICK} volume={0.8} />
-      <Sfx name="whoosh" at={NEXT} volume={0.3} />
+      <Sfx name="hit" at={0} volume={0.45} />
+      {FLICKS.map(([from], i) => (
+        <Sfx key={from} name="swipe" at={from} volume={0.5 + i * 0.08} />
+      ))}
+      <Sfx name="pop-low" at={FLICKS[2][1]} volume={0.45} />
     </Stage>
   );
 };
 
-export const B01_BLUR: [number, number][] = [[FLICK - 4, NEXT + 22]];
+export const B01_BLUR: [number, number][] = [[0, FLICKS[2][1] + 4]];
 
 const UgcPost: React.FC<{
   photo: PhotoKey;
@@ -203,14 +206,18 @@ export const B02Ugc: React.FC = () => {
 const GRID: PhotoKey[] = ["serum", "matcha", "headphones", "glasses", "lipstick", "tote", "cream", "lotion", "flask"];
 const TILE_DELAY = (i: number) => 6 + i * 4;
 
+// Comparison without numbers: the claim is "better than", nothing more precise.
+const CONVERSION = [
+  { label: "Klassische Anzeige", value: 0.3, ink: false },
+  { label: "UGC", value: 0.92, ink: true },
+];
+
 export const B03Growth: React.FC = () => {
   const frame = useCurrentFrame();
-  const draw = ramp(frame, 52, 92, Easing.inOut(Easing.cubic));
-  const dot = pop(frame, 90);
 
   return (
     <Stage>
-      <SceneHeader parts={["Mehr Content. Mehr Reichweite.", { mark: "Schneller wachsen." }]} size={88} start={0} />
+      <SceneHeader parts={["UGC konvertiert besser", { mark: "als klassische Werbung." }]} size={88} start={0} />
       <div style={{ position: "absolute", top: 600, left: GUTTER, right: GUTTER, display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 16 }}>
         {GRID.map((p, i) => (
           <div key={p} style={{ height: 260, borderRadius: 8, overflow: "hidden", position: "relative", ...popIn(pop(frame, TILE_DELAY(i)), 0.6) }}>
@@ -229,34 +236,31 @@ export const B03Growth: React.FC = () => {
           borderRadius: 16,
           backgroundColor: colors.paper,
           boxShadow: "0 40px 90px rgba(7,7,7,0.2), 0 0 0 2px rgba(7,7,7,0.06)",
-          padding: 40,
+          padding: "36px 40px",
+          display: "flex",
+          flexDirection: "column",
+          gap: 26,
           ...enterUp(ease(frame, 44), 120),
         }}
       >
-        <div style={{ fontSize: 30, fontWeight: 700, color: colors.graphite }}>Reichweite</div>
-        <svg width="100%" height="240" viewBox="0 0 860 280" preserveAspectRatio="none" style={{ marginTop: 10 }}>
-          {[70, 140, 210].map((y) => (
-            <line key={y} x1="0" x2="860" y1={y} y2={y} stroke={colors.fog} strokeWidth="3" />
-          ))}
-          <path d="M0 250 C 160 245, 260 230, 380 200 S 600 120, 700 70 S 820 20, 860 10 L 860 280 L 0 280 Z" fill="rgba(7,7,7,0.06)" opacity={ramp(frame, 60, 92)} />
-          <path
-            d="M0 250 C 160 245, 260 230, 380 200 S 600 120, 700 70 S 820 20, 860 10"
-            fill="none"
-            stroke={colors.ink}
-            strokeWidth="9"
-            strokeLinecap="round"
-            pathLength={1}
-            strokeDasharray={1}
-            strokeDashoffset={1 - draw}
-          />
-          <circle cx="852" cy="12" r={16 * dot} fill={colors.ink} />
-        </svg>
+        <div style={{ fontSize: 30, fontWeight: 700, color: colors.graphite }}>Conversion</div>
+        {CONVERSION.map(({ label, value, ink }, i) => {
+          const grow = ease(frame, 54 + i * 12, { stiffness: 90 });
+          return (
+            <div key={label} style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+              <div style={{ fontSize: 30, fontWeight: ink ? 900 : 400, color: ink ? colors.ink : colors.graphite }}>{label}</div>
+              <div style={{ height: 40, borderRadius: 8, backgroundColor: colors.fog, overflow: "hidden" }}>
+                <div style={{ width: `${value * grow * 100}%`, height: "100%", borderRadius: 8, backgroundColor: ink ? colors.ink : colors.stone }} />
+              </div>
+            </div>
+          );
+        })}
       </div>
       {GRID.map((p, i) => (
         <Sfx key={p} name="pop-low" at={TILE_DELAY(i)} volume={0.2} />
       ))}
       <Sfx name="swipe" at={44} volume={0.3} />
-      <Sfx name="pop" at={90} volume={0.5} />
+      <Sfx name="pop" at={66} volume={0.5} />
     </Stage>
   );
 };
