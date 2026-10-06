@@ -2,6 +2,7 @@ import { after } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { sendEmail } from "@/lib/email";
 import { marketingConsentEmail } from "@/lib/email-templates";
+import { parseLocale } from "@/lib/i18n/locales";
 import { SITE_URL } from "@/lib/site";
 import { hashToken, newToken } from "@/lib/tokens";
 
@@ -21,7 +22,7 @@ export function marketingResendBlocked(sentAt: Date | null, now = Date.now()) {
 export async function requestMarketingConsent(userId: string): Promise<MarketingConsentResult> {
   const user = await prisma.user.findUnique({
     where: { id: userId },
-    select: { id: true, email: true, deletedAt: true, marketingConsentAt: true, marketingSentAt: true },
+    select: { id: true, email: true, locale: true, deletedAt: true, marketingConsentAt: true, marketingSentAt: true },
   });
   if (!user || user.deletedAt) return "failed";
   if (user.marketingConsentAt) return "already";
@@ -39,7 +40,7 @@ export async function requestMarketingConsent(userId: string): Promise<Marketing
   });
 
   try {
-    await sendEmail({ to: user.email, ...marketingConsentEmail(`${SITE_URL}/marketing/confirm/${token}`) });
+    await sendEmail({ to: user.email, ...marketingConsentEmail(`${SITE_URL}/marketing/confirm/${token}`, parseLocale(user.locale)) });
   } catch (err) {
     console.error("Marketing confirmation email failed:", err);
     return "failed";

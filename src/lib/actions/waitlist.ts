@@ -9,6 +9,7 @@ import { audit } from "@/lib/audit";
 import { prisma } from "@/lib/prisma";
 import { sendEmail } from "@/lib/email";
 import { waitlistConfirmationEmail } from "@/lib/email-templates";
+import { getLocale } from "@/lib/i18n/server";
 import { SITE_URL } from "@/lib/site";
 import { HOUR, takeIpToken } from "@/lib/rate-limit";
 
@@ -43,6 +44,8 @@ export async function joinWaitlistAction(_prev: WaitlistState, formData: FormDat
   if (!(await takeIpToken("waitlist", 5, HOUR))) return { error: "Too many attempts. Try again later." };
 
   const { email, role } = parsed.data;
+  // The confirmation is written in the language the visitor is reading the page in.
+  const locale = await getLocale();
   try {
     // Housekeeping here rather than in a cron: this is where entries come in.
     await prisma.waitlistEntry.deleteMany({
@@ -69,7 +72,7 @@ export async function joinWaitlistAction(_prev: WaitlistState, formData: FormDat
       update: { confirmToken, confirmSentAt: new Date() },
     });
     after(() =>
-      sendEmail({ to: email, ...waitlistConfirmationEmail(`${SITE_URL}/waitlist/confirm/${confirmToken}`) }),
+      sendEmail({ to: email, ...waitlistConfirmationEmail(`${SITE_URL}/waitlist/confirm/${confirmToken}`, locale) }),
     );
   } catch {
     return { error: "That didn't work. Try again in a moment." };

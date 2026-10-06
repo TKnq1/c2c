@@ -11,7 +11,7 @@ import { processAvatarUpload } from "@/lib/avatar-upload";
 import { creatorNicheColumns } from "@/lib/creator-niches";
 import { sendEmail } from "@/lib/email";
 import { welcomeEmail } from "@/lib/email-templates";
-import { LOCALE_COOKIE, parseLocale } from "@/lib/i18n/locales";
+import { LOCALE_COOKIE, parseLocale, type Locale } from "@/lib/i18n/locales";
 import { isSignupRateLimited, logSignupAttempt, SIGNUP_RATE_LIMIT_MESSAGE } from "@/lib/login-security";
 import { notifyBrandsAboutCreator } from "@/lib/onboarding-notify";
 import { SITE_URL } from "@/lib/site";
@@ -109,7 +109,7 @@ export async function signupFromDraftAction(_prevState: OnboardingState, formDat
         await notifyBrandsAboutCreator(user.creatorProfile, maxFollowers).catch(() => undefined);
       }
       revalidatePath("/");
-      after(() => sendWelcome(user.id, user.email, "CREATOR"));
+      after(() => sendWelcome(user.id, user.email, "CREATOR", locale));
       if (field(formData, "marketing") === "yes") queueMarketingConsent(user.id);
       return await signInWithoutLeaving(data.email, data.password);
     }
@@ -133,7 +133,7 @@ export async function signupFromDraftAction(_prevState: OnboardingState, formDat
         },
       });
       revalidatePath("/");
-      after(() => sendWelcome(user.id, user.email, "STARTUP"));
+      after(() => sendWelcome(user.id, user.email, "STARTUP", locale));
       if (field(formData, "marketing") === "yes") queueMarketingConsent(user.id);
       return await signInWithoutLeaving(data.email, data.password);
     }
@@ -170,10 +170,10 @@ async function signInWithoutLeaving(email: string, password: string): Promise<On
   return { success: true };
 }
 
-async function sendWelcome(userId: string, email: string, welcomeAs: "CREATOR" | "STARTUP") {
+async function sendWelcome(userId: string, email: string, welcomeAs: "CREATOR" | "STARTUP", locale: Locale) {
   const token = newToken();
   await prisma.emailVerificationToken.create({
     data: { userId, tokenHash: hashToken(token), expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000) },
   });
-  await sendEmail({ to: email, ...welcomeEmail(`${SITE_URL}/verify-email/${token}`, welcomeAs) });
+  await sendEmail({ to: email, ...welcomeEmail(`${SITE_URL}/verify-email/${token}`, welcomeAs, locale) });
 }

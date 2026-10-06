@@ -23,6 +23,8 @@ import { DAY, MINUTE, takeToken } from "@/lib/rate-limit";
 import { sendEmail } from "@/lib/email";
 import { passwordChangedEmail, passwordResetEmail, verificationEmail, welcomeEmail } from "@/lib/email-templates";
 import { SITE_URL } from "@/lib/site";
+import { getLocale } from "@/lib/i18n/server";
+import { parseLocale, type Locale } from "@/lib/i18n/locales";
 import {
   loginSchema,
   signupSchema,
@@ -125,6 +127,8 @@ export async function signupAction(_prevState: ActionState, formData: FormData):
   }
 
   const passwordHash = await hashPassword(data.password);
+  // The language the visitor is using: kept on the account, and the one the first email is written in.
+  const locale = await getLocale();
 
   const user =
     data.role === "STARTUP"
@@ -133,6 +137,7 @@ export async function signupAction(_prevState: ActionState, formData: FormData):
             email: data.email,
             passwordHash,
             role: "STARTUP",
+            locale,
             ...consentRecord(),
             startupProfile: { create: { companyName: "" } },
           },
@@ -142,6 +147,7 @@ export async function signupAction(_prevState: ActionState, formData: FormData):
             email: data.email,
             passwordHash,
             role: "CREATOR",
+            locale,
             ...consentRecord(),
             creatorProfile: { create: { displayName: "" } },
           },
@@ -151,7 +157,7 @@ export async function signupAction(_prevState: ActionState, formData: FormData):
   // the link is waiting once onboarding is done; after the response (it
   // still runs through the redirect below), so signing up doesn't wait on
   // the mail provider.
-  after(() => sendVerificationEmail(user.id, user.email, data.role));
+  after(() => sendVerificationEmail(user.id, user.email, locale, data.role));
 
   try {
     await signIn("credentials", {
@@ -220,7 +226,7 @@ export async function changePasswordAction(
     where: { id: user.id },
     data: { passwordHash, sessionsRevokedAt: new Date(), keptSessionId: session.sid || null },
   });
-  after(() => sendPasswordChangedEmail(user.email));
+  after(() => sendPasswordChangedEmail(user.email, parseLocale(user.locale)));
 
   return { success: true };
 }
@@ -248,7 +254,9 @@ export async function requestPasswordResetAction(
       data: { userId: user.id, tokenHash: hashToken(token), expiresAt: new Date(Date.now() + 60 * 60 * 1000) },
     });
     // After the response, so how long it takes doesn't depend on whether a mail was sent.
-    after(() => sendEmail({ to: user.email, ...passwordResetEmail(`${SITE_URL}/reset-password/${token}`) }));
+    after(() =>
+      sendEmail({ to: user.email, ...passwordResetEmail(`${SITE_URL}/reset-password/${token}`, parseLocale(user.locale)) }),
+    );
   }
 
   return { success: true };
@@ -288,8 +296,8 @@ export async function resetPasswordAction(
   });
   if (!userId) return { error: "This reset link is invalid or has expired." };
 
-  const user = await prisma.user.findUniqueOrThrow({ where: { id: userId }, select: { email: true } });
-  after(() => sendPasswordChangedEmail(user.email));
+  const user = await prisma.user.findUniqueOrThrow({ where: { id: userId }, select: { email: true, locale: true } });
+  after(() => sendPasswordChangedEmail(user.email, parseLocale(user.locale)));
 
   redirect("/login");
 }
@@ -315,26 +323,26 @@ export async function generateEmailVerificationAction(): Promise<GenerateVerific
     },
     select: { id: true },
   });
-  if (!recent) await sendVerificationEmail(session.user.id, session.user.email!);
+  if (!recent) await sendVerificationEmail(session.user.id, session.user.email!, await getLocale());
 
   return { sent: true };
 }
 
 // A fresh 24-hour link, mailed: inside the welcome email right after
 // sign-up (pass the new account's role), on its own when asked for again.
-async function sendVerificationEmail(userId: string, email: string, welcomeAs?: "CREATOR" | "STARTUP") {
+async function sendVerificationEmail(userId: string, email: string, locale: Locale, welcomeAs?: "CREATOR" | "STARTUP") {
   const token = newToken();
   await prisma.emailVerificationToken.create({
     data: { userId, tokenHash: hashToken(token), expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000) },
   });
   const url = `${SITE_URL}/verify-email/${token}`;
-  await sendEmail({ to: email, ...(welcomeAs ? welcomeEmail(url, welcomeAs) : verificationEmail(url)) });
+  await sendEmail({ to: email, ...(welcomeAs ? welcomeEmail(url, welcomeAs, locale) : verificationEmail(url, locale)) });
 }
 
 // After every change and reset, so a change someone else made doesn't go
 // unnoticed.
-async function sendPasswordChangedEmail(email: string) {
-  await sendEmail({ to: email, ...passwordChangedEmail(`${SITE_URL}/forgot-password`) });
+async function sendPasswordChangedEmail(email: string, locale: Locale) {
+  await sendEmail({ to: email, ...passwordChangedEmail(`${SITE_URL}/forgot-password`, locale) });
 }
 
 export type ConfirmVerificationState = { error?: string; success?: boolean } | undefined;
