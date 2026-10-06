@@ -35,3 +35,21 @@ export function outreachOptOutUrl(email: string, side: Side) {
   });
   return `${SITE_URL}/outreach/opt-out?${params.toString()}`;
 }
+
+// The same signed link for the one-click unsubscribe of the mail header (RFC 8058): a mail program POSTs to it
+// without anyone opening a page.
+export function outreachUnsubscribeUrl(email: string, side: Side) {
+  const params = new URLSearchParams({
+    email: email.trim().toLowerCase(),
+    side,
+    token: outreachOptOutToken(email, side),
+  });
+  return `${SITE_URL}/api/outreach/unsubscribe?${params.toString()}`;
+}
+
+export function outreachListUnsubscribeHeaders(email: string, side: Side): Record<string, string> {
+  return {
+    "List-Unsubscribe": `<${outreachUnsubscribeUrl(email, side)}>, <mailto:info@comtor.app?subject=Unsubscribe>`,
+    "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
+  };
+}

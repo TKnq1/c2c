@@ -11,6 +11,7 @@ const TITLES: Record<string, MessageKey> = {
   "/legal/imprint": "screens.settings.imprint",
   "/legal/privacy": "screens.settings.privacy",
   "/legal/terms": "screens.settings.terms",
+  "/legal/licenses": "screens.settings.licenses",
 };
 
 // The legal pages' header, shaped like the app's own (see Nav): back on the

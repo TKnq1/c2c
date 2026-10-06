@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { canonical } from "@/lib/seo";
 import { getLocale } from "@/lib/i18n/server";
-import { DE_IMPRINT } from "@/lib/legal/de";
+import { DE_IMPRINT, imprintVatId } from "@/lib/legal/de";
 
 export const metadata: Metadata = { title: "Imprint", alternates: canonical("/legal/imprint") };
 
@@ -13,7 +13,11 @@ const ROWS: { label: string; lines: string[] }[] = [
 
 export default async function ImprintPage() {
   const german = (await getLocale()) === "de";
-  const rows = german ? DE_IMPRINT.rows : ROWS;
+  const vatId = imprintVatId();
+  const rows = [
+    ...(german ? DE_IMPRINT.rows : ROWS),
+    ...(vatId ? [{ label: german ? "Umsatzsteuer-Identifikationsnummer" : "VAT identification number", lines: [vatId] }] : []),
+  ];
   return (
     <div className="flex flex-col gap-6">
       {/* The header already shows the title. */}

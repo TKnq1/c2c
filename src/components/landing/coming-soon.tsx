@@ -5,9 +5,8 @@ import { Reveal } from "@/components/landing/reveal";
 import { WaitlistForm } from "@/components/landing/waitlist-form";
 
 // The end of the page: the apps aren't in the stores yet, the web app is
-// ready now. The badges are Apple's and Google's own artwork, unaltered
-// and unanimated as their guidelines ask, and not links until there's a
-// store page to link to.
+// ready now. No store badges until there is a store page to link them to: Apple and Google allow their
+// badges only for apps that are available. Add the current official badges, linked, at launch.
 export function ComingSoon() {
   return (
     <section id="get-the-app" className="relative isolate scroll-mt-16 overflow-hidden px-4 py-24 md:py-32">
@@ -30,20 +29,9 @@ export function ComingSoon() {
           Start in your browser
           <FiArrowRight className="h-4 w-4" />
         </SignupLink>
-        <div className="mt-9 flex flex-wrap items-center justify-center gap-x-4 gap-y-3" aria-label="Soon on the App Store and Google Play">
-          {/* eslint-disable-next-line @next/next/no-img-element -- Apple's own SVG, shown as is */}
-          <img src="/badges/download-on-the-app-store.svg" alt="Download on the App Store" width={144} height={48} className="h-12 w-auto" />
-          {/* The PNG carries Google's own clear space around the badge; the
-              negative margins take it back so both badges line up at 48px. */}
-          {/* eslint-disable-next-line @next/next/no-img-element -- Google's own PNG, shown as is */}
-          <img
-            src="/badges/en_badge_web_generic.png"
-            alt="Get it on Google Play"
-            width={185}
-            height={72}
-            className="-mx-[11.7px] -my-[11.7px] h-[71.4px] w-auto"
-          />
-        </div>
+        <p className="mx-auto mt-9 text-sm text-neutral-700 dark:text-neutral-300">
+          Soon on the App Store and Google Play. Leave your email below and we&apos;ll tell you the day they&apos;re out.
+        </p>
         <WaitlistForm />
       </Reveal>
     </section>

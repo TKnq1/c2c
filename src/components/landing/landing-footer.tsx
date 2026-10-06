@@ -8,6 +8,7 @@ const LINKS = [
   { href: "/legal/imprint", label: "Imprint" },
   { href: "/legal/privacy", label: "Privacy" },
   { href: "/legal/terms", label: "Terms" },
+  { href: "/legal/licenses", label: "Licenses" },
 ];
 
 export function LandingFooter() {

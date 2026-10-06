@@ -1,4 +1,5 @@
 import { SITE_URL } from "@/lib/site";
+import { PLATFORM_FEE_RATE, PRO_PLATFORM_FEE_RATE, PRO_SUBSCRIPTION_PRICE_CENTS } from "@/lib/constants";
 
 // The app's emails, in the launch video's look: the white comtor mark and
 // a big white Lato Black headline (ending in a full stop, like the video's
@@ -77,6 +78,11 @@ function crowdLine(count: number, singular: string, plural: string) {
   return { count: safe, label: `${safe === 1 ? singular : plural} already here` };
 }
 
+function marketingNote(consentNote?: string): string {
+  const reason = consentNote?.trim();
+  return `You are getting this email because you agreed to hear from comtor${reason ? ` (${reason})` : ""}. You can stop it at any time with the link below.`;
+}
+
 export function marketingWelcomeEmail(
   url: string,
   role: "CREATOR" | "STARTUP",
@@ -84,8 +90,11 @@ export function marketingWelcomeEmail(
   name: string,
   crowd: number,
   optOut?: string,
+  // How the recipient agreed to hear from comtor: told to them as the reason for this mail (Art. 14 GDPR).
+  consentNote?: string,
 ): Email {
   const who = name.trim();
+  const note = marketingNote(consentNote);
   if (role === "CREATOR") {
     return render({
       subject,
@@ -119,7 +128,7 @@ export function marketingWelcomeEmail(
       watermark: true,
       invite: true,
       action: { label: "See paid deals", url },
-      note: "This is a note to a business contact. It is not for a private person.",
+      note,
       optOut,
     });
   }
@@ -147,7 +156,7 @@ export function marketingWelcomeEmail(
       {
         icon: "camera-flash",
         title: "Then it's paid out.",
-        text: "You check the live post first. No subscription: comtor keeps 10% of each payment, or 3% on Pro.",
+        text: `You check the live post first. No base fee: comtor keeps ${Math.round(PLATFORM_FEE_RATE * 100)}% of each payment, or ${Math.round(PRO_PLATFORM_FEE_RATE * 100)}% with Pro (€${PRO_SUBSCRIPTION_PRICE_CENTS / 100} a month).`,
       },
     ],
     crowd: crowdLine(crowd, "creator", "creators"),
@@ -155,7 +164,7 @@ export function marketingWelcomeEmail(
     watermark: true,
     invite: true,
     action: { label: "Post your first deal", url },
-    note: "This is a note to a business contact. It is not for a private person.",
+    note,
     optOut,
   });
 }
@@ -192,6 +201,19 @@ export function passwordChangedEmail(resetUrl: string): Email {
     body: "The password of your comtor account was just changed, and your other devices were logged out. If that was you, you're all set.",
     action: { label: "Reset password", url: resetUrl },
     note: "Wasn't you? Reset your password right away. That logs out whoever changed it.",
+  });
+}
+
+// Sent when an admin suspends an account, with the reason: the person is told why, and how to object
+// (Digital Services Act, Art. 17).
+export function accountSuspendedEmail(reason: string): Email {
+  return render({
+    subject: "Your comtor account was suspended",
+    preview: "Here is why, and how to object.",
+    heading: "Your account was suspended.",
+    body: `We suspended your comtor account. Reason: ${reason.trim()} You can't sign in while it is suspended, and open requests of a brand account are closed.`,
+    action: { label: "Object to this decision", url: "mailto:info@comtor.app?subject=Suspended%20account" },
+    note: "If you think this is a mistake, reply to this email or write to info@comtor.app. We will look at it again and answer you.",
   });
 }
 

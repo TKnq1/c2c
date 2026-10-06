@@ -17,6 +17,7 @@ import { notifyBrandsAboutCreator } from "@/lib/onboarding-notify";
 import { SITE_URL } from "@/lib/site";
 import { hashPassword } from "@/lib/password";
 import { hashToken, newToken } from "@/lib/tokens";
+import { CONSENT_ERROR, consentGiven, consentRecord } from "@/lib/legal/consent";
 import { guestBrandSignupSchema, guestCreatorSignupSchema } from "@/lib/validation";
 import type { OnboardingState } from "@/lib/actions/onboarding";
 
@@ -63,7 +64,7 @@ export async function signupFromDraftAction(_prevState: OnboardingState, formDat
           niche: field(formData, "niche"),
         })
       : null;
-  if (field(formData, "terms") !== "yes") return { error: "Please accept the terms and the privacy policy." };
+  if (!consentGiven(formData)) return { error: CONSENT_ERROR };
   if (!creatorParsed?.success && !brandParsed?.success) return { error: "Please fill in all fields correctly." };
   const account = creatorParsed?.success ? creatorParsed.data : brandParsed?.success ? brandParsed.data : null;
   if (!account) return { error: "Please fill in all fields correctly." };
@@ -89,6 +90,7 @@ export async function signupFromDraftAction(_prevState: OnboardingState, formDat
           passwordHash,
           role: "CREATOR",
           locale,
+          ...consentRecord(),
           creatorProfile: {
             create: {
               displayName: data.displayName,
@@ -118,6 +120,7 @@ export async function signupFromDraftAction(_prevState: OnboardingState, formDat
           passwordHash,
           role: "STARTUP",
           locale,
+          ...consentRecord(),
           startupProfile: {
             create: {
               companyName: data.companyName,

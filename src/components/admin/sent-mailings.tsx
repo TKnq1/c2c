@@ -8,8 +8,6 @@ type Recipient = {
   id: string;
   name: string;
   email: string;
-  openCount: number;
-  clickCount: number;
 };
 
 export type SentMailing = {
@@ -20,16 +18,8 @@ export type SentMailing = {
   recipients: Recipient[];
 };
 
-function status(recipient: Recipient) {
-  if (recipient.clickCount > 0) return "Clicked";
-  if (recipient.openCount > 0) return "Opened";
-  return "Not opened";
-}
-
 function SentMailing({ mailing }: { mailing: SentMailing }) {
   const [open, setOpen] = useState(false);
-  const opened = mailing.recipients.filter((recipient) => recipient.openCount > 0).length;
-  const clicked = mailing.recipients.filter((recipient) => recipient.clickCount > 0).length;
   return (
     <article className="rounded bg-fog">
       <button
@@ -43,7 +33,7 @@ function SentMailing({ mailing }: { mailing: SentMailing }) {
           {mailing.side === "CREATOR" ? "Creators" : "Brands"}
           {" · "}
           <LocalDate ms={mailing.createdAt} withTime />
-          {` · Sent ${mailing.recipients.length} · Opened ${opened} · Clicked ${clicked}`}
+          {` · Sent ${mailing.recipients.length}`}
           {open ? " · Hide" : " · Show"}
         </span>
       </button>
@@ -58,7 +48,6 @@ function SentMailing({ mailing }: { mailing: SentMailing }) {
                 <span className="block truncate text-sm font-medium">{recipient.name}</span>
                 <span className="block truncate text-footnote text-neutral-500">{recipient.email}</span>
               </span>
-              <span className="shrink-0 text-footnote text-neutral-500">{status(recipient)}</span>
             </li>
           ))}
         </ul>
@@ -67,9 +56,9 @@ function SentMailing({ mailing }: { mailing: SentMailing }) {
   );
 }
 
-// The archive of mails that already went out. Each send is its own list of
-// people, kept even after an address is removed from the creator or brand list.
-// The people stay folded until you open that mail.
+// The mails that went out in the last 90 days (older records are deleted), each with the people who got it.
+// An address that is removed or asks to stop takes its records with it. The people stay folded until you
+// open that mail.
 export function SentMailings({ mailings }: { mailings: SentMailing[] }) {
   return (
     <section className="flex flex-col gap-4 rounded border border-ink/10 p-4">
@@ -78,7 +67,7 @@ export function SentMailings({ mailings }: { mailings: SentMailing[] }) {
           Sent <span className="tabular-nums text-neutral-500">{mailings.length}</span>
         </h2>
         <p className="mt-1 text-sm text-neutral-600 dark:text-neutral-400">
-          Every mail that went out, and who received it.
+          Every mail that went out in the last 90 days, and who received it.
         </p>
       </div>
 

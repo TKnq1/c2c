@@ -8,6 +8,7 @@ const LINKS: { href: string; label: MessageKey }[] = [
   { href: "/legal/imprint", label: "screens.settings.imprint" },
   { href: "/legal/privacy", label: "screens.settings.privacy" },
   { href: "/legal/terms", label: "screens.settings.terms" },
+  { href: "/legal/licenses", label: "screens.settings.licenses" },
 ];
 
 // Shared by both settings pages — the footer that used to carry these

@@ -3,6 +3,11 @@ import { formatCents } from "@/lib/format";
 
 export type LegalSection = { title: string; body: string[] };
 
+// The VAT identification number goes into the imprint when there is one (§ 5 Abs. 1 Nr. 6 DDG): set IMPRINT_VAT_ID.
+export function imprintVatId(): string | null {
+  return process.env.IMPRINT_VAT_ID?.trim() || null;
+}
+
 export const DE_IMPRINT = {
   lead: "Angaben gemäß § 5 DDG.",
   rows: [
@@ -74,6 +79,8 @@ export function deTerms(): LegalSection[] {
       body: [
         "Erfinde keine Followerzahlen, schreibe keine falschen Bewertungen, lade nichts hoch, woran du kein Recht hast, und zieh einen Deal nicht von comtor, um die Gebühr zu umgehen. Wir können Inhalte entfernen und ein Konto sperren oder schließen, das diese Bedingungen oder das Gesetz bricht.",
         "Illegale Inhalte meldest du, und eine Entfernung lässt du prüfen, über info@comtor.app. Wir sehen es uns an und sagen dir das Ergebnis.",
+        "Entfernen wir einen Inhalt oder sperren wir ein Konto, nennen wir dir den Grund per E-Mail. Du kannst der Entscheidung über info@comtor.app widersprechen. Wir prüfen sie erneut und antworten dir.",
+        "Bewertungen können nur Nutzer abgeben, deren Zusammenarbeit über comtor abgeschlossen und ausgezahlt wurde.",
       ],
     },
     {
@@ -105,12 +112,14 @@ export function deTerms(): LegalSection[] {
     },
     {
       title: "Änderungen",
-      body: ["Wir können diese Bedingungen ändern. Eine wesentliche Änderung schicken wir dir per E-Mail, bevor sie gilt."],
+      body: [
+        "Wir können diese Bedingungen ändern. Eine wesentliche Änderung schicken wir dir per E-Mail mindestens 15 Tage, bevor sie gilt. Willst du sie nicht, kannst du dein Konto bis dahin löschen.",
+      ],
     },
   ];
 }
 
-export const DE_PRIVACY: LegalSection[] = [
+const DE_PRIVACY: LegalSection[] = [
   {
     title: "Wer verantwortlich ist",
     body: [
@@ -123,6 +132,9 @@ export const DE_PRIVACY: LegalSection[] = [
     body: [
       "Deine E-Mail-Adresse, ein gehashtes Passwort (nie im Klartext), ob du Marke oder Creator bist, ob die E-Mail bestätigt ist und, wenn du die Zwei-Faktor-Anmeldung einschaltest, das Geheimnis zum Prüfen der Codes. Das brauchen wir, um dein Konto zu führen (Art. 6 Abs. 1 lit. b DSGVO). Wir schreiben dir, um die Adresse zu bestätigen, das Passwort zurückzusetzen, wenn du das verlangst, und wenn das Passwort geändert wurde.",
       "Sperren wir ein Konto wegen eines Verstoßes, speichern wir wann und warum, damit die Entscheidung später prüfbar ist (Art. 6 Abs. 1 lit. f DSGVO).",
+      "Bei der Registrierung speichern wir außerdem, wann du den Bedingungen und dieser Datenschutzerklärung zugestimmt hast und in welcher Fassung, und dass du bestätigt hast, mindestens 18 Jahre alt zu sein. Das dient als Nachweis (Art. 6 Abs. 1 lit. b und f DSGVO).",
+      "Welche Schritte der Einrichtung du gesehen oder abgeschlossen hast, speichern wir mit deinem Konto, um die Einrichtung zu verbessern (Art. 6 Abs. 1 lit. f DSGVO).",
+      "E-Mail-Adresse und Passwort brauchen wir, um einen Vertrag mit dir zu schließen und zu erfüllen. Ohne sie gibt es kein Konto. Alle anderen Angaben sind freiwillig, bis auf das, was für Auszahlungen vorgeschrieben ist (Stripe prüft dafür deine Identität).",
     ],
   },
   {
@@ -142,7 +154,8 @@ export const DE_PRIVACY: LegalSection[] = [
     title: "E-Mails, die wir schicken",
     body: [
       "Konto-Mails (Bestätigung, Passwort zurücksetzen, geändertes Passwort) gehen raus, weil du ein Konto hast (Art. 6 Abs. 1 lit. b DSGVO). Versand über Resend.",
-      "Werbe-Mails ohne vorherige Einwilligung schicken wir nicht an Privatpersonen. Eine Adresse in einer Liste erlaubt das nicht. Geschäftliche Hinweise schicken wir nur an geschäftliche Kontakte, soweit das Gesetz das zulässt. Dafür speichern wir Name und E-Mail-Adresse, die gesendete Nachricht und, wenn der Versanddienst es meldet, ob sie geöffnet oder ein Link geklickt wurde (Art. 6 Abs. 1 lit. f DSGVO). Du kannst jederzeit widersprechen, über den Link in der Mail oder an info@comtor.app. Dann löschen wir die Adresse und schreiben nicht weiter.",
+      "Werbe-Mails schicken wir nur an Personen, die vorher ausdrücklich eingewilligt haben (Art. 6 Abs. 1 lit. a DSGVO, § 7 Abs. 2 Nr. 3 UWG). Eine Adresse in einer Liste reicht dafür nicht. Wir speichern Name und E-Mail-Adresse, einen Vermerk, wie und wann du eingewilligt hast, und welche Nachricht wir dir geschickt haben (Versandprotokoll, 90 Tage). Ob du eine Mail öffnest oder einen Link anklickst, erfassen wir nicht. Jede dieser Mails sagt dir, warum du sie bekommst, und enthält einen Abmeldelink (auch als Ein-Klick-Abmeldung im Mailprogramm).",
+      "Du kannst deine Einwilligung jederzeit widerrufen, über den Link in der Mail oder an info@comtor.app. Dann löschen wir deine Adresse und das Versandprotokoll. Wir merken uns nur eine Prüfsumme (Hash) der Adresse, damit wir dich nicht versehentlich wieder anschreiben (Art. 6 Abs. 1 lit. c und f DSGVO).",
     ],
   },
   {
@@ -154,13 +167,14 @@ export const DE_PRIVACY: LegalSection[] = [
   {
     title: "Sicherheit und Protokolle",
     body: [
-      "Jede Anmeldung speichert Zeitpunkt, ob sie geklappt hat, deine IP-Adresse und deinen Browser, damit du die letzten Anmeldungen in den Einstellungen siehst und wir Missbrauch wie Passwortraten stoppen können. Wenn du comtor nutzt, verarbeitet unser Hoster außerdem technische Daten (IP-Adresse, Zeitpunkt, aufgerufene Seite, Browser), um die Seite auszuliefern und abzusichern. Beides stützt sich auf unser berechtigtes Interesse an einem sicheren Dienst (Art. 6 Abs. 1 lit. f DSGVO).",
+      "Jede Anmeldung speichert Zeitpunkt, ob sie geklappt hat, deine IP-Adresse und deinen Browser, damit du die letzten Anmeldungen in den Einstellungen siehst und wir Missbrauch wie Passwortraten stoppen können. Wenn du comtor nutzt, verarbeitet unser Hoster außerdem technische Daten (IP-Adresse, Zeitpunkt, aufgerufene Seite, Browser), um die Seite auszuliefern und abzusichern. Beides stützt sich auf unser berechtigtes Interesse an einem sicheren Dienst (Art. 6 Abs. 1 lit. f DSGVO). Das Anmeldeprotokoll löschen wir nach 90 Tagen, die IP-Adresse bei Registrierungen nach 7 Tagen und die Zähler gegen Missbrauch nach 24 Stunden.",
     ],
   },
   {
     title: "Cookies, lokaler Speicher und Mitteilungen",
     body: [
-      "Wir setzen ein unbedingt nötiges Cookie, das dich angemeldet hält, ein Jahr ab dem letzten Besuch. Ein neues Passwort meldet die anderen Geräte ab. Darstellung, Ton, ob du den Installationshinweis weggeklickt hast und ob du auf der Startseite Marke oder Creator gewählt hast, liegen im lokalen Speicher deines Browsers und gehen nicht an uns. Analyse- oder Werbe-Cookies gibt es nicht.",
+      "Wir setzen nur unbedingt nötige Cookies: eins, das dich angemeldet hält (30 Tage ab dem letzten Besuch), zwei kurzlebige der Anmeldung (Schutz vor gefälschten Anfragen und die Rücksprungadresse) und eins für die gewählte Sprache (ein Jahr). Ein neues Passwort meldet die anderen Geräte ab. Darstellung, Ton, ob du den Installationshinweis weggeklickt hast und ob du auf der Startseite Marke oder Creator gewählt hast, liegen im lokalen Speicher deines Browsers und gehen nicht an uns. Analyse- oder Werbe-Cookies gibt es nicht.",
+      "Auf den Seiten, auf denen du Auszahlungen einrichtest, lädt Stripe eigene Skripte. Sie können zur Betrugsvorbeugung eigene Cookies oder Gerätekennungen setzen (siehe die Datenschutzerklärung von Stripe).",
       "Push-Mitteilungen gibt es nur, wenn du sie einschaltest (Art. 6 Abs. 1 lit. a DSGVO). Im Browser liefert sie der Push-Dienst des Browsers (Apple, Google oder Mozilla). In der App für iPhone oder Android speichern wir ein Geräte-Token und schicken sie über den Dienst von Apple oder über Googles Firebase Cloud Messaging. Du kannst sie jederzeit in den Einstellungen, im Browser oder im Telefon abschalten.",
     ],
   },
@@ -176,7 +190,9 @@ export const DE_PRIVACY: LegalSection[] = [
   {
     title: "Wie lange wir Daten behalten",
     body: [
-      "Wir behalten deine Daten, solange du ein Konto hast. Löschst du es in den Einstellungen, gehen Profil, Anfragen, Nachrichten und alles, was daran hängt, mit. Stripe behält eigene Zahlungsunterlagen, wie das Gesetz es verlangt. Eine Adresse, der wir nur einen geschäftlichen Hinweis geschickt haben, löschen wir, sobald du widersprichst.",
+      "Wir behalten deine Daten, solange du ein Konto hast. Löschst du es in den Einstellungen, gehen Profil, Anfragen, Nachrichten und alles, was daran hängt, mit.",
+      "Eine Ausnahme sind Zahlungsbelege (Betrag, Gebühr, Status, Datum und Stripe-Kennungen). Die müssen wir so lange aufbewahren, wie das Steuer- und Handelsrecht es verlangt, je nach Beleg 8 bis 10 Jahre (Art. 6 Abs. 1 lit. c DSGVO, § 147 AO, § 257 HGB). Sie werden anonymisiert, sodass sie nicht mehr auf dich verweisen. Stripe behält eigene Zahlungsunterlagen, wie das Gesetz es verlangt.",
+      "Weitere Fristen: Anmeldeprotokoll 90 Tage, IP-Adresse bei Registrierungen 7 Tage, Zähler gegen Missbrauch 24 Stunden, Versandprotokoll von Werbe-Mails 90 Tage, nicht bestätigte Wartelisten-Adressen 30 Tage.",
     ],
   },
   {
@@ -197,3 +213,14 @@ export const DE_PRIVACY: LegalSection[] = [
     body: ["Wir passen diese Erklärung an, wenn sich der Dienst ändert. Das Datum oben zeigt die geltende Fassung."],
   },
 ];
+
+const DE_SENTRY =
+  "Functional Software, Inc. (Sentry), USA, erfasst Fehlermeldungen unserer Website und App (Fehlertext, aufgerufene Seite, Browser), damit wir Fehler finden und beheben können (Art. 6 Abs. 1 lit. f DSGVO).";
+
+// Sentry is named only where it is switched on (NEXT_PUBLIC_SENTRY_DSN), so the text matches what runs.
+export function dePrivacy({ sentry }: { sentry: boolean }): LegalSection[] {
+  if (!sentry) return DE_PRIVACY;
+  return DE_PRIVACY.map((section) =>
+    section.title === "Dienstleister" ? { ...section, body: [section.body[0], DE_SENTRY, ...section.body.slice(1)] } : section,
+  );
+}
