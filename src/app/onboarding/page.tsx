@@ -4,6 +4,7 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { isOnboardingComplete } from "@/lib/onboarding";
 import { Logo } from "@/components/logo";
+import { LogoWatermark } from "@/components/logo-backdrop";
 import { OnboardingExit } from "@/components/onboarding-exit";
 import { BrandOnboarding } from "@/components/brand-onboarding";
 import { CreatorOnboarding } from "@/components/creator-onboarding";
@@ -50,12 +51,13 @@ export default async function OnboardingPage(props: PageProps<"/onboarding">) {
   }
 
   return (
-    <div className="flex min-h-dvh flex-1 flex-col">
-      <header className="flex shrink-0 items-center justify-between px-5 pt-[calc(env(safe-area-inset-top)+0.75rem)] pb-2 sm:px-6 sm:pt-[calc(env(safe-area-inset-top)+1.25rem)] sm:pb-4">
+    <div className="logo-backdrop relative flex min-h-dvh flex-1 flex-col overflow-hidden">
+      <LogoWatermark />
+      <header className="relative z-10 flex shrink-0 items-center justify-between px-5 pt-[calc(env(safe-area-inset-top)+0.75rem)] pb-2 sm:px-6 sm:pt-[calc(env(safe-area-inset-top)+1.25rem)] sm:pb-4">
         <Logo />
         <OnboardingExit loggedIn={!!session} />
       </header>
-      <main className="mx-auto flex w-full max-w-md flex-1 flex-col px-5 pt-2 pb-[max(1.25rem,env(safe-area-inset-bottom))] sm:px-6 sm:pt-4 sm:pb-12">
+      <main className="relative z-10 mx-auto flex w-full max-w-md flex-1 flex-col px-5 pt-2 pb-[max(1.25rem,env(safe-area-inset-bottom))] sm:px-6 sm:pt-4 sm:pb-12">
         {body}
       </main>
     </div>

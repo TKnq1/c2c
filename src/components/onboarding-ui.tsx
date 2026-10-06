@@ -13,7 +13,7 @@ import { unlockSounds } from "@/lib/sounds";
 export const PRIMARY_BUTTON =
   "flex-1 rounded-full bg-ink px-4 py-3.5 font-medium text-paper transition hover:bg-graphite disabled:opacity-40 disabled:hover:bg-ink";
 const SECONDARY_BUTTON =
-  "rounded-full border border-neutral-300 px-5 py-3.5 font-medium text-neutral-600 transition hover:border-ink dark:border-neutral-700 dark:text-neutral-400";
+  "rounded-full border border-neutral-300 bg-paper px-5 py-3.5 font-medium text-neutral-600 transition hover:border-ink dark:border-neutral-700 dark:text-neutral-400";
 
 // One step is a column: the question, the answer, then the action. On a
 // phone the action sits on the bottom edge; on a wider screen it follows
