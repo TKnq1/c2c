@@ -4,8 +4,6 @@
 const SOURCES = {
   "swipe-right": "/sounds/swipe-right.mp3",
   "swipe-left": "/sounds/swipe-left.mp3",
-  // Two soft notes when onboarding confetti falls.
-  success: "/sounds/onboarding-success.mp3",
 } as const;
 type Sound = keyof typeof SOURCES;
 
@@ -67,14 +65,12 @@ export function prepareSounds() {
   void load("swipe-left");
 }
 
-// Call from a tap, so a sound that plays a moment later (the confetti,
-// after the matches have loaded) is allowed to start.
+// Call from a tap, so a later UI sound is allowed to start.
 export function unlockSounds() {
   if (!soundsEnabled()) return;
   const ctx = getContext();
   if (!ctx) return;
   if (ctx.state === "suspended") void ctx.resume();
-  void load("success");
 }
 
 // Has to run inside the gesture that triggers it (a pointerup or a click):

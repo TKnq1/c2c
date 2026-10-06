@@ -15,7 +15,6 @@ import {
 import { PLATFORM_FEE_RATE } from "@/lib/constants";
 import { nicheLabel, presetLabel } from "@/lib/i18n/labels";
 import { hapticSuccess } from "@/lib/haptics";
-import { playSound } from "@/lib/sounds";
 
 // Long enough that "finding your matches" reads as the app looking, short
 // enough not to be a wait of its own.
@@ -74,7 +73,6 @@ function Forward({ onBack, onNext, label }: { onBack?: () => void; onNext: () =>
 function Celebrate() {
   useEffect(() => {
     hapticSuccess();
-    playSound("success", 0.5);
   }, []);
   return <Confetti />;
 }
