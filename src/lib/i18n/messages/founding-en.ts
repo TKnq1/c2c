@@ -1,4 +1,5 @@
-// The founding brands: the first brands get Pro for as long as their account exists (src/lib/founding.ts).
+// The founding places: the first brands and the first creators get Pro for as long as their account exists
+// (src/lib/founding.ts).
 // English and German are written out; the other languages show the English text until translated.
 export const founding = {
   // Before sign-up, under the password field.
@@ -17,4 +18,14 @@ export const founding = {
   planBody:
     "Pro is free for you for as long as your account exists: {pro}% instead of {standard}% on every payment. There's nothing to pay and nothing to cancel.",
   feeLine: "Founding brand no. {n}: {pro}% fee per payment instead of {standard}%.",
+  // The same for the first creators (FOUNDING_CREATOR_LIMIT), numbered on their own.
+  creator: {
+    teaser: "The first {total} creators get Pro for free, for as long as their account exists. {left} places left.",
+    teaserLast: "The first {total} creators get Pro for free, for as long as their account exists. Only 1 place left.",
+    ofTotal: "of {total} founding creators",
+    body: "For as long as your account exists. comtor keeps {pro}% instead of {standard}% of every payment, so you keep {keep}%.",
+    doneLine: "Founding creator no. {n}: Pro is free for you for as long as your account exists.",
+    planTitle: "Pro · Founding creator no. {n}",
+    feeLine: "Founding creator no. {n}: {pro}% fee per payment instead of {standard}%.",
+  },
 } as const;

@@ -1,6 +1,7 @@
 import { SITE_URL } from "@/lib/site";
 import {
   FOUNDING_BRAND_LIMIT,
+  FOUNDING_CREATOR_LIMIT,
   PLATFORM_FEE_RATE,
   PRO_PLATFORM_FEE_RATE,
   PRO_SUBSCRIPTION_PRICE_CENTS,
@@ -69,21 +70,26 @@ export function welcomeEmail(
   url: string,
   role: "CREATOR" | "STARTUP",
   locale: Locale = DEFAULT_LOCALE,
-  // A brand that got one of the founding places: told right in the welcome.
+  // A brand or a creator that got one of the founding places: told right in the welcome.
   foundingNumber?: number | null,
 ): Email {
   const creator = role === "CREATOR";
   const pro = Math.round(PRO_PLATFORM_FEE_RATE * 100);
   const standard = Math.round(PLATFORM_FEE_RATE * 100);
-  const founding =
-    !creator && foundingNumber
-      ? " " +
-        pick(
-          locale,
-          `You're founding brand no. ${foundingNumber}: Pro is free for you for as long as your account exists, so ${pro}% instead of ${standard}% goes to comtor on every payment.`,
-          `Du bist Founding Brand Nr. ${foundingNumber}: Pro ist für dich kostenlos, solange dein Konto besteht. Auf jede Zahlung behält comtor ${pro} % statt ${standard} %.`,
-        )
-      : "";
+  const founding = !foundingNumber
+    ? ""
+    : " " +
+      (creator
+        ? pick(
+            locale,
+            `You're founding creator no. ${foundingNumber}: Pro is free for you for as long as your account exists, so comtor keeps ${pro}% instead of ${standard}% of every payment and you keep ${100 - pro}%.`,
+            `Du bist Founding Creator Nr. ${foundingNumber}: Pro ist für dich kostenlos, solange dein Konto besteht. Auf jede Zahlung behält comtor ${pro} % statt ${standard} %, du bekommst ${100 - pro} %.`,
+          )
+        : pick(
+            locale,
+            `You're founding brand no. ${foundingNumber}: Pro is free for you for as long as your account exists, so ${pro}% instead of ${standard}% goes to comtor on every payment.`,
+            `Du bist Founding Brand Nr. ${foundingNumber}: Pro ist für dich kostenlos, solange dein Konto besteht. Auf jede Zahlung behält comtor ${pro} % statt ${standard} %.`,
+          ));
   return render({
     locale,
     subject: pick(locale, "Welcome to comtor – verify your email", "Willkommen bei comtor – bestätige deine E-Mail-Adresse"),
@@ -98,7 +104,7 @@ export function welcomeEmail(
           locale,
           "Thanks for signing up. Verify your email, then swipe through brand deals with the budget right on the card.",
           "Danke für deine Anmeldung. Bestätige deine E-Mail-Adresse und wisch dann durch Marken-Deals, mit dem Budget direkt auf der Karte.",
-        )
+        ) + founding
       : pick(
           locale,
           "Thanks for signing up. Verify your email, then post your first request. Creators come to you.",
@@ -113,16 +119,18 @@ export function welcomeEmail(
   });
 }
 
-// Sent once to the brands that were already on comtor when the founding places came: their account has Pro
-// now. About their own plan, so no advert: no upsell, no opt-out link.
+// Sent once to the brands and creators that were already on comtor when their side's founding places came: their
+// account has Pro now. About their own plan, so no advert: no upsell, no opt-out link.
 export function foundingNoticeEmail(
   foundingNumber: number,
   locale: Locale = DEFAULT_LOCALE,
-  // The brand also pays for Pro itself, from before.
+  // The account also pays for Pro itself, from before.
   paysForPro = false,
+  side: "brand" | "creator" = "brand",
 ): Email {
   const pro = Math.round(PRO_PLATFORM_FEE_RATE * 100);
   const standard = Math.round(PLATFORM_FEE_RATE * 100);
+  const creator = side === "creator";
   const subscription = paysForPro
     ? " " +
       pick(
@@ -134,21 +142,25 @@ export function foundingNoticeEmail(
   return render({
     locale,
     subject: pick(locale, "Pro is free for you, for good", "Pro ist für dich dauerhaft kostenlos"),
-    preview: pick(
-      locale,
-      "You are one of the first brands on comtor.",
-      "Du gehörst zu den ersten Marken auf comtor.",
-    ),
+    preview: creator
+      ? pick(locale, "You are one of the first creators on comtor.", "Du gehörst zu den ersten Creatorn auf comtor.")
+      : pick(locale, "You are one of the first brands on comtor.", "Du gehörst zu den ersten Marken auf comtor."),
     heading: pick(locale, "You have Pro, for good.", "Du hast Pro, dauerhaft kostenlos."),
     body:
-      pick(
-        locale,
-        `You are one of the first ${FOUNDING_BRAND_LIMIT} brands on comtor (founding brand no. ${foundingNumber}). That's why Pro is free for you for as long as your account exists: comtor keeps ${pro}% instead of ${standard}% of every payment. There is nothing you need to do.`,
-        `Du gehörst zu den ersten ${FOUNDING_BRAND_LIMIT} Marken auf comtor (Founding Brand Nr. ${foundingNumber}). Darum ist Pro für dich kostenlos, solange dein Konto besteht: Auf jede Zahlung behält comtor ${pro} % statt ${standard} %. Du musst nichts tun.`,
-      ) + subscription,
+      (creator
+        ? pick(
+            locale,
+            `You are one of the first ${FOUNDING_CREATOR_LIMIT} creators on comtor (founding creator no. ${foundingNumber}). That's why Pro is free for you for as long as your account exists: comtor keeps ${pro}% instead of ${standard}% of every payment, so you keep ${100 - pro}%. There is nothing you need to do.`,
+            `Du gehörst zu den ersten ${FOUNDING_CREATOR_LIMIT} Creatorn auf comtor (Founding Creator Nr. ${foundingNumber}). Darum ist Pro für dich kostenlos, solange dein Konto besteht: Auf jede Zahlung behält comtor ${pro} % statt ${standard} %, du bekommst ${100 - pro} %. Du musst nichts tun.`,
+          )
+        : pick(
+            locale,
+            `You are one of the first ${FOUNDING_BRAND_LIMIT} brands on comtor (founding brand no. ${foundingNumber}). That's why Pro is free for you for as long as your account exists: comtor keeps ${pro}% instead of ${standard}% of every payment. There is nothing you need to do.`,
+            `Du gehörst zu den ersten ${FOUNDING_BRAND_LIMIT} Marken auf comtor (Founding Brand Nr. ${foundingNumber}). Darum ist Pro für dich kostenlos, solange dein Konto besteht: Auf jede Zahlung behält comtor ${pro} % statt ${standard} %. Du musst nichts tun.`,
+          )) + subscription,
     action: {
       label: pick(locale, "See your plan", "Zu deinem Tarif"),
-      url: `${SITE_URL}/dashboard/startup/settings#plan`,
+      url: `${SITE_URL}${creator ? "/dashboard/creator/settings#plan" : "/dashboard/startup/settings#plan"}`,
     },
     note: pick(
       locale,
@@ -241,11 +253,11 @@ export function marketingWelcomeEmail(
         },
         {
           icon: "money-wings",
-          title: pick(locale, "You keep 90%.", "Du behältst 90 %."),
+          title: pick(locale, `You keep ${100 - fee}%.`, `Du behältst ${100 - fee} %.`),
           text: pick(
             locale,
-            "The brand has 3 days to approve your post. If they don't answer, it's released to you anyway.",
-            "Die Marke hat 3 Tage Zeit, deinen Post freizugeben. Antwortet sie nicht, geht die Zahlung trotzdem an dich.",
+            `The brand has 3 days to approve your post. If they don't answer, it's released to you anyway. With Pro (€${price} a month) you keep ${100 - proFee}%.`,
+            `Die Marke hat 3 Tage Zeit, deinen Post freizugeben. Antwortet sie nicht, geht die Zahlung trotzdem an dich. Mit Pro (${price} € im Monat) behältst du ${100 - proFee} %.`,
           ),
         },
       ],

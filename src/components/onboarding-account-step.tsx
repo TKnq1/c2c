@@ -12,7 +12,7 @@ import { localizeError } from "@/lib/i18n/labels";
 import { TermsConsent } from "@/components/terms-consent";
 import { MarketingConsentCheckbox } from "@/components/marketing-consent-checkbox";
 import { keepFieldsOnSubmit } from "@/lib/keep-fields";
-import { FOUNDING_BRAND_LIMIT, PLATFORM_FEE_RATE, PRO_PLATFORM_FEE_RATE, RELEASE_REVIEW_DAYS } from "@/lib/constants";
+import { FOUNDING_BRAND_LIMIT, FOUNDING_CREATOR_LIMIT, PLATFORM_FEE_RATE, PRO_PLATFORM_FEE_RATE, RELEASE_REVIEW_DAYS } from "@/lib/constants";
 import type { PlatformDraft } from "@/components/platform-chips";
 import type { SignupRole } from "@/lib/signup-role";
 
@@ -53,12 +53,11 @@ export function OnboardingAccountStep({
   onDone: (state: NonNullable<OnboardingState>) => void;
 }) {
   const { t } = useI18n();
-  // Brands only: how many of the founding places are still free (nothing is shown when none are).
+  // How many of the founding places on this side are still free (nothing is shown when none are).
   const [spotsLeft, setSpotsLeft] = useState<number | null>(null);
   useEffect(() => {
-    if (role !== "STARTUP") return;
     let live = true;
-    foundingSpotsLeftAction().then(
+    foundingSpotsLeftAction(role).then(
       (left) => live && setSpotsLeft(left),
       () => undefined,
     );
@@ -119,11 +118,15 @@ export function OnboardingAccountStep({
         </label>
         <NewPasswordField name="password" className="px-4 py-4 text-lg" />
         <p className="text-xs text-neutral-500 dark:text-neutral-400">{fee}</p>
-        {role === "STARTUP" && spotsLeft !== null && spotsLeft > 0 && (
+        {spotsLeft !== null && spotsLeft > 0 && (
           <p className="rounded bg-fog px-4 py-3 text-sm font-medium">
-            {spotsLeft === 1
-              ? t("founding.teaserLast", { total: FOUNDING_BRAND_LIMIT })
-              : t("founding.teaser", { total: FOUNDING_BRAND_LIMIT, left: spotsLeft })}
+            {role === "STARTUP"
+              ? spotsLeft === 1
+                ? t("founding.teaserLast", { total: FOUNDING_BRAND_LIMIT })
+                : t("founding.teaser", { total: FOUNDING_BRAND_LIMIT, left: spotsLeft })
+              : spotsLeft === 1
+                ? t("founding.creator.teaserLast", { total: FOUNDING_CREATOR_LIMIT })
+                : t("founding.creator.teaser", { total: FOUNDING_CREATOR_LIMIT, left: spotsLeft })}
           </p>
         )}
       </div>

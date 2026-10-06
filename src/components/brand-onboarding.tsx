@@ -192,7 +192,7 @@ export function BrandOnboarding({
       ? [
           {
             key: "founding" as const,
-            render: (i: number) => <FoundingStep active={step === i} number={foundingNumber} onNext={() => finish(i)} />,
+            render: (i: number) => <FoundingStep side="brand" active={step === i} number={foundingNumber} onNext={() => finish(i)} />,
           },
         ]
       : []),

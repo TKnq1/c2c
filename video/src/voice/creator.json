@@ -1,0 +1,54 @@
+{
+  "C00": {
+    "file": "vo/C00.mp3",
+    "seconds": 2.77
+  },
+  "C01": {
+    "file": "vo/C01.mp3",
+    "seconds": 1.43
+  },
+  "C02": {
+    "file": "vo/C02.mp3",
+    "seconds": 1.5
+  },
+  "C03": {
+    "file": "vo/C03.mp3",
+    "seconds": 1.69
+  },
+  "C04": {
+    "file": "vo/C04.mp3",
+    "seconds": 1.35
+  },
+  "C05": {
+    "file": "vo/C05.mp3",
+    "seconds": 1.97
+  },
+  "C06": {
+    "file": "vo/C06.mp3",
+    "seconds": 3.01
+  },
+  "C07": {
+    "file": "vo/C07.mp3",
+    "seconds": 1.49
+  },
+  "C08": {
+    "file": "vo/C08.mp3",
+    "seconds": 1.56
+  },
+  "C09": {
+    "file": "vo/C09.mp3",
+    "seconds": 2.16
+  },
+  "C10": {
+    "file": "vo/C10.mp3",
+    "seconds": 1.76
+  },
+  "C11": {
+    "file": "vo/C11.mp3",
+    "seconds": 4.57
+  },
+  "C12": {
+    "file": "vo/C12.mp3",
+    "seconds": 2.07
+  }
+}

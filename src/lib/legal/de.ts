@@ -1,4 +1,4 @@
-import { FOUNDING_BRAND_LIMIT, PLATFORM_FEE_RATE, PRO_PLATFORM_FEE_RATE, PRO_SUBSCRIPTION_PRICE_CENTS, RELEASE_REVIEW_DAYS } from "@/lib/constants";
+import { FOUNDING_BRAND_LIMIT, FOUNDING_CREATOR_LIMIT, PLATFORM_FEE_RATE, PRO_PLATFORM_FEE_RATE, PRO_SUBSCRIPTION_PRICE_CENTS, RELEASE_REVIEW_DAYS } from "@/lib/constants";
 import { formatCents } from "@/lib/format";
 
 export type LegalSection = { title: string; body: string[] };
@@ -21,7 +21,7 @@ export const DE_IMPRINT = {
 };
 
 export function deTerms(): LegalSection[] {
-  const fee = `Wir behalten ${PLATFORM_FEE_RATE * 100} % von jeder Zahlung über comtor ein. Marken können Pro für ${formatCents(PRO_SUBSCRIPTION_PRICE_CENTS)} im Monat buchen. Dann sind es ${PRO_PLATFORM_FEE_RATE * 100} %, solange Pro läuft. Pro verlängert sich jeden Monat, bis du es in den Einstellungen kündigst. Die Kündigung stoppt die nächste Verlängerung. Eine Gebühr für das Einstellen gibt es nicht. Die ersten ${FOUNDING_BRAND_LIMIT} Marken, die sich bei comtor angemeldet haben, bekommen Pro kostenlos, solange ihr Konto besteht (Founding Brands). Dieses Pro hat keinen Monatspreis, ist nicht übertragbar und endet mit dem Konto. Wir können es entziehen, wenn eine Marke gegen diese Bedingungen verstößt.`;
+  const fee = `Wir behalten ${PLATFORM_FEE_RATE * 100} % von jeder Zahlung über comtor ein. Marken und Creator können Pro für ${formatCents(PRO_SUBSCRIPTION_PRICE_CENTS)} im Monat buchen. Solange Pro läuft, sind es ${PRO_PLATFORM_FEE_RATE * 100} %: bei jeder Zahlung, bei der die Marke oder der Creator Pro hat. Pro verlängert sich jeden Monat, bis du es in den Einstellungen kündigst. Die Kündigung stoppt die nächste Verlängerung. Eine Gebühr für das Einstellen gibt es nicht. Die ersten ${FOUNDING_BRAND_LIMIT} Marken (Founding Brands) und die ersten ${FOUNDING_CREATOR_LIMIT} Creator (Founding Creator), die sich bei comtor angemeldet haben, bekommen Pro kostenlos, solange ihr Konto besteht. Dieses Pro hat keinen Monatspreis, ist nicht übertragbar und endet mit dem Konto. Wir können es entziehen, wenn jemand gegen diese Bedingungen verstößt.`;
   const held = `Zahlt eine Marke, halten wir das Geld, bis der Creator den Link zum veröffentlichten Beitrag schickt. Die Marke hat dann ${RELEASE_REVIEW_DAYS} Tage, um freizugeben oder ein Problem zu melden. Tut sie nichts, wird ausgezahlt. Wird ein Problem gemeldet, bleibt das Geld liegen, bis wir prüfen, und wir zahlen danach an den Creator oder erstatten an die Marke.`;
   return [
     {

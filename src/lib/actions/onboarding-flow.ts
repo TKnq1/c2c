@@ -205,9 +205,9 @@ export async function previewBrandNicheInsightAction(niche: string): Promise<Onb
 }
 
 // How many founding places are left, for the line under the sign-up form. Null when it can't be told.
-export async function foundingSpotsLeftAction(): Promise<number | null> {
+export async function foundingSpotsLeftAction(role: "STARTUP" | "CREATOR"): Promise<number | null> {
   if (!(await guestAllowed())) return null;
-  return foundingSpotsLeft().catch(() => null);
+  return foundingSpotsLeft(role === "STARTUP" ? "brand" : "creator").catch(() => null);
 }
 
 export async function previewBrandCreatorsAction(niche: string): Promise<BrandCreatorsResult> {

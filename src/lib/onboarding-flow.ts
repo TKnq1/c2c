@@ -10,6 +10,8 @@ export const CREATOR_STEPS = [
   { key: "matches", label: "Your matches" },
   { key: "swipe", label: "How it works" },
   { key: "account", label: "Account" },
+  // Only for creators that got one of the founding places (see src/lib/founding.ts).
+  { key: "founding", label: "Founding Pro" },
   { key: "payouts", label: "Payouts" },
   { key: "alerts", label: "Notifications" },
   { key: "done", label: "All set" },

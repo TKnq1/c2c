@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { splitPayment } from "@/lib/payment-math";
+import { feeRatePercent, hasProRate, splitPayment } from "@/lib/payment-math";
 
 describe("splitPayment", () => {
   it("takes the standard 10% platform fee", () => {
@@ -29,5 +29,19 @@ describe("splitPayment", () => {
         expect(platformFeeCents + payoutCents).toBe(amount);
       }
     }
+  });
+});
+
+describe("hasProRate", () => {
+  it("gives the Pro rate when either side has Pro", () => {
+    expect(hasProRate({ isPro: false }, { isPro: false })).toBe(false);
+    expect(hasProRate({ isPro: true }, { isPro: false })).toBe(true);
+    expect(hasProRate({ isPro: false }, { isPro: true })).toBe(true);
+    expect(hasProRate({ isPro: true }, { isPro: true })).toBe(true);
+  });
+
+  it("shows the matching rate in percent", () => {
+    expect(feeRatePercent({ isPro: false }, { isPro: false })).toBe(10);
+    expect(feeRatePercent({ isPro: false }, { isPro: true })).toBe(3);
   });
 });

@@ -3,6 +3,7 @@
 import { auth, signOut } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { stripe } from "@/lib/stripe";
+import { findProProfile } from "@/lib/pro-profile";
 import { anonymiseAccount, hasPaymentRecords, moneyInFlight } from "@/lib/account-deletion";
 import { verifyPassword } from "@/lib/password";
 import { MINUTE, takeToken } from "@/lib/rate-limit";
@@ -34,13 +35,10 @@ export async function deleteAccountAction(
   }
 
   // A Pro subscription would keep billing someone whose account is gone.
-  const startup = await prisma.startupProfile.findUnique({
-    where: { userId: user.id },
-    select: { stripeSubscriptionId: true },
-  });
-  if (startup?.stripeSubscriptionId) {
+  const pro = await findProProfile(user.id, user.role);
+  if (pro?.stripeSubscriptionId) {
     try {
-      await stripe.subscriptions.cancel(startup.stripeSubscriptionId);
+      await stripe.subscriptions.cancel(pro.stripeSubscriptionId);
     } catch (err) {
       console.error("Cancelling the Pro subscription before deleting an account failed:", err);
       return { error: "We couldn't cancel your Pro subscription. Try again, or cancel it under Settings first." };

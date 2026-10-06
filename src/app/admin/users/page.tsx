@@ -25,7 +25,7 @@ export default async function AdminUsersPage(props: PageProps<"/admin/users">) {
   const where: Prisma.UserWhereInput = {
     ...(role && (role === "ADMIN" ? { OR: [{ role: "ADMIN" as const }, { isAdmin: true }] } : { role })),
     ...(params.status === "suspended" && { suspendedAt: { not: null } }),
-    ...(params.pro === "1" && { startupProfile: { isPro: true } }),
+    ...(params.pro === "1" && { OR: [{ startupProfile: { isPro: true } }, { creatorProfile: { isPro: true } }] }),
     ...(q && {
       OR: [
         { email: { contains: q, mode: "insensitive" } },
@@ -43,7 +43,7 @@ export default async function AdminUsersPage(props: PageProps<"/admin/users">) {
       take: PAGE_SIZE,
       include: {
         startupProfile: { select: { companyName: true, isPro: true, foundingNumber: true } },
-        creatorProfile: { select: { displayName: true, niches: true } },
+        creatorProfile: { select: { displayName: true, niches: true, isPro: true, foundingNumber: true } },
         _count: { select: { reportsReceived: { where: { status: "OPEN" } } } },
       },
     }),
@@ -68,9 +68,10 @@ export default async function AdminUsersPage(props: PageProps<"/admin/users">) {
       {notice.verified + notice.unverified > 0 && (
         <div className="flex flex-col gap-3 rounded border border-dashed border-ink px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
           <div className="text-sm">
-            <p className="font-medium">Founding brands that haven&apos;t been told yet</p>
+            <p className="font-medium">Founding brands and creators that haven&apos;t been told yet</p>
             <p className="text-neutral-600 dark:text-neutral-400">
-              {notice.verified} with a verified email {notice.verified === 1 ? "gets" : "get"} the notice, once each.
+              {notice.verified} with a verified email ({notice.brands} {notice.brands === 1 ? "brand" : "brands"}, {notice.creators}{" "}
+              {notice.creators === 1 ? "creator" : "creators"}) {notice.verified === 1 ? "gets" : "get"} the notice, once each.
               {notice.unverified > 0 && ` ${notice.unverified} with an unverified email are skipped (they see their plan in the app).`}
             </p>
           </div>
@@ -79,8 +80,8 @@ export default async function AdminUsersPage(props: PageProps<"/admin/users">) {
               action={sendFoundingNoticesAction}
               requirePassword
               successMessage="The notices are sent."
-              title={`Send the founding notice to ${notice.verified} ${notice.verified === 1 ? "brand" : "brands"}?`}
-              description={`${notice.verified} ${notice.verified === 1 ? "brand gets" : "brands get"} an email that Pro is free for them for as long as their account exists. It is sent right away and only once per brand. Check the text first at /dev-emails/founding-notice.`}
+              title={`Send the founding notice to ${notice.verified} ${notice.verified === 1 ? "account" : "accounts"}?`}
+              description={`${notice.verified} ${notice.verified === 1 ? "account gets" : "accounts get"} an email that Pro is free for them for as long as their account exists. It is sent right away and only once per account. Check the texts first at /dev-emails/founding-notice and /dev-emails/founding-notice-creator.`}
               confirmLabel="Send"
               pendingLabel="Sending…"
               className="shrink-0 self-start rounded-full border border-ink px-4 py-2 text-sm font-medium transition hover:bg-fog sm:self-auto"
@@ -130,9 +131,11 @@ export default async function AdminUsersPage(props: PageProps<"/admin/users">) {
                   <span className="min-w-0">
                     <span className="block truncate text-sm font-medium">
                       {name}
-                      {u.startupProfile?.isPro && (
+                      {(u.startupProfile ?? u.creatorProfile)?.isPro && (
                         <span className="ml-2 text-xs font-medium">
-                          {u.startupProfile.foundingNumber ? `Pro · Founding #${u.startupProfile.foundingNumber}` : "Pro"}
+                          {(u.startupProfile ?? u.creatorProfile)?.foundingNumber
+                            ? `Pro · Founding #${(u.startupProfile ?? u.creatorProfile)?.foundingNumber}`
+                            : "Pro"}
                         </span>
                       )}
                     </span>

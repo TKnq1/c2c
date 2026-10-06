@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { redirect } from "next/navigation";
 import { IoCardOutline, IoDownloadOutline } from "react-icons/io5";
 import { auth } from "@/lib/auth";
@@ -21,16 +20,10 @@ import { EmptyState } from "@/components/empty-state";
 import { refundPaymentAction, withdrawOfferAction } from "@/lib/actions/payments";
 import { releaseDepositAction, forfeitDepositAction } from "@/lib/actions/deposits";
 import { formatCents } from "@/lib/format";
-import { canSellProSubscription } from "@/lib/native-app-server";
-import {
-  DEPOSITS_ENABLED,
-  PLATFORM_FEE_RATE,
-  PRO_PLATFORM_FEE_RATE,
-  PRO_SUBSCRIPTION_PRICE_CENTS,
-  RELEASE_REVIEW_DAYS,
-  RELEASE_REVIEW_MS,
-} from "@/lib/constants";
+import { DEPOSITS_ENABLED, RELEASE_REVIEW_DAYS, RELEASE_REVIEW_MS } from "@/lib/constants";
+import { feeRatePercent } from "@/lib/payment-math";
 import { PageTitle } from "@/components/page-title";
+import { ProFeeBar } from "@/components/pro-fee-bar";
 import { getT } from "@/lib/i18n/server";
 
 const primaryButton =
@@ -113,17 +106,12 @@ export default async function StartupPaymentsPage(props: PageProps<"/dashboard/s
     });
   }
   const [bestRequest] = [...spendByRequest.values()].sort((a, b) => b.totalCents - a.totalCents);
-  const feeRatePercent = (startup.isPro ? PRO_PLATFORM_FEE_RATE : PLATFORM_FEE_RATE) * 100;
   // The rate a given payment was actually charged at — it's stored per
   // payment, so a brand going Pro later doesn't rewrite older ones.
   const feePercentOf = (i: { platformFeeCents: number | null; amountCents: number | null }) =>
     Math.round((i.platformFeeCents! / i.amountCents!) * 100);
 
   const requestHref = (requestId: string) => `/dashboard/startup/requests/${requestId}`;
-  // No Pro upsell in the store apps, see canSellProSubscription.
-  const showProOffer = !startup.isPro && (await canSellProSubscription());
-  // A founding brand's Pro has no subscription behind it, so there is nothing to manage (unless it also pays for one).
-  const showManage = startup.isPro && (!startup.foundingNumber || !!startup.stripeSubscriptionId);
 
   return (
     <div className="page-wide flex flex-col gap-8">
@@ -157,37 +145,12 @@ export default async function StartupPaymentsPage(props: PageProps<"/dashboard/s
         }
       />
 
-      <div className="flex items-center justify-between gap-3 rounded bg-fog px-4 py-3 no-print">
-        <p className="text-sm text-neutral-700 dark:text-neutral-300">
-          {startup.isPro
-            ? startup.foundingNumber
-              ? t("founding.feeLine", {
-                  n: startup.foundingNumber,
-                  pro: PRO_PLATFORM_FEE_RATE * 100,
-                  standard: PLATFORM_FEE_RATE * 100,
-                })
-              : t("screens.payments.proFeeLine", { pro: PRO_PLATFORM_FEE_RATE * 100, standard: PLATFORM_FEE_RATE * 100 })
-            : showProOffer
-              ? t("screens.payments.proOfferLine", {
-                  standard: PLATFORM_FEE_RATE * 100,
-                  pro: PRO_PLATFORM_FEE_RATE * 100,
-                  price: formatCents(PRO_SUBSCRIPTION_PRICE_CENTS),
-                })
-              : t("screens.payments.standardFeeLine", { rate: PLATFORM_FEE_RATE * 100 })}
-        </p>
-        {(showManage || showProOffer) && (
-          <Link
-            href="/dashboard/startup/settings#plan"
-            className={
-              startup.isPro
-                ? "shrink-0 text-sm font-medium underline"
-                : "shrink-0 rounded-full bg-ink px-3.5 py-1.5 text-sm font-medium text-paper transition hover:bg-graphite"
-            }
-          >
-            {startup.isPro ? t("screens.payments.manage") : t("screens.payments.goPro")}
-          </Link>
-        )}
-      </div>
+      <ProFeeBar
+        side="brand"
+        isPro={startup.isPro}
+        foundingNumber={startup.foundingNumber}
+        hasSubscription={!!startup.stripeSubscriptionId}
+      />
 
       {allInterests.length === 0 && (
         <EmptyState
@@ -344,7 +307,7 @@ export default async function StartupPaymentsPage(props: PageProps<"/dashboard/s
               <div className="mt-3 flex flex-col gap-2 sm:flex-row">
                 <MakeOfferButton
                   interestId={i.id}
-                  feeRatePercent={feeRatePercent}
+                  feeRatePercent={feeRatePercent(startup, i.creator)}
                   className={`${primaryButton} inline-flex items-center justify-center gap-1.5`}
                 />
                 {DEPOSITS_ENABLED && i.depositStatus === null && (

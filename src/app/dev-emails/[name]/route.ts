@@ -31,6 +31,7 @@ const EMAILS = {
   test: (l: Locale) => testEmail(SITE_URL, l),
   "founding-notice": (l: Locale) => foundingNoticeEmail(7, l),
   "founding-notice-paying": (l: Locale) => foundingNoticeEmail(7, l, true),
+  "founding-notice-creator": (l: Locale) => foundingNoticeEmail(12, l, false, "creator"),
 };
 
 export async function GET(request: Request, ctx: RouteContext<"/dev-emails/[name]">) {

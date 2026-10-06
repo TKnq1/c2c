@@ -40,7 +40,7 @@ export function moneyInFlight(userId: string) {
 export async function hasPaymentRecords(userId: string): Promise<boolean> {
   const [collabs, proWithdrawals] = await Promise.all([
     prisma.interest.count({ where: { AND: [participantOf(userId), PAYMENT_RECORD] } }),
-    prisma.proWithdrawal.count({ where: { startup: { userId } } }),
+    prisma.proWithdrawal.count({ where: { OR: [{ startup: { userId } }, { creator: { userId } }] } }),
   ]);
   return collabs + proWithdrawals > 0;
 }
@@ -63,7 +63,8 @@ export async function anonymiseAccount(userId: string, role: Role) {
     prisma.startupSocialLink.deleteMany({ where: { startup: { userId } } }),
     prisma.creatorProfile.updateMany({
       where: { userId },
-      data: { displayName: "Deleted creator", avatarUrl: null, bio: null },
+      // The founding number goes back to the pool; a paid subscription was cancelled before this runs.
+      data: { displayName: "Deleted creator", avatarUrl: null, bio: null, foundingNumber: null, isPro: false },
     }),
     prisma.startupProfile.updateMany({
       where: { userId },

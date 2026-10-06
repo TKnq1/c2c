@@ -92,7 +92,10 @@ export default async function AdminPaymentsPage(props: PageProps<"/admin/payment
     prisma.proWithdrawal.findMany({
       orderBy: { createdAt: "desc" },
       take: 20,
-      include: { startup: { select: { companyName: true, user: { select: { email: true } } } } },
+      include: {
+        startup: { select: { companyName: true, user: { select: { email: true } } } },
+        creator: { select: { displayName: true, user: { select: { email: true } } } },
+      },
     }),
   ]);
   const allCount = stageCounts.reduce((sum, n) => sum + n, 0);
@@ -111,14 +114,16 @@ export default async function AdminPaymentsPage(props: PageProps<"/admin/payment
           Pro withdrawals <span className="tabular-nums text-neutral-500">{withdrawals.length}</span>
         </h2>
         {withdrawals.length === 0 ? (
-          <p className="text-sm text-neutral-500">No brand has withdrawn from Pro yet.</p>
+          <p className="text-sm text-neutral-500">No one has withdrawn from Pro yet.</p>
         ) : (
           <ul className="rounded bg-fog">
             {withdrawals.map((row) => (
               <li key={row.id} className="flex items-center justify-between gap-3 px-3 py-2.5 [&+&]:border-t [&+&]:border-ink/10">
                 <span className="min-w-0">
-                  <span className="block truncate text-sm font-medium">{row.startup.companyName || "Brand"}</span>
-                  <span className="block truncate text-footnote text-neutral-500">{row.startup.user.email}</span>
+                  <span className="block truncate text-sm font-medium">
+                    {row.startup ? row.startup.companyName || "Brand" : row.creator?.displayName || "Creator"}
+                  </span>
+                  <span className="block truncate text-footnote text-neutral-500">{(row.startup ?? row.creator)?.user.email}</span>
                 </span>
                 <span className="shrink-0 text-right text-footnote text-neutral-500">
                   <span className="block font-medium text-ink">{formatCents(row.amountCents)} refunded</span>
