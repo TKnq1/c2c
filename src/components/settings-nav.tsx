@@ -21,7 +21,7 @@ function groupsFor(role: Role): Group[] {
       : { id: "payouts", label: "settingsNav.payouts", sections: ["payouts"] },
     { id: "appearance", label: "settingsNav.appearance", sections: ["appearance"] },
     { id: "password", label: "settingsNav.security", sections: ["password", "two-factor", "logins"] },
-    { id: "push", label: "settingsNav.notifications", sections: ["push"] },
+    { id: "push", label: "settingsNav.notifications", sections: ["push", "news"] },
     { id: "data", label: "settingsNav.account", sections: ["data", "danger", "legal"] },
   ];
 }

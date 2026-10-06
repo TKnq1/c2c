@@ -56,6 +56,15 @@ model User {
   // creator or a request uses for matching.
   locale String @default("en")
 
+  // Optional product-news mail. Checking the box only sends a confirmation
+  // link; marketingConsentAt is set when they press the button on that page
+  // (mail scanners open links and must not count as a yes). The hash is what
+  // we store, never the link itself.
+  marketingConsentAt      DateTime?
+  marketingTokenHash      String?   @unique
+  marketingTokenExpiresAt DateTime?
+  marketingSentAt         DateTime?
+
   startupProfile          StartupProfile?
   creatorProfile          CreatorProfile?
   notifications           Notification[]

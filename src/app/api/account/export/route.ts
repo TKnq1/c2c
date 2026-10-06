@@ -7,7 +7,16 @@ export async function GET() {
 
   const user = await prisma.user.findUniqueOrThrow({
     where: { id: session.user.id },
-    select: { id: true, email: true, role: true, emailVerified: true, totpEnabled: true, createdAt: true },
+    select: {
+      id: true,
+      email: true,
+      role: true,
+      emailVerified: true,
+      totpEnabled: true,
+      createdAt: true,
+      marketingConsentAt: true,
+      marketingSentAt: true,
+    },
   });
 
   const [startupProfile, creatorProfile, notifications, loginHistory, reportsFiled, reportsReceived, blocksMade] =

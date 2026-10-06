@@ -142,6 +142,7 @@ export const DE_PRIVACY: LegalSection[] = [
     title: "E-Mails, die wir schicken",
     body: [
       "Konto-Mails (Bestätigung, Passwort zurücksetzen, geändertes Passwort) gehen raus, weil du ein Konto hast (Art. 6 Abs. 1 lit. b DSGVO). Versand über Resend.",
+      "Gelegentliche Produkt-News sind getrennt und freiwillig. Hakst du das beim Konto an oder schaltest es in den Einstellungen ein, schicken wir einen Link. Die Einwilligung ist der Button auf der Seite, nicht das Öffnen der Mail. Den Zeitpunkt der Bestätigung speichern wir (Art. 6 Abs. 1 lit. a DSGVO). In den Einstellungen kannst du es stoppen, dann schreiben wir nicht weiter. Eine unbestätigte Anfrage ist keine Einwilligung.",
       "Werbe-Mails ohne vorherige Einwilligung schicken wir nicht an Privatpersonen. Eine Adresse in einer Liste erlaubt das nicht. Geschäftliche Hinweise schicken wir nur an geschäftliche Kontakte, soweit das Gesetz das zulässt. Dafür speichern wir Name und E-Mail-Adresse, die gesendete Nachricht und, wenn der Versanddienst es meldet, ob sie geöffnet oder ein Link geklickt wurde (Art. 6 Abs. 1 lit. f DSGVO). Du kannst jederzeit widersprechen, über den Link in der Mail oder an info@comtor.app. Dann löschen wir die Adresse und schreiben nicht weiter.",
     ],
   },
