@@ -2,11 +2,11 @@
 
 import Image from "next/image";
 
-// Dark mode inverts the black mark to white. At 0.16 that gray lands on the
-// same tone as the field borders, so the shape disappears into them. Higher
-// opacity keeps it clearly lighter than those lines.
+// Dark mode inverts the black mark to white. 0.16 sits on the field borders
+// and the shape vanishes. 0.42 is light enough to swallow the copy. 0.24
+// stays darker than that, and still a step lighter than the borders.
 const watermarkClass =
-  "pointer-events-none absolute top-1/2 left-1/2 z-0 h-[min(168vmin,78rem)] w-auto max-w-none -translate-x-1/2 -translate-y-1/2 select-none opacity-[0.11] dark:invert dark:opacity-[0.42]";
+  "pointer-events-none absolute top-1/2 left-1/2 z-0 h-[min(168vmin,78rem)] w-auto max-w-none -translate-x-1/2 -translate-y-1/2 select-none opacity-[0.11] dark:invert dark:opacity-[0.24]";
 
 // The mark, centered on whatever page it sits in. The page supplies
 // `relative` and clips overflow.
