@@ -2,7 +2,7 @@
 
 import { useActionState, useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { saveCompanyNameAction, saveBrandNicheAction } from "@/lib/actions/onboarding";
-import { previewBrandCreatorsAction, previewBrandNicheInsightAction } from "@/lib/actions/onboarding-flow";
+import { previewBrandCreatorsAction } from "@/lib/actions/onboarding-flow";
 import { NicheTiles } from "@/components/niche-tiles";
 import { useI18n } from "@/components/i18n-provider";
 import { OnboardingLanguageStep } from "@/components/onboarding-language-step";
@@ -13,7 +13,6 @@ import { OnboardingAccountStep } from "@/components/onboarding-account-step";
 import { OnboardingPushStep, usePushOffer } from "@/components/onboarding-push-step";
 import {
   FIELD_CLASS,
-  InsightBanner,
   OnboardingProgress,
   StepError,
   StepFooter,
@@ -57,7 +56,6 @@ export function BrandOnboarding({
   const [photoDataUrl, setPhotoDataUrl] = useState<string | null>(null);
   const [skipped, setSkipped] = useState<string[]>([]);
   const [booted, setBooted] = useState(!guest);
-  const [nicheInsight, setNicheInsight] = useState<OnboardingInsight | undefined>();
   const pushOffer = usePushOffer();
   const sealed = useRef(false);
 
@@ -74,11 +72,6 @@ export function BrandOnboarding({
         setPhotoDataUrl(draft.photoDataUrl);
         setSkipped(draft.skipped);
         setStep(Math.min(draft.step, ACCOUNT_STEP));
-        if (draft.niche) {
-          previewBrandNicheInsightAction(draft.niche).then((insight) => {
-            if (insight) setNicheInsight(insight);
-          });
-        }
       }
       setBooted(true);
     });
@@ -141,28 +134,22 @@ export function BrandOnboarding({
           value={niche}
           onChange={setNiche}
           onBack={() => back(i)}
-          onDone={(insight) => {
-            setNicheInsight(insight);
-            finish(i);
-          }}
+          onDone={() => finish(i)}
         />
       ),
     },
     {
       key: "logo",
       render: (i) => (
-        <>
-          <InsightBanner insight={nicheInsight} />
-          <OnboardingPhotoStep
-            kind="logo"
-            deferUpload={guest}
-            initialPreview={photoDataUrl}
-            onPreview={setPhotoDataUrl}
-            onBack={() => back(i)}
-            onDone={() => finish(i)}
-            onSkip={() => finish(i, "skipped")}
-          />
-        </>
+        <OnboardingPhotoStep
+          kind="logo"
+          deferUpload={guest}
+          initialPreview={photoDataUrl}
+          onPreview={setPhotoDataUrl}
+          onBack={() => back(i)}
+          onDone={() => finish(i)}
+          onSkip={() => finish(i, "skipped")}
+        />
       ),
     },
     {

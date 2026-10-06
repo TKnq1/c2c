@@ -207,18 +207,15 @@ export function CreatorOnboarding({
     {
       key: "photo",
       render: (i) => (
-        <>
-          <InsightBanner insight={insights.platforms} />
-          <OnboardingPhotoStep
-            kind="photo"
-            deferUpload={guest}
-            initialPreview={photoDataUrl}
-            onPreview={setPhotoDataUrl}
-            onBack={() => back(i)}
-            onDone={() => finish(i)}
-            onSkip={() => finish(i, "skipped")}
-          />
-        </>
+        <OnboardingPhotoStep
+          kind="photo"
+          deferUpload={guest}
+          initialPreview={photoDataUrl}
+          onPreview={setPhotoDataUrl}
+          onBack={() => back(i)}
+          onDone={() => finish(i)}
+          onSkip={() => finish(i, "skipped")}
+        />
       ),
     },
     {
