@@ -218,7 +218,7 @@ export function BrandOnboarding({
   const bar = guest ? BAR_STEPS : SETUP_STEPS;
   const inBar = step < bar.length;
   return (
-    <div className="flex flex-1 flex-col gap-5">
+    <div className="flex flex-1 flex-col gap-5 sm:my-auto sm:flex-none">
       {inBar && (
         <OnboardingProgress
           step={step}

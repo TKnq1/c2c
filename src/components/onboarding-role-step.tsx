@@ -1,7 +1,7 @@
 "use client";
 
 import { useI18n } from "@/components/i18n-provider";
-import { StepHeading, stepScreen } from "@/components/onboarding-ui";
+import { StepHeading, stepActions, stepScreen } from "@/components/onboarding-ui";
 import type { SignupRole } from "@/lib/signup-role";
 
 // Same shape as the other onboarding steps: a question, then two choices.
@@ -10,7 +10,7 @@ export function OnboardingRoleStep({ onChoose }: { onChoose: (role: SignupRole) 
   return (
     <div className={stepScreen}>
       <StepHeading title={t("onboarding.role.title")} description={t("onboarding.role.description")} />
-      <div className="mt-auto flex flex-col gap-3">
+      <div className={stepActions}>
         <button
           type="button"
           onClick={() => onChoose("CREATOR")}
@@ -21,7 +21,7 @@ export function OnboardingRoleStep({ onChoose }: { onChoose: (role: SignupRole) 
         <button
           type="button"
           onClick={() => onChoose("STARTUP")}
-          className="w-full rounded-full border border-neutral-300 px-4 py-3.5 font-medium transition hover:border-ink dark:border-neutral-700"
+          className="w-full rounded-full border border-neutral-300 bg-paper px-4 py-3.5 font-medium transition hover:border-ink dark:border-neutral-700"
         >
           {t("screens.auth.imBrand")}
         </button>
