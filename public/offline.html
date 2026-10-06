@@ -20,10 +20,27 @@
     gap: 12px;
     padding: 24px;
     text-align: center;
+    position: relative;
+    overflow: hidden;
     background: var(--paper);
     color: var(--ink);
     font-family: ui-sans-serif, system-ui, -apple-system, sans-serif;
   }
+  .mark {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    height: min(168vmin, 78rem);
+    width: auto;
+    transform: translate(-50%, -50%);
+    opacity: 0.11;
+    pointer-events: none;
+    user-select: none;
+  }
+  @media (prefers-color-scheme: dark) {
+    .mark { filter: invert(1); opacity: 0.16; }
+  }
+  h1, p, button { position: relative; }
   h1 { font-size: 1.25rem; font-weight: 600; margin: 0; }
   p { color: var(--graphite); margin: 0; max-width: 320px; line-height: 1.5; }
   button {
@@ -40,6 +57,7 @@
 </style>
 </head>
 <body>
+  <img class="mark" src="/logo.png" alt="" />
   <h1>You&rsquo;re offline</h1>
   <p>comtor needs a connection to load your feed, messages, and payments. Reconnect and try again.</p>
   <button type="button" onclick="location.reload()">Retry</button>

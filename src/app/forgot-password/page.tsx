@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ForgotPasswordForm } from "@/components/forgot-password-form";
-import { Logo } from "@/components/logo";
+import { LogoBackdrop } from "@/components/logo-backdrop";
 import { ImprintLink } from "@/components/imprint-link";
 import { NO_INDEX } from "@/lib/seo";
 import { getT } from "@/lib/i18n/server";
@@ -11,11 +11,8 @@ export const metadata: Metadata = { title: "Reset your password", robots: NO_IND
 export default async function ForgotPasswordPage() {
   const t = await getT();
   return (
-    <main className="flex-1 flex items-center justify-center px-6 py-16">
-      <div className="w-full max-w-sm flex flex-col gap-6">
-        <div className="flex justify-center">
-          <Logo large />
-        </div>
+    <LogoBackdrop>
+      <div className="flex flex-col gap-6">
         <div className="text-center">
           <h1 className="font-display text-title-1 font-bold">{t("screens.ui.resetTitle")}</h1>
           <p className="text-sm text-neutral-600 mt-1 dark:text-neutral-400">{t("screens.ui.resetHint")}</p>
@@ -28,6 +25,6 @@ export default async function ForgotPasswordPage() {
         </p>
       </div>
       <ImprintLink />
-    </main>
+    </LogoBackdrop>
   );
 }

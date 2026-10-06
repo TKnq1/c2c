@@ -3,7 +3,7 @@
 import { useEffect } from "react";
 import Link from "next/link";
 import * as Sentry from "@sentry/nextjs";
-import { Logo } from "@/components/logo";
+import { LogoBackdrop } from "@/components/logo-backdrop";
 
 export default function ErrorPage({
   error,
@@ -18,9 +18,8 @@ export default function ErrorPage({
   }, [error]);
 
   return (
-    <main className="flex-1 flex items-center justify-center px-6 py-16">
-      <div className="w-full max-w-sm flex flex-col items-center gap-6 text-center">
-        <Logo large />
+    <LogoBackdrop>
+      <div className="flex flex-col items-center gap-6 text-center">
         <div>
           <p className="text-sm font-medium text-neutral-500 dark:text-neutral-400">Error</p>
           <h1 className="font-display text-title-1 font-bold mt-1">Something went wrong</h1>
@@ -42,12 +41,12 @@ export default function ErrorPage({
           </button>
           <Link
             href="/dashboard"
-            className="rounded-full border border-neutral-300 px-5 py-2.5 text-sm font-medium hover:bg-neutral-50 transition dark:border-neutral-700 dark:hover:bg-neutral-800/50"
+            className="rounded-full border border-neutral-300 bg-paper px-5 py-2.5 text-sm font-medium hover:bg-neutral-50 transition dark:border-neutral-700 dark:hover:bg-neutral-800/50"
           >
             Back to dashboard
           </Link>
         </div>
       </div>
-    </main>
+    </LogoBackdrop>
   );
 }

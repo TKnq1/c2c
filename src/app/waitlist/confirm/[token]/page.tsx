@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
-import { Logo } from "@/components/logo";
+import { LogoBackdrop } from "@/components/logo-backdrop";
 import { ImprintLink } from "@/components/imprint-link";
 import { ConfirmWaitlistForm, WaitlistConfirmed } from "@/components/confirm-waitlist-form";
 import { NO_INDEX } from "@/lib/seo";
@@ -18,11 +18,8 @@ export default async function ConfirmWaitlistPage({ params }: PageProps<"/waitli
   });
 
   return (
-    <main className="flex flex-1 items-center justify-center px-6 py-16">
-      <div className="flex w-full max-w-sm flex-col gap-4 text-center">
-        <div className="flex justify-center">
-          <Logo large />
-        </div>
+    <LogoBackdrop>
+      <div className="flex flex-col gap-4 text-center">
         {!entry ? (
           <>
             <h1 className="font-display text-title-1 font-bold">This link doesn&apos;t work anymore</h1>
@@ -40,6 +37,6 @@ export default async function ConfirmWaitlistPage({ params }: PageProps<"/waitli
         )}
       </div>
       <ImprintLink />
-    </main>
+    </LogoBackdrop>
   );
 }

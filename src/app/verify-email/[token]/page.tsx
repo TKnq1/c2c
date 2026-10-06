@@ -1,7 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { hashToken } from "@/lib/tokens";
 import { ConfirmEmailVerificationForm } from "@/components/confirm-email-verification-form";
-import { Logo } from "@/components/logo";
+import { LogoBackdrop } from "@/components/logo-backdrop";
 import { ImprintLink } from "@/components/imprint-link";
 import type { Metadata } from "next";
 import { NO_INDEX } from "@/lib/seo";
@@ -17,11 +17,8 @@ export default async function VerifyEmailTokenPage({ params }: { params: Promise
   const isValid = !!verifyToken && !verifyToken.usedAt && verifyToken.expiresAt > new Date();
 
   return (
-    <main className="flex-1 flex items-center justify-center px-6 py-16">
-      <div className="w-full max-w-sm flex flex-col gap-4 text-center">
-        <div className="flex justify-center">
-          <Logo large />
-        </div>
+    <LogoBackdrop>
+      <div className="flex flex-col gap-4 text-center">
         <h1 className="font-display text-title-1 font-bold">{t("screens.auth.verifyEmail")}</h1>
         {isValid ? (
           <ConfirmEmailVerificationForm token={token} />
@@ -30,6 +27,6 @@ export default async function VerifyEmailTokenPage({ params }: { params: Promise
         )}
       </div>
       <ImprintLink />
-    </main>
+    </LogoBackdrop>
   );
 }

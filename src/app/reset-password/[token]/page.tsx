@@ -2,7 +2,7 @@ import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { hashToken } from "@/lib/tokens";
 import { ResetPasswordForm } from "@/components/reset-password-form";
-import { Logo } from "@/components/logo";
+import { LogoBackdrop } from "@/components/logo-backdrop";
 import { ImprintLink } from "@/components/imprint-link";
 import type { Metadata } from "next";
 import { NO_INDEX } from "@/lib/seo";
@@ -18,11 +18,8 @@ export default async function ResetPasswordPage({ params }: { params: Promise<{ 
   const isValid = !!resetToken && !resetToken.usedAt && resetToken.expiresAt > new Date();
 
   return (
-    <main className="flex-1 flex items-center justify-center px-6 py-16">
-      <div className="w-full max-w-sm flex flex-col gap-6">
-        <div className="flex justify-center">
-          <Logo large />
-        </div>
+    <LogoBackdrop>
+      <div className="flex flex-col gap-6">
         <div className="text-center">
           <h1 className="font-display text-title-1 font-bold">{t("screens.ui.setNewPassword")}</h1>
         </div>
@@ -38,6 +35,6 @@ export default async function ResetPasswordPage({ params }: { params: Promise<{ 
         )}
       </div>
       <ImprintLink />
-    </main>
+    </LogoBackdrop>
   );
 }
