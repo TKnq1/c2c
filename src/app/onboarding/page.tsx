@@ -51,7 +51,7 @@ export default async function OnboardingPage(props: PageProps<"/onboarding">) {
   }
 
   return (
-    <div className="logo-backdrop relative flex min-h-dvh flex-1 flex-col overflow-hidden">
+    <div className="onboarding-stage logo-backdrop relative flex min-h-dvh flex-1 flex-col overflow-hidden">
       <LogoWatermark />
       <header className="relative z-10 flex shrink-0 items-center justify-between px-5 pt-[calc(env(safe-area-inset-top)+0.75rem)] pb-2 sm:px-6 sm:pt-[calc(env(safe-area-inset-top)+1.25rem)] sm:pb-4">
         <Logo />
