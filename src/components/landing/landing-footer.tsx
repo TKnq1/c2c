@@ -4,6 +4,7 @@ import { SwitchSideLink } from "@/components/landing/switch-side-link";
 
 const LINKS = [
   { href: "/faq", label: "FAQ" },
+  { href: "/ugc", label: "UGC auf Deutsch" },
   { href: "/login", label: "Log in" },
   { href: "/legal/imprint", label: "Imprint" },
   { href: "/legal/privacy", label: "Privacy" },

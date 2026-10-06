@@ -80,8 +80,21 @@ function Clean() {
   );
 }
 
+// A niche page's preview: the Bold artwork with its own two-line headline and its niche picked out.
+export function ogNiche(lines: [string, string], active: string) {
+  return new ImageResponse(<Bold lines={lines} active={active} size={84} />, { ...OG_SIZE, fonts: FONTS });
+}
+
 // Sign-up: black, loud, with the niches creators pick from.
-function Bold() {
+function Bold({
+  lines = ["Where brands", "meet creators."],
+  active = "Beauty",
+  size = 104,
+}: {
+  lines?: [string, string];
+  active?: string;
+  size?: number;
+}) {
   const niches = ["Beauty", "Fitness", "Food", "Fashion", "Tech", "Travel"];
   return (
     <div
@@ -98,12 +111,12 @@ function Bold() {
       }}
     >
       <Mark width={130} white />
-      <div style={{ display: "flex", flexDirection: "column", fontSize: 104, fontWeight: 900, lineHeight: 1, letterSpacing: "-0.03em" }}>
-        <span>Where brands</span>
-        <span>meet creators.</span>
+      <div style={{ display: "flex", flexDirection: "column", fontSize: size, fontWeight: 900, lineHeight: 1, letterSpacing: "-0.03em" }}>
+        <span>{lines[0]}</span>
+        <span>{lines[1]}</span>
       </div>
       <div style={{ display: "flex", gap: 14 }}>
-        {niches.map((n, i) => (
+        {niches.map((n) => (
           <div
             key={n}
             style={{
@@ -112,9 +125,9 @@ function Bold() {
               padding: "12px 26px",
               fontSize: 26,
               fontWeight: 700,
-              border: i === 0 ? "2px solid #ffffff" : "2px solid rgba(255,255,255,0.35)",
-              background: i === 0 ? "#ffffff" : "transparent",
-              color: i === 0 ? INK : "#ffffff",
+              border: n === active ? "2px solid #ffffff" : "2px solid rgba(255,255,255,0.35)",
+              background: n === active ? "#ffffff" : "transparent",
+              color: n === active ? INK : "#ffffff",
             }}
           >
             {n}
