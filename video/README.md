@@ -33,3 +33,8 @@ The ElevenLabs recordings live in `voice/source/creator.mp3` and `brand.mp3`, ev
 a scene gets as long as its line needs, in whole beats, and plays its animation up to 1.5x faster when that is shorter
 than drawn. The music is rebuilt on that grid and ducks under the voice. Replace a recording and run `npm run voice`,
 then render.
+
+## Instagram posts
+
+Five static posts in the landing page style, 1080 x 1440 (3:4). `npm run posts` renders them to `out/posts/`; sources in
+`src/posts/`, captions and posting order in `POSTS.md`.
