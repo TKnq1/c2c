@@ -7,35 +7,36 @@ import { UrlPill } from "../components/shared-scenes";
 import { Headline, Logo, Stage, Subline } from "../components/ui";
 import { colors, GUTTER } from "../theme";
 
+// All 50 founding places, all still free.
 const SLOTS = 50;
-// Places shown as taken: an illustration until the real count is decided (STORYBOARD.md, open points).
-const TAKEN = 7;
 
-// The 50 founding places. `appear` and `fill` give each square's progress (0..1); without them it is drawn complete.
-const SlotGrid: React.FC<{ cell: number; gap: number; appear?: (i: number) => number; fill?: (i: number) => number; pulse?: number }> = ({
+// `appear` gives each square's entrance (0..1), `glow` a brief light-up (0..1); without them the grid is static.
+const SlotGrid: React.FC<{ cell: number; gap: number; appear?: (i: number) => number; glow?: (i: number) => number; pulse?: number }> = ({
   cell,
   gap,
   appear = () => 1,
-  fill = () => 1,
+  glow = () => 0,
   pulse = 1,
 }) => (
   <div style={{ display: "grid", gridTemplateColumns: `repeat(10, ${cell}px)`, gap }}>
-    {Array.from({ length: SLOTS }, (_, i) => {
-      const taken = i < TAKEN;
-      const filled = taken ? fill(i) : 0;
-      return (
-        <div key={i} style={{ width: cell, height: cell, position: "relative", ...popIn(appear(i), 0.3) }}>
-          <div style={{ position: "absolute", inset: 0, borderRadius: 4, border: `3px solid ${colors.graphite}`, opacity: taken ? 1 - filled : pulse }} />
-          <div style={{ position: "absolute", inset: 0, borderRadius: 4, backgroundColor: colors.paper, transform: `scale(${filled})` }} />
-        </div>
-      );
-    })}
+    {Array.from({ length: SLOTS }, (_, i) => (
+      <div key={i} style={{ width: cell, height: cell, position: "relative", ...popIn(appear(i), 0.3) }}>
+        <div style={{ position: "absolute", inset: 0, borderRadius: 4, border: `3px solid ${colors.graphite}`, opacity: pulse }} />
+        <div style={{ position: "absolute", inset: 0, borderRadius: 4, backgroundColor: colors.paper, opacity: glow(i) * 0.9 }} />
+      </div>
+    ))}
   </div>
 );
 
+// A light wave running across the grid, diagonally from the top left, peaking at `at` for the first square.
+function wave(frame: number, at: number, i: number) {
+  const offset = (i % 10) + Math.floor(i / 10);
+  return Math.max(0, 1 - Math.abs(frame - at - offset * 1.6) / 5);
+}
+
 const COUNT = [4, 34] as const;
 const GRID_FROM = 36;
-const FILL_FROM = 82;
+const WAVE_AT = 80;
 const PRO_AT = 108;
 const PERKS_AT = [118, 126, 134];
 const STRIKE_AT = 142;
@@ -76,7 +77,7 @@ export const B08Founding: React.FC = () => {
         <Headline parts={["für", { mark: "Founding Brands." }]} size={84} dark start={30} />
       </div>
       <div style={{ position: "absolute", top: 640, left: 0, right: 0, display: "flex", justifyContent: "center" }}>
-        <SlotGrid cell={78} gap={16} appear={(i) => pop(frame, GRID_FROM + i * 0.7)} fill={(i) => pop(frame, FILL_FROM + i * 3)} />
+        <SlotGrid cell={78} gap={16} appear={(i) => pop(frame, GRID_FROM + i * 0.7)} glow={(i) => wave(frame, WAVE_AT, i)} />
       </div>
       <div style={{ position: "absolute", top: 1150, left: GUTTER, right: GUTTER, display: "flex", flexDirection: "column", gap: 34 }}>
         <div style={{ fontSize: 64, fontWeight: 900, lineHeight: 1.1, ...enterUp(ease(frame, PRO_AT), 40) }}>Pro kostenlos. Solange dein Konto besteht.</div>
@@ -93,9 +94,7 @@ export const B08Founding: React.FC = () => {
         <Perk p={ease(frame, PERKS_AT[2])}>Kein Abo, nichts zu kündigen</Perk>
       </div>
       <SfxRepeat name="tick" from={COUNT[0]} to={COUNT[1]} every={2} volume={0.18} />
-      {Array.from({ length: TAKEN }, (_, i) => (
-        <Sfx key={i} name="pop-low" at={FILL_FROM + i * 3} volume={0.28} />
-      ))}
+      <Sfx name="swipe" at={WAVE_AT} volume={0.35} />
       <Sfx name="success" at={PRO_AT} volume={0.6} />
       {PERKS_AT.map((at) => (
         <Sfx key={at} name="pop" at={at} volume={0.35} />

@@ -113,7 +113,7 @@ Länge: ca. 35 s
 - **Text:** „Ausgezahlt wird erst, wenn der Post online ist.“
 
 ### Szene 8 – Angebot: 50 Founding Brands (0:27–0:32)
-- **Bild:** Schwarzer Screen. Ein Raster aus 50 kleinen Quadraten (5 × 10). Einige füllen sich weiß (vergeben), die freien bleiben als Umriss und pulsieren leicht. Groß darüber ein Zähler.
+- **Bild:** Schwarzer Screen. Ein Raster aus 50 kleinen Quadraten (5 × 10), alle frei (Umrisse). Eine Lichtwelle läuft einmal diagonal darüber. Groß darüber ein Zähler.
 - **Text:** „**50 Plätze** für Founding Brands“ → „Pro kostenlos. Solange dein Konto besteht.“ → Perk-Zeilen: „3 % statt 10 % Gebühr“, „Kein Abo, nichts zu kündigen“ (durchgestrichen „49 €/Monat“).
 - **VO:** „Die ersten 50 Marken bekommen Pro kostenlos, für immer.“
 
@@ -128,7 +128,7 @@ Länge: ca. 35 s
 
 1. **„Lebenslang“ vs. „solange dein Konto besteht“:** Die App sagt überall „solange dein Konto besteht“ (bewusst so formuliert). Ich habe das im Text übernommen. Soll „lebenslang“ trotzdem rein, z. B. nur im VO?
 2. **Voiceover oder nur Text + Musik?** Storyboard funktioniert ohne VO (Social-Videos laufen oft stumm).
-3. **Freie Plätze im 50er-Raster:** Fest „50 frei“ oder eine echte Zahl zum Renderzeitpunkt (z. B. „Noch 43 Plätze frei“)? Letzteres ginge als Remotion-Prop.
+3. **Freie Plätze im 50er-Raster:** Entschieden: alle 50 frei.
 4. **Format:** Nur 9:16 oder zusätzlich 16:9 (Website/YouTube) bzw. 1:1?
 5. **Sprache:** Nur Deutsch oder auch Englisch? Die Texte sind so gebaut, dass sie sich leicht austauschen lassen.
 6. **URL im CTA:** `comtor.app` korrekt?
