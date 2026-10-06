@@ -282,17 +282,13 @@ function NicheStep({
   onDone: (insight?: OnboardingInsight) => void;
 }) {
   const { t } = useI18n();
-  const [busy, setBusy] = useState(false);
   const [state, formAction, pending] = useActionState(saveBrandNicheAction, undefined);
   useStepDone(state, (s) => onDone(s.insight));
 
-  async function keepLocally(e: React.FormEvent) {
+  function keepLocally(e: React.FormEvent) {
     e.preventDefault();
-    if (!value || busy) return;
-    setBusy(true);
-    const insight = await previewBrandNicheInsightAction(value).catch(() => null);
-    onDone(insight ?? undefined);
-    setBusy(false);
+    if (!value) return;
+    onDone();
   }
 
   return (
@@ -301,7 +297,7 @@ function NicheStep({
       <NicheTiles name="niche" value={value} onChange={onChange} />
       <StepError state={state} />
       <div className={stepActions}>
-        <StepFooter onBack={onBack} pending={guest ? busy : pending} disabled={!value} />
+        <StepFooter onBack={onBack} pending={pending} disabled={!value} />
       </div>
     </form>
   );
