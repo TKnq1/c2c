@@ -792,6 +792,8 @@ model AdminPreference {
   morningEveryTime    Boolean   @default(false)
   songVolume          Int       @default(55)
   panelOpen           Boolean   @default(false)
+  // Which four figures stand at the top of Heute: one of the KPI_SETS in src/lib/admin-prefs.ts.
+  kpiSet              String    @default("wachstum")
   setupDoneAt         DateTime?
   updatedAt           DateTime  @updatedAt
 }

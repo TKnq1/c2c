@@ -3,12 +3,15 @@ import Link from "next/link";
 import { FiSliders } from "react-icons/fi";
 import { requireAdminSession } from "@/lib/admin-session";
 import { getAdminPrefs } from "@/lib/admin-prefs-server";
-import { FOCUS_SHOWN, focusSummary, loadFocus, UNANSWERED_AFTER_DAYS } from "@/lib/admin-focus";
+import { FOCUS_SHOWN, focusSummary } from "@/lib/admin-focus";
+import { loadKpis } from "@/lib/admin-kpis";
+import { PERIODS, parsePeriod } from "@/lib/admin-period";
 import { listOpenTasks } from "@/lib/admin-tasks";
 import { Disclosure } from "@/components/admin/disclosure";
 import { FocusCard } from "@/components/admin/focus-card";
 import { HeuteDetails } from "@/components/admin/heute-details";
 import { KpiTile } from "@/components/admin/dashboard-parts";
+import { FilterTabs, firstParams } from "@/components/admin/list-controls";
 import type { TaskView } from "@/components/admin/task-list";
 
 const TIME_ZONE = "Europe/Berlin";
@@ -30,11 +33,12 @@ function DetailsSkeleton() {
 
 // "Heute" answers one question first: does anything need me? Below that come four figures on growth, and everything else
 // waits behind "Mehr Details".
-export default async function AdminTodayPage() {
+export default async function AdminTodayPage(props: PageProps<"/admin">) {
   const session = await requireAdminSession();
   const prefs = await getAdminPrefs(session.user.id);
   const now = new Date();
-  const [focus, tasks] = await Promise.all([loadFocus(now), listOpenTasks(now)]);
+  const period = parsePeriod(firstParams(await props.searchParams).z);
+  const [tiles, tasks] = await Promise.all([loadKpis({ now, period, prefs }), listOpenTasks(now)]);
 
   const summary = focusSummary(tasks);
   const views: TaskView[] = tasks
@@ -45,8 +49,6 @@ export default async function AdminTodayPage() {
   const dateLabel = new Intl.DateTimeFormat("de-DE", { weekday: "long", day: "numeric", month: "long", timeZone: TIME_ZONE }).format(now);
   const time = new Intl.DateTimeFormat("de-DE", { hour: "2-digit", minute: "2-digit", timeZone: TIME_ZONE }).format(now);
   const name = prefs.displayName ? `, ${prefs.displayName}` : "";
-  const foundingTotal = focus.founding.brands + focus.founding.creators;
-  const foundingGoal = prefs.goalBrands + prefs.goalCreators;
 
   return (
     <div className="flex flex-col gap-6">
@@ -66,39 +68,20 @@ export default async function AdminTodayPage() {
 
       <FocusCard summary={summary} tasks={views} allTotal={tasks.length} />
 
-      <section aria-label="Wachstum in vier Zahlen" className="grid gap-[var(--gap,1rem)] sm:grid-cols-2 xl:grid-cols-4">
-        <KpiTile
-          label="Nutzer"
-          value={focus.users.total.toLocaleString("de-DE")}
-          delta={{ amount: focus.users.delta, label: "diese Woche" }}
-          series={focus.users.series}
-          hint={`Woche davor: +${focus.users.before.toLocaleString("de-DE")}`}
-          href="/admin/wachstum"
-        />
-        <KpiTile
-          label="Aktive Nutzer, 7 Tage"
-          value={focus.active.value.toLocaleString("de-DE")}
-          delta={{ amount: focus.active.delta, label: "zur Woche davor" }}
-          series={focus.active.series}
-          hint="Mit mindestens einer Aktion in der Woche"
-          href="/admin/wachstum"
-        />
-        <KpiTile
-          label="Founding-Plätze"
-          value={`${foundingTotal} von ${foundingGoal}`}
-          delta={{ amount: focus.founding.delta, label: "diese Woche" }}
-          series={focus.founding.series}
-          hint={`${focus.founding.brands} von ${prefs.goalBrands} Marken · ${focus.founding.creators} von ${prefs.goalCreators} Creator`}
-          href="/admin/users"
-        />
-        <KpiTile
-          label="Anfragen ohne Interesse"
-          value={focus.waiting.value.toLocaleString("de-DE")}
-          delta={{ amount: focus.waiting.delta, label: "zur Woche davor", upIsGood: false }}
-          series={focus.waiting.series}
-          hint={`Offen und älter als ${UNANSWERED_AFTER_DAYS} Tage`}
-          href="/admin/marktplatz"
-        />
+      <section aria-label="Die vier Zahlen" className="flex flex-col gap-3">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <FilterTabs
+            path="/admin"
+            params={{ z: String(period) }}
+            name="z"
+            options={PERIODS.map((p) => ({ value: String(p), label: p === 7 ? "7 Tage" : `${p} Tage` }))}
+          />
+        </div>
+        <div className="grid gap-[var(--gap,1rem)] sm:grid-cols-2 xl:grid-cols-4">
+          {tiles.map((tile) => (
+            <KpiTile key={tile.key} label={tile.label} value={tile.value} delta={tile.delta} series={tile.series} previous={tile.previous} hint={tile.hint} href={tile.href} />
+          ))}
+        </div>
       </section>
 
       <Disclosure title="Mehr Details" hint="Alle Kennzahlen, Geld, Ziele, Marktplatz, Funnel, Ads, neue Nutzer und Zahlungen" storageKey="admin-heute-details">

@@ -53,3 +53,26 @@ export function runningTotal(daily: TrendPoint[], endTotal: number): TrendPoint[
   let running = endTotal - daily.reduce((sum, p) => sum + p.value, 0);
   return daily.map((p) => ({ day: p.day, value: (running += p.value) }));
 }
+
+export type Amount = { at: Date; amount: number };
+
+export function sumBetween(rows: Amount[], from: Date, to: Date): number {
+  let sum = 0;
+  for (const r of rows) if (r.at >= from && r.at <= to) sum += r.amount;
+  return sum;
+}
+
+// The sum over the `window` days up to each day's end (money in the last 30 days, for every day).
+export function rollingSum(rows: Amount[], days: number, window: number, now: Date): TrendPoint[] {
+  return dayEnds(days, now).map(({ day, end }) => ({ day, value: sumBetween(rows, new Date(end.getTime() - window * DAY), end) }));
+}
+
+export const daysBefore = (now: Date, days: number) => new Date(now.getTime() - days * DAY);
+
+// The two halves a figure needs: the last `period` days and the `period` days before them, from one daily series that
+// covers both (oldest first).
+export function windowPair(daily: TrendPoint[], period: number): { current: number; before: number } {
+  const sum = (points: TrendPoint[]) => points.reduce((total, p) => total + p.value, 0);
+  const n = daily.length;
+  return { current: sum(daily.slice(Math.max(0, n - period))), before: sum(daily.slice(Math.max(0, n - 2 * period), Math.max(0, n - period))) };
+}

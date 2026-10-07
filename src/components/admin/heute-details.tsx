@@ -6,6 +6,7 @@ import { orderedTiles, type AdminPrefs, type TileKey } from "@/lib/admin-prefs";
 import { loadDashboard } from "@/lib/admin-dashboard";
 import { loadMoney, runwayText } from "@/lib/admin-money";
 import { loadAds } from "@/lib/admin-ads";
+import { forecastGoal, forecastText, PACE_DAYS } from "@/lib/admin-forecast";
 import { paymentStage } from "@/lib/payment-stage";
 import { DashCard, FunnelBars, GoalRing, KpiTile, Stat, money } from "@/components/admin/dashboard-parts";
 import { DailyBarChart } from "@/components/admin/daily-bar-chart";
@@ -22,7 +23,8 @@ export async function HeuteDetails({ prefs, now }: { prefs: AdminPrefs; now: Dat
   const visible = orderedTiles(prefs.tileOrder, prefs.hiddenTiles);
 
   // The money and ad figures cost extra queries, so they are only fetched when their block is shown.
-  const [data, recentUsers, recentPayments, cash, ads] = await Promise.all([
+  const paceSince = new Date(now.getTime() - PACE_DAYS * 24 * 60 * 60 * 1000);
+  const [data, recentUsers, recentPayments, cash, ads, gainedBrands, gainedCreators] = await Promise.all([
     loadDashboard(now),
     prisma.user.findMany({ orderBy: { createdAt: "desc" }, take: 6, include: { startupProfile: true, creatorProfile: true } }),
     prisma.interest.findMany({
@@ -33,6 +35,9 @@ export async function HeuteDetails({ prefs, now }: { prefs: AdminPrefs; now: Dat
     }),
     visible.includes("geld") ? loadMoney(now) : null,
     visible.includes("ads") ? loadAds(now) : null,
+    // How many founding places were taken in the last weeks: the pace behind "bei diesem Tempo".
+    prisma.startupProfile.count({ where: { foundingNumber: { not: null }, user: { createdAt: { gte: paceSince } } } }),
+    prisma.creatorProfile.count({ where: { foundingNumber: { not: null }, user: { createdAt: { gte: paceSince } } } }),
   ]);
 
   const monthPercent = prefs.goalMonthlyFeeCents > 0 ? Math.round((data.fee.monthCents / prefs.goalMonthlyFeeCents) * 100) : 0;
@@ -111,8 +116,8 @@ export async function HeuteDetails({ prefs, now }: { prefs: AdminPrefs; now: Dat
     ziele: (
       <DashCard title="Ziele" right={<Link href="/admin/anpassen" className="text-xs underline">ändern</Link>} className="h-full">
         <div className="grid grid-cols-3 gap-2">
-          <GoalRing label="Founding-Marken" value={data.founding.brands} goal={prefs.goalBrands} display={`${data.founding.brands}/${prefs.goalBrands}`} sub={`noch ${Math.max(0, prefs.goalBrands - data.founding.brands)} Plätze`} />
-          <GoalRing label="Founding-Creator" value={data.founding.creators} goal={prefs.goalCreators} display={`${data.founding.creators}/${prefs.goalCreators}`} sub={`noch ${Math.max(0, prefs.goalCreators - data.founding.creators)} Plätze`} />
+          <GoalRing label="Founding-Marken" value={data.founding.brands} goal={prefs.goalBrands} display={`${data.founding.brands}/${prefs.goalBrands}`} sub={`noch ${Math.max(0, prefs.goalBrands - data.founding.brands)} Plätze`} note={forecastText(forecastGoal({ current: data.founding.brands, goal: prefs.goalBrands, gainedInPaceWindow: gainedBrands }, now))} />
+          <GoalRing label="Founding-Creator" value={data.founding.creators} goal={prefs.goalCreators} display={`${data.founding.creators}/${prefs.goalCreators}`} sub={`noch ${Math.max(0, prefs.goalCreators - data.founding.creators)} Plätze`} note={forecastText(forecastGoal({ current: data.founding.creators, goal: prefs.goalCreators, gainedInPaceWindow: gainedCreators }, now))} />
           <GoalRing
             label="Provision im Monat"
             value={data.fee.monthCents}

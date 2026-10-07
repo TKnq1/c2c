@@ -31,6 +31,7 @@ describe("prefsSchema", () => {
     morningToHour: 11,
     morningEveryTime: false,
     songVolume: 55,
+    kpiSet: "wachstum",
   };
 
   it("accepts a complete, sensible set", () => {

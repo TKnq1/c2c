@@ -18,6 +18,18 @@ export const TILE_LABELS: Record<TileKey, string> = {
   anmeldungen: "Anmeldungen pro Tag",
 };
 
+// The four figures at the top of "Heute": what each set contains is in src/lib/admin-kpis.ts.
+export const KPI_SETS = ["wachstum", "geld", "marketing", "gemischt"] as const;
+export type KpiSet = (typeof KPI_SETS)[number];
+export const KPI_SET_LABELS: Record<KpiSet, string> = { wachstum: "Wachstum", geld: "Geld", marketing: "Marketing", gemischt: "Gemischt" };
+export const KPI_SET_HINTS: Record<KpiSet, string> = {
+  wachstum: "Nutzer, aktive Nutzer, Founding-Plätze, Anfragen ohne Interesse",
+  geld: "Provision, Zahlungsvolumen, Pro-Abos, Reichweite des Geldes",
+  marketing: "Ausgaben, Kosten je Anmeldung, Klick zur Anmeldung, Anmeldungen mit Kampagne",
+  gemischt: "Nutzer, Provision, Anfragen ohne Interesse, Kosten je Anmeldung",
+};
+export const isKpiSet = (value: string): value is KpiSet => (KPI_SETS as readonly string[]).includes(value);
+
 export type AdminPrefs = {
   displayName: string | null;
   accent: AccentKey;
@@ -33,6 +45,7 @@ export type AdminPrefs = {
   morningEveryTime: boolean;
   songVolume: number;
   panelOpen: boolean;
+  kpiSet: KpiSet;
   setupDone: boolean;
 };
 
@@ -51,6 +64,7 @@ export const DEFAULT_PREFS: AdminPrefs = {
   morningEveryTime: false,
   songVolume: 55,
   panelOpen: false,
+  kpiSet: "wachstum",
   setupDone: false,
 };
 
@@ -88,6 +102,7 @@ export const prefsSchema = z
     morningToHour: hour,
     morningEveryTime: z.boolean(),
     songVolume: z.number().int().min(0).max(100),
+    kpiSet: z.enum(KPI_SETS),
   })
   .refine((v) => v.morningFromHour < v.morningToHour, { message: "Das Zeitfenster muss vor dem Ende anfangen.", path: ["morningToHour"] });
 

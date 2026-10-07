@@ -1,6 +1,6 @@
 import { cache } from "react";
 import { prisma } from "@/lib/prisma";
-import { DEFAULT_PREFS, isTile, type AdminPrefs } from "@/lib/admin-prefs";
+import { DEFAULT_PREFS, isKpiSet, isTile, type AdminPrefs } from "@/lib/admin-prefs";
 import { parseAccent } from "@/lib/admin-theme";
 
 export const getAdminPrefs = cache(async (userId: string): Promise<AdminPrefs> => {
@@ -21,6 +21,7 @@ export const getAdminPrefs = cache(async (userId: string): Promise<AdminPrefs> =
     morningEveryTime: row.morningEveryTime,
     songVolume: row.songVolume,
     panelOpen: row.panelOpen,
+    kpiSet: isKpiSet(row.kpiSet) ? row.kpiSet : DEFAULT_PREFS.kpiSet,
     setupDone: row.setupDoneAt !== null,
   };
 });

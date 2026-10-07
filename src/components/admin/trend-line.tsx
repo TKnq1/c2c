@@ -12,11 +12,13 @@ const formatDay = (day: string) => new Date(`${day}T00:00:00Z`).toLocaleDateStri
 
 // A thin line of the last days under a headline figure. The scale runs from the lowest to the highest point, so it shows
 // the shape, not the size (the exact values come on hover or touch). The last point is the figure shown above it.
-export function TrendLine({ points, label }: { points: TrendPoint[]; label: string }) {
+export function TrendLine({ points, previous, label }: { points: TrendPoint[]; previous?: TrendPoint[]; label: string }) {
   const [hover, setHover] = useState<number | null>(null);
   if (points.length < 2) return null;
 
-  const values = points.map((p) => p.value);
+  // The period before is only drawn when it has the same length, so point i of both lines is the same day of its period.
+  const before = previous && previous.length === points.length ? previous : null;
+  const values = [...points, ...(before ?? [])].map((p) => p.value);
   const min = Math.min(...values);
   const max = Math.max(...values);
   const x = (i: number) => PAD_X + (i * (W - 2 * PAD_X)) / (points.length - 1);
@@ -41,6 +43,7 @@ export function TrendLine({ points, label }: { points: TrendPoint[]; label: stri
         onPointerLeave={() => setHover(null)}
       >
         <line x1={PAD_X} x2={W - PAD_X} y1={H - 1} y2={H - 1} className="stroke-ink/10" />
+        {before && <polyline points={before.map((p, i) => `${x(i)},${y(p.value)}`).join(" ")} fill="none" className="stroke-ink/30" strokeWidth={1.5} strokeDasharray="3 3" strokeLinecap="round" strokeLinejoin="round" />}
         <polyline points={points.map((p, i) => `${x(i)},${y(p.value)}`).join(" ")} fill="none" className="stroke-accent" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
         {hover !== null && <line x1={x(shown)} x2={x(shown)} y1={2} y2={H - 1} className="stroke-ink/20" />}
         <circle cx={x(shown)} cy={y(points[shown].value)} r={4} className="fill-accent stroke-paper" strokeWidth={2} />
@@ -49,11 +52,13 @@ export function TrendLine({ points, label }: { points: TrendPoint[]; label: stri
         {hover === null ? (
           <>
             <span>{formatDay(first.day)}</span>
+            {before && <span className="inline-flex items-center gap-1.5"><svg width="16" height="4" aria-hidden><line x1="0" x2="16" y1="2" y2="2" className="stroke-ink/40" strokeWidth="1.5" strokeDasharray="3 3" /></svg>Zeitraum davor</span>}
             <span>heute</span>
           </>
         ) : (
           <span className="font-bold text-neutral-700 dark:text-neutral-300">
             {formatDay(points[shown].day)}: {points[shown].value.toLocaleString("de-DE")}
+            {before && <span className="font-normal text-neutral-500"> · davor {before[shown].value.toLocaleString("de-DE")}</span>}
           </span>
         )}
       </figcaption>
