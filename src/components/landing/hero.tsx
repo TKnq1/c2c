@@ -155,7 +155,7 @@ export function Hero({ brands, creators }: { brands: number; creators: number })
 
         <div className="mt-10 flex w-full justify-center sm:mt-12 md:mt-16">
           {/* From lg: the web app in a Mac window, with the phone in front of its right edge. */}
-          <div data-for="creator" className="flex items-center justify-center">
+          <div data-for="creator" className="flex items-end justify-center">
             <div className="lp-phone-in hidden lg:block" style={delay(250)}>
               <CreatorDesktop />
             </div>

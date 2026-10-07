@@ -9,7 +9,8 @@ import { PlatformIcon } from "@/components/platform-icons";
 import { Switch } from "@/components/switch";
 import { formatBudget } from "@/lib/format";
 import { presetLabel } from "@/lib/i18n/labels";
-import { DesktopSidebar, MacTitleBar } from "@/components/landing/mac-window";
+import { BrandDesktop } from "@/components/landing/brand-desktop";
+import { DesktopSidebar, MacWindow } from "@/components/landing/mac-window";
 import { AppHeader, AppTabBar, PhoneFrame } from "@/components/landing/phone-frame";
 import { PHOTOS, cardPhoto, type PhotoKey } from "@/components/landing/landing-data";
 
@@ -65,7 +66,7 @@ export function BrandBuilder({ onPhoto }: { onPhoto: (photo: PhotoKey) => void }
 
   return (
     // overflow-anchor: none, so a control that changes the form's height can't make the browser scroll the page.
-    <div className="flex w-full flex-col items-center [overflow-anchor:none] lg:flex-row lg:items-center lg:justify-center">
+    <div className="flex w-full flex-col items-center [overflow-anchor:none] lg:flex-row lg:items-end lg:justify-center">
       {/* Phones: the top of the phone, down to the card's bottom edge, then
           fading out under the controls, so the card and what changes it
           fit on one screen. */}
@@ -76,17 +77,10 @@ export function BrandBuilder({ onPhoto }: { onPhoto: (photo: PhotoKey) => void }
         </PhoneFrame>
       </div>
 
-      <div className="relative z-10 order-last -mt-8 w-full max-w-[360px] lg:order-none lg:mt-0 lg:w-[640px] lg:max-w-none">
-        {/* From lg: the window around the form. Below that these wrappers add nothing. */}
-        <div className="lp-window-lg lg:flex lg:flex-col lg:overflow-hidden lg:rounded-[14px] lg:bg-paper lg:text-left">
-          <MacTitleBar className="hidden lg:flex" />
-          <div className="lg:flex">
-            <DesktopSidebar side="brand" active="requests" className="hidden lg:flex" />
-            <div className="min-w-0 flex-1 lg:py-5 lg:pr-[72px] lg:pl-6">
-              <p aria-hidden="true" className="mb-4 hidden font-display text-[22px] font-bold lg:block">
-                {t("nav.newRequest")}
-              </p>
-              <div className="flex flex-col gap-5 rounded border border-ink/10 bg-paper/85 p-5 text-left shadow-xl backdrop-blur-xl lg:rounded-none lg:border-0 lg:bg-transparent lg:p-0 lg:shadow-none lg:backdrop-blur-none">
+      {/* Phones and small screens: the controls as a card under the phone. From lg they are the app's New request
+          page in a Mac window instead (BrandDesktop, further down). */}
+      <div className="relative z-10 order-last -mt-8 w-full max-w-[360px] lg:hidden">
+              <div className="flex flex-col gap-5 rounded border border-ink/10 bg-paper/85 p-5 text-left shadow-xl backdrop-blur-xl">
                 <div className="flex flex-col gap-1.5">
                   <label htmlFor="lp-title" className="text-sm font-medium">
                     {t("landing.builder.title")}
@@ -192,14 +186,42 @@ export function BrandBuilder({ onPhoto }: { onPhoto: (photo: PhotoKey) => void }
                   <Switch checked={productIncluded} onChange={setProductIncluded} label={t("landing.builder.productIncluded")} />
                 </div>
               </div>
-            </div>
-          </div>
-        </div>
+      </div>
+
+      {/* From lg: the app's New request page in a Mac window, next to the card in a phone. */}
+      <div className="hidden lg:block">
+        <MacWindow>
+          <DesktopSidebar side="brand" active="requests" />
+          <BrandDesktop
+            title={title}
+            onTitle={setTitle}
+            photo={photo}
+            photoChoices={PHOTO_CHOICES}
+            onPhoto={(key) => {
+              setPhoto(key);
+              onPhoto(key);
+            }}
+            budget={budget}
+            onBudget={setBudget}
+            platform={platform}
+            platforms={PLATFORMS}
+            onPlatform={(p) => {
+              setPlatform(p as Platform);
+              setContent(CONTENT[p as Platform][0]);
+            }}
+            content={content}
+            contentPresets={CONTENT[platform]}
+            onContent={setContent}
+            productIncluded={productIncluded}
+            onProductIncluded={setProductIncluded}
+            request={request}
+          />
+        </MacWindow>
       </div>
 
       {/* From lg: the card in a phone, in the Feed, as creators get it. */}
       <div className="relative z-20 hidden lg:-ml-14 lg:block">
-        <p className="mb-4 text-center text-sm font-medium text-graphite">{t("landing.builder.whatCreatorsSee")}</p>
+        <p className="absolute -top-9 inset-x-0 text-center text-sm font-medium text-graphite">{t("landing.builder.whatCreatorsSee")}</p>
         <PhoneFrame className="h-[660px] w-[320px]">
           <AppHeader title={t("nav.feed")} />
           <div className="relative mt-3 flex-1">{card}</div>
