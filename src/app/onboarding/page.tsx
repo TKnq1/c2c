@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
@@ -11,6 +12,7 @@ import { GuestOnboarding } from "@/components/guest-onboarding";
 import type { Metadata } from "next";
 import { metadataFor, NO_INDEX } from "@/lib/seo";
 import { parseSignupRole } from "@/lib/signup-role";
+import { recordVisit } from "@/lib/visit-count";
 
 export const generateMetadata = (): Promise<Metadata> =>
   metadataFor({ title: "Set up your profile", robots: NO_INDEX }, { title: "Profil einrichten", robots: NO_INDEX });
@@ -19,6 +21,8 @@ export default async function OnboardingPage(props: PageProps<"/onboarding">) {
   const session = await auth();
   const searchParams = await props.searchParams;
   const requestedRole = parseSignupRole(searchParams.role);
+  // The start of the sign-up for someone without an account: counted without a cookie or an address (see visit-count.ts).
+  if (!session) recordVisit({ page: "onboarding", headers: await headers(), searchParams });
 
   if (session?.user.role === "ADMIN") redirect("/admin");
 

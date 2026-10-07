@@ -20,7 +20,12 @@ import type { Metadata } from "next";
 import { NO_INDEX } from "@/lib/seo";
 
 // The signed-in app: never in search, whatever links to it.
-export const metadata: Metadata = { robots: NO_INDEX };
+export const metadata: Metadata = {
+  robots: NO_INDEX,
+  // The admin area installs as its own app: own name, icon and start page (see manifest-admin.webmanifest).
+  manifest: "/manifest-admin.webmanifest",
+  appleWebApp: { capable: true, title: "comtor Admin", statusBarStyle: "default" },
+};
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const session = await requireAdminSession();

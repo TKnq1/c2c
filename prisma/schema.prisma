@@ -963,3 +963,18 @@ model AdminNotice {
   @@index([createdAt])
   @@index([readAt])
 }
+
+// Visits to the landing and sign-up pages, counted per day, page and origin (see src/lib/visit-count.ts). It holds no
+// cookie, no address, no browser string and nothing that identifies a visitor.
+model PageView {
+  id       String   @id @default(cuid())
+  day      DateTime @db.Date
+  page     String
+  // utm_source if the link had one, else the referring site's name, else "direkt"; "intern" for our own pages.
+  source   String
+  campaign String   @default("")
+  views    Int      @default(0)
+
+  @@unique([day, page, source, campaign])
+  @@index([day])
+}

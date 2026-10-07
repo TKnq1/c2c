@@ -18,6 +18,14 @@ describe("dePrivacy", () => {
   });
 });
 
+describe("visit counting", () => {
+  it("says visits are counted without a cookie and without storing an address", () => {
+    const all = text(false);
+    expect(all).toContain("ohne Cookie und ohne dich wiederzuerkennen");
+    expect(all).toContain("Deine IP-Adresse, deine Browserkennung oder eine Kennung für dich speichern wir dafür nicht");
+  });
+});
+
 describe("imprintVatId", () => {
   afterEach(() => vi.unstubAllEnvs());
 
