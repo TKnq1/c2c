@@ -45,7 +45,7 @@ export default async function AdminTodayPage() {
   const dateLabel = new Intl.DateTimeFormat("de-DE", { weekday: "long", day: "numeric", month: "long", timeZone: TIME_ZONE }).format(now);
   const time = new Intl.DateTimeFormat("de-DE", { hour: "2-digit", minute: "2-digit", timeZone: TIME_ZONE }).format(now);
   const name = prefs.displayName ? `, ${prefs.displayName}` : "";
-  const foundingTotal = focus.foundingBrands + focus.foundingCreators;
+  const foundingTotal = focus.founding.brands + focus.founding.creators;
   const foundingGoal = prefs.goalBrands + prefs.goalCreators;
 
   return (
@@ -68,23 +68,34 @@ export default async function AdminTodayPage() {
 
       <section aria-label="Wachstum in vier Zahlen" className="grid gap-[var(--gap,1rem)] sm:grid-cols-2 xl:grid-cols-4">
         <KpiTile
-          label="Neue Nutzer, 7 Tage"
-          value={focus.new7.toLocaleString("de-DE")}
-          change={focus.change7}
-          changeLabel="zur Woche davor"
-          hint={`${focus.totalUsers.toLocaleString("de-DE")} Nutzer insgesamt`}
+          label="Nutzer"
+          value={focus.users.total.toLocaleString("de-DE")}
+          delta={{ amount: focus.users.delta, label: "diese Woche" }}
+          series={focus.users.series}
+          hint={`Woche davor: +${focus.users.before.toLocaleString("de-DE")}`}
           href="/admin/wachstum"
         />
-        <KpiTile label="Aktive Nutzer, 7 Tage" value={focus.active7.toLocaleString("de-DE")} hint="Mit mindestens einer Aktion in der Woche" href="/admin/wachstum" />
+        <KpiTile
+          label="Aktive Nutzer, 7 Tage"
+          value={focus.active.value.toLocaleString("de-DE")}
+          delta={{ amount: focus.active.delta, label: "zur Woche davor" }}
+          series={focus.active.series}
+          hint="Mit mindestens einer Aktion in der Woche"
+          href="/admin/wachstum"
+        />
         <KpiTile
           label="Founding-Plätze"
           value={`${foundingTotal} von ${foundingGoal}`}
-          hint={`${focus.foundingBrands} von ${prefs.goalBrands} Marken · ${focus.foundingCreators} von ${prefs.goalCreators} Creator`}
+          delta={{ amount: focus.founding.delta, label: "diese Woche" }}
+          series={focus.founding.series}
+          hint={`${focus.founding.brands} von ${prefs.goalBrands} Marken · ${focus.founding.creators} von ${prefs.goalCreators} Creator`}
           href="/admin/users"
         />
         <KpiTile
           label="Anfragen ohne Interesse"
-          value={focus.unanswered.toLocaleString("de-DE")}
+          value={focus.waiting.value.toLocaleString("de-DE")}
+          delta={{ amount: focus.waiting.delta, label: "zur Woche davor", upIsGood: false }}
+          series={focus.waiting.series}
           hint={`Offen und älter als ${UNANSWERED_AFTER_DAYS} Tage`}
           href="/admin/marktplatz"
         />

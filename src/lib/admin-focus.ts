@@ -1,7 +1,8 @@
 import type { AdminTaskPriority } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
-import { percentChange } from "@/lib/admin-dashboard";
-import { activeUserIds } from "@/lib/admin-growth";
+import { activityEvents } from "@/lib/admin-growth";
+import { dailySeries, windowStart } from "@/lib/admin-stats";
+import { distinctBetween, movedOver, rollingDistinct, runningTotal, waitingSeries } from "@/lib/admin-trends";
 
 const DAY = 24 * 60 * 60 * 1000;
 // How many open tasks the top of "Heute" shows; the rest sits behind a link.
@@ -28,23 +29,54 @@ export function focusSummary(tasks: { priority: AdminTaskPriority }[]) {
   return { tone, headline, sub, urgentTotal: urgent.length, softTotal: soft, shown: Math.min(urgent.length, FOCUS_SHOWN) };
 }
 
-// The four headline figures: growth. Cheap counts only, so the top of the page never waits for the heavy blocks below it.
+// The four headline figures on growth, each with how far it moved this week and a 30-day line. Cheap queries only, so the
+// top of the page never waits for the heavy blocks below it.
+const TREND_DAYS = 30;
+
 export async function loadFocus(now = new Date()) {
   const since7 = new Date(now.getTime() - 7 * DAY);
   const since14 = new Date(now.getTime() - 14 * DAY);
+  const sinceWindow = windowStart(TREND_DAYS, now);
   const people = { role: { in: ["STARTUP", "CREATOR"] as ("STARTUP" | "CREATOR")[] }, deletedAt: null };
+  // Active people need the days before the window too, since each day looks back a week.
+  const eventsSince = new Date(sinceWindow.getTime() - 7 * DAY);
 
-  const [new7, newPrev7, totalUsers, active, foundingBrands, foundingCreators, unanswered] = await Promise.all([
-    prisma.user.count({ where: { ...people, createdAt: { gte: since7 } } }),
-    prisma.user.count({ where: { ...people, createdAt: { gte: since14, lt: since7 } } }),
+  const [signups, totalUsers, events, foundingBrands, foundingCreators, foundingBrandRows, foundingCreatorRows, openRequests] = await Promise.all([
+    prisma.user.findMany({ where: { ...people, createdAt: { gte: sinceWindow } }, select: { createdAt: true } }),
     prisma.user.count({ where: people }),
-    activeUserIds(since7),
+    activityEvents(eventsSince),
     prisma.startupProfile.count({ where: { foundingNumber: { not: null } } }),
     prisma.creatorProfile.count({ where: { foundingNumber: { not: null } } }),
-    prisma.request.count({
-      where: { status: "OPEN", closedByAdmin: false, createdAt: { lt: new Date(now.getTime() - UNANSWERED_AFTER_DAYS * DAY) }, interests: { none: {} } },
+    prisma.startupProfile.findMany({ where: { foundingNumber: { not: null }, user: { createdAt: { gte: sinceWindow } } }, select: { user: { select: { createdAt: true } } } }),
+    prisma.creatorProfile.findMany({ where: { foundingNumber: { not: null }, user: { createdAt: { gte: sinceWindow } } }, select: { user: { select: { createdAt: true } } } }),
+    prisma.request.findMany({
+      where: { status: "OPEN", closedByAdmin: false },
+      select: { createdAt: true, interests: { select: { createdAt: true }, orderBy: { createdAt: "asc" }, take: 1 } },
     }),
   ]);
 
-  return { new7, change7: percentChange(new7, newPrev7), totalUsers, active7: active.size, foundingBrands, foundingCreators, unanswered };
+  const dailyUsers = dailySeries(signups, TREND_DAYS, (u) => u.createdAt, () => 1, now);
+  const usersSeries = runningTotal(dailyUsers, totalUsers);
+  const foundingTotal = foundingBrands + foundingCreators;
+  const foundingDaily = dailySeries([...foundingBrandRows, ...foundingCreatorRows], TREND_DAYS, (p) => p.user.createdAt, () => 1, now);
+  const foundingSeries = runningTotal(foundingDaily, foundingTotal);
+  const activeSeries = rollingDistinct(events, TREND_DAYS, 7, now);
+  const waitingLine = waitingSeries(
+    openRequests.map((r) => ({ createdAt: r.createdAt, firstInterestAt: r.interests[0]?.createdAt ?? null })),
+    TREND_DAYS,
+    UNANSWERED_AFTER_DAYS,
+    now,
+  );
+
+  const newThisWeek = signups.filter((u) => u.createdAt >= since7).length;
+  const newWeekBefore = signups.filter((u) => u.createdAt >= since14 && u.createdAt < since7).length;
+  const active = distinctBetween(events, since7, now);
+  const activeBefore = distinctBetween(events, since14, new Date(since7.getTime() - 1));
+
+  return {
+    users: { total: totalUsers, delta: newThisWeek, before: newWeekBefore, series: usersSeries },
+    active: { value: active, delta: active - activeBefore, series: activeSeries },
+    founding: { brands: foundingBrands, creators: foundingCreators, delta: movedOver(foundingSeries, 7), series: foundingSeries },
+    waiting: { value: waitingLine[waitingLine.length - 1].value, delta: movedOver(waitingLine, 7), series: waitingLine },
+  };
 }
