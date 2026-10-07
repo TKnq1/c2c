@@ -135,6 +135,7 @@ const DE_PRIVACY: LegalSection[] = [
       "Bei der Registrierung speichern wir außerdem, wann du den Bedingungen und dieser Datenschutzerklärung zugestimmt hast und in welcher Fassung, und dass du bestätigt hast, mindestens 18 Jahre alt zu sein. Das dient als Nachweis (Art. 6 Abs. 1 lit. b und f DSGVO).",
       "Welche Schritte der Einrichtung du gesehen oder abgeschlossen hast, speichern wir mit deinem Konto, um die Einrichtung zu verbessern (Art. 6 Abs. 1 lit. f DSGVO).",
       "Am Ende der Einrichtung fragen wir freiwillig, wie du von uns erfahren hast (zum Beispiel Suchmaschine oder Freund). Nur wenn du antwortest, speichern wir die gewählte Antwort mit deinem Konto, um zu sehen, welche Kanäle Menschen zu uns bringen (Art. 6 Abs. 1 lit. a DSGVO). Du kannst die Frage überspringen. Die Antwort löschen wir mit dem Konto.",
+      "Kommst du über einen Link mit Kampagnenangaben zu uns (zum Beispiel aus einer Anzeige) und registrierst dich, speichern wir diese Angaben (Quelle, Medium, Kampagne) mit deinem Konto, um zu sehen, welche Werbung zu Anmeldungen führt (Art. 6 Abs. 1 lit. f DSGVO). Dafür setzen wir weder ein Cookie noch einen Tracker: Die Angaben stehen nur in der Adresse des Links und werden erst gespeichert, wenn du dich registrierst. Wir löschen sie mit dem Konto.",
       "E-Mail-Adresse und Passwort brauchen wir, um einen Vertrag mit dir zu schließen und zu erfüllen. Ohne sie gibt es kein Konto. Alle anderen Angaben sind freiwillig, bis auf das, was für Auszahlungen vorgeschrieben ist (Stripe prüft dafür deine Identität).",
     ],
   },

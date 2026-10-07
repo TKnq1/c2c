@@ -5,11 +5,14 @@ import { BrandOnboarding } from "@/components/brand-onboarding";
 import { CreatorOnboarding } from "@/components/creator-onboarding";
 import { OnboardingRoleStep } from "@/components/onboarding-role-step";
 import { clearOnboardingDraft } from "@/lib/onboarding-draft";
+import { captureUtm } from "@/lib/utm-capture";
+import { utmQuery } from "@/lib/utm";
 import type { SignupRole } from "@/lib/signup-role";
 
 function rememberRole(role: SignupRole) {
   const side = role === "STARTUP" ? "brand" : "creator";
-  window.history.replaceState(null, "", `/onboarding?role=${side}`);
+  const utm = utmQuery(captureUtm());
+  window.history.replaceState(null, "", `/onboarding?role=${side}${utm ? `&${utm}` : ""}`);
 }
 
 function forgetRole() {
@@ -17,13 +20,18 @@ function forgetRole() {
   // language step. Leaving that step has to drop it, or a refresh of the
   // role question reads the draft and opens the language step again.
   clearOnboardingDraft();
-  window.history.replaceState(null, "", "/onboarding");
+  const utm = utmQuery(captureUtm());
+  window.history.replaceState(null, "", utm ? `/onboarding?${utm}` : "/onboarding");
 }
 
 // No account yet. The side comes from the landing toggle (?role=) or from
 // the role question. A bare /onboarding stays on that question.
 export function GuestOnboarding({ initialRole }: { initialRole: SignupRole | null }) {
   const [role, setRole] = useState<SignupRole | null>(initialRole);
+  // Read before anything rewrites the address (see rememberRole).
+  useLayoutEffect(() => {
+    captureUtm();
+  }, []);
   const [booted, setBooted] = useState(initialRole !== null);
 
   useLayoutEffect(() => {

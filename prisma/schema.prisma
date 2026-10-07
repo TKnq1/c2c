@@ -43,6 +43,15 @@ model User {
   // src/lib/heard-from.ts, never free text.
   heardFrom String?
 
+  // The ad campaign a sign-up came from, taken from the utm_* parameters of the link (see src/lib/utm.ts).
+  // Plain text from a fixed set of characters, never anything the person typed. Null for organic sign-ups.
+  utmSource   String?
+  utmMedium   String?
+  utmCampaign String?
+  utmContent  String?
+
+  adminPreference AdminPreference?
+
   // Set by an admin from /admin/users. A suspended account can't sign in,
   // and an existing session ends at its next periodic check (see auth.ts).
   suspendedAt     DateTime?
@@ -762,4 +771,65 @@ model Review {
   @@unique([interestId, authorRole])
   @@index([creatorId, authorRole])
   @@index([startupId, authorRole])
+}
+
+// What one admin has set up on the dashboard (see /admin/anpassen): the name in the greeting, accent colour,
+// which tiles show, the goals and the morning start. One row per admin, created on first save.
+model AdminPreference {
+  userId              String    @id
+  user                User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  displayName         String?
+  accent              String    @default("green")
+  compact             Boolean   @default(false)
+  hiddenTiles         String[]  @default([])
+  tileOrder           String[]  @default([])
+  goalBrands          Int       @default(50)
+  goalCreators        Int       @default(100)
+  goalMonthlyFeeCents Int       @default(100000)
+  morningEnabled      Boolean   @default(true)
+  morningFromHour     Int       @default(5)
+  morningToHour       Int       @default(11)
+  morningEveryTime    Boolean   @default(false)
+  songVolume          Int       @default(55)
+  panelOpen           Boolean   @default(true)
+  setupDoneAt         DateTime?
+  updatedAt           DateTime  @updatedAt
+}
+
+enum AdminTaskPriority {
+  HIGH
+  MEDIUM
+  LOW
+}
+
+enum AdminTaskSource {
+  CHECK
+  CLAUDE
+  MANUAL
+}
+
+enum AdminTaskStatus {
+  OPEN
+  DONE
+  SNOOZED
+}
+
+// The "Offen" list on the admin dashboard. CHECK tasks are written by fixed checks against the data and close
+// themselves when the cause is gone; CLAUDE tasks come from Claude's daily look at the numbers; MANUAL tasks are the
+// admin's own. dedupeKey keeps a check or Claude from adding the same task twice.
+model AdminTask {
+  id           String            @id @default(cuid())
+  title        String
+  reason       String?
+  priority     AdminTaskPriority @default(MEDIUM)
+  source       AdminTaskSource
+  status       AdminTaskStatus   @default(OPEN)
+  href         String?
+  dedupeKey    String?           @unique
+  snoozedUntil DateTime?
+  doneAt       DateTime?
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
+
+  @@index([status, priority])
 }

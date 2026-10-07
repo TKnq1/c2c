@@ -12,6 +12,8 @@ import { localizeError } from "@/lib/i18n/labels";
 import { TermsConsent } from "@/components/terms-consent";
 import { MarketingConsentCheckbox } from "@/components/marketing-consent-checkbox";
 import { keepFieldsOnSubmit } from "@/lib/keep-fields";
+import { captureUtm } from "@/lib/utm-capture";
+import { utmFields } from "@/lib/utm";
 import { FOUNDING_BRAND_LIMIT, FOUNDING_CREATOR_LIMIT, PLATFORM_FEE_RATE, PRO_PLATFORM_FEE_RATE, RELEASE_REVIEW_DAYS } from "@/lib/constants";
 import type { PlatformDraft } from "@/components/platform-chips";
 import type { SignupRole } from "@/lib/signup-role";
@@ -67,6 +69,7 @@ export function OnboardingAccountStep({
   }, [role]);
   const [state, submit, pending] = useActionState(async (prev: OnboardingState, formData: FormData) => {
     formData.set("role", role);
+    for (const [name, value] of Object.entries(utmFields(captureUtm()))) formData.set(name, value);
     if (role === "CREATOR") {
       formData.set("displayName", displayName.trim());
       formData.set("niches", niches.join(","));

@@ -21,6 +21,7 @@ import { hashToken, newToken } from "@/lib/tokens";
 import { CONSENT_ERROR, consentGiven, consentRecord } from "@/lib/legal/consent";
 import { queueMarketingConsent } from "@/lib/marketing-consent";
 import { guestBrandSignupSchema, guestCreatorSignupSchema } from "@/lib/validation";
+import { utmColumns, utmFromForm } from "@/lib/utm";
 import type { OnboardingState } from "@/lib/actions/onboarding";
 
 function field(formData: FormData, name: string): string {
@@ -75,6 +76,8 @@ export async function signupFromDraftAction(_prevState: OnboardingState, formDat
   await logSignupAttempt();
 
   const locale = parseLocale((await cookies()).get(LOCALE_COOKIE)?.value);
+  // The campaign the sign-up link carried, if any (see src/lib/utm.ts).
+  const utm = utmColumns(utmFromForm(formData));
   const { avatarUrl, error: avatarError } = await processAvatarUpload(formData, role === "STARTUP" ? "Logo" : "Photo");
   if (avatarError) return { error: avatarError };
 
@@ -92,6 +95,7 @@ export async function signupFromDraftAction(_prevState: OnboardingState, formDat
           passwordHash,
           role: "CREATOR",
           locale,
+          ...utm,
           ...consentRecord(),
           creatorProfile: {
             create: {
@@ -126,6 +130,7 @@ export async function signupFromDraftAction(_prevState: OnboardingState, formDat
           passwordHash,
           role: "STARTUP",
           locale,
+          ...utm,
           ...consentRecord(),
           startupProfile: {
             create: {
