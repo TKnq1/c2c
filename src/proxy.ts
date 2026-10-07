@@ -26,6 +26,7 @@ const GATE_INFRA_PREFIXES = [
   "/favicon.ico",
   "/icon",
   "/apple-icon",
+  "/apple-touch-icon",
   "/opengraph-image",
   "/manifest.webmanifest",
   "/robots.txt",
