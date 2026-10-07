@@ -1,5 +1,5 @@
 import { parseLocale, type Locale } from "@/lib/i18n/locales";
-import { createT } from "@/lib/i18n/translate";
+import type { TFunction } from "@/lib/i18n/translate";
 
 // EUR to match the actual Stripe Checkout/Connect currency (see
 // src/lib/actions/payments.ts) — a mismatch here would mean an amount
@@ -93,8 +93,7 @@ export function dateLocale(locale?: string): string {
   }
 }
 
-export function formatRelativeTime(ms: number, now: number, timeZone: string, locale: Locale | string = "en"): string {
-  const t = createT(parseLocale(locale));
+export function formatRelativeTime(ms: number, now: number, timeZone: string, locale: Locale | string, t: TFunction): string {
   const minutes = Math.floor((now - ms) / 60_000);
   if (minutes < 1) return t("screens.time.justNow");
   if (minutes < 60) return t("screens.time.minAgo", { count: minutes });
@@ -129,9 +128,8 @@ export function formatMessageTimestamp(ms: number, timeZone: string, locale: Loc
 }
 
 // The divider between days inside a conversation.
-export function formatDayLabel(ms: number, timeZone: string, locale: Locale | string = "en"): string {
+export function formatDayLabel(ms: number, timeZone: string, locale: Locale | string, t: TFunction): string {
   const diff = daysAgo(ms, timeZone);
-  const t = createT(parseLocale(locale));
   const lang = dateLocale(locale);
   if (diff <= 0) return t("screens.time.today");
   if (diff === 1) return t("screens.time.yesterday");

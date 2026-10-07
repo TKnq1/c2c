@@ -31,7 +31,7 @@ export function CreatorDesktop({ className = "" }: { className?: string }) {
             <div className="flex w-[400px] shrink-0 flex-col items-center gap-3">
               <div className="relative h-[600px] w-[400px]">
                 {stack.map((request, i) => (
-                  <SwipeCard key={request.id} request={request} stackIndex={i} onSwipe={() => {}} />
+                  <SwipeCard key={request.id} request={request} stackIndex={i} onSwipe={() => {}} lazyPhotos />
                 ))}
               </div>
               <p className="text-xs text-neutral-400 dark:text-neutral-500">{t("screens.ui.leftMany", { count: 7 })}</p>

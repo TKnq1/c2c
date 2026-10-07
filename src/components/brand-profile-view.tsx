@@ -89,7 +89,7 @@ export async function BrandProfileView({ id, variant }: { id: string; variant: "
       conversations.map((c) => c.messages),
       "STARTUP",
     ),
-    locale,
+    t,
   );
   const NicheIcon = (startup.niche && NICHE_ICONS[startup.niche]) || DEFAULT_NICHE_ICON;
 

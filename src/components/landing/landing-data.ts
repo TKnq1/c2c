@@ -21,9 +21,9 @@ export type PhotoKey = keyof typeof PHOTOS;
 
 // The cards draw their photos with a plain <img>, so the resized version
 // comes from the image optimizer by hand: 640px wide covers a phone-sized
-// card on a retina screen.
+// card on a retina screen. Quality 60 is indistinguishable at that size and a good deal lighter.
 export function cardPhoto(key: PhotoKey) {
-  return getImageProps({ src: PHOTOS[key], alt: "", width: 320, height: 480 }).props.src;
+  return getImageProps({ src: PHOTOS[key], alt: "", width: 320, height: 480, quality: 60 }).props.src;
 }
 
 // Only its colours survive the blur, so a thumbnail is plenty.

@@ -8,11 +8,10 @@ import { computeResponseTimeMs, formatResponseTime } from "@/lib/response-time";
 import { DiscoverCreators } from "@/components/discover-creators";
 import { FavoritesOnlyToggle } from "@/components/favorites-only-toggle";
 import { SkeletonTileGrid } from "@/components/skeleton";
-import { getLocale, getT } from "@/lib/i18n/server";
+import { getT } from "@/lib/i18n/server";
 
 export default async function DiscoverCreatorsPage() {
   const t = await getT();
-  const locale = await getLocale();
   const session = await auth();
   if (!session || session.user.role !== "STARTUP") redirect("/login");
 
@@ -99,7 +98,7 @@ export default async function DiscoverCreatorsPage() {
       isFavorited: favoritedCreatorIds.has(c.id),
       createdAt: c.createdAt.getTime(),
       responseTimeMs,
-      responseTimeLabel: formatResponseTime(responseTimeMs, locale),
+      responseTimeLabel: formatResponseTime(responseTimeMs, t),
     };
   });
 

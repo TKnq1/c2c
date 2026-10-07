@@ -3,7 +3,7 @@ import type { Metadata, Viewport } from "next";
 import { Lato } from "next/font/google";
 import { I18nProvider } from "@/components/i18n-provider";
 import { Nav } from "@/components/nav";
-import { getLocale, getT } from "@/lib/i18n/server";
+import { getLocale, getMessages, getT } from "@/lib/i18n/server";
 import { NativePushBridge } from "@/components/native-push-bridge";
 import { NativeBackButton } from "@/components/native-back-button";
 import { InAppNavigationMarker } from "@/lib/in-app-navigation";
@@ -92,6 +92,7 @@ function organizationJsonLd(description: string) {
 export default async function RootLayout({ children }: LayoutProps<"/">) {
   const locale = await getLocale();
   const t = await getT();
+  const messages = await getMessages();
   return (
     <html
       lang={locale}
@@ -128,7 +129,7 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
         />
       </head>
       <body className="min-h-full flex flex-col">
-        <I18nProvider locale={locale}>
+        <I18nProvider locale={locale} messages={messages}>
         <AppSplash />
         <Suspense fallback={null}>
           <TopLoadingBar />

@@ -10,6 +10,7 @@ import { haptic } from "@/lib/haptics";
 import { ChatOfferCard, MakeOfferButton, OfferHistoryCard, type ChatOffer, type ChatOfferTurn } from "@/components/chat-offer";
 import { useI18n } from "@/components/i18n-provider";
 import type { Locale } from "@/lib/i18n/locales";
+import type { TFunction } from "@/lib/i18n/translate";
 
 export type ChatMessage = { id: string; body: string; createdAt: number; isMine: boolean; read: boolean };
 export type ChatEvent = { at: number; label: string; href?: string };
@@ -91,6 +92,7 @@ function buildFeed(
   unread: UnreadAtOpen,
   timeZone: string,
   locale: Locale,
+  t: TFunction,
 ): FeedItem[] {
   let lastSentMineIndex = -1;
   messages.forEach((m, i) => {
@@ -138,7 +140,7 @@ function buildFeed(
   for (const entry of entries) {
     const day = dayKey(entry.at, timeZone);
     if (day !== currentDay) {
-      feed.push({ kind: "day", key: `day-${day}`, label: formatDayLabel(entry.at, timeZone, locale) });
+      feed.push({ kind: "day", key: `day-${day}`, label: formatDayLabel(entry.at, timeZone, locale, t) });
       currentDay = day;
     }
     if (unread && entry.item.key === unread.firstId) {
@@ -201,7 +203,7 @@ export function ChatConversation({
     return unread.length > 0 ? { firstId: unread[0].id, count: unread.length } : null;
   });
   const [initialKeys] = useState(
-    () => new Set(buildFeed(messages, events, offer, offerTurns, unreadAtOpen, timeZone, locale).map((item) => item.key)),
+    () => new Set(buildFeed(messages, events, offer, offerTurns, unreadAtOpen, timeZone, locale, t).map((item) => item.key)),
   );
   const [initiallyReadIds] = useState(() => new Set(messages.filter((m) => m.read).map((m) => m.id)));
 
@@ -219,7 +221,7 @@ export function ChatConversation({
   const [seenLastId, setSeenLastId] = useState(lastId);
   const showNewMessagePill = !atBottom && !lastIsMine && lastId !== seenLastId;
 
-  const feed = buildFeed(optimisticMessages, events, offer, offerTurns, unreadAtOpen, timeZone, locale);
+  const feed = buildFeed(optimisticMessages, events, offer, offerTurns, unreadAtOpen, timeZone, locale, t);
 
   // Opening the thread lands on the first unread message (divider near the
   // top) when there is one, otherwise on the newest. After that it only

@@ -75,7 +75,7 @@ export async function CreatorProfileView({ id, variant }: { id: string; variant:
       conversations.map((c) => c.messages),
       "CREATOR",
     ),
-    locale,
+    t,
   );
   const totalReach = creator.platforms.reduce((sum, p) => sum + p.followerCount, 0);
 

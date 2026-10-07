@@ -2,8 +2,11 @@
 
 import { useEffect, useRef } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import { PushNotifications } from "@capacitor/push-notifications";
-import { isNativeApp, nativePushPermission, saveNativeToken } from "@/lib/native-push-client";
+import { mightBeNativeApp } from "@/lib/native-app";
+
+// The Capacitor plugins are fetched only inside the store apps (see mightBeNativeApp): the website
+// doesn't carry them.
+const loadNative = () => Promise.all([import("@capacitor/push-notifications"), import("@/lib/native-push-client")]);
 
 // Mounted once in the root layout. Only does anything inside the Capacitor
 // store apps:
@@ -17,37 +20,49 @@ export function NativePushBridge() {
   const registeredThisLaunch = useRef(false);
 
   useEffect(() => {
-    if (!isNativeApp()) return;
+    if (!mightBeNativeApp()) return;
 
-    const listeners = [
-      PushNotifications.addListener("registration", ({ value }) => {
-        saveNativeToken(value).catch(() => {
-          // Not signed in yet — the next dashboard visit registers again.
-        });
-      }),
-      PushNotifications.addListener("pushNotificationActionPerformed", ({ notification }) => {
-        const url = notification.data?.url;
-        // App paths only; "//host" would be another site.
-        if (typeof url === "string" && url.startsWith("/") && !url.startsWith("//")) router.push(url);
-      }),
-    ];
+    let cancelled = false;
+    let removeListeners = () => {};
 
-    // The web code is loaded live and can be newer than the installed app
-    // build. If that build lacks the plugin, push simply stays off.
-    listeners.forEach((l) => l.catch(() => {}));
+    loadNative()
+      .then(([{ PushNotifications }, { isNativeApp, saveNativeToken }]) => {
+        if (cancelled || !isNativeApp()) return;
+
+        const listeners = [
+          PushNotifications.addListener("registration", ({ value }) => {
+            saveNativeToken(value).catch(() => {
+              // Not signed in yet — the next dashboard visit registers again.
+            });
+          }),
+          PushNotifications.addListener("pushNotificationActionPerformed", ({ notification }) => {
+            const url = notification.data?.url;
+            // App paths only; "//host" would be another site.
+            if (typeof url === "string" && url.startsWith("/") && !url.startsWith("//")) router.push(url);
+          }),
+        ];
+
+        // The web code is loaded live and can be newer than the installed app
+        // build. If that build lacks the plugin, push simply stays off.
+        listeners.forEach((l) => l.catch(() => {}));
+        removeListeners = () => listeners.forEach((l) => l.then((h) => h.remove()).catch(() => {}));
+      })
+      .catch(() => {});
 
     return () => {
-      listeners.forEach((l) => l.then((h) => h.remove()).catch(() => {}));
+      cancelled = true;
+      removeListeners();
     };
   }, [router]);
 
   useEffect(() => {
-    if (!isNativeApp() || registeredThisLaunch.current || !pathname.startsWith("/dashboard")) return;
+    if (!mightBeNativeApp() || registeredThisLaunch.current || !pathname.startsWith("/dashboard")) return;
     registeredThisLaunch.current = true;
 
-    nativePushPermission()
-      .then((permission) => {
-        if (permission === "granted") return PushNotifications.register();
+    loadNative()
+      .then(async ([{ PushNotifications }, { isNativeApp, nativePushPermission }]) => {
+        if (!isNativeApp()) return;
+        if ((await nativePushPermission()) === "granted") await PushNotifications.register();
       })
       .catch(() => {});
   }, [pathname]);
