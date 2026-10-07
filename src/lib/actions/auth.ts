@@ -1,5 +1,6 @@
 "use server";
 
+import { safeReturnPath } from "@/lib/home-redirect";
 import { redirect } from "next/navigation";
 import { after } from "next/server";
 import { AuthError } from "next-auth";
@@ -94,7 +95,9 @@ export async function completeLoginAction(_prevState: ActionState, formData: For
   const code = formData.get("code");
   const role = formData.get("role");
 
-  const redirectTo = `${dashboardPathForRole(typeof role === "string" ? (role as Role) : "CREATOR")}?welcome=1`;
+  // The page the sign-in was for (an admin page opened from the installed dashboard), else the person's own start page.
+  const next = safeReturnPath(formData.get("next"));
+  const redirectTo = next ?? `${dashboardPathForRole(typeof role === "string" ? (role as Role) : "CREATOR")}?welcome=1`;
 
   try {
     await signIn("credentials", { email, password, code, redirectTo });

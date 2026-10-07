@@ -1,5 +1,5 @@
-import { timingSafeEqual } from "crypto";
 import { NextResponse } from "next/server";
+import { cronAuthorised } from "@/lib/cron-auth";
 import { prisma } from "@/lib/prisma";
 import { releaseHeldPayment } from "@/lib/payment-release";
 import { RELEASE_REVIEW_MS } from "@/lib/constants";
@@ -8,18 +8,9 @@ import { DAY } from "@/lib/rate-limit";
 // Run daily by Vercel Cron (see vercel.json): releases every payment whose
 // post was submitted more than RELEASE_REVIEW_DAYS ago without the brand
 // approving it or reporting a problem. Vercel sends CRON_SECRET as a
-// bearer token; without it set, this refuses everything rather than
-// letting anyone on the internet trigger releases.
-function authorised(req: Request): boolean {
-  const secret = process.env.CRON_SECRET;
-  if (!secret) return false;
-  const given = Buffer.from(req.headers.get("authorization") ?? "");
-  const expected = Buffer.from(`Bearer ${secret}`);
-  return given.length === expected.length && timingSafeEqual(given, expected);
-}
-
+// bearer token (see cron-auth.ts).
 export async function GET(req: Request) {
-  if (!authorised(req)) {
+  if (!cronAuthorised(req)) {
     return NextResponse.json({ error: "Not authorized" }, { status: 401 });
   }
 

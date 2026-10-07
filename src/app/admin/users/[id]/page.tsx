@@ -15,6 +15,8 @@ import { paymentStage } from "@/lib/payment-stage";
 import { RoleBadge } from "@/components/admin/role-badge";
 import { StatTile } from "@/components/admin/stat-tile";
 import { SuspendUserButton } from "@/components/admin/suspend-user-button";
+import { UserTimeline } from "@/components/admin/user-timeline";
+import { loadTimeline } from "@/lib/admin-timeline";
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
@@ -55,7 +57,7 @@ export default async function AdminUserPage(props: PageProps<"/admin/users/[id]"
       ? { creatorId: creator.id, paymentStatus: { not: null } }
       : null;
 
-  const [payments, releasedAgg, requests] = await Promise.all([
+  const [payments, releasedAgg, requests, timeline] = await Promise.all([
     paymentWhere
       ? prisma.interest.findMany({
           where: paymentWhere,
@@ -79,6 +81,7 @@ export default async function AdminUserPage(props: PageProps<"/admin/users/[id]"
           take: 10,
         })
       : [],
+    loadTimeline(id),
   ]);
 
   const name = brand?.companyName ?? creator?.displayName ?? user.email;
@@ -200,6 +203,10 @@ export default async function AdminUserPage(props: PageProps<"/admin/users/[id]"
           hint={`${openReports} open · blocked by ${user._count.blocksReceived} · filed ${user._count.reportsMade}`}
         />
       </div>
+
+      <Section title="Verlauf">
+        <UserTimeline events={timeline} />
+      </Section>
 
       {creator && (
         <Section title="Profile">

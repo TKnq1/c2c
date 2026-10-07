@@ -1,5 +1,5 @@
 import { requireAdminSession } from "@/lib/admin-session";
-import { loadMoney, runwayText } from "@/lib/admin-money";
+import { lastMonths, loadMoney, runwayText } from "@/lib/admin-money";
 import { ColumnChart, DashCard, DataTable, LineChart, PageHeader, Stat, money } from "@/components/admin/dashboard-parts";
 import { CashBalanceForm, FixedCostControls, FixedCostForm } from "@/components/admin/money-forms";
 import { LocalDate } from "@/components/local-date";
@@ -13,6 +13,7 @@ export default async function AdminMoneyPage() {
   await requireAdminSession();
   const m = await loadMoney();
   const runway = runwayText(m.runway);
+  const exportMonths = lastMonths(new Date(), 12).map((slot) => ({ value: slot.key, label: slot.start.toLocaleDateString("de-DE", { month: "long", year: "numeric", timeZone: "UTC" }) }));
 
   return (
     <div className="flex flex-col gap-6">
@@ -77,6 +78,27 @@ export default async function AdminMoneyPage() {
           </div>
         </DashCard>
       </div>
+
+      <DashCard title="Export für den Steuerberater" right="CSV">
+        <form action="/api/admin/export/payments" method="get" className="flex flex-wrap items-center gap-2">
+          <label className="flex items-center gap-2 text-sm">
+            <span className="font-bold">Monat</span>
+            <select name="month" defaultValue={exportMonths[exportMonths.length - 1].value} className="rounded border border-ink/15 bg-paper px-3 py-1.5 text-sm outline-none focus:border-ink">
+              {[...exportMonths].reverse().map((month) => (
+                <option key={month.value} value={month.value}>
+                  {month.label}
+                </option>
+              ))}
+            </select>
+          </label>
+          <button type="submit" className="rounded-full bg-ink px-4 py-1.5 text-xs font-bold text-paper transition">
+            CSV herunterladen
+          </button>
+        </form>
+        <p className="mt-3 text-xs text-neutral-500">
+          Eine Zeile je Zahlung, die in dem Monat eingegangen, freigegeben oder erstattet wurde, mit Summen am Ende. Für Excel mit Semikolon und Dezimalkomma. Ohne Pro-Abos (die stehen im Stripe-Export) und ohne Kautionen. Jeder Download wird protokolliert. Die steuerliche Einordnung klärst du mit dem Steuerberater.
+        </p>
+      </DashCard>
 
       <DashCard title="Fixkosten" right={`${money(m.fixedMonthly)} im Monat`}>
         <div className="mb-4">

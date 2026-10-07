@@ -3,7 +3,7 @@
 import { useEffect, useState, useTransition } from "react";
 import { FiArrowDown, FiArrowUp, FiMusic } from "react-icons/fi";
 import { savePrefsAction } from "@/lib/actions/admin-dashboard";
-import { TILE_KEYS, TILE_LABELS, type AdminPrefs, orderedTiles } from "@/lib/admin-prefs";
+import { KPI_SET_HINTS, KPI_SET_LABELS, KPI_SETS, TILE_KEYS, TILE_LABELS, type AdminPrefs, orderedTiles } from "@/lib/admin-prefs";
 import { getPreferredTheme, setTheme } from "@/lib/theme";
 import { AccentPicker, Row, Segmented, SongManager, WindowPicker, fieldClass } from "@/components/admin/settings-parts";
 import { Switch } from "@/components/switch";
@@ -47,6 +47,10 @@ export function SettingsForm({ initial }: { initial: AdminPrefs }) {
         morningToHour: prefs.morningToHour,
         morningEveryTime: prefs.morningEveryTime,
         songVolume: prefs.songVolume,
+        kpiSet: prefs.kpiSet,
+        mailDaily: prefs.mailDaily,
+        mailUrgent: prefs.mailUrgent,
+        mailWeekly: prefs.mailWeekly,
       });
       if (result.error) toast.error(result.error);
       else toast.success("Gespeichert");
@@ -107,7 +111,25 @@ export function SettingsForm({ initial }: { initial: AdminPrefs }) {
 
       <div className="grid gap-4 xl:grid-cols-2">
         <section className={card}>
-          <h2 className={heading}>Blöcke auf „Heute“</h2>
+          <h2 className={heading}>Mitteilungen per Mail</h2>
+          <p className="mb-3 text-sm text-neutral-600 dark:text-neutral-400">Alles steht auch im Postfach des Dashboards (Glocke). Die Mail ist eine Kopie davon, an deine Admin-Adresse.</p>
+          <Row label="Tagesbericht" hint="Jeden Morgen: was ansteht, die vier Zahlen, was aufgefallen ist">
+            <Switch checked={prefs.mailDaily} onChange={(v) => set("mailDaily", v)} label="Tagesbericht per Mail" />
+          </Row>
+          <Row label="Dringendes sofort" hint="Neue Meldung, Streitfall, viele fehlgeschlagene Mails">
+            <Switch checked={prefs.mailUrgent} onChange={(v) => set("mailUrgent", v)} label="Dringendes per Mail" />
+          </Row>
+          <Row label="Wochenbericht" hint="Montags: die Woche in Zahlen und die Prognose zum Ziel">
+            <Switch checked={prefs.mailWeekly} onChange={(v) => set("mailWeekly", v)} label="Wochenbericht per Mail" />
+          </Row>
+        </section>
+
+        <section className={card}>
+          <h2 className={heading}>Die vier Zahlen oben auf „Heute“</h2>
+          <Row label="Zahlen" hint={KPI_SET_HINTS[prefs.kpiSet]}>
+            <Segmented label="Zahlen" value={prefs.kpiSet} options={KPI_SETS.map((key) => ({ value: key, label: KPI_SET_LABELS[key] }))} onChange={(v) => set("kpiSet", v)} />
+          </Row>
+          <h2 className={`${heading} mt-6`}>Blöcke unter „Mehr Details“ auf „Heute“</h2>
           {order.map((key, i) => {
             const visible = !prefs.hiddenTiles.includes(key);
             return (

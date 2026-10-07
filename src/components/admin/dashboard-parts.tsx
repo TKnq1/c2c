@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { FiArrowDownRight, FiArrowUpRight } from "react-icons/fi";
 import type { FunnelStep } from "@/lib/admin-dashboard";
+import type { TrendPoint } from "@/lib/admin-trends";
+import { TrendLine } from "@/components/admin/trend-line";
 
 // A white panel with a hairline, the dashboard's basic building block.
 export function DashCard({
@@ -44,7 +46,28 @@ export function Sparkline({ values, width = 84, height = 30 }: { values: number[
   );
 }
 
-// One headline figure: label, the number, how it moved against the 30 days before, and a note.
+// "+3 diese Woche": the arrow and its colour say better or worse, the words say by how much. No change is plain grey.
+function Delta({ amount, text, label, upIsGood = true }: { amount: number; text?: string; label: string; upIsGood?: boolean }) {
+  if (amount === 0) {
+    return <p className="text-footnote text-neutral-600 dark:text-neutral-400">±0 {label}</p>;
+  }
+  const Arrow = amount > 0 ? FiArrowUpRight : FiArrowDownRight;
+  const good = amount > 0 === upIsGood;
+  return (
+    <p className="flex items-center gap-1 text-footnote text-neutral-600 dark:text-neutral-400">
+      <Arrow className={`h-3.5 w-3.5 shrink-0 ${good ? "text-[#0ca30c]" : "text-[#d03b3b]"}`} aria-hidden />
+      <span>
+        <b className="text-ink">
+          {amount > 0 ? "+" : "−"}
+          {text ?? Math.abs(amount).toLocaleString("de-DE")}
+        </b>{" "}
+        {label}
+      </span>
+    </p>
+  );
+}
+
+// One headline figure: label, the number, how it moved, optionally a line of the last days, and a note.
 export function KpiTile({
   label,
   value,
@@ -53,6 +76,9 @@ export function KpiTile({
   upIsGood = true,
   hint,
   trend,
+  delta,
+  series,
+  previous,
   href,
 }: {
   label: string;
@@ -62,6 +88,11 @@ export function KpiTile({
   upIsGood?: boolean;
   hint?: React.ReactNode;
   trend?: number[];
+  // How far the figure moved, as a count ("+3 diese Woche"), and the line of the last days under it.
+  delta?: { amount: number; text?: string; label: string; upIsGood?: boolean };
+  series?: TrendPoint[];
+  // The same stretch of the period before, drawn dashed behind the line.
+  previous?: TrendPoint[];
   href?: string;
 }) {
   const up = (change ?? 0) >= 0;
@@ -83,6 +114,8 @@ export function KpiTile({
           </span>
         </p>
       )}
+      {delta && <Delta {...delta} />}
+      {series && <TrendLine points={series} previous={previous} label={label} />}
       {hint && <p className="text-xs text-neutral-500">{hint}</p>}
     </>
   );
@@ -97,7 +130,7 @@ export function KpiTile({
 }
 
 // Progress toward a goal as a ring. Over 100 % the ring stays full and the number says how far.
-export function GoalRing({ label, value, goal, display, sub }: { label: string; value: number; goal: number; display: string; sub: string }) {
+export function GoalRing({ label, value, goal, display, sub, note }: { label: string; value: number; goal: number; display: string; sub: string; note?: string }) {
   const percent = goal > 0 ? Math.min(100, (value / goal) * 100) : 0;
   const r = 40;
   const c = 2 * Math.PI * r;
@@ -122,6 +155,7 @@ export function GoalRing({ label, value, goal, display, sub }: { label: string; 
       </div>
       <p className="text-sm font-bold">{label}</p>
       <p className="-mt-1.5 text-xs text-neutral-500">{sub}</p>
+      {note && <p className="-mt-1.5 text-xs text-neutral-600 dark:text-neutral-400">{note}</p>}
     </div>
   );
 }

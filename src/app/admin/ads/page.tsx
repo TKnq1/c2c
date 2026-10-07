@@ -1,9 +1,10 @@
 import { requireAdminSession } from "@/lib/admin-session";
 import { loadAds } from "@/lib/admin-ads";
+import { loadVisits } from "@/lib/admin-visits";
 import { channelLabel } from "@/lib/ad-import";
 import { AdImport, AdSpendForm, DeleteSpendButton, LinkBuilder } from "@/components/admin/ads-forms";
 import { DailyBarChart } from "@/components/admin/daily-bar-chart";
-import { DashCard, DataTable, FunnelBars, KpiTile, PageHeader, money } from "@/components/admin/dashboard-parts";
+import { DashCard, DataTable, FunnelBars, KpiTile, PageHeader, Stat, money } from "@/components/admin/dashboard-parts";
 import { SITE_URL } from "@/lib/site";
 
 export const metadata = { title: "Ads & Kanäle" };
@@ -15,8 +16,9 @@ const channelName = (channel: string) => (channel === "none" ? "Ohne Angabe (dir
 
 export default async function AdminAdsPage() {
   await requireAdminSession();
-  const a = await loadAds();
+  const [a, v] = await Promise.all([loadAds(), loadVisits()]);
   const total = (points: { value: number }[]) => points.reduce((sum, p) => sum + p.value, 0);
+  const windowFirstDay = new Date(`${v.byDay[0].day}T00:00:00Z`);
 
   return (
     <div className="flex flex-col gap-6">
@@ -58,6 +60,59 @@ export default async function AdminAdsPage() {
           <DailyBarChart title="Anmeldungen mit Kampagnen-Angabe pro Tag" points={a.taggedByDay} unit="count" total={`${total(a.taggedByDay)} in ${a.days} Tagen`} />
         </div>
       </div>
+
+      <DashCard title="Besucher" right={`letzte ${v.days} Tage`}>
+        {!v.hasData ? (
+          <p className="text-sm text-neutral-500">Noch keine Besuche gezählt. Der Zähler läuft auf der Startseite und am Anfang der Anmeldung, ohne Cookie und ohne gespeicherte Adresse. Die ersten Zahlen stehen hier nach den ersten Besuchen.</p>
+        ) : (
+          <>
+            <div className="grid grid-cols-2 gap-x-5 gap-y-4 sm:grid-cols-4">
+              <Stat value={v.landingViews.toLocaleString("de-DE")} label="Besuche der Startseite" />
+              <Stat value={v.onboardingViews.toLocaleString("de-DE")} label="Besuche am Anfang der Anmeldung" />
+              <Stat value={v.signups.toLocaleString("de-DE")} label={v.countingSince && v.countingSince > windowFirstDay ? `Anmeldungen seit dem ${v.countingSince.toLocaleDateString("de-DE", { day: "numeric", month: "short", timeZone: "UTC" })}` : "Anmeldungen"} />
+              <Stat value={v.perHundred === null ? dash : v.perHundred.toLocaleString("de-DE", { maximumFractionDigits: 1 })} label="Anmeldungen je 100 Besuche" />
+            </div>
+            <div className="mt-5">
+              <DailyBarChart title="Besuche der Startseite pro Tag" points={v.byDay} unit="count" total={`${v.landingViews.toLocaleString("de-DE")} in ${v.days} Tagen`} />
+            </div>
+            <div className="mt-5 grid gap-[var(--gap,1rem)] lg:grid-cols-2">
+              <div>
+                <h3 className="mb-2 text-xs font-bold text-graphite">Woher sie kommen</h3>
+                <DataTable head={[{ label: "Quelle" }, { label: "Besuche", right: true }, { label: "Anmeldungen", right: true }, { label: "Quote", right: true }]}>
+                  {v.bySource.slice(0, 10).map((r) => (
+                    <tr key={r.key}>
+                      <td className="font-bold">{r.key}</td>
+                      <td className="text-right tabular-nums">{r.views.toLocaleString("de-DE")}</td>
+                      <td className="text-right tabular-nums">{r.signups > 0 ? r.signups : dash}</td>
+                      <td className="text-right tabular-nums">{percent(r.rate)}</td>
+                    </tr>
+                  ))}
+                </DataTable>
+              </div>
+              <div>
+                <h3 className="mb-2 text-xs font-bold text-graphite">Nach Kampagne</h3>
+                {v.byCampaign.length === 0 ? (
+                  <p className="text-sm text-neutral-500">Noch kein Besuch über einen Link mit Kampagnennamen.</p>
+                ) : (
+                  <DataTable head={[{ label: "Kampagne" }, { label: "Besuche", right: true }, { label: "Anmeldungen", right: true }, { label: "Quote", right: true }]}>
+                    {v.byCampaign.slice(0, 10).map((r) => (
+                      <tr key={r.key}>
+                        <td className="font-bold">{r.key}</td>
+                        <td className="text-right tabular-nums">{r.views.toLocaleString("de-DE")}</td>
+                        <td className="text-right tabular-nums">{r.signups > 0 ? r.signups : dash}</td>
+                        <td className="text-right tabular-nums">{percent(r.rate)}</td>
+                      </tr>
+                    ))}
+                  </DataTable>
+                )}
+              </div>
+            </div>
+          </>
+        )}
+        <p className="mt-4 text-xs text-neutral-500">
+          Gezählt wird ohne Cookie und ohne Adresse oder Browserkennung: nur wie oft eine Seite an einem Tag geöffnet wurde und von wo (Name der verweisenden Seite oder die Quelle im Link). Suchmaschinen, Vorschau-Programme und Vorab-Ladevorgänge zählen nicht. Die Zahl ist eine gute Näherung, kein genauer Wert. Einzelne Besucher lassen sich so nicht erkennen, deshalb gibt es nur Besuche, keine „Besucher“. Die Quote gibt es nur, wo der Link eine Quelle trug: Anmeldungen aus einer Suche oder von Freunden tragen nichts, womit man sie zuordnen könnte.
+        </p>
+      </DashCard>
 
       <DashCard title="Kampagnen" right={`${a.campaigns.length}`}>
         {a.campaigns.length === 0 ? (

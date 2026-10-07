@@ -1,6 +1,7 @@
 import { FiArrowDownRight, FiArrowUpRight } from "react-icons/fi";
 import { requireAdminSession } from "@/lib/admin-session";
 import { loadGrowth } from "@/lib/admin-growth";
+import { loadCohorts } from "@/lib/admin-cohorts";
 import { DailyBarChart } from "@/components/admin/daily-bar-chart";
 import { DashCard, DataTable, FunnelBars, KpiTile, PageHeader, ShareBars, Stat, money } from "@/components/admin/dashboard-parts";
 
@@ -8,7 +9,7 @@ export const metadata = { title: "Wachstum" };
 
 export default async function AdminGrowthPage() {
   await requireAdminSession();
-  const g = await loadGrowth();
+  const [g, cohorts] = await Promise.all([loadGrowth(), loadCohorts()]);
   const total = (points: { value: number }[]) => points.reduce((sum, p) => sum + p.value, 0);
 
   return (
@@ -81,6 +82,54 @@ export default async function AdminGrowthPage() {
           <p className="mt-4 text-xs text-neutral-500">Starts und Kündigungen werden erst seit diesem Update mitgeschrieben, davor gibt es keine Zahlen. Founding-Plätze zählen nicht.</p>
         </DashCard>
       </div>
+
+      <DashCard title="Wer kommt wieder?" right="nach Anmeldewoche">
+        {cohorts.rows.every((r) => r.size === 0) ? (
+          <p className="text-sm text-neutral-500">Noch keine Anmeldungen in den letzten {cohorts.rows.length} Wochen.</p>
+        ) : (
+          <div className="-mx-1 overflow-x-auto px-1">
+            <table className="w-full min-w-[30rem] border-collapse text-sm">
+              <thead>
+                <tr>
+                  <th className="border-b border-ink/10 pr-4 pb-2 text-left text-xs font-normal text-graphite">Angemeldet ab</th>
+                  <th className="border-b border-ink/10 pr-4 pb-2 text-right text-xs font-normal text-graphite">Nutzer</th>
+                  {Array.from({ length: cohorts.columns }, (_, i) => (
+                    <th key={i} className="border-b border-ink/10 px-1 pb-2 text-center text-xs font-normal text-graphite">
+                      Woche {i + 1}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {cohorts.rows.map((row) => (
+                  <tr key={row.label}>
+                    <td className="border-b border-ink/10 py-1.5 pr-4 font-bold">{row.label}</td>
+                    <td className="border-b border-ink/10 py-1.5 pr-4 text-right tabular-nums">{row.size}</td>
+                    {row.cells.map((cell, i) => (
+                      <td key={i} className="border-b border-ink/10 p-0.5 text-center tabular-nums">
+                        {cell ? (
+                          <span
+                            className="block rounded-[3px] px-1 py-1"
+                            style={{ backgroundColor: `color-mix(in srgb, var(--color-accent) ${Math.round(cell.rate * 0.4)}%, transparent)` }}
+                            title={`${cell.active} von ${cell.eligible}`}
+                          >
+                            {cell.rate} %
+                          </span>
+                        ) : (
+                          <span className="text-neutral-400">–</span>
+                        )}
+                      </td>
+                    ))}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+        <p className="mt-3 text-xs text-neutral-500">
+          Jede Zeile sind die Nutzer, die sich in dieser Woche angemeldet haben. „Woche 2“ heißt: Anteil von ihnen, der in der zweiten Woche nach der eigenen Anmeldung etwas getan hat (angemeldet, Anfrage, Interesse oder Nachricht). Eine Zelle zählt nur Nutzer, deren Woche schon vorbei ist.
+        </p>
+      </DashCard>
 
       <DashCard title="Wie haben sie von uns erfahren?" right="Anmeldungen der letzten 90 Tage">
         {g.heard.length === 0 ? (

@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { dailySeries, windowStart } from "@/lib/admin-stats";
 import { funnelSteps, percentChange } from "@/lib/admin-dashboard";
+import type { ActivityEvent } from "@/lib/admin-trends";
 
 const DAY = 24 * 60 * 60 * 1000;
 type Side = "STARTUP" | "CREATOR";
@@ -17,24 +18,36 @@ export const HEARD_LABEL: Record<string, string> = {
   other: "Sonstiges",
 };
 
-// Everyone who did something real in the window: signed in, or posted a request, showed interest or sent a message.
-// Built from tables that already exist, so nothing new is tracked.
-export async function activeUserIds(since: Date): Promise<Set<string>> {
+// What counts as doing something real: signing in, posting a request, showing interest or sending a message. Built from
+// tables that already exist, so nothing new is tracked. One entry per action, with the person and the time; capped per
+// source so a very busy month cannot make the page slow.
+const EVENT_CAP = 50_000;
+
+export async function activityEvents(since: Date): Promise<ActivityEvent[]> {
+  const take = EVENT_CAP;
+  const orderBy = { createdAt: "desc" as const };
   const [logins, requests, interests, messages] = await Promise.all([
-    prisma.loginAttempt.findMany({ where: { succeeded: true, userId: { not: null }, createdAt: { gte: since } }, select: { userId: true }, distinct: ["userId"] }),
-    prisma.request.findMany({ where: { createdAt: { gte: since } }, select: { startup: { select: { userId: true } } } }),
-    prisma.interest.findMany({ where: { createdAt: { gte: since } }, select: { creator: { select: { userId: true } } } }),
+    prisma.loginAttempt.findMany({ where: { succeeded: true, userId: { not: null }, createdAt: { gte: since } }, select: { userId: true, createdAt: true }, orderBy, take }),
+    prisma.request.findMany({ where: { createdAt: { gte: since } }, select: { createdAt: true, startup: { select: { userId: true } } }, orderBy, take }),
+    prisma.interest.findMany({ where: { createdAt: { gte: since } }, select: { createdAt: true, creator: { select: { userId: true } } }, orderBy, take }),
     prisma.message.findMany({
       where: { createdAt: { gte: since } },
-      select: { senderRole: true, interest: { select: { creator: { select: { userId: true } }, request: { select: { startup: { select: { userId: true } } } } } } },
+      select: { createdAt: true, senderRole: true, interest: { select: { creator: { select: { userId: true } }, request: { select: { startup: { select: { userId: true } } } } } } },
+      orderBy,
+      take,
     }),
   ]);
-  const ids = new Set<string>();
-  for (const l of logins) if (l.userId) ids.add(l.userId);
-  for (const r of requests) ids.add(r.startup.userId);
-  for (const i of interests) ids.add(i.creator.userId);
-  for (const m of messages) ids.add(m.senderRole === "CREATOR" ? m.interest.creator.userId : m.interest.request.startup.userId);
-  return ids;
+  const events: ActivityEvent[] = [];
+  for (const l of logins) if (l.userId) events.push({ userId: l.userId, at: l.createdAt });
+  for (const r of requests) events.push({ userId: r.startup.userId, at: r.createdAt });
+  for (const i of interests) events.push({ userId: i.creator.userId, at: i.createdAt });
+  for (const m of messages) events.push({ userId: m.senderRole === "CREATOR" ? m.interest.creator.userId : m.interest.request.startup.userId, at: m.createdAt });
+  return events;
+}
+
+// Everyone who did something real since `since`.
+export async function activeUserIds(since: Date): Promise<Set<string>> {
+  return new Set((await activityEvents(since)).map((e) => e.userId));
 }
 
 async function funnelFor(side: Side, since: Date) {

@@ -3,12 +3,13 @@
 import { z } from "zod";
 import { ACCENT_KEYS, DEFAULT_ACCENT, type AccentKey } from "@/lib/admin-theme";
 
-// The blocks of the "Heute" page an admin can hide or reorder. The Claude briefing and the Offen list live in the panel.
+// The blocks under "Mehr Details" on the "Heute" page that an admin can hide or reorder. What needs attention and the four
+// headline figures above them are always there.
 export const TILE_KEYS = ["kennzahlen", "geld", "ziele", "markt", "funnel", "ads", "anmeldungen"] as const;
 export type TileKey = (typeof TILE_KEYS)[number];
 
 export const TILE_LABELS: Record<TileKey, string> = {
-  kennzahlen: "Kennzahlen",
+  kennzahlen: "Alle Kennzahlen",
   geld: "Geld",
   ziele: "Ziele",
   markt: "Marktplatz-Gesundheit",
@@ -16,6 +17,18 @@ export const TILE_LABELS: Record<TileKey, string> = {
   ads: "Ads",
   anmeldungen: "Anmeldungen pro Tag",
 };
+
+// The four figures at the top of "Heute": what each set contains is in src/lib/admin-kpis.ts.
+export const KPI_SETS = ["wachstum", "geld", "marketing", "gemischt"] as const;
+export type KpiSet = (typeof KPI_SETS)[number];
+export const KPI_SET_LABELS: Record<KpiSet, string> = { wachstum: "Wachstum", geld: "Geld", marketing: "Marketing", gemischt: "Gemischt" };
+export const KPI_SET_HINTS: Record<KpiSet, string> = {
+  wachstum: "Nutzer, aktive Nutzer, Founding-Plätze, Anfragen ohne Interesse",
+  geld: "Provision, Zahlungsvolumen, Pro-Abos, Reichweite des Geldes",
+  marketing: "Ausgaben, Kosten je Anmeldung, Klick zur Anmeldung, Anmeldungen mit Kampagne",
+  gemischt: "Nutzer, Provision, Anfragen ohne Interesse, Kosten je Anmeldung",
+};
+export const isKpiSet = (value: string): value is KpiSet => (KPI_SETS as readonly string[]).includes(value);
 
 export type AdminPrefs = {
   displayName: string | null;
@@ -32,6 +45,10 @@ export type AdminPrefs = {
   morningEveryTime: boolean;
   songVolume: number;
   panelOpen: boolean;
+  kpiSet: KpiSet;
+  mailDaily: boolean;
+  mailUrgent: boolean;
+  mailWeekly: boolean;
   setupDone: boolean;
 };
 
@@ -49,7 +66,11 @@ export const DEFAULT_PREFS: AdminPrefs = {
   morningToHour: 11,
   morningEveryTime: false,
   songVolume: 55,
-  panelOpen: true,
+  panelOpen: false,
+  kpiSet: "wachstum",
+  mailDaily: true,
+  mailUrgent: true,
+  mailWeekly: true,
   setupDone: false,
 };
 
@@ -87,6 +108,10 @@ export const prefsSchema = z
     morningToHour: hour,
     morningEveryTime: z.boolean(),
     songVolume: z.number().int().min(0).max(100),
+    kpiSet: z.enum(KPI_SETS),
+    mailDaily: z.boolean(),
+    mailUrgent: z.boolean(),
+    mailWeekly: z.boolean(),
   })
   .refine((v) => v.morningFromHour < v.morningToHour, { message: "Das Zeitfenster muss vor dem Ende anfangen.", path: ["morningToHour"] });
 

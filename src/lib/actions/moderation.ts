@@ -1,5 +1,7 @@
 "use server";
 
+import { notifyUrgent } from "@/lib/admin-digest";
+import { formatNoticeBody } from "@/lib/admin-notice-format";
 import { revalidatePath } from "next/cache";
 import { auth } from "@/lib/auth";
 import { requireAdmin } from "@/lib/admin-guard";
@@ -29,8 +31,14 @@ export async function reportUserAction(
   const reported = await prisma.user.findUnique({ where: { id: reportedUserId }, select: { id: true } });
   if (!reported) return { error: "This account no longer exists." };
 
-  await prisma.report.create({
+  const report = await prisma.report.create({
     data: { reporterId: session.user.id, reportedId: reportedUserId, reason, details: details || null },
+  });
+  notifyUrgent({
+    key: `report-${report.id}`,
+    title: "Neue Meldung eingegangen",
+    body: formatNoticeBody([{ lines: [`Grund: ${reason}`, ...(details ? [`Angabe: ${details.slice(0, 200)}`] : [])] }]),
+    href: "/admin/moderation",
   });
 
   return { success: true };

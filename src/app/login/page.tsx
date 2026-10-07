@@ -7,6 +7,7 @@ import { ImprintLink } from "@/components/imprint-link";
 import { WelcomeLogoPreload } from "@/components/welcome-overlay";
 import { canonical, metadataFor } from "@/lib/seo";
 import { getT } from "@/lib/i18n/server";
+import { safeReturnPath } from "@/lib/home-redirect";
 
 export const generateMetadata = (): Promise<Metadata> =>
   metadataFor(
@@ -14,8 +15,11 @@ export const generateMetadata = (): Promise<Metadata> =>
     { title: "Anmelden", description: "Melde dich bei comtor an.", alternates: canonical("/login") },
   );
 
-export default async function LoginPage() {
+export default async function LoginPage(props: PageProps<"/login">) {
   const t = await getT();
+  // The page the person was heading for (an admin page, from the installed dashboard), carried through the sign-in.
+  const rawNext = (await props.searchParams).next;
+  const next = safeReturnPath(Array.isArray(rawNext) ? rawNext[0] : rawNext);
   return (
     <LogoBackdrop>
       <DeletedAccountToast />
@@ -25,7 +29,7 @@ export default async function LoginPage() {
           <h1 className="font-display text-title-1 font-bold">{t("screens.auth.welcome")}</h1>
           <p className="text-sm text-neutral-600 mt-1 dark:text-neutral-400">{t("screens.auth.loginHint")}</p>
         </div>
-        <LoginForm />
+        <LoginForm next={next} />
         <p className="text-sm text-center text-neutral-600 flex flex-col gap-1 dark:text-neutral-400">
           <Link href="/forgot-password" className="font-medium text-neutral-900 underline dark:text-neutral-100">
             {t("screens.auth.forgot")}
