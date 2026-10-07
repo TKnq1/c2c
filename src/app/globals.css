@@ -99,6 +99,11 @@
   --color-stone: var(--stone);
   --color-graphite: var(--graphite);
 
+  /* The admin dashboard's accent (see src/lib/admin-theme.ts), set per admin on .admin-shell. The fallbacks are the
+     green default, for anything rendered outside the shell. */
+  --color-accent: var(--accent, #0b7d55);
+  --color-on-accent: var(--on-accent, #ffffff);
+
   --font-sans: var(--font-bentonsans);
   /* Not a second typeface — Lato covers both roles now (see layout.tsx).
      Kept as its own utility name so call sites that mean "this is a

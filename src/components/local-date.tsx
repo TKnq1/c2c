@@ -7,9 +7,9 @@ import { useViewerTimeZone } from "@/lib/use-viewer-time-zone";
 // the day before. Server pages pass the timestamp; this formats it in the
 // viewer's own zone. "Sep 25, 2026" rather than "9/25/2026", which reads
 // as a different date to anyone used to day-first order.
-export function LocalDate({ ms, withTime = false }: { ms: number; withTime?: boolean }) {
+export function LocalDate({ ms, withTime = false, locale = "en-US" }: { ms: number; withTime?: boolean; locale?: string }) {
   const timeZone = useViewerTimeZone();
   return withTime
-    ? new Date(ms).toLocaleString("en-US", { timeZone, dateStyle: "medium", timeStyle: "short" })
-    : new Date(ms).toLocaleDateString("en-US", { timeZone, month: "short", day: "numeric", year: "numeric" });
+    ? new Date(ms).toLocaleString(locale, { timeZone, dateStyle: "medium", timeStyle: "short" })
+    : new Date(ms).toLocaleDateString(locale, { timeZone, month: "short", day: "numeric", year: "numeric" });
 }
