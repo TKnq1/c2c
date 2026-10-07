@@ -7,23 +7,28 @@ import { bundle } from "@remotion/bundler";
 import { getCompositions, renderStill } from "@remotion/renderer";
 
 const browserExecutable = process.argv.find((a) => a.startsWith("--browser-executable="))?.split("=")[1] ?? null;
+// "Pin" renders the pinned carousels (PinCreator1, PinBrand1, ...) to out/pinned instead.
+const pinned = process.argv.includes("Pin");
 const only = process.argv.slice(2).filter((a) => /^\d+$/.test(a));
-const outDir = "out/posts";
+const outDir = pinned ? "out/pinned" : "out/posts";
 mkdirSync(outDir, { recursive: true });
 
 const serveUrl = await bundle({ entryPoint: "src/index.ts" });
-const posts = (await getCompositions(serveUrl, { browserExecutable })).filter((c) => /^Post\d+$/.test(c.id));
+const pattern = pinned ? /^Pin(Creator|Brand)\d+$/ : /^Post\d+$/;
+const posts = (await getCompositions(serveUrl, { browserExecutable })).filter((c) => pattern.test(c.id));
 
 for (const composition of posts) {
-  const n = composition.id.slice("Post".length);
+  const n = composition.id.match(/\d+$/)[0];
   if (only.length > 0 && !only.includes(n)) continue;
-  await renderStill({ composition, serveUrl, output: `${outDir}/post-${n}.png`, browserExecutable });
-  console.log(`rendered post-${n}.png`);
+  const name = pinned ? composition.id.replace(/^Pin/, "").toLowerCase() : `post-${n}`;
+  await renderStill({ composition, serveUrl, output: `${outDir}/${name}.png`, browserExecutable });
+  console.log(`rendered ${name}.png`);
 }
 
 const files = readdirSync(outDir)
-  .filter((f) => /^post-\d+\.png$/.test(f))
+  .filter((f) => f.endsWith(".png"))
   .sort()
   .map((f) => `${outDir}/${f}`);
-execFileSync("montage", [...files, "-background", "#e5e5e5", "-tile", "5x1", "-geometry", "432x576+16+16", "out/posts.png"]);
-console.log("sheet out/posts.png");
+const sheet = pinned ? "out/pinned.png" : "out/posts.png";
+execFileSync("montage", [...files, "-background", "#e5e5e5", "-tile", `${Math.min(files.length, 6)}x`, "-geometry", "432x576+16+16", sheet]);
+console.log(`sheet ${sheet}`);

@@ -103,21 +103,23 @@ export const Lead: React.FC<{ top: number; width?: number; size?: number; childr
 );
 
 // "Beispiel" over a white fade at the bottom edge, for the posts that show made-up brands and prices.
-export const ExampleNote: React.FC = () => (
+export const ExampleNote: React.FC<{ dark?: boolean }> = ({ dark }) => (
   <div
     style={{
       position: "absolute",
       left: 0,
       right: 0,
       bottom: 0,
-      height: 120,
-      background: "linear-gradient(to top, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.75) 45%, rgba(255,255,255,0) 100%)",
+      height: dark ? 220 : 120,
+      background: dark
+        ? "linear-gradient(to top, #000 0%, rgba(0,0,0,0.85) 40%, rgba(0,0,0,0) 100%)"
+        : "linear-gradient(to top, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.75) 45%, rgba(255,255,255,0) 100%)",
       display: "flex",
       alignItems: "flex-end",
       justifyContent: "center",
       paddingBottom: 30,
       fontSize: 24,
-      color: NEUTRAL[600],
+      color: dark ? "#7a7a7a" : NEUTRAL[600],
     }}
   >
     Beispiel: Marken, Preise und Bewertungen sind erfunden.
@@ -127,12 +129,14 @@ export const ExampleNote: React.FC = () => (
 // --- The phone (src/components/landing/phone-frame.tsx) -------------------------------------------------------
 
 // A phone drawn in the app's pixels (`width` × `height`), scaled by `scale`, with its top-left at (left, top).
-export const Phone: React.FC<{ left: number; top: number; scale: number; width?: number; height: number; children: ReactNode }> = ({
+// `frameless`: the bare screen with a hairline edge instead of the phone around it (App Store style, on black).
+export const Phone: React.FC<{ left: number; top: number; scale: number; width?: number; height: number; frameless?: boolean; children: ReactNode }> = ({
   left,
   top,
   scale,
   width = 320,
   height,
+  frameless,
   children,
 }) => (
   <div style={{ position: "absolute", left, top, width: width * scale, height: height * scale }}>
@@ -143,10 +147,10 @@ export const Phone: React.FC<{ left: number; top: number; scale: number; width?:
         transform: `scale(${scale})`,
         transformOrigin: "0 0",
         boxSizing: "border-box",
-        padding: 9,
+        padding: frameless ? 0 : 9,
         borderRadius: 48,
-        backgroundColor: "#0c0c0d",
-        boxShadow: PHONE_SHADOW,
+        backgroundColor: frameless ? undefined : "#0c0c0d",
+        boxShadow: frameless ? undefined : PHONE_SHADOW,
       }}
     >
       <div
@@ -157,7 +161,8 @@ export const Phone: React.FC<{ left: number; top: number; scale: number; width?:
           width: "100%",
           height: "100%",
           overflow: "hidden",
-          borderRadius: 39.2,
+          borderRadius: frameless ? 40 : 39.2,
+          boxShadow: frameless ? "0 0 0 1.5px rgba(255,255,255,0.16)" : undefined,
           backgroundColor: colors.paper,
           color: colors.ink,
           textAlign: "left",
@@ -165,7 +170,9 @@ export const Phone: React.FC<{ left: number; top: number; scale: number; width?:
         }}
       >
         {/* The Dynamic Island in an iPhone's proportions: 31% of the screen's width, 3.4 times as wide as tall. */}
-        <div style={{ position: "absolute", top: 7, left: "50%", transform: "translateX(-50%)", width: "31%", aspectRatio: "3.4 / 1", borderRadius: 999, backgroundColor: "#000", zIndex: 30 }} />
+        {!frameless && (
+          <div style={{ position: "absolute", top: 7, left: "50%", transform: "translateX(-50%)", width: "31%", aspectRatio: "3.4 / 1", borderRadius: 999, backgroundColor: "#000", zIndex: 30 }} />
+        )}
         <StatusBar />
         {children}
       </div>
@@ -369,7 +376,9 @@ export const Bubble: React.FC<{ mine?: boolean; children: ReactNode }> = ({ mine
 
 // Centred on (cx, cy) in the post, tilted a little, scaled with the phone it belongs to.
 export const Floating: React.FC<{ cx: number; cy: number; scale: number; rotate?: number; children: ReactNode }> = ({ cx, cy, scale, rotate = 0, children }) => (
-  <div style={{ position: "absolute", left: cx, top: cy, transform: `translate(-50%, -50%) rotate(${rotate}deg) scale(${scale})`, transformOrigin: "center" }}>{children}</div>
+  <div style={{ position: "absolute", left: cx, top: cy, transform: `translate(-50%, -50%) rotate(${rotate}deg) scale(${scale})`, transformOrigin: "center", color: colors.ink }}>
+    {children}
+  </div>
 );
 
 export const Toast: React.FC<{ children: ReactNode }> = ({ children }) => (
