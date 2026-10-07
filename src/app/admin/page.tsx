@@ -4,6 +4,7 @@ import { FiSliders } from "react-icons/fi";
 import { requireAdminSession } from "@/lib/admin-session";
 import { getAdminPrefs } from "@/lib/admin-prefs-server";
 import { FOCUS_SHOWN, focusSummary } from "@/lib/admin-focus";
+import { loadAnomalies } from "@/lib/admin-anomalies";
 import { loadKpis } from "@/lib/admin-kpis";
 import { PERIODS, parsePeriod } from "@/lib/admin-period";
 import { listOpenTasks } from "@/lib/admin-tasks";
@@ -38,7 +39,7 @@ export default async function AdminTodayPage(props: PageProps<"/admin">) {
   const prefs = await getAdminPrefs(session.user.id);
   const now = new Date();
   const period = parsePeriod(firstParams(await props.searchParams).z);
-  const [tiles, tasks] = await Promise.all([loadKpis({ now, period, prefs }), listOpenTasks(now)]);
+  const [tiles, tasks, anomalies] = await Promise.all([loadKpis({ now, period, prefs }), listOpenTasks(now), loadAnomalies(now)]);
 
   const summary = focusSummary(tasks);
   const views: TaskView[] = tasks
@@ -66,7 +67,7 @@ export default async function AdminTodayPage(props: PageProps<"/admin">) {
         </Link>
       </div>
 
-      <FocusCard summary={summary} tasks={views} allTotal={tasks.length} />
+      <FocusCard summary={summary} tasks={views} allTotal={tasks.length} anomalies={anomalies} />
 
       <section aria-label="Die vier Zahlen" className="flex flex-col gap-3">
         <div className="flex flex-wrap items-center justify-between gap-2">
