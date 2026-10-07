@@ -11,6 +11,7 @@ import { AdminShell } from "@/components/admin/admin-shell";
 import { AdminPalette } from "@/components/admin/admin-palette";
 import { ClaudePanel } from "@/components/admin/claude-panel";
 import { MorningStart } from "@/components/admin/morning-start";
+import { RememberArea } from "@/components/remember-area";
 import { SetupWizard } from "@/components/admin/setup-wizard";
 import { adminConnections } from "@/lib/admin-connections";
 import { loadMorningStats } from "@/lib/admin-dashboard";
@@ -62,6 +63,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   return (
     <div className="admin-shell flex flex-1 flex-col">
       <style dangerouslySetInnerHTML={{ __html: accentCss(prefs.accent) + spacing }} />
+      {session.user.role !== "ADMIN" && <RememberArea area="admin" />}
       <AdminShell
         // The Offen badge counts what needs the admin, like the sentence on Heute: low tasks are left out.
         counts={{ attention: openReports + openDisputes, tasks: tasks.filter((t) => t.priority !== "LOW").length, notices: unreadNotices }}

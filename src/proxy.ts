@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { hasAdminAccess } from "@/lib/admin-access";
+import { HOME_COOKIE, loginUrlFor, safeReturnPath, signedInStartTarget } from "@/lib/home-redirect";
 import { getUgcNichePage, UGC_RESERVED_SLUGS } from "@/lib/seo-pages";
 import { parseSignupRole } from "@/lib/signup-role";
 
@@ -87,7 +88,14 @@ export default auth((req) => {
   // installed app, which starts at /login and used to show the login form
   // to people who were still logged in. The landing page stays static.
   if (req.auth && (pathname === "/" || pathname === "/login" || pathname === "/signup")) {
-    return NextResponse.redirect(new URL("/dashboard", req.url));
+    // For an admin the installed app opens where they were last, and a sign-in goes on to the page it was for.
+    const target = signedInStartTarget({
+      pathname,
+      user: req.auth.user,
+      homeCookie: req.cookies.get(HOME_COOKIE)?.value,
+      next: safeReturnPath(req.nextUrl.searchParams.get("next")),
+    });
+    return NextResponse.redirect(new URL(target, req.url));
   }
 
   // The account is created inside onboarding. A real redirect here, so the
@@ -109,7 +117,7 @@ export default auth((req) => {
   if (!pathname.startsWith("/dashboard") && !isAdminPath && !isOnboardingPath) return;
 
   if (!req.auth) {
-    return NextResponse.redirect(new URL("/login", req.url));
+    return NextResponse.redirect(new URL(loginUrlFor(pathname, req.nextUrl.search), req.url));
   }
 
   const role = req.auth.user.role;

@@ -5,7 +5,7 @@ import { checkLoginAction, completeLoginAction } from "@/lib/actions/auth";
 import { useI18n } from "@/components/i18n-provider";
 import { localizeError } from "@/lib/i18n/labels";
 
-export function LoginForm() {
+export function LoginForm({ next = null }: { next?: string | null }) {
   const { t } = useI18n();
   const [credentials, setCredentials] = useState<{ email: string; password: string } | null>(null);
   const [useRecoveryCode, setUseRecoveryCode] = useState(false);
@@ -25,9 +25,10 @@ export function LoginForm() {
       formData.set("password", credentials.password);
       formData.set("code", "");
       formData.set("role", checkState.role ?? "");
+      if (next) formData.set("next", next);
       startTransition(() => completeFormAction(formData));
     }
-  }, [checkState, credentials, completeFormAction]);
+  }, [checkState, credentials, completeFormAction, next]);
 
   if (checkState?.requiresTwoFactor && credentials) {
     return (
@@ -35,6 +36,7 @@ export function LoginForm() {
         <input type="hidden" name="email" value={credentials.email} />
         <input type="hidden" name="password" value={credentials.password} />
         <input type="hidden" name="role" value={checkState.role ?? ""} />
+        {next && <input type="hidden" name="next" value={next} />}
         <div className="flex flex-col gap-1">
           <label htmlFor="code" className="text-sm font-medium">
             {useRecoveryCode ? t("screens.auth.recoveryCode") : t("screens.auth.authCode")}
