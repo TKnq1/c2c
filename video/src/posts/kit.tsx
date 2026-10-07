@@ -217,12 +217,13 @@ export const AppHeader: React.FC<{ title: string }> = ({ title }) => (
 
 const TABS = [IoHome, IoSearchOutline, IoChatbubbleOutline, IoCardOutline, IoSettingsOutline];
 
-// The app's tab bar (the dock at the bottom), the first tab selected.
-export const AppTabBar: React.FC = () => (
+// The app's tab bar (the dock at the bottom); `active` is the selected tab (Feed or Requests, Search, Messages,
+// Payments, Settings).
+export const AppTabBar: React.FC<{ active?: number }> = ({ active = 0 }) => (
   <div style={{ marginTop: "auto", flexShrink: 0, borderRadius: "18px 18px 0 0", borderTop: `1px solid ${HAIRLINE}`, backgroundColor: colors.paper, paddingBottom: 20 }}>
     <div style={{ display: "flex" }}>
       {TABS.map((Icon, i) => (
-        <span key={i} style={{ flex: 1, display: "flex", justifyContent: "center", padding: "10px 0 4px", color: i === 0 ? colors.ink : NEUTRAL[400] }}>
+        <span key={i} style={{ flex: 1, display: "flex", justifyContent: "center", padding: "10px 0 4px", color: i === active ? colors.ink : NEUTRAL[400] }}>
           <Icon size={22} />
         </span>
       ))}

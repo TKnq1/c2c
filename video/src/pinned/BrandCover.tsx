@@ -27,7 +27,7 @@ const CREATORS: { name: string; niche: string; platform: Platform; followers: st
 const ROW_AT = [16, 26, 36, 46, 56, 66];
 
 // The posts the creators make, flying out of the phone into the feeds around it: x, y, tilt, crop of the photo.
-const POSTS: { name: string; platform: Platform; x: number; y: number; rotate: number; crop: string; at: number }[] = [
+export const POSTS: { name: string; platform: Platform; x: number; y: number; rotate: number; crop: string; at: number }[] = [
   { name: "Mia K.", platform: "TikTok", x: 160, y: 560, rotate: -5, crop: "50% 40%", at: 84 },
   { name: "Jonas R.", platform: "Instagram", x: 920, y: 600, rotate: 5, crop: "40% 55%", at: 92 },
   { name: "Aria N.", platform: "YouTube", x: 146, y: 880, rotate: 4, crop: "60% 50%", at: 100 },
@@ -43,7 +43,7 @@ const ICON: Record<Platform, React.ReactNode> = {
 };
 
 // One creator's post with the brand's product: a vertical video frame, the platform, who posted it.
-const PostTile: React.FC<{ name: string; platform: Platform; crop: string }> = ({ name, platform, crop }) => (
+export const PostTile: React.FC<{ name: string; platform: Platform; crop: string }> = ({ name, platform, crop }) => (
   <div style={{ position: "relative", width: 172, height: 300, borderRadius: 20, overflow: "hidden", boxShadow: "0 30px 60px rgba(0,0,0,0.55), 0 0 0 1px rgba(255,255,255,0.08)" }}>
     <Img src={staticFile(PHOTOS.flask)} style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", objectPosition: crop, transform: "scale(1.25)" }} />
     <div style={{ position: "absolute", top: 14, left: 14, width: 40, height: 40, borderRadius: 999, backgroundColor: "#fff", display: "flex", alignItems: "center", justifyContent: "center" }}>
