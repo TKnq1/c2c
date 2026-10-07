@@ -32,6 +32,9 @@ describe("prefsSchema", () => {
     morningEveryTime: false,
     songVolume: 55,
     kpiSet: "wachstum",
+    mailDaily: true,
+    mailUrgent: true,
+    mailWeekly: true,
   };
 
   it("accepts a complete, sensible set", () => {

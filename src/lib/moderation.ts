@@ -1,6 +1,8 @@
 import type { Role } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { formatCents } from "@/lib/format";
+import { notifyUrgent } from "@/lib/admin-digest";
+import { formatNoticeBody } from "@/lib/admin-notice-format";
 
 // True if either side has blocked the other — blocking is meant to cut off
 // contact in both directions, not just from the blocker's side.
@@ -63,8 +65,14 @@ export function detectSuspiciousText(text: string): string | null {
 // exact same admin review queue as user-filed ones, instead of a separate
 // log nobody looks at.
 export async function flagForReview(reportedId: string, reason: string, details: string) {
-  await prisma.report.create({
+  const report = await prisma.report.create({
     data: { reportedId, reason: `Automated: ${reason}`, details: details.slice(0, 1000), reporterId: null },
+  });
+  notifyUrgent({
+    key: `report-${report.id}`,
+    title: "Automatische Meldung eingegangen",
+    body: formatNoticeBody([{ lines: [`Grund: ${reason}`, details.slice(0, 200)] }]),
+    href: "/admin/moderation",
   });
 }
 

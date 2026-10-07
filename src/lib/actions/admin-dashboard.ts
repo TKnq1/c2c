@@ -1,5 +1,6 @@
 "use server";
 
+import { markAllNoticesRead } from "@/lib/admin-notices";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { requireAdmin } from "@/lib/admin-guard";
@@ -112,6 +113,15 @@ export async function deleteTaskAction(id: string): Promise<DashboardActionResul
   const parsed = taskIdSchema.safeParse(id);
   if (!parsed.success) return { error: "Aufgabe nicht gefunden." };
   await prisma.adminTask.deleteMany({ where: { id: parsed.data, source: "MANUAL" } });
+  refresh();
+  return {};
+}
+
+// The notices were looked at: the bell's count goes back to zero.
+export async function markNoticesReadAction(): Promise<DashboardActionResult> {
+  const session = await requireAdmin();
+  if (!session) return NOT_AUTHORIZED;
+  await markAllNoticesRead();
   refresh();
   return {};
 }

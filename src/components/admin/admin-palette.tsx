@@ -7,6 +7,7 @@ import {
   FiActivity,
   FiAlertTriangle,
   FiBarChart2,
+  FiBell,
   FiBookOpen,
   FiCheckSquare,
   FiClock,
@@ -40,6 +41,7 @@ type Group = { label: string; items: Item[] };
 const PAGES: { href: string; title: string; icon: IconType }[] = [
   { href: "/admin", title: "Heute", icon: FiGrid },
   { href: "/admin/offen", title: "Offen", icon: FiCheckSquare },
+  { href: "/admin/mitteilungen", title: "Mitteilungen", icon: FiBell },
   { href: "/admin/wachstum", title: "Wachstum", icon: FiBarChart2 },
   { href: "/admin/geld", title: "Geld", icon: FiDollarSign },
   { href: "/admin/marktplatz", title: "Marktplatz", icon: FiShoppingBag },

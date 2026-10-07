@@ -1,5 +1,7 @@
 "use server";
 
+import { notifyUrgent } from "@/lib/admin-digest";
+import { formatNoticeBody } from "@/lib/admin-notice-format";
 import { revalidatePath } from "next/cache";
 import type { Role } from "@prisma/client";
 import { auth } from "@/lib/auth";
@@ -588,6 +590,12 @@ export async function reportProblemAction(
 
   const brand = interest.request.startup.companyName;
   const title = interest.request.title;
+  notifyUrgent({
+    key: `dispute-${interestId}`,
+    title: "Streitfall: Zahlung eingefroren",
+    body: formatNoticeBody([{ lines: [`${brand} meldet ein Problem mit dem Beitrag zu „${title}“ (${formatCents(interest.amountCents ?? 0)}).`, `Grund: ${parsed.data.reason.slice(0, 200)}`, "Das Geld bleibt eingefroren, bis du entscheidest."] }]),
+    href: "/admin/moderation",
+  });
   await notify(
     interest.creator.userId,
     `${brand} reported a problem with your post for "${title}". The payment is on hold while we look into it.`,

@@ -46,6 +46,9 @@ export type AdminPrefs = {
   songVolume: number;
   panelOpen: boolean;
   kpiSet: KpiSet;
+  mailDaily: boolean;
+  mailUrgent: boolean;
+  mailWeekly: boolean;
   setupDone: boolean;
 };
 
@@ -65,6 +68,9 @@ export const DEFAULT_PREFS: AdminPrefs = {
   songVolume: 55,
   panelOpen: false,
   kpiSet: "wachstum",
+  mailDaily: true,
+  mailUrgent: true,
+  mailWeekly: true,
   setupDone: false,
 };
 
@@ -103,6 +109,9 @@ export const prefsSchema = z
     morningEveryTime: z.boolean(),
     songVolume: z.number().int().min(0).max(100),
     kpiSet: z.enum(KPI_SETS),
+    mailDaily: z.boolean(),
+    mailUrgent: z.boolean(),
+    mailWeekly: z.boolean(),
   })
   .refine((v) => v.morningFromHour < v.morningToHour, { message: "Das Zeitfenster muss vor dem Ende anfangen.", path: ["morningToHour"] });
 

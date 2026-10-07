@@ -794,6 +794,10 @@ model AdminPreference {
   panelOpen           Boolean   @default(false)
   // Which four figures stand at the top of Heute: one of the KPI_SETS in src/lib/admin-prefs.ts.
   kpiSet              String    @default("wachstum")
+  // Which of the admin's reports also come by mail: the daily one, urgent notices, the weekly one.
+  mailDaily           Boolean   @default(true)
+  mailUrgent          Boolean   @default(true)
+  mailWeekly          Boolean   @default(true)
   setupDoneAt         DateTime?
   updatedAt           DateTime  @updatedAt
 }
@@ -935,4 +939,27 @@ model ExternalSnapshot {
   key       String   @id
   data      Json
   fetchedAt DateTime
+}
+
+enum AdminNoticeKind {
+  DAILY
+  WEEKLY
+  URGENT
+}
+
+// The admin dashboard's own inbox. A report or notice is written once (dedupeKey keeps a retry from writing it twice),
+// shown in the dashboard and, per admin and kind, mailed. readAt is shared: this is one inbox for the admin team.
+model AdminNotice {
+  id        String          @id @default(cuid())
+  kind      AdminNoticeKind
+  title     String
+  // Plain text, one line per row; sections are separated by an empty line.
+  body      String
+  href      String?
+  dedupeKey String?         @unique
+  readAt    DateTime?
+  createdAt DateTime        @default(now())
+
+  @@index([createdAt])
+  @@index([readAt])
 }

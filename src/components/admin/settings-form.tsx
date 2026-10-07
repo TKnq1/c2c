@@ -48,6 +48,9 @@ export function SettingsForm({ initial }: { initial: AdminPrefs }) {
         morningEveryTime: prefs.morningEveryTime,
         songVolume: prefs.songVolume,
         kpiSet: prefs.kpiSet,
+        mailDaily: prefs.mailDaily,
+        mailUrgent: prefs.mailUrgent,
+        mailWeekly: prefs.mailWeekly,
       });
       if (result.error) toast.error(result.error);
       else toast.success("Gespeichert");
@@ -107,6 +110,20 @@ export function SettingsForm({ initial }: { initial: AdminPrefs }) {
       </div>
 
       <div className="grid gap-4 xl:grid-cols-2">
+        <section className={card}>
+          <h2 className={heading}>Mitteilungen per Mail</h2>
+          <p className="mb-3 text-sm text-neutral-600 dark:text-neutral-400">Alles steht auch im Postfach des Dashboards (Glocke). Die Mail ist eine Kopie davon, an deine Admin-Adresse.</p>
+          <Row label="Tagesbericht" hint="Jeden Morgen: was ansteht, die vier Zahlen, was aufgefallen ist">
+            <Switch checked={prefs.mailDaily} onChange={(v) => set("mailDaily", v)} label="Tagesbericht per Mail" />
+          </Row>
+          <Row label="Dringendes sofort" hint="Neue Meldung, Streitfall, viele fehlgeschlagene Mails">
+            <Switch checked={prefs.mailUrgent} onChange={(v) => set("mailUrgent", v)} label="Dringendes per Mail" />
+          </Row>
+          <Row label="Wochenbericht" hint="Montags: die Woche in Zahlen und die Prognose zum Ziel">
+            <Switch checked={prefs.mailWeekly} onChange={(v) => set("mailWeekly", v)} label="Wochenbericht per Mail" />
+          </Row>
+        </section>
+
         <section className={card}>
           <h2 className={heading}>Die vier Zahlen oben auf „Heute“</h2>
           <Row label="Zahlen" hint={KPI_SET_HINTS[prefs.kpiSet]}>

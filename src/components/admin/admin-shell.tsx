@@ -8,6 +8,7 @@ import {
   FiActivity,
   FiAlertTriangle,
   FiBarChart2,
+  FiBell,
   FiBookOpen,
   FiCheckSquare,
   FiChevronDown,
@@ -37,7 +38,7 @@ type Item = { href: string; label: string; icon: IconType; badge?: number };
 // A plain link, or a group that folds open. Six of these make up the menu; the rest sit one click deeper.
 type Section = { key: string; label: string; icon: IconType; href?: string; items?: Item[]; badge?: number };
 
-function sections(counts: { attention: number; tasks: number }): { main: Section[]; footer: Item[] } {
+function sections(counts: { attention: number; tasks: number; notices: number }): { main: Section[]; footer: Item[] } {
   return {
     main: [
       { key: "heute", label: "Heute", icon: FiGrid, href: "/admin" },
@@ -95,6 +96,22 @@ function sections(counts: { attention: number; tasks: number }): { main: Section
   };
 }
 
+// The inbox: reports, urgent notices and the daily and weekly report. The count is what has not been looked at yet.
+function Bell({ count }: { count: number }) {
+  return (
+    <Link
+      href="/admin/mitteilungen"
+      aria-label={count > 0 ? `Mitteilungen, ${count} ungelesen` : "Mitteilungen"}
+      className="relative ml-auto rounded-full p-2 text-graphite transition hover:bg-fog hover:text-ink"
+    >
+      <FiBell className="h-[18px] w-[18px]" aria-hidden />
+      {count > 0 && (
+        <span className="absolute top-0.5 right-0 min-w-4 rounded-full bg-accent px-1 text-center text-[0.625rem] leading-4 font-bold text-on-accent tabular-nums">{count > 9 ? "9+" : count}</span>
+      )}
+    </Link>
+  );
+}
+
 // Layout: navigation on the left, the page in the middle, Claude's panel on the right. The panel folds away (and the
 // choice is remembered); below the large breakpoint it never shows and the pages bring their own "Offen" block.
 export function AdminShell({
@@ -106,7 +123,7 @@ export function AdminShell({
   overlays,
   children,
 }: {
-  counts: { attention: number; tasks: number };
+  counts: { attention: number; tasks: number; notices: number };
   email: string;
   backToApp: boolean;
   panelOpen: boolean;
@@ -132,10 +149,13 @@ export function AdminShell({
   return (
     <div className="group/shell flex min-h-dvh flex-1 flex-col pt-[var(--safe-top)] lg:flex-row" data-panel={open ? "open" : "closed"}>
       <aside className="hidden w-56 shrink-0 flex-col gap-5 border-r border-ink/10 px-3 py-5 lg:sticky lg:top-0 lg:flex lg:h-dvh lg:overflow-y-auto">
-        <Link href="/admin" className="flex items-center gap-2.5 px-2">
-          <Logo />
-          <span className="rounded-full border border-ink/10 px-2 py-0.5 text-xs font-bold text-graphite">Admin</span>
-        </Link>
+        <div className="flex items-center">
+          <Link href="/admin" className="flex items-center gap-2.5 px-2">
+            <Logo />
+            <span className="rounded-full border border-ink/10 px-2 py-0.5 text-xs font-bold text-graphite">Admin</span>
+          </Link>
+          <Bell count={counts.notices} />
+        </div>
         <button
           type="button"
           onClick={() => window.dispatchEvent(new Event(OPEN_ADMIN_PALETTE))}
@@ -245,7 +265,10 @@ export function AdminShell({
               <Logo />
               <span className="rounded-full border border-ink/10 px-2 py-0.5 text-xs font-bold text-graphite">Admin</span>
             </Link>
-            <LogoutButton className="rounded-full border border-ink/10 px-3 py-1 text-xs font-bold">Abmelden</LogoutButton>
+            <div className="flex items-center gap-1">
+              <Bell count={counts.notices} />
+              <LogoutButton className="rounded-full border border-ink/10 px-3 py-1 text-xs font-bold">Abmelden</LogoutButton>
+            </div>
           </header>
           <nav aria-label="Admin" className="border-b border-ink/10 px-4 py-2 lg:hidden">
             <div className="scrollbar-hide flex gap-1 overflow-x-auto">

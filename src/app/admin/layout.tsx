@@ -1,6 +1,8 @@
 import { after } from "next/server";
 import { requireAdminSession } from "@/lib/admin-session";
 import { refreshExternalSnapshots } from "@/lib/admin-external";
+import { ensureDigests } from "@/lib/admin-digest";
+import { unreadNoticeCount } from "@/lib/admin-notices";
 import { getAdminPrefs } from "@/lib/admin-prefs-server";
 import { accentCss } from "@/lib/admin-theme";
 import { listOpenTasks, syncChecks } from "@/lib/admin-tasks";
@@ -24,14 +26,17 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   const session = await requireAdminSession();
   // Sentry and Stripe are asked again in the background when their stored answer is a few minutes old.
   after(() => refreshExternalSnapshots());
+  // The day's report is written the first time anyone looks, if the morning job did not get there first.
+  ensureDigests();
   const prefs = await getAdminPrefs(session.user.id);
 
   // The fixed checks bring the Offen list up to date before it is read, so every admin page shows the same list.
   await syncChecks();
-  const [tasks, openReports, openDisputes] = await Promise.all([
+  const [tasks, openReports, openDisputes, unreadNotices] = await Promise.all([
     listOpenTasks(),
     prisma.report.count({ where: { status: "OPEN" } }),
     prisma.interest.count({ where: { paymentStatus: "HELD", disputedAt: { not: null } } }),
+    unreadNoticeCount(),
   ]);
 
   // The morning screen's numbers, only fetched when it can show at all.
@@ -54,7 +59,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
       <style dangerouslySetInnerHTML={{ __html: accentCss(prefs.accent) + spacing }} />
       <AdminShell
         // The Offen badge counts what needs the admin, like the sentence on Heute: low tasks are left out.
-        counts={{ attention: openReports + openDisputes, tasks: tasks.filter((t) => t.priority !== "LOW").length }}
+        counts={{ attention: openReports + openDisputes, tasks: tasks.filter((t) => t.priority !== "LOW").length, notices: unreadNotices }}
         email={session.user.email ?? ""}
         backToApp={session.user.role !== "ADMIN"}
         panelOpen={prefs.panelOpen}
