@@ -5,9 +5,10 @@ export type Utm = { source: string | null; medium: string | null; campaign: stri
 const MAX = 80;
 
 // Only letters, digits and a few separators survive, so what is stored is a label and never markup or free text.
+// Spaces become hyphens, so "Herbst Creator" in an ad manager and "herbst-creator" in a link are the same campaign.
 export function cleanUtm(value: unknown): string | null {
   if (typeof value !== "string") return null;
-  const cleaned = value.trim().toLowerCase().replace(/[^a-z0-9._\-+]/g, "").slice(0, MAX);
+  const cleaned = value.trim().toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9._\-+]/g, "").slice(0, MAX);
   return cleaned || null;
 }
 

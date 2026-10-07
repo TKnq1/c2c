@@ -5,16 +5,25 @@ import { usePathname } from "next/navigation";
 import { useState } from "react";
 import type { IconType } from "react-icons";
 import {
+  FiActivity,
   FiAlertTriangle,
+  FiBarChart2,
+  FiBookOpen,
   FiCheckSquare,
+  FiClock,
   FiCreditCard,
+  FiDollarSign,
   FiFileText,
   FiGrid,
+  FiHelpCircle,
+  FiInbox,
   FiMail,
   FiSearch,
   FiSend,
+  FiShoppingBag,
   FiSidebar,
   FiSliders,
+  FiTarget,
   FiTrendingUp,
   FiUsers,
 } from "react-icons/fi";
@@ -35,22 +44,41 @@ function groups(counts: { attention: number; tasks: number }): Group[] {
         { href: "/admin/offen", label: "Offen", icon: FiCheckSquare, badge: counts.tasks },
       ],
     },
-    { label: "Auswertung", items: [{ href: "/admin/onboarding", label: "Onboarding", icon: FiTrendingUp }] },
+    {
+      label: "Auswertung",
+      items: [
+        { href: "/admin/wachstum", label: "Wachstum", icon: FiBarChart2 },
+        { href: "/admin/geld", label: "Geld", icon: FiDollarSign },
+        { href: "/admin/marktplatz", label: "Marktplatz", icon: FiShoppingBag },
+        { href: "/admin/onboarding", label: "Onboarding", icon: FiTrendingUp },
+      ],
+    },
     {
       label: "Marketing",
       items: [
+        { href: "/admin/ads", label: "Ads & Kanäle", icon: FiTarget },
+        { href: "/admin/mails", label: "Mails", icon: FiInbox },
         { href: "/admin/mailing", label: "Mailing", icon: FiMail },
         { href: "/admin/waitlist", label: "Warteliste", icon: FiMail },
         { href: "/admin/email", label: "E-Mail-Vorschau", icon: FiSend },
       ],
     },
-    { label: "Betrieb", items: [{ href: "/admin/moderation", label: "Moderation", icon: FiAlertTriangle, badge: counts.attention }] },
+    {
+      label: "Betrieb",
+      items: [
+        { href: "/admin/technik", label: "Technik", icon: FiActivity },
+        { href: "/admin/moderation", label: "Moderation", icon: FiAlertTriangle, badge: counts.attention },
+        { href: "/admin/fristen", label: "Fristen", icon: FiClock },
+        { href: "/admin/log", label: "Entscheidungs-Log", icon: FiBookOpen },
+      ],
+    },
     {
       label: "Verwaltung",
       items: [
         { href: "/admin/users", label: "Nutzer", icon: FiUsers },
         { href: "/admin/requests", label: "Anfragen", icon: FiFileText },
         { href: "/admin/payments", label: "Zahlungen", icon: FiCreditCard },
+        { href: "/admin/hilfe", label: "Hilfe", icon: FiHelpCircle },
         { href: "/admin/anpassen", label: "Anpassen", icon: FiSliders },
       ],
     },

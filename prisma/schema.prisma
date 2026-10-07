@@ -828,8 +828,109 @@ model AdminTask {
   dedupeKey    String?           @unique
   snoozedUntil DateTime?
   doneAt       DateTime?
+  // A check task that closed itself because its cause went away (see planCheckSync): it reopens as soon as the cause is back.
+  autoClosed   Boolean           @default(false)
   createdAt    DateTime          @default(now())
   updatedAt    DateTime          @updatedAt
 
   @@index([status, priority])
+}
+
+// Business figures the admin types in. One row (id 1): the bank balance on a given day, which the cash view needs for
+// the runway. Every change also leaves a CashSnapshot, so the balance has a history.
+model AdminSettings {
+  id               Int       @id @default(1)
+  cashBalanceCents Int?
+  cashBalanceAt    DateTime?
+  updatedAt        DateTime  @updatedAt
+}
+
+model CashSnapshot {
+  id           String   @id @default(cuid())
+  balanceCents Int
+  at           DateTime @default(now())
+
+  @@index([at])
+}
+
+enum FixedCostInterval {
+  MONTHLY
+  YEARLY
+}
+
+// What the business pays regardless of sales (hosting, database, mail, domain, tools). Entered by hand.
+model FixedCost {
+  id          String            @id @default(cuid())
+  name        String
+  amountCents Int
+  interval    FixedCostInterval @default(MONTHLY)
+  note        String?
+  active      Boolean           @default(true)
+  createdAt   DateTime          @default(now())
+}
+
+// One day of advertising on one channel and campaign, from a CSV export or typed in. campaignKey is the campaign name
+// cleaned the way utm_campaign is (see src/lib/utm.ts), which is how a sign-up is matched to the money spent on it.
+model AdSpend {
+  id           String   @id @default(cuid())
+  day          DateTime @db.Date
+  channel      String
+  campaignKey  String
+  campaignName String
+  spendCents   Int
+  impressions  Int      @default(0)
+  clicks       Int      @default(0)
+  source       String
+  createdAt    DateTime @default(now())
+
+  @@unique([day, channel, campaignKey])
+  @@index([day])
+}
+
+// One row per email the app tried to send: what it was and whether the mail service accepted it. The address is not
+// kept. Rows older than 120 days are deleted when the dashboard refreshes its figures.
+model MailLog {
+  id        String   @id @default(cuid())
+  subject   String
+  ok        Boolean
+  error     String?
+  createdAt DateTime @default(now())
+
+  @@index([createdAt])
+}
+
+enum ProEventKind {
+  STARTED
+  ENDED
+}
+
+// A paid Pro subscription starting or ending, from the Stripe webhook. History starts the day this shipped.
+model ProEvent {
+  id        String       @id @default(cuid())
+  kind      ProEventKind
+  side      Role
+  profileId String
+  at        DateTime     @default(now())
+
+  @@index([at])
+}
+
+// The decisions behind the product, so "why did we do it this way" has an answer later.
+model DecisionLog {
+  id        String   @id @default(cuid())
+  decidedOn DateTime @db.Date
+  title     String
+  decision  String
+  reason    String?
+  createdAt DateTime @default(now())
+
+  @@index([decidedOn])
+}
+
+// The last answer of an outside service (Sentry, Stripe), so the admin pages and the fixed checks don't call out on every
+// page view. Refreshed in the background when older than a few minutes.
+model ExternalSnapshot {
+  key       String   @id
+  data      Json
+  fetchedAt DateTime
 }

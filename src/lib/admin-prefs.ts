@@ -4,14 +4,16 @@ import { z } from "zod";
 import { ACCENT_KEYS, DEFAULT_ACCENT, type AccentKey } from "@/lib/admin-theme";
 
 // The blocks of the "Heute" page an admin can hide or reorder. The Claude briefing and the Offen list live in the panel.
-export const TILE_KEYS = ["kennzahlen", "ziele", "markt", "funnel", "anmeldungen"] as const;
+export const TILE_KEYS = ["kennzahlen", "geld", "ziele", "markt", "funnel", "ads", "anmeldungen"] as const;
 export type TileKey = (typeof TILE_KEYS)[number];
 
 export const TILE_LABELS: Record<TileKey, string> = {
   kennzahlen: "Kennzahlen",
+  geld: "Geld",
   ziele: "Ziele",
   markt: "Marktplatz-Gesundheit",
   funnel: "Funnel",
+  ads: "Ads",
   anmeldungen: "Anmeldungen pro Tag",
 };
 

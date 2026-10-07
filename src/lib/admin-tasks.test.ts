@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { planCheckSync, REOPEN_AFTER_MS, type CheckResult } from "@/lib/admin-tasks";
+import { planCheckSync, REOPEN_AFTER_MS, setupChecks, type CheckResult, type SetupFacts } from "@/lib/admin-tasks";
 
 const now = new Date("2026-10-07T08:00:00Z");
 const check = (over: Partial<CheckResult> = {}): CheckResult => ({ key: "reports-open", title: "2 offene Meldungen", priority: "MEDIUM", ...over });
@@ -13,6 +13,7 @@ const row = (over: Record<string, unknown> = {}) => ({
   reason: null,
   priority: "MEDIUM" as const,
   href: null,
+  autoClosed: false,
   ...over,
 });
 
@@ -46,7 +47,46 @@ describe("planCheckSync", () => {
     expect(planCheckSync([row({ status: "DONE", doneAt: old })], [check()], now).update[0]?.reopen).toBe(true);
   });
 
+  it("brings a task that closed itself back at once when its cause returns", () => {
+    const fresh = new Date(now.getTime() - 60_000);
+    expect(planCheckSync([row({ status: "DONE", doneAt: fresh, autoClosed: true })], [check()], now).update[0]?.reopen).toBe(true);
+  });
+
   it("ignores tasks that no check owns", () => {
     expect(planCheckSync([row({ dedupeKey: null })], [], now).close).toEqual([]);
+  });
+});
+
+describe("setupChecks", () => {
+  const now = new Date("2026-10-07T12:00:00Z");
+  const calm: SetupFacts = { sentry: null, stripe: null, mailFailures24h: 0, activeFixedCosts: 2, balanceAt: new Date("2026-10-05T12:00:00Z") };
+  const keys = (facts: Partial<SetupFacts>) => setupChecks({ ...calm, ...facts }, now).map((c) => c.key);
+
+  it("finds nothing to do when everything is in order", () => {
+    expect(keys({})).toEqual([]);
+  });
+
+  it("flags Stripe webhooks that did not arrive, but not a failed lookup", () => {
+    expect(keys({ stripe: { ok: true, total: 2, failed: [] } })).toEqual(["stripe-webhooks"]);
+    expect(keys({ stripe: { ok: true, total: 0, failed: [] } })).toEqual([]);
+    expect(keys({ stripe: { ok: false, error: "Invalid API key" } })).toEqual([]);
+  });
+
+  it("flags three or more failed mails in a day", () => {
+    expect(keys({ mailFailures24h: 2 })).toEqual([]);
+    expect(keys({ mailFailures24h: 3 })).toEqual(["mail-failures"]);
+  });
+
+  it("flags unresolved Sentry issues", () => {
+    const issue = { id: "1", title: "Boom", culprit: "", count: 1, users: 1, lastSeen: "", level: "error", link: "" };
+    expect(keys({ sentry: { ok: true, issues: [issue], total: 1 } })).toEqual(["sentry-errors"]);
+  });
+
+  it("asks for fixed costs and a balance that is missing or older than two weeks", () => {
+    expect(keys({ activeFixedCosts: 0 })).toEqual(["money-fixed-costs"]);
+    expect(keys({ balanceAt: null })).toEqual(["money-balance"]);
+    const old = setupChecks({ ...calm, balanceAt: new Date("2026-09-01T12:00:00Z") }, now);
+    expect(old).toHaveLength(1);
+    expect(old[0]).toMatchObject({ key: "money-balance", title: "Kontostand aktualisieren" });
   });
 });

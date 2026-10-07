@@ -5,7 +5,8 @@ describe("cleanUtm", () => {
   it("keeps a label and drops anything that could be markup or free text", () => {
     expect(cleanUtm("Instagram_Ads")).toBe("instagram_ads");
     expect(cleanUtm("<script>alert(1)</script>")).toBe("scriptalert1script");
-    expect(cleanUtm("a b&c=d")).toBe("abcd");
+    expect(cleanUtm("a&c=d")).toBe("acd");
+    expect(cleanUtm("Herbst  Creator!")).toBe("herbst-creator");
     expect(cleanUtm("x".repeat(200))).toHaveLength(80);
   });
 
@@ -55,7 +56,7 @@ describe("utmColumns, utmFields and utmFromForm", () => {
 
     const hostile = new FormData();
     hostile.set("utm_source", "<img src=x onerror=alert(1)>");
-    expect(utmFromForm(hostile)?.source).toBe("imgsrcxonerroralert1");
+    expect(utmFromForm(hostile)?.source).toBe("img-srcx-onerroralert1");
     expect(utmFromForm(new FormData())).toBeNull();
   });
 });

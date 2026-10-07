@@ -3,12 +3,12 @@ import { orderedTiles, prefsSchema, TILE_KEYS } from "@/lib/admin-prefs";
 
 describe("orderedTiles", () => {
   it("follows the saved order and puts blocks added later at the end", () => {
-    expect(orderedTiles(["funnel", "ziele"], [])).toEqual(["funnel", "ziele", "kennzahlen", "markt", "anmeldungen"]);
+    expect(orderedTiles(["funnel", "ziele"], [])).toEqual(["funnel", "ziele", "kennzahlen", "geld", "markt", "ads", "anmeldungen"]);
   });
 
   it("drops hidden blocks, unknown names and repeats", () => {
     const result = orderedTiles(["funnel", "funnel", "gibt-es-nicht"], ["ziele", "markt"]);
-    expect(result).toEqual(["funnel", "kennzahlen", "anmeldungen"]);
+    expect(result).toEqual(["funnel", "kennzahlen", "geld", "ads", "anmeldungen"]);
   });
 
   it("shows everything in the default order when nothing was saved", () => {

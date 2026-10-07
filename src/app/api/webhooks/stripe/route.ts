@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { notify } from "@/lib/notifications";
 import { formatCents } from "@/lib/format";
 import { flagForReview } from "@/lib/moderation";
+import { recordProEvent } from "@/lib/pro-events";
 
 // Fulfillment lives here, not on the checkout return page — a brand can pay
 // successfully and never make it back to our site (closed tab, lost
@@ -38,6 +39,7 @@ export async function POST(req: Request) {
           typeof checkoutSession.subscription === "string" ? checkoutSession.subscription : null;
         if (!customerId || !subscriptionId) break;
 
+        await recordProEvent("STARTED", customerId, subscriptionId);
         // A brand's or a creator's: a Stripe customer belongs to exactly one profile, so at most one matches.
         const data = { isPro: true, proSince: new Date(), stripeSubscriptionId: subscriptionId };
         await prisma.startupProfile.updateMany({ where: { stripeCustomerId: customerId }, data });
@@ -132,6 +134,7 @@ export async function POST(req: Request) {
       const customerId = typeof subscription.customer === "string" ? subscription.customer : null;
       if (!customerId) break;
 
+      await recordProEvent("ENDED", customerId);
       const ended = { where: { stripeCustomerId: customerId, foundingNumber: null }, data: { isPro: false, stripeSubscriptionId: null } };
       // Founding places keep isPro; only the ended subscription is forgotten.
       const founding = { where: { stripeCustomerId: customerId, foundingNumber: { not: null } }, data: { stripeSubscriptionId: null } };

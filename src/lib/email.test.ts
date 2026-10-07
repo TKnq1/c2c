@@ -12,6 +12,10 @@ vi.mock("resend", () => ({
   },
 }));
 
+// The send log writes to the database; here it is only observed.
+const logMail = vi.fn();
+vi.mock("@/lib/mail-log", () => ({ logMail: (...args: unknown[]) => logMail(...args) }));
+
 const email = { to: "someone@example.com", subject: "Hello", html: "<p>Hi</p>", text: "Hi" };
 
 async function load() {
@@ -21,6 +25,7 @@ async function load() {
 
 beforeEach(() => {
   send.mockReset();
+  logMail.mockReset();
   vi.spyOn(console, "error").mockImplementation(() => {});
 });
 
@@ -48,6 +53,19 @@ describe("sendEmail", () => {
       error: "validation_error: The comtor.app domain is not verified.",
     });
     expect(console.error).toHaveBeenCalledWith(expect.stringContaining("The comtor.app domain is not verified."));
+  });
+
+  it("logs every attempt with its subject and outcome, never the address", async () => {
+    vi.stubEnv("RESEND_API_KEY", "re_key");
+    send.mockResolvedValueOnce({ data: { id: "abc123" }, error: null });
+    send.mockResolvedValueOnce({ data: null, error: { name: "rate_limit", message: "Slow down." } });
+    const { sendEmail } = await load();
+
+    await sendEmail(email);
+    await sendEmail(email);
+    expect(logMail).toHaveBeenNthCalledWith(1, "Hello", { ok: true, id: "abc123" });
+    expect(logMail).toHaveBeenNthCalledWith(2, "Hello", { ok: false, error: "rate_limit: Slow down." });
+    expect(JSON.stringify(logMail.mock.calls)).not.toContain("someone@example.com");
   });
 
   it("doesn't throw without an API key", async () => {

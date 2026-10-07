@@ -1,4 +1,5 @@
 import { Resend } from "resend";
+import { logMail } from "@/lib/mail-log";
 import type { Email } from "@/lib/email-templates";
 
 // Production sets EMAIL_FROM to the sender on comtor.app, the domain
@@ -22,7 +23,13 @@ export function emailSetup() {
 
 export type SendEmailResult = { ok: true; id: string } | { ok: false; error: string };
 
-export async function sendEmail({
+export async function sendEmail(email: Email & { to: string; headers?: Record<string, string> }): Promise<SendEmailResult> {
+  const result = await deliver(email);
+  await logMail(email.subject, result);
+  return result;
+}
+
+async function deliver({
   to,
   subject,
   html,

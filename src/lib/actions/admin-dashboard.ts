@@ -62,7 +62,7 @@ export async function markTaskDoneAction(id: string): Promise<DashboardActionRes
   if (!session) return NOT_AUTHORIZED;
   const parsed = taskIdSchema.safeParse(id);
   if (!parsed.success) return { error: "Aufgabe nicht gefunden." };
-  await prisma.adminTask.updateMany({ where: { id: parsed.data }, data: { status: "DONE", doneAt: new Date(), snoozedUntil: null } });
+  await prisma.adminTask.updateMany({ where: { id: parsed.data }, data: { status: "DONE", doneAt: new Date(), snoozedUntil: null, autoClosed: false } });
   refresh();
   return {};
 }

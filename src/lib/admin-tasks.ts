@@ -1,6 +1,7 @@
 import type { AdminTask, AdminTaskPriority, AdminTaskStatus } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { RELEASE_REVIEW_MS } from "@/lib/constants";
+import { readSnapshots, type SentrySnapshot, type StripeSnapshot } from "@/lib/admin-external";
 
 const HOUR = 60 * 60 * 1000;
 const DAY = 24 * HOUR;
@@ -16,7 +17,7 @@ export type CheckResult = {
   href?: string;
 };
 
-type Row = Pick<AdminTask, "id" | "dedupeKey" | "status" | "doneAt" | "snoozedUntil" | "title" | "reason" | "priority" | "href">;
+type Row = Pick<AdminTask, "id" | "dedupeKey" | "status" | "doneAt" | "snoozedUntil" | "title" | "reason" | "priority" | "href" | "autoClosed">;
 
 export type CheckPlan = {
   create: CheckResult[];
@@ -43,7 +44,8 @@ export function planCheckSync(existing: Row[], active: CheckResult[], now: Date)
     }
     const snoozeOver = row.status === "SNOOZED" && (!row.snoozedUntil || row.snoozedUntil <= now);
     const doneLongAgo = row.status === "DONE" && !!row.doneAt && now.getTime() - row.doneAt.getTime() >= REOPEN_AFTER_MS;
-    const reopen = snoozeOver || doneLongAgo;
+    // A task that closed itself reopens as soon as its cause is back, one the admin ticked off after a day.
+    const reopen = snoozeOver || doneLongAgo || (row.status === "DONE" && row.autoClosed);
     // A task that is snoozed or done and not due again is left alone, even if its numbers moved.
     if (row.status === "OPEN" ? !sameFields(row, check) : reopen) plan.update.push({ id: row.id, check, reopen });
   }
@@ -61,16 +63,76 @@ function daysSince(date: Date, now: Date) {
   return days <= 0 ? "heute" : days === 1 ? "gestern" : `${days} Tagen`;
 }
 
+export type SetupFacts = {
+  sentry: SentrySnapshot | null;
+  stripe: StripeSnapshot | null;
+  mailFailures24h: number;
+  activeFixedCosts: number;
+  balanceAt: Date | null;
+};
+
+// Checks on what the dashboard itself knows: the last answers of Sentry and Stripe, the send log, and whether the money
+// pages have the numbers only the admin can type in. Pure, so it can be tested without a database.
+export function setupChecks(f: SetupFacts, now: Date): CheckResult[] {
+  const checks: CheckResult[] = [];
+  if (f.stripe?.ok && f.stripe.total > 0) {
+    checks.push({
+      key: "stripe-webhooks",
+      title: `${plural(f.stripe.total, "Stripe-Meldung", "Stripe-Meldungen")} nicht angekommen`,
+      reason: "Bei Zahlungen heißt das: das Geld ist da, die App weiß es vielleicht noch nicht",
+      priority: "HIGH",
+      href: "/admin/technik",
+    });
+  }
+  if (f.mailFailures24h >= 3) {
+    checks.push({
+      key: "mail-failures",
+      title: `${plural(f.mailFailures24h, "Mail", "Mails")} in 24 Stunden nicht rausgegangen`,
+      reason: "Auch Bestätigungs- und Passwort-Mails können betroffen sein",
+      priority: "HIGH",
+      href: "/admin/mails",
+    });
+  }
+  if (f.sentry?.ok && f.sentry.issues.length > 0) {
+    checks.push({
+      key: "sentry-errors",
+      title: `${plural(f.sentry.issues.length, "ungelöster Fehler", "ungelöste Fehler")} in der App`,
+      reason: "In den letzten 24 Stunden gemeldet",
+      priority: "MEDIUM",
+      href: "/admin/technik",
+    });
+  }
+  if (f.activeFixedCosts === 0) {
+    checks.push({
+      key: "money-fixed-costs",
+      title: "Fixkosten eintragen",
+      reason: "Ohne sie stimmt die Reichweite des Geldes nicht",
+      priority: "LOW",
+      href: "/admin/geld",
+    });
+  }
+  if (!f.balanceAt) {
+    checks.push({ key: "money-balance", title: "Kontostand eintragen", reason: "Ohne ihn lässt sich die Reichweite des Geldes nicht berechnen", priority: "LOW", href: "/admin/geld" });
+  } else if (now.getTime() - f.balanceAt.getTime() > 14 * DAY) {
+    checks.push({ key: "money-balance", title: "Kontostand aktualisieren", reason: `Der letzte Eintrag ist ${Math.floor((now.getTime() - f.balanceAt.getTime()) / DAY)} Tage alt`, priority: "LOW", href: "/admin/geld" });
+  }
+  return checks;
+}
+
 // The fixed checks: things in the data that wait on the admin. Each returns nothing when there is nothing to do.
 export async function computeChecks(now = new Date()): Promise<CheckResult[]> {
   const releaseSoonBefore = new Date(now.getTime() - (RELEASE_REVIEW_MS - DAY));
-  const [reports, disputes, releaseSoon, foundingUnnotified] = await Promise.all([
+  const [reports, disputes, releaseSoon, foundingUnnotified, snapshots, mailFailures24h, activeFixedCosts, settings] = await Promise.all([
     prisma.report.aggregate({ where: { status: "OPEN" }, _count: true, _min: { createdAt: true } }),
     prisma.interest.count({ where: { paymentStatus: "HELD", disputedAt: { not: null } } }),
     prisma.interest.count({ where: { paymentStatus: "HELD", disputedAt: null, proofSubmittedAt: { lte: releaseSoonBefore } } }),
     prisma.startupProfile.count({
       where: { foundingNumber: { not: null }, foundingNoticeSentAt: null, user: { suspendedAt: null, deletedAt: null } },
     }),
+    readSnapshots(),
+    prisma.mailLog.count({ where: { ok: false, createdAt: { gte: new Date(now.getTime() - DAY) } } }),
+    prisma.fixedCost.count({ where: { active: true } }),
+    prisma.adminSettings.findUnique({ where: { id: 1 }, select: { cashBalanceAt: true } }),
   ]);
 
   const checks: CheckResult[] = [];
@@ -113,15 +175,12 @@ export async function computeChecks(now = new Date()): Promise<CheckResult[]> {
       href: "/admin/users?role=STARTUP&pro=1",
     });
   }
-  if (!process.env.ANTHROPIC_API_KEY) {
-    checks.push({
-      key: "setup-anthropic-key",
-      title: "Claude-API-Key in Vercel eintragen",
-      reason: "Für Briefing, Chat und Content-Studio. Ohne Key bleiben sie aus.",
-      priority: "LOW",
-      href: "/admin/anpassen#verbindungen",
-    });
-  }
+  checks.push(
+    ...setupChecks(
+      { sentry: snapshots.sentry?.data ?? null, stripe: snapshots.stripe?.data ?? null, mailFailures24h, activeFixedCosts, balanceAt: settings?.cashBalanceAt ?? null },
+      now,
+    ),
+  );
   return checks;
 }
 
@@ -155,12 +214,12 @@ export async function syncChecks(now = new Date()): Promise<void> {
           reason: u.check.reason ?? null,
           priority: u.check.priority,
           href: u.check.href ?? null,
-          ...(u.reopen ? { status: "OPEN" as AdminTaskStatus, doneAt: null, snoozedUntil: null } : {}),
+          ...(u.reopen ? { status: "OPEN" as AdminTaskStatus, doneAt: null, snoozedUntil: null, autoClosed: false } : {}),
         },
       }),
     ),
     ...(plan.close.length > 0
-      ? [prisma.adminTask.updateMany({ where: { id: { in: plan.close } }, data: { status: "DONE", doneAt: now, snoozedUntil: null } })]
+      ? [prisma.adminTask.updateMany({ where: { id: { in: plan.close } }, data: { status: "DONE", doneAt: now, snoozedUntil: null, autoClosed: true } })]
       : []),
   ]);
 }

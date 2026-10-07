@@ -7,9 +7,11 @@ import { PRO_SUBSCRIPTION_PRICE_CENTS } from "@/lib/constants";
 import { orderedTiles, type TileKey } from "@/lib/admin-prefs";
 import { getAdminPrefs } from "@/lib/admin-prefs-server";
 import { loadDashboard } from "@/lib/admin-dashboard";
+import { loadMoney, runwayText } from "@/lib/admin-money";
+import { loadAds } from "@/lib/admin-ads";
 import { listOpenTasks } from "@/lib/admin-tasks";
 import { paymentStage } from "@/lib/payment-stage";
-import { DashCard, FunnelBars, GoalRing, KpiTile } from "@/components/admin/dashboard-parts";
+import { DashCard, FunnelBars, GoalRing, KpiTile, money } from "@/components/admin/dashboard-parts";
 import { DailyBarChart } from "@/components/admin/daily-bar-chart";
 import { TaskList } from "@/components/admin/task-list";
 import { PaymentStatusBadge } from "@/components/payment-status-badge";
@@ -24,14 +26,17 @@ function greeting(now: Date) {
 }
 
 // Blocks that sit next to each other on wide screens take half the row.
-const HALF: TileKey[] = ["ziele", "markt", "funnel", "anmeldungen"];
+const HALF: TileKey[] = ["geld", "ziele", "markt", "funnel", "ads", "anmeldungen"];
 
 export default async function AdminTodayPage() {
   const session = await requireAdminSession();
   const prefs = await getAdminPrefs(session.user.id);
   const now = new Date();
 
-  const [data, tasks, recentUsers, recentPayments] = await Promise.all([
+  const visible = orderedTiles(prefs.tileOrder, prefs.hiddenTiles);
+
+  // The money and ad figures cost extra queries, so they are only fetched when their block is shown.
+  const [data, tasks, recentUsers, recentPayments, cash, ads] = await Promise.all([
     loadDashboard(now),
     listOpenTasks(now),
     prisma.user.findMany({ orderBy: { createdAt: "desc" }, take: 6, include: { startupProfile: true, creatorProfile: true } }),
@@ -41,6 +46,8 @@ export default async function AdminTodayPage() {
       orderBy: { paidAt: "desc" },
       take: 6,
     }),
+    visible.includes("geld") ? loadMoney(now) : null,
+    visible.includes("ads") ? loadAds(now) : null,
   ]);
 
   const dateLabel = new Intl.DateTimeFormat("de-DE", { weekday: "long", day: "numeric", month: "long", timeZone: TIME_ZONE }).format(now);
@@ -87,6 +94,37 @@ export default async function AdminTodayPage() {
         />
       </div>
     ),
+    geld: cash && (
+      <DashCard title="Geld" right={<Link href="/admin/geld" className="text-xs underline">Details</Link>} className="h-full">
+        <p className="font-display text-[1.875rem] leading-9 font-black tracking-tight">{runwayText(cash.runway).big}</p>
+        <p className="mt-1 text-xs text-neutral-600 dark:text-neutral-400">
+          {cash.balanceCents === null ? "Trag auf der Geld-Seite deinen Kontostand ein." : `Kontostand ${money(cash.balanceCents)}`}
+        </p>
+        <div className="mt-4 grid grid-cols-2 gap-x-5 gap-y-4">
+          <Stat value={money(cash.feeMonth)} label="Provision diesen Monat" />
+          <Stat value={money(cash.fixedMonthly + cash.adsLast30)} label="Kosten (Fixkosten und Ads, 30 Tage)" />
+        </div>
+      </DashCard>
+    ),
+    ads: ads && (
+      <DashCard title="Ads" right={<Link href="/admin/ads" className="text-xs underline">Details</Link>} className="h-full">
+        {ads.hasSpend ? (
+          <div className="grid grid-cols-2 gap-x-5 gap-y-4">
+            <Stat value={money(ads.spendCents)} label="Ausgaben in 30 Tagen" />
+            <Stat value={ads.advertised.signups > 0 && ads.advertised.cpaCents !== null ? money(Math.round(ads.advertised.cpaCents)) : "–"} label="Kosten je Anmeldung" />
+            <Stat
+              value={ads.advertised.clickToSignup === null ? "–" : `${(ads.advertised.clickToSignup * 100).toLocaleString("de-DE", { maximumFractionDigits: 1 })} %`}
+              label="Klick zur Anmeldung"
+            />
+            <Stat value={`${ads.signupsTagged} von ${ads.signupsTotal}`} label="Anmeldungen mit Kampagnen-Angabe" />
+          </div>
+        ) : (
+          <p className="text-sm text-neutral-600 dark:text-neutral-400">
+            Noch keine Ausgaben importiert. Unter „Ads &amp; Kanäle“ baust du einen Link mit Kampagnennamen und lädst die Ausgaben als CSV hoch.
+          </p>
+        )}
+      </DashCard>
+    ),
     ziele: (
       <DashCard title="Ziele" right={<Link href="/admin/anpassen" className="text-xs underline">ändern</Link>} className="h-full">
         <div className="grid grid-cols-3 gap-2">
@@ -121,8 +159,6 @@ export default async function AdminTodayPage() {
       <DailyBarChart title="Anmeldungen pro Tag" points={data.signupSeries} unit="count" total={`${data.users.newLast30.toLocaleString("de-DE")} in 30 Tagen`} />
     ),
   };
-
-  const visible = orderedTiles(prefs.tileOrder, prefs.hiddenTiles);
 
   return (
     <div className="flex flex-col gap-6">

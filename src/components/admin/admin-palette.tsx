@@ -3,7 +3,30 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { IconType } from "react-icons";
-import { FiAlertTriangle, FiCheckSquare, FiCreditCard, FiFileText, FiGrid, FiMail, FiPlus, FiSearch, FiSend, FiSliders, FiTrendingUp, FiUser, FiUsers } from "react-icons/fi";
+import {
+  FiActivity,
+  FiAlertTriangle,
+  FiBarChart2,
+  FiBookOpen,
+  FiCheckSquare,
+  FiClock,
+  FiCreditCard,
+  FiDollarSign,
+  FiFileText,
+  FiGrid,
+  FiHelpCircle,
+  FiInbox,
+  FiMail,
+  FiPlus,
+  FiSearch,
+  FiSend,
+  FiShoppingBag,
+  FiSliders,
+  FiTarget,
+  FiTrendingUp,
+  FiUser,
+  FiUsers,
+} from "react-icons/fi";
 import type { AdminSearchResult } from "@/app/api/admin/search/route";
 
 // Opened with ⌘K / Ctrl+K from any admin page, or by the Search button in the sidebar (which fires this event).
@@ -17,14 +40,23 @@ type Group = { label: string; items: Item[] };
 const PAGES: { href: string; title: string; icon: IconType }[] = [
   { href: "/admin", title: "Heute", icon: FiGrid },
   { href: "/admin/offen", title: "Offen", icon: FiCheckSquare },
+  { href: "/admin/wachstum", title: "Wachstum", icon: FiBarChart2 },
+  { href: "/admin/geld", title: "Geld", icon: FiDollarSign },
+  { href: "/admin/marktplatz", title: "Marktplatz", icon: FiShoppingBag },
   { href: "/admin/onboarding", title: "Onboarding", icon: FiTrendingUp },
+  { href: "/admin/ads", title: "Ads & Kanäle", icon: FiTarget },
+  { href: "/admin/mails", title: "Mails", icon: FiInbox },
   { href: "/admin/mailing", title: "Mailing", icon: FiMail },
   { href: "/admin/waitlist", title: "Warteliste", icon: FiMail },
   { href: "/admin/email", title: "E-Mail-Vorschau", icon: FiSend },
+  { href: "/admin/technik", title: "Technik", icon: FiActivity },
   { href: "/admin/moderation", title: "Moderation", icon: FiAlertTriangle },
+  { href: "/admin/fristen", title: "Fristen", icon: FiClock },
+  { href: "/admin/log", title: "Entscheidungs-Log", icon: FiBookOpen },
   { href: "/admin/users", title: "Nutzer", icon: FiUsers },
   { href: "/admin/requests", title: "Anfragen", icon: FiFileText },
   { href: "/admin/payments", title: "Zahlungen", icon: FiCreditCard },
+  { href: "/admin/hilfe", title: "Hilfe", icon: FiHelpCircle },
   { href: "/admin/anpassen", title: "Anpassen", icon: FiSliders },
 ];
 

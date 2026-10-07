@@ -1,4 +1,6 @@
+import { after } from "next/server";
 import { requireAdminSession } from "@/lib/admin-session";
+import { refreshExternalSnapshots } from "@/lib/admin-external";
 import { getAdminPrefs } from "@/lib/admin-prefs-server";
 import { accentCss } from "@/lib/admin-theme";
 import { listOpenTasks, syncChecks } from "@/lib/admin-tasks";
@@ -20,6 +22,8 @@ export const metadata: Metadata = { robots: NO_INDEX };
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const session = await requireAdminSession();
+  // Sentry and Stripe are asked again in the background when their stored answer is a few minutes old.
+  after(() => refreshExternalSnapshots());
   const prefs = await getAdminPrefs(session.user.id);
 
   // The fixed checks bring the Offen list up to date before it is read, so every admin page shows the same list.
@@ -53,7 +57,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
         email={session.user.email ?? ""}
         backToApp={session.user.role !== "ADMIN"}
         panelOpen={prefs.panelOpen}
-        panel={<ClaudePanel tasks={taskViews} apiKeySet={!!process.env.ANTHROPIC_API_KEY} />}
+        panel={<ClaudePanel tasks={taskViews} />}
         overlays={
           <>
             <AdminPalette />
