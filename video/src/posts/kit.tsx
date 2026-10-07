@@ -1,7 +1,7 @@
 import type { CSSProperties, ReactNode } from "react";
 import { AbsoluteFill, Img, staticFile } from "remotion";
-import { FiBell, FiChevronLeft, FiCheck, FiHeart } from "react-icons/fi";
-import { IoGiftOutline, IoStar } from "react-icons/io5";
+import { FiBell, FiChevronLeft, FiCheck, FiHeart, FiRotateCcw, FiX } from "react-icons/fi";
+import { IoCardOutline, IoChatbubbleOutline, IoGiftOutline, IoHome, IoSearchOutline, IoSettingsOutline, IoStar, IoStarOutline } from "react-icons/io5";
 import { SiInstagram, SiTiktok } from "react-icons/si";
 import { colors, FONT, PHOTOS, type PhotoKey } from "../theme";
 
@@ -212,6 +212,59 @@ export const AppHeader: React.FC<{ title: string }> = ({ title }) => (
       <FiHeart size={18} />
       <FiBell size={18} />
     </span>
+  </div>
+);
+
+const TABS = [IoHome, IoSearchOutline, IoChatbubbleOutline, IoCardOutline, IoSettingsOutline];
+
+// The app's tab bar (the dock at the bottom), the first tab selected.
+export const AppTabBar: React.FC = () => (
+  <div style={{ marginTop: "auto", flexShrink: 0, borderRadius: "18px 18px 0 0", borderTop: `1px solid ${HAIRLINE}`, backgroundColor: colors.paper, paddingBottom: 20 }}>
+    <div style={{ display: "flex" }}>
+      {TABS.map((Icon, i) => (
+        <span key={i} style={{ flex: 1, display: "flex", justifyContent: "center", padding: "10px 0 4px", color: i === 0 ? colors.ink : NEUTRAL[400] }}>
+          <Icon size={22} />
+        </span>
+      ))}
+    </div>
+    <div style={{ margin: "8px auto 0", height: 4, width: 110, borderRadius: 999, backgroundColor: "rgba(7,7,7,0.8)" }} />
+  </div>
+);
+
+const RoundButton: React.FC<{ size: number; filled?: boolean; children: ReactNode }> = ({ size, filled, children }) => (
+  <span
+    style={{
+      justifySelf: "center",
+      width: size,
+      height: size,
+      boxSizing: "border-box",
+      borderRadius: 999,
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      ...(filled ? { backgroundColor: colors.ink, color: colors.paper } : { border: `1px solid ${HAIRLINE}`, color: NEUTRAL[600] }),
+    }}
+  >
+    {children}
+  </span>
+);
+
+// The Feed's buttons under the card: pass, favourite, interested, undo.
+export const DeckButtons: React.FC = () => (
+  <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", alignItems: "center", padding: "12px 0", flexShrink: 0 }}>
+    <span />
+    <RoundButton size={48}>
+      <FiX size={20} />
+    </RoundButton>
+    <RoundButton size={36}>
+      <IoStarOutline size={16} color={NEUTRAL[400]} />
+    </RoundButton>
+    <RoundButton size={48} filled>
+      <FiHeart size={20} />
+    </RoundButton>
+    <RoundButton size={36}>
+      <FiRotateCcw size={16} color={NEUTRAL[400]} />
+    </RoundButton>
   </div>
 );
 
