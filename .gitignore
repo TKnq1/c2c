@@ -47,3 +47,6 @@ next-env.d.ts
 
 # capacitor (written on every cap sync, see scripts/write-app-config.mjs)
 /capacitor/www/app-config.js
+
+# Knowledge graph outputs (rebuild with: /graphify .)
+graphify-out/

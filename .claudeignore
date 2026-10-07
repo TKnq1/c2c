@@ -1,0 +1,3 @@
+# Graphify rebuilds these often; ignoring them keeps Claude Code's prompt cache valid.
+graph.json
+graphify-out/
