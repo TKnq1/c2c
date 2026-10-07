@@ -53,7 +53,8 @@ export default async function AdminLayout({ children }: { children: React.ReactN
     <div className="admin-shell flex flex-1 flex-col">
       <style dangerouslySetInnerHTML={{ __html: accentCss(prefs.accent) + spacing }} />
       <AdminShell
-        counts={{ attention: openReports + openDisputes, tasks: tasks.length }}
+        // The Offen badge counts what needs the admin, like the sentence on Heute: low tasks are left out.
+        counts={{ attention: openReports + openDisputes, tasks: tasks.filter((t) => t.priority !== "LOW").length }}
         email={session.user.email ?? ""}
         backToApp={session.user.role !== "ADMIN"}
         panelOpen={prefs.panelOpen}

@@ -3,12 +3,13 @@
 import { z } from "zod";
 import { ACCENT_KEYS, DEFAULT_ACCENT, type AccentKey } from "@/lib/admin-theme";
 
-// The blocks of the "Heute" page an admin can hide or reorder. The Claude briefing and the Offen list live in the panel.
+// The blocks under "Mehr Details" on the "Heute" page that an admin can hide or reorder. What needs attention and the four
+// headline figures above them are always there.
 export const TILE_KEYS = ["kennzahlen", "geld", "ziele", "markt", "funnel", "ads", "anmeldungen"] as const;
 export type TileKey = (typeof TILE_KEYS)[number];
 
 export const TILE_LABELS: Record<TileKey, string> = {
-  kennzahlen: "Kennzahlen",
+  kennzahlen: "Alle Kennzahlen",
   geld: "Geld",
   ziele: "Ziele",
   markt: "Marktplatz-Gesundheit",
@@ -49,7 +50,7 @@ export const DEFAULT_PREFS: AdminPrefs = {
   morningToHour: 11,
   morningEveryTime: false,
   songVolume: 55,
-  panelOpen: true,
+  panelOpen: false,
   setupDone: false,
 };
 

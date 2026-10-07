@@ -791,7 +791,7 @@ model AdminPreference {
   morningToHour       Int       @default(11)
   morningEveryTime    Boolean   @default(false)
   songVolume          Int       @default(55)
-  panelOpen           Boolean   @default(true)
+  panelOpen           Boolean   @default(false)
   setupDoneAt         DateTime?
   updatedAt           DateTime  @updatedAt
 }

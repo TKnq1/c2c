@@ -107,7 +107,7 @@ export function SettingsForm({ initial }: { initial: AdminPrefs }) {
 
       <div className="grid gap-4 xl:grid-cols-2">
         <section className={card}>
-          <h2 className={heading}>Blöcke auf „Heute“</h2>
+          <h2 className={heading}>Blöcke unter „Mehr Details“ auf „Heute“</h2>
           {order.map((key, i) => {
             const visible = !prefs.hiddenTiles.includes(key);
             return (
