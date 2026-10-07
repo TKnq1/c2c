@@ -180,8 +180,8 @@ export const Phone: React.FC<{ left: number; top: number; scale: number; width?:
   </div>
 );
 
-const StatusBar: React.FC = () => (
-  <div style={{ display: "grid", gridTemplateColumns: "1fr 31% 1fr", alignItems: "center", height: 40, flexShrink: 0, fontSize: 13, fontWeight: 700 }}>
+export const StatusBar: React.FC<{ height?: number }> = ({ height = 40 }) => (
+  <div style={{ display: "grid", gridTemplateColumns: "1fr 31% 1fr", alignItems: "center", height, flexShrink: 0, fontSize: 13, fontWeight: 700 }}>
     <span style={{ justifySelf: "center" }}>11:11</span>
     <span />
     <span style={{ display: "flex", alignItems: "center", gap: 3, justifySelf: "center" }}>
@@ -249,8 +249,8 @@ const RoundButton: React.FC<{ size: number; filled?: boolean; children: ReactNod
   </span>
 );
 
-// The Feed's buttons under the card: pass, favourite, interested, undo.
-export const DeckButtons: React.FC = () => (
+// The Feed's buttons under the card: pass, favourite, interested, undo. `heartScale` pulses the heart on a swipe.
+export const DeckButtons: React.FC<{ heartScale?: number }> = ({ heartScale = 1 }) => (
   <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", alignItems: "center", padding: "12px 0", flexShrink: 0 }}>
     <span />
     <RoundButton size={48}>
@@ -259,9 +259,11 @@ export const DeckButtons: React.FC = () => (
     <RoundButton size={36}>
       <IoStarOutline size={16} color={NEUTRAL[400]} />
     </RoundButton>
-    <RoundButton size={48} filled>
-      <FiHeart size={20} />
-    </RoundButton>
+    <span style={{ justifySelf: "center", transform: `scale(${heartScale})` }}>
+      <RoundButton size={48} filled>
+        <FiHeart size={20} />
+      </RoundButton>
+    </span>
     <RoundButton size={36}>
       <FiRotateCcw size={16} color={NEUTRAL[400]} />
     </RoundButton>
@@ -342,10 +344,10 @@ export type FeedDeal = {
 
 // The swipe card of the Feed: the photo full-bleed, the budget up top, brand, title and what the job is over the
 // bottom (src/components/request-card-face.tsx).
-export const FeedCard: React.FC<{ deal: FeedDeal; height: number }> = ({ deal, height }) => {
+export const FeedCard: React.FC<{ deal: FeedDeal; height: number; marginTop?: number }> = ({ deal, height, marginTop = 12 }) => {
   const photo = staticFile(PHOTOS[deal.photo]);
   return (
-    <div style={{ position: "relative", marginTop: 12, height, flexShrink: 0 }}>
+    <div style={{ position: "relative", marginTop, height, flexShrink: 0 }}>
       <div style={{ position: "absolute", inset: 0, borderRadius: "0 0 28px 28px", boxShadow: SHADOW_XL }}>
         <div style={{ position: "relative", height: "100%", overflow: "hidden", borderRadius: "0 0 28px 28px", backgroundColor: colors.paper }}>
           <Img src={photo} style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", transform: "scale(1.03)" }} />

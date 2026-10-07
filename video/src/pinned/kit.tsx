@@ -1,12 +1,13 @@
 import type { ReactNode } from "react";
-import { AbsoluteFill, Img, staticFile } from "remotion";
+import { AbsoluteFill, Html5Audio, interpolate, staticFile } from "remotion";
+import { Img } from "remotion";
 import { FONT } from "../theme";
 
 // The pinned posts: the emails' night backdrop (public/email/band-mark.jpg in the app) with the mark huge behind
-// everything, a headline in two tones (what it is in white, the rest in grey) and the app's full screen, dock
-// included, without a phone around it.
+// everything, a headline in two tones (what it is in white, the rest in grey) and the app on an iPhone.
 
 export const GREY = "#8a8a8a";
+export const FPS = 30;
 
 // Film grain over the dark, as in the emails and the launch video.
 const GRAIN =
@@ -17,18 +18,11 @@ export const Night: React.FC<{ children: ReactNode }> = ({ children }) => (
     <AbsoluteFill style={{ background: "radial-gradient(ellipse 70% 55% at 50% 45%, #1d1d1d 0%, #0b0b0b 100%)" }} />
     <Img
       src={staticFile("logo.png")}
-      style={{ position: "absolute", left: "50%", top: 760, width: 1640, height: 1640, transform: "translate(-50%, -50%)", filter: "invert(1)", opacity: 0.2 }}
+      style={{ position: "absolute", left: "50%", top: 780, width: 1640, height: 1640, transform: "translate(-50%, -50%)", filter: "invert(1)", opacity: 0.16 }}
     />
     <AbsoluteFill style={{ opacity: 0.22, mixBlendMode: "overlay", backgroundImage: GRAIN }} />
     {children}
   </AbsoluteFill>
-);
-
-export const Wordmark: React.FC<{ top?: number }> = ({ top = 64 }) => (
-  <div style={{ position: "absolute", top, left: 0, right: 0, display: "flex", justifyContent: "center", alignItems: "center", gap: 12 }}>
-    <Img src={staticFile("logo.png")} style={{ width: 36, height: 36, filter: "invert(1)" }} />
-    <span style={{ fontSize: 32, fontWeight: 700, letterSpacing: -0.5 }}>comtor</span>
-  </div>
 );
 
 // One line per entry; `grey` lines are the second tone.
@@ -43,7 +37,15 @@ export const TwoTone: React.FC<{ lines: { text: string; grey?: boolean }[]; size
 );
 
 export const SampleNote: React.FC = () => (
-  <div style={{ position: "absolute", bottom: 26, left: 0, right: 0, textAlign: "center", fontSize: 22, color: "#6f6f6f" }}>
+  <div style={{ position: "absolute", bottom: 24, left: 0, right: 0, textAlign: "center", fontSize: 22, color: "#6f6f6f" }}>
     Beispiel: Marken, Preise und Bewertungen sind erfunden.
   </div>
+);
+
+// The video's music bed under the cover, faded out at the end.
+export const Bed: React.FC<{ file: string; duration: number; volume?: number }> = ({ file, duration, volume = 0.35 }) => (
+  <Html5Audio
+    src={staticFile(file)}
+    volume={(f) => volume * interpolate(f, [0, 6, duration - 20, duration], [0, 1, 1, 0], { extrapolateLeft: "clamp", extrapolateRight: "clamp" })}
+  />
 );

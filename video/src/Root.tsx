@@ -18,8 +18,8 @@ export const RemotionRoot: React.FC = () => (
       ))}
     </Folder>
     <Folder name="Pinned">
-      {PINNED.map(({ id, component }) => (
-        <Still key={id} id={id} component={component} width={POST_WIDTH} height={POST_HEIGHT} />
+      {PINNED.map(({ id, component, duration }) => (
+        <Composition key={id} id={id} component={component} durationInFrames={duration} fps={FPS} width={POST_WIDTH} height={POST_HEIGHT} />
       ))}
     </Folder>
     <Folder name="Posts">
