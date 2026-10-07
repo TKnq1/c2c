@@ -90,6 +90,7 @@ export function CreatorDeck({ onTop }: { onTop: (photo: PhotoKey) => void }) {
                 stackIndex={i + 1}
                 onSwipe={() => {}}
                 onTap={wiggle}
+                lazyPhotos
               />
             ))}
           </div>
@@ -99,6 +100,7 @@ export function CreatorDeck({ onTop }: { onTop: (photo: PhotoKey) => void }) {
               ref={topRef}
               request={stack[0]}
               stackIndex={0}
+              lazyPhotos
               onSwipe={(direction) => handleSwipe(stack[0], direction)}
               restoredFrom={stack[0].id === restored ? "left" : undefined}
               onTap={wiggle}

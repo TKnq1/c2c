@@ -42,7 +42,9 @@ export function postByDate(postBy: string) {
 // budget up top and the brand, title and what the job is laid over the
 // bottom — or, without photos, the same on paper with the description
 // filling the space the photo would take.
-export function RequestCardFace({ request, photoIndex = 0 }: { request: CardRequest; photoIndex?: number }) {
+// `lazyPhotos`: the photos wait until the card is near the screen, so a card that is hidden or far down the
+// page (the landing page's mock-ups) costs no download until it is seen. The app's own cards load straight away.
+export function RequestCardFace({ request, photoIndex = 0, lazyPhotos = false }: { request: CardRequest; photoIndex?: number; lazyPhotos?: boolean }) {
   const { t } = useI18n();
   const photo = request.photos[photoIndex] ?? request.photos[0];
   const budget = formatBudget(request.budgetMinCents, request.budgetMaxCents);
@@ -77,7 +79,7 @@ export function RequestCardFace({ request, photoIndex = 0 }: { request: CardRequ
       {/* Scaled a hair so the photo covers the curve. The card clips it,
           otherwise a sliver of the picture sits outside the radius. */}
       {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src={photo} alt="" draggable={false} className="absolute inset-0 h-full w-full origin-center scale-[1.03] select-none object-cover" />
+      <img src={photo} alt="" draggable={false} loading={lazyPhotos ? "lazy" : undefined} className="absolute inset-0 h-full w-full origin-center scale-[1.03] select-none object-cover" />
 
       {request.photos.length > 1 && (
         <div className="pointer-events-none absolute inset-x-3 top-2.5 flex gap-1">
@@ -117,6 +119,7 @@ export function RequestCardFace({ request, photoIndex = 0 }: { request: CardRequ
             src={photo}
             alt=""
             draggable={false}
+            loading={lazyPhotos ? "lazy" : undefined}
             className="absolute bottom-0 left-0 w-full select-none object-cover blur-xl"
             style={{ height: "100cqh" }}
           />

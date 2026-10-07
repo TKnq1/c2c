@@ -8,6 +8,9 @@ import {
   formatRelativeTime,
   isRecentlyCreated,
 } from "@/lib/format";
+import { createT } from "@/lib/i18n/catalogs";
+
+const t = createT("en");
 
 describe("formatCents", () => {
   it("formats whole euros", () => {
@@ -85,14 +88,14 @@ describe("formatPostBy", () => {
 describe("formatRelativeTime", () => {
   const tz = "Europe/Berlin";
   const now = Date.parse("2026-10-01T15:00:00+02:00");
-  const ago = (ms: number) => formatRelativeTime(now - ms, now, tz);
+  const ago = (ms: number) => formatRelativeTime(now - ms, now, tz, "en", t);
   const MIN = 60_000;
 
   it("says just now under a minute", () => {
     expect(ago(30_000)).toBe("Just now");
   });
   it("treats a timestamp slightly in the future as just now", () => {
-    expect(formatRelativeTime(now + 5_000, now, tz)).toBe("Just now");
+    expect(formatRelativeTime(now + 5_000, now, tz, "en", t)).toBe("Just now");
   });
   it("counts minutes under an hour", () => {
     expect(ago(5 * MIN)).toBe("5 min ago");
@@ -105,19 +108,19 @@ describe("formatRelativeTime", () => {
     expect(ago(16 * 60 * MIN)).toBe("Yesterday");
   });
   it("names the weekday within the past week", () => {
-    expect(formatRelativeTime(Date.parse("2026-09-28T10:00:00+02:00"), now, tz)).toBe("Monday");
+    expect(formatRelativeTime(Date.parse("2026-09-28T10:00:00+02:00"), now, tz, "en", t)).toBe("Monday");
   });
   it("shows the date beyond a week", () => {
-    expect(formatRelativeTime(Date.parse("2026-09-20T10:00:00+02:00"), now, tz)).toBe("Sep 20");
+    expect(formatRelativeTime(Date.parse("2026-09-20T10:00:00+02:00"), now, tz, "en", t)).toBe("Sep 20");
   });
   it("adds the year for an earlier year", () => {
-    expect(formatRelativeTime(Date.parse("2025-12-24T10:00:00+01:00"), now, tz)).toBe("Dec 24, 2025");
+    expect(formatRelativeTime(Date.parse("2025-12-24T10:00:00+01:00"), now, tz, "en", t)).toBe("Dec 24, 2025");
   });
   it("goes by the viewer's calendar day, not UTC's", () => {
     // 00:30 in Berlin is still the previous day in UTC.
     const justAfterMidnight = Date.parse("2026-10-01T00:30:00+02:00");
-    expect(formatRelativeTime(justAfterMidnight, now, tz)).toBe("14 h ago");
-    expect(formatRelativeTime(justAfterMidnight, now, "UTC")).toBe("Yesterday");
+    expect(formatRelativeTime(justAfterMidnight, now, tz, "en", t)).toBe("14 h ago");
+    expect(formatRelativeTime(justAfterMidnight, now, "UTC", "en", t)).toBe("Yesterday");
   });
 });
 

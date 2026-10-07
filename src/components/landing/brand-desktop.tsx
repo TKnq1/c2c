@@ -193,7 +193,7 @@ export function BrandDesktop(props: Props) {
           {/* Laid out at the Feed card's real size and scaled down, as in the app's own form. */}
           <div className="relative mx-auto h-[376px] w-[300px] shrink-0">
             <div className="absolute top-0 left-0 flex h-[470px] w-[375px] origin-top-left scale-[0.8] flex-col overflow-hidden rounded-[32px] border border-ink/10 bg-paper shadow-xl">
-              <RequestCardFace request={request} />
+              <RequestCardFace request={request} lazyPhotos />
             </div>
           </div>
         </aside>

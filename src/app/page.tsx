@@ -5,8 +5,8 @@ import { getLocale, getT } from "@/lib/i18n/server";
 import { canonical } from "@/lib/seo";
 import { SITE_URL } from "@/lib/site";
 
-// The crowd counts are read on each visit, so a new account shows up
-// without waiting for the next deploy.
+// Rendered on each visit (the language comes from a cookie); the crowd counts behind it are cached for five
+// minutes (see landing-crowd.ts), so a new account shows up without waiting for the next deploy.
 export const dynamic = "force-dynamic";
 
 export async function generateMetadata(): Promise<Metadata> {

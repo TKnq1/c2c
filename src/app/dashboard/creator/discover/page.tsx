@@ -8,11 +8,10 @@ import { photoUrlsByRequestId, requestPhotoIds } from "@/lib/request-photos";
 import { DiscoverBrands } from "@/components/discover-brands";
 import { SkeletonTileGrid } from "@/components/skeleton";
 import { PageTitle } from "@/components/page-title";
-import { getLocale, getT } from "@/lib/i18n/server";
+import { getT } from "@/lib/i18n/server";
 
 export default async function DiscoverBrandsPage() {
   const t = await getT();
-  const locale = await getLocale();
   const session = await auth();
   if (!session || session.user.role !== "CREATOR") redirect("/login");
 
@@ -109,7 +108,7 @@ export default async function DiscoverBrandsPage() {
       isFavorited: favoritedStartupIds.has(b.id),
       createdAt: b.createdAt.getTime(),
       responseTimeMs,
-      responseTimeLabel: formatResponseTime(responseTimeMs, locale),
+      responseTimeLabel: formatResponseTime(responseTimeMs, t),
     };
   });
 

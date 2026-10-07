@@ -63,7 +63,9 @@ export const SwipeCard = forwardRef<SwipeCardHandle, {
   // through the photos). The landing page's demo deck uses it: the
   // details are for the real app.
   onTap?: () => void;
-}>(function SwipeCard({ request, stackIndex, onSwipe, restoredFrom, onTap }, ref) {
+  // See RequestCardFace.
+  lazyPhotos?: boolean;
+}>(function SwipeCard({ request, stackIndex, onSwipe, restoredFrom, onTap, lazyPhotos }, ref) {
   const isTop = stackIndex === 0;
   const [drag, setDrag] = useState(() =>
     restoredFrom
@@ -349,7 +351,7 @@ export const SwipeCard = forwardRef<SwipeCardHandle, {
         </>
       )}
 
-      <RequestCardFace request={request} photoIndex={photoIndex} />
+      <RequestCardFace request={request} photoIndex={photoIndex} lazyPhotos={lazyPhotos} />
 
       {/* The details sheet is a native <dialog>, so it renders in the top
           layer — clear of this card's transform and overflow-hidden without

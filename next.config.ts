@@ -54,6 +54,8 @@ const nextConfig: NextConfig = {
   // Local dev only: the Next.js badge sat on top of the sidebar's account
   // button in the bottom-left corner.
   devIndicators: { position: "bottom-right" },
+  // The only two qualities the app asks the image optimizer for (see cardPhoto).
+  images: { qualities: [60, 75] },
   experimental: {
     serverActions: {
       // A new request can carry up to five photos (resized to a few hundred

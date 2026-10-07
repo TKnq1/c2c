@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { parseLocale } from "@/lib/i18n/locales";
 import { landing } from "@/lib/i18n/messages/landing-en";
 import { landingDe } from "@/lib/i18n/messages/landing-de";
-import { createT } from "@/lib/i18n/translate";
+import { createT } from "@/lib/i18n/catalogs";
 
 describe("parseLocale", () => {
   it("keeps a supported language and falls back otherwise", () => {

@@ -9,13 +9,13 @@ import { useViewerTimeZone } from "@/lib/use-viewer-time-zone";
 // hover. The server renders the exact one, since it can't know the
 // viewer's "now"; the relative one takes over on the client.
 export function RelativeTime({ ms }: { ms: number }) {
-  const { locale } = useI18n();
+  const { locale, t } = useI18n();
   const timeZone = useViewerTimeZone();
   const now = useNow();
   const exact = new Date(ms).toLocaleString(dateLocale(locale), { timeZone, dateStyle: "medium", timeStyle: "short" });
   return (
     <time dateTime={new Date(ms).toISOString()} title={exact}>
-      {now === null ? exact : formatRelativeTime(ms, now, timeZone, locale)}
+      {now === null ? exact : formatRelativeTime(ms, now, timeZone, locale, t)}
     </time>
   );
 }

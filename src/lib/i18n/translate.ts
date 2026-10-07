@@ -1,15 +1,7 @@
-import { en, type Messages } from "@/lib/i18n/messages/en";
-import { de } from "@/lib/i18n/messages/de";
-import { es } from "@/lib/i18n/messages/es";
-import { fr } from "@/lib/i18n/messages/fr";
-import { it } from "@/lib/i18n/messages/it";
-import { nl } from "@/lib/i18n/messages/nl";
-import { pl } from "@/lib/i18n/messages/pl";
-import { pt } from "@/lib/i18n/messages/pt";
-import type { Catalog } from "@/lib/i18n/messages/types";
-import type { Locale } from "@/lib/i18n/locales";
+import type { Messages } from "@/lib/i18n/messages/en";
 
-const CATALOGS: Record<Locale, Catalog> = { en, de, fr, es, it, pt, nl, pl };
+// Client-safe: nothing here pulls a catalog in. Catalogs live in catalogs.ts (server, tests)
+// and load-catalog.ts (client, one locale at a time).
 
 type Leaves<T, P extends string = ""> = T extends string
   ? P
@@ -28,10 +20,10 @@ function lookup(source: object, key: string): string | undefined {
   return typeof cur === "string" ? cur : undefined;
 }
 
-export function createT(locale: Locale): TFunction {
-  const messages = CATALOGS[locale];
+// Reads a key from `messages`, then from `fallback` (when given), then falls back to the key itself.
+export function makeT(messages: object, fallback?: object): TFunction {
   return (key, vars) => {
-    const value = lookup(messages, key) ?? lookup(en, key) ?? key;
+    const value = lookup(messages, key) ?? (fallback ? lookup(fallback, key) : undefined) ?? key;
     if (!vars) return value;
     return value.replace(/\{(\w+)\}/g, (_, name: string) => (vars[name] === undefined ? `{${name}}` : String(vars[name])));
   };

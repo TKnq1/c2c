@@ -59,7 +59,7 @@ export function BrandBuilder({ onPhoto }: { onPhoto: (photo: PhotoKey) => void }
   const card = (
     <div className="absolute inset-0 rounded-b-[28px] text-left shadow-xl">
       <div className="flex h-full flex-col overflow-hidden rounded-b-[28px] bg-paper ring-1 ring-ink/10 ring-inset [clip-path:inset(0_round_0_0_28px_28px)]">
-        <RequestCardFace request={request} />
+        <RequestCardFace request={request} lazyPhotos />
       </div>
     </div>
   );

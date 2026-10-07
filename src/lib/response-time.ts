@@ -1,6 +1,5 @@
 import type { Role } from "@prisma/client";
-import { parseLocale, type Locale } from "@/lib/i18n/locales";
-import { createT } from "@/lib/i18n/translate";
+import type { TFunction } from "@/lib/i18n/translate";
 
 type MessageLike = { senderRole: Role; createdAt: Date };
 
@@ -39,9 +38,8 @@ const HOUR = 60 * MINUTE;
 const DAY = 24 * HOUR;
 
 /** eBay/Vinted-style bucketed label. Null when there's no response history yet. */
-export function formatResponseTime(ms: number | null, locale: Locale | string = "en"): string | null {
+export function formatResponseTime(ms: number | null, t: TFunction): string | null {
   if (ms === null) return null;
-  const t = createT(parseLocale(locale));
   if (ms < 30 * MINUTE) return t("screens.response.minutes");
   if (ms < HOUR) return t("screens.response.hour");
   if (ms < 6 * HOUR) return t("screens.response.fewHours");
@@ -51,9 +49,8 @@ export function formatResponseTime(ms: number | null, locale: Locale | string = 
 }
 
 /** The same buckets, short enough for a stat tile ("Replies in …"). */
-export function formatResponseTimeShort(ms: number | null, locale: Locale | string = "en"): string | null {
+export function formatResponseTimeShort(ms: number | null, t: TFunction): string | null {
   if (ms === null) return null;
-  const t = createT(parseLocale(locale));
   if (ms < 30 * MINUTE) return t("screens.response.shortMinutes");
   if (ms < HOUR) return t("screens.response.shortHour");
   if (ms < 6 * HOUR) return t("screens.response.shortHours");
