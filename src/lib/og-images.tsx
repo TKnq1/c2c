@@ -289,10 +289,10 @@ function Product({ text }: { text: OgText }) {
 
 // ── App icons ────────────────────────────────────────────────────────────
 
-// The white mark on black, full-bleed. No corners of our own: browsers and iOS apply their own mask, and Google
-// crops a site's icon to a circle in its results, so a rounded square would only leave a ring of empty black
-// inside it. The mark is as large as a circle crop allows (its box is 1.5:1 and its letters are round, so the
-// corners of the box stay empty). `ios`: iOS rounds the corners itself and cuts into them, so it gets more air.
+// The white mark on black. Browser tabs and the install icon keep the square's own rounded corners (transparent
+// outside them); a circle crop, which Google applies in its results, sits well inside those corners. The mark
+// is as large as that allows (its box is 1.5:1 and its letters are round, so the corners of the box stay empty).
+// `ios`: full-bleed with more air, since iOS applies its own rounded mask and cuts into the corners.
 export function appIcon(size: number, { ios }: { ios: boolean }) {
   return new ImageResponse(
     (
@@ -304,6 +304,7 @@ export function appIcon(size: number, { ios }: { ios: boolean }) {
           alignItems: "center",
           justifyContent: "center",
           background: INK,
+          borderRadius: ios ? 0 : size * 0.22,
         }}
       >
         <Mark width={Math.round(size * (ios ? 0.74 : 0.84))} white />
