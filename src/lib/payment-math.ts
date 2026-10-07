@@ -20,3 +20,14 @@ export function splitPayment(amountCents: number, proRate: boolean): { platformF
   const payoutCents = amountCents - platformFeeCents; // subtraction, so fee + payout always sum exactly to amount
   return { platformFeeCents, payoutCents };
 }
+
+// The split a deal that is still on the standard fee moves to once a side has Pro, or null when it already
+// has the Pro fee (or lower). A fee is never raised: the amount the brand pays stays, only the platform's cut shrinks.
+export function proSplitIfCheaper(
+  amountCents: number | null,
+  platformFeeCents: number | null,
+): { platformFeeCents: number; payoutCents: number } | null {
+  if (amountCents === null || platformFeeCents === null) return null;
+  const pro = splitPayment(amountCents, true);
+  return pro.platformFeeCents < platformFeeCents ? pro : null;
+}

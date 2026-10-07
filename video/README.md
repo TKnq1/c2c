@@ -33,3 +33,9 @@ The ElevenLabs recordings live in `voice/source/creator.mp3` and `brand.mp3`, ev
 a scene gets as long as its line needs, in whole beats, and plays its animation up to 1.5x faster when that is shorter
 than drawn. The music is rebuilt on that grid and ducks under the voice. Replace a recording and run `npm run voice`,
 then render.
+
+## Instagram: pinned posts
+
+Two carousels to pin on the profile, one for creators and one for brands, 1080 x 1440 (3:4). The covers are short
+animations with sound; `npm run posts` renders every slide to `out/pinned/` (MP4 for animated slides, mastered to
+-14 LUFS, PNG for the others). Sources in `src/pinned/`, shared pieces of the app's UI in `src/posts/kit.tsx`.

@@ -77,7 +77,7 @@ export function Hero({ brands, creators }: { brands: number; creators: number })
       </div>
       <div aria-hidden="true" className="lp-grain lp-fade-out" />
 
-      <div className="mx-auto flex max-w-6xl flex-col items-center px-4 pt-[calc(var(--safe-top)+112px)] pb-20 text-center md:pt-40 md:pb-28">
+      <div className="mx-auto flex max-w-7xl flex-col items-center px-4 pt-[calc(var(--safe-top)+112px)] pb-20 text-center md:pt-40 md:pb-28">
         <h1
           data-for="creator"
           className="font-display text-[clamp(34px,11.4vw,44px)] leading-[0.98] font-black tracking-[-0.035em] sm:text-[64px] lg:text-[88px]"
@@ -159,7 +159,7 @@ export function Hero({ brands, creators }: { brands: number; creators: number })
             <div className="lp-phone-in hidden lg:block" style={delay(250)}>
               <CreatorDesktop />
             </div>
-            <div className="lp-phone-in relative z-10 lg:-ml-14" style={delay(350)}>
+            <div className="lp-phone-in relative z-10 lg:-ml-6" style={delay(350)}>
               <CreatorDeck onTop={setCreatorPhoto} />
             </div>
           </div>
