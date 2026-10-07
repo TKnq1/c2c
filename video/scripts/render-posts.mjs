@@ -1,34 +1,32 @@
-// Renders the Instagram posts (src/posts) as PNGs, 1080 x 1440 (3:4, the portrait format of the Instagram grid): out/posts/post-1.png ... and one contact sheet,
-// out/posts.png. Pass post numbers to render only those (node scripts/render-posts.mjs 1 3), and
+// Renders the pinned Instagram carousels (src/pinned), 1080 x 1440 (3:4): out/pinned/creator-1.mp4, brand-1.mp4 ...
+// An animated slide becomes an MP4 with sound, mastered to -14 LUFS like the videos (scripts/master.py); a still
+// one a PNG. Pass slide ids to render only those (node scripts/render-posts.mjs PinCreator1), and
 // --browser-executable=<path> to use a local Chromium instead of Remotion's download.
 import { execFileSync } from "node:child_process";
-import { mkdirSync, readdirSync } from "node:fs";
+import { mkdirSync, renameSync, unlinkSync } from "node:fs";
 import { bundle } from "@remotion/bundler";
-import { getCompositions, renderStill } from "@remotion/renderer";
+import { getCompositions, renderMedia, renderStill } from "@remotion/renderer";
 
 const browserExecutable = process.argv.find((a) => a.startsWith("--browser-executable="))?.split("=")[1] ?? null;
-// "Pin" renders the pinned carousels (PinCreator1, PinBrand1, ...) to out/pinned instead.
-const pinned = process.argv.includes("Pin");
-const only = process.argv.slice(2).filter((a) => /^\d+$/.test(a));
-const outDir = pinned ? "out/pinned" : "out/posts";
+const only = process.argv.slice(2).filter((a) => /^Pin(Creator|Brand)\d+$/.test(a));
+const outDir = "out/pinned";
 mkdirSync(outDir, { recursive: true });
 
 const serveUrl = await bundle({ entryPoint: "src/index.ts" });
-const pattern = pinned ? /^Pin(Creator|Brand)\d+$/ : /^Post\d+$/;
-const posts = (await getCompositions(serveUrl, { browserExecutable })).filter((c) => pattern.test(c.id));
+const slides = (await getCompositions(serveUrl, { browserExecutable })).filter((c) => /^Pin(Creator|Brand)\d+$/.test(c.id));
 
-for (const composition of posts) {
-  const n = composition.id.match(/\d+$/)[0];
-  if (only.length > 0 && !only.includes(n)) continue;
-  const name = pinned ? composition.id.replace(/^Pin/, "").toLowerCase() : `post-${n}`;
-  await renderStill({ composition, serveUrl, output: `${outDir}/${name}.png`, browserExecutable });
-  console.log(`rendered ${name}.png`);
+for (const composition of slides) {
+  if (only.length > 0 && !only.includes(composition.id)) continue;
+  const name = composition.id.replace(/^Pin/, "").replace(/(\d+)$/, "-$1").toLowerCase();
+  if (composition.durationInFrames > 1) {
+    const raw = `${outDir}/${name}.raw.mp4`;
+    await renderMedia({ composition, serveUrl, codec: "h264", outputLocation: raw, browserExecutable });
+    execFileSync("python3", ["scripts/master.py", raw]);
+    renameSync(`${outDir}/${name}.raw-final.mp4`, `${outDir}/${name}.mp4`);
+    unlinkSync(raw);
+    console.log(`rendered ${name}.mp4`);
+  } else {
+    await renderStill({ composition, serveUrl, output: `${outDir}/${name}.png`, browserExecutable });
+    console.log(`rendered ${name}.png`);
+  }
 }
-
-const files = readdirSync(outDir)
-  .filter((f) => f.endsWith(".png"))
-  .sort()
-  .map((f) => `${outDir}/${f}`);
-const sheet = pinned ? "out/pinned.png" : "out/posts.png";
-execFileSync("montage", [...files, "-background", "#e5e5e5", "-tile", `${Math.min(files.length, 6)}x`, "-geometry", "432x576+16+16", sheet]);
-console.log(`sheet ${sheet}`);

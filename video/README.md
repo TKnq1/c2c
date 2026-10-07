@@ -34,7 +34,8 @@ a scene gets as long as its line needs, in whole beats, and plays its animation 
 than drawn. The music is rebuilt on that grid and ducks under the voice. Replace a recording and run `npm run voice`,
 then render.
 
-## Instagram posts
+## Instagram: pinned posts
 
-Five static posts in the landing page style, 1080 x 1440 (3:4). `npm run posts` renders them to `out/posts/`; sources in
-`src/posts/`, captions and posting order in `POSTS.md`.
+Two carousels to pin on the profile, one for creators and one for brands, 1080 x 1440 (3:4). The covers are short
+animations with sound; `npm run posts` renders every slide to `out/pinned/` (MP4 for animated slides, mastered to
+-14 LUFS, PNG for the others). Sources in `src/pinned/`, shared pieces of the app's UI in `src/posts/kit.tsx`.
