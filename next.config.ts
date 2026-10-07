@@ -40,6 +40,8 @@ const CSP = [
   "style-src 'self' 'unsafe-inline'",
   "img-src 'self' data: blob: https://*.stripe.com",
   "font-src 'self' data:",
+  // blob: is the admin dashboard's morning song, played from a file kept in the browser (see src/lib/admin-song.ts).
+  "media-src 'self' blob:",
   `connect-src 'self' https://*.stripe.com${sentryConnectSrc}${isDev ? " ws:" : ""}`,
   `frame-src ${frameSrc}`,
   `frame-ancestors ${frameAncestors}`,

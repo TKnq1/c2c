@@ -11,11 +11,11 @@ const BAR_GAP = 2;
 const MAX_BAR_WIDTH = 24;
 
 function formatValue(value: number, unit: "count" | "cents") {
-  return unit === "cents" ? formatCents(value) : value.toLocaleString("en-US");
+  return unit === "cents" ? formatCents(value) : value.toLocaleString("de-DE");
 }
 
 function formatDay(day: string) {
-  return new Date(`${day}T00:00:00Z`).toLocaleDateString("en-US", { month: "short", day: "numeric", timeZone: "UTC" });
+  return new Date(`${day}T00:00:00Z`).toLocaleDateString("de-DE", { day: "numeric", month: "short", timeZone: "UTC" });
 }
 
 // Rounds the top of the scale up to 1/2/5 × 10^n so the one gridline label
@@ -27,7 +27,7 @@ function niceMax(max: number) {
   return step * magnitude;
 }
 
-// One series of daily columns, in ink on the grey panel. Hover a day for its
+// One series of daily columns in the accent colour. Hover a day for its
 // exact value; the visually hidden table carries every value for screen
 // readers and keyboard users.
 export function DailyBarChart({
@@ -47,7 +47,7 @@ export function DailyBarChart({
   const shown = active === null ? null : points[active];
 
   return (
-    <figure className="flex min-w-0 flex-col gap-3 rounded bg-fog p-4">
+    <figure className="flex min-w-0 flex-col gap-3 rounded border border-ink/10 bg-paper p-5">
       <figcaption className="flex flex-col">
         <span className="text-sm font-medium">{title}</span>
         <span className="text-footnote tabular-nums text-neutral-500 dark:text-neutral-400" aria-live="polite">
@@ -77,8 +77,8 @@ export function DailyBarChart({
                 onMouseEnter={() => setActive(i)}
               >
                 <div
-                  className={`w-full rounded-t-[4px] transition-opacity ${
-                    active === null || active === i ? "bg-ink" : "bg-ink opacity-30"
+                  className={`w-full rounded-t-[4px] bg-accent transition-opacity ${
+                    active === null || active === i ? "" : "opacity-30"
                   }`}
                   style={{ height: barHeight, maxWidth: MAX_BAR_WIDTH }}
                 />
@@ -101,8 +101,8 @@ export function DailyBarChart({
         <caption>{title}</caption>
         <thead>
           <tr>
-            <th scope="col">Day</th>
-            <th scope="col">Value</th>
+            <th scope="col">Tag</th>
+            <th scope="col">Wert</th>
           </tr>
         </thead>
         <tbody>

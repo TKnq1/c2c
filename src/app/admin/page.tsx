@@ -1,193 +1,212 @@
 import Link from "next/link";
-import { FiAlertTriangle, FiChevronRight } from "react-icons/fi";
+import { FiSliders } from "react-icons/fi";
 import { prisma } from "@/lib/prisma";
 import { requireAdminSession } from "@/lib/admin-session";
 import { formatCents } from "@/lib/format";
 import { PRO_SUBSCRIPTION_PRICE_CENTS } from "@/lib/constants";
-import { dailySeries, windowStart } from "@/lib/admin-stats";
-import { StatTile } from "@/components/admin/stat-tile";
-import { DailyBarChart } from "@/components/admin/daily-bar-chart";
-import { PaymentStatusBadge } from "@/components/payment-status-badge";
+import { orderedTiles, type TileKey } from "@/lib/admin-prefs";
+import { getAdminPrefs } from "@/lib/admin-prefs-server";
+import { loadDashboard } from "@/lib/admin-dashboard";
+import { loadMoney, runwayText } from "@/lib/admin-money";
+import { loadAds } from "@/lib/admin-ads";
+import { listOpenTasks } from "@/lib/admin-tasks";
 import { paymentStage } from "@/lib/payment-stage";
+import { DashCard, FunnelBars, GoalRing, KpiTile, money } from "@/components/admin/dashboard-parts";
+import { DailyBarChart } from "@/components/admin/daily-bar-chart";
+import { TaskList } from "@/components/admin/task-list";
+import { PaymentStatusBadge } from "@/components/payment-status-badge";
 import { LocalDate } from "@/components/local-date";
 import { RoleBadge } from "@/components/admin/role-badge";
 
-const CHART_DAYS = 30;
+const TIME_ZONE = "Europe/Berlin";
 
-export default async function AdminOverviewPage() {
-  await requireAdminSession();
-  const since = windowStart(CHART_DAYS);
-  const weekAgo = windowStart(7);
+function greeting(now: Date) {
+  const hour = Number(new Intl.DateTimeFormat("de-DE", { hour: "numeric", hourCycle: "h23", timeZone: TIME_ZONE }).format(now));
+  return hour < 11 ? "Guten Morgen" : hour < 18 ? "Guten Tag" : "Guten Abend";
+}
 
-  const [
-    usersByRole,
-    newUsersThisWeek,
-    requestsByStatus,
-    collabCount,
-    volumeAgg,
-    releasedFeeAgg,
-    heldFeeAgg,
-    proSubscribers,
-    openReports,
-    openDisputes,
-    awaitingApproval,
-    signups,
-    paidIn,
-    recentUsers,
-    recentPayments,
-  ] = await Promise.all([
-    prisma.user.groupBy({ by: ["role"], _count: true }),
-    prisma.user.count({ where: { createdAt: { gte: weekAgo } } }),
-    prisma.request.groupBy({ by: ["status"], _count: true }),
-    prisma.interest.count(),
-    // Only HELD/RELEASED is money that actually moved and stayed: offers
-    // haven't been paid yet and refunds went back.
-    prisma.interest.aggregate({
-      where: { paymentStatus: { in: ["HELD", "RELEASED"] } },
-      _sum: { amountCents: true },
-      _count: true,
-    }),
-    // Revenue is only what's been kept; fees on HELD payments still depend
-    // on the release.
-    prisma.interest.aggregate({ where: { paymentStatus: "RELEASED" }, _sum: { platformFeeCents: true } }),
-    prisma.interest.aggregate({ where: { paymentStatus: "HELD" }, _sum: { platformFeeCents: true } }),
-    // Only the brands and creators that pay: founding places have Pro without a subscription.
-    Promise.all([
-      prisma.startupProfile.count({ where: { isPro: true, stripeSubscriptionId: { not: null } } }),
-      prisma.creatorProfile.count({ where: { isPro: true, stripeSubscriptionId: { not: null } } }),
-    ]).then(([brands, creators]) => brands + creators),
-    prisma.report.count({ where: { status: "OPEN" } }),
-    prisma.interest.count({ where: { paymentStatus: "HELD", disputedAt: { not: null } } }),
-    prisma.interest.count({
-      where: { paymentStatus: "HELD", proofSubmittedAt: { not: null }, disputedAt: null },
-    }),
-    prisma.user.findMany({ where: { createdAt: { gte: since } }, select: { createdAt: true } }),
-    prisma.interest.findMany({
-      where: { paidAt: { gte: since } },
-      select: { paidAt: true, amountCents: true },
-    }),
-    prisma.user.findMany({
-      orderBy: { createdAt: "desc" },
-      take: 6,
-      include: { startupProfile: true, creatorProfile: true },
-    }),
+// Blocks that sit next to each other on wide screens take half the row.
+const HALF: TileKey[] = ["geld", "ziele", "markt", "funnel", "ads", "anmeldungen"];
+
+export default async function AdminTodayPage() {
+  const session = await requireAdminSession();
+  const prefs = await getAdminPrefs(session.user.id);
+  const now = new Date();
+
+  const visible = orderedTiles(prefs.tileOrder, prefs.hiddenTiles);
+
+  // The money and ad figures cost extra queries, so they are only fetched when their block is shown.
+  const [data, tasks, recentUsers, recentPayments, cash, ads] = await Promise.all([
+    loadDashboard(now),
+    listOpenTasks(now),
+    prisma.user.findMany({ orderBy: { createdAt: "desc" }, take: 6, include: { startupProfile: true, creatorProfile: true } }),
     prisma.interest.findMany({
       where: { paymentStatus: { in: ["HELD", "RELEASED", "REFUNDED"] } },
       include: { creator: true, request: { include: { startup: true } } },
       orderBy: { paidAt: "desc" },
       take: 6,
     }),
+    visible.includes("geld") ? loadMoney(now) : null,
+    visible.includes("ads") ? loadAds(now) : null,
   ]);
 
-  const roleCount = (role: string) => usersByRole.find((r) => r.role === role)?._count ?? 0;
-  const statusCount = (status: string) => requestsByStatus.find((r) => r.status === status)?._count ?? 0;
-  const totalUsers = usersByRole.reduce((sum, r) => sum + r._count, 0);
-  const signupSeries = dailySeries(signups, CHART_DAYS, (u) => u.createdAt);
-  const volumeSeries = dailySeries(paidIn, CHART_DAYS, (p) => p.paidAt, (p) => p.amountCents ?? 0);
-  const attention = openReports + openDisputes;
+  const dateLabel = new Intl.DateTimeFormat("de-DE", { weekday: "long", day: "numeric", month: "long", timeZone: TIME_ZONE }).format(now);
+  const name = prefs.displayName ? `, ${prefs.displayName}` : "";
+  const monthPercent = prefs.goalMonthlyFeeCents > 0 ? Math.round((data.fee.monthCents / prefs.goalMonthlyFeeCents) * 100) : 0;
 
-  return (
-    <div className="flex flex-col gap-8">
-      <div>
-        <h1 className="font-display text-title-1 font-bold">Overview</h1>
-        <p className="mt-1 text-sm text-neutral-600 dark:text-neutral-400">How comtor is doing right now.</p>
-      </div>
-
-      {attention > 0 && (
-        <Link
-          href="/admin/moderation"
-          className="flex items-center gap-3 rounded border border-ink px-4 py-3 transition hover:bg-fog"
-        >
-          <FiAlertTriangle className="h-5 w-5 shrink-0" aria-hidden />
-          <span className="flex-1 text-sm">
-            <span className="font-medium">Needs your attention: </span>
-            {[
-              openDisputes > 0 && `${openDisputes} disputed payment${openDisputes === 1 ? "" : "s"}`,
-              openReports > 0 && `${openReports} open report${openReports === 1 ? "" : "s"}`,
-            ]
-              .filter(Boolean)
-              .join(" · ")}
-          </span>
-          <FiChevronRight className="h-4 w-4 shrink-0" aria-hidden />
-        </Link>
-      )}
-
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-        <StatTile
-          label="Users"
-          value={totalUsers.toLocaleString("en-US")}
-          hint={`${roleCount("STARTUP")} brands · ${roleCount("CREATOR")} creators · +${newUsersThisWeek} this week`}
+  const tiles: Record<TileKey, React.ReactNode> = {
+    kennzahlen: (
+      <div className="grid gap-[var(--gap,1rem)] sm:grid-cols-2 xl:grid-cols-3">
+        <KpiTile
+          label="Nutzer"
+          value={data.users.total.toLocaleString("de-DE")}
+          change={data.users.change}
+          trend={data.users.trend}
+          hint={`${data.users.brands} Marken · ${data.users.creators} Creator · ${data.users.newLast30} neu in 30 Tagen`}
           href="/admin/users"
         />
-        <StatTile
-          label="Open requests"
-          value={statusCount("OPEN").toLocaleString("en-US")}
-          hint={`${statusCount("CLOSED")} closed · ${collabCount} conversations started`}
+        <KpiTile
+          label="Offene Anfragen"
+          value={data.requests.open.toLocaleString("de-DE")}
+          hint={`${data.requests.closed} geschlossen · ${data.requests.all} insgesamt`}
           href="/admin/requests"
         />
-        <StatTile
-          label="Payment volume"
-          value={formatCents(volumeAgg._sum.amountCents ?? 0)}
-          hint={`${volumeAgg._count} payments held or released`}
+        <KpiTile label="Collabs gestartet" value={data.requests.collabs.toLocaleString("de-DE")} hint="Gespräche zwischen Marken und Creatorn" href="/admin/requests" />
+        <KpiTile
+          label="Zahlungsvolumen"
+          value={formatCents(data.volume.cents)}
+          change={data.volume.change}
+          trend={data.volume.trend}
+          hint={`${data.volume.count} Zahlungen in 30 Tagen`}
           href="/admin/payments"
         />
-        <StatTile
-          label="Commission revenue"
-          value={formatCents(releasedFeeAgg._sum.platformFeeCents ?? 0)}
-          hint={`${formatCents(heldFeeAgg._sum.platformFeeCents ?? 0)} more once escrow is released`}
+        <KpiTile
+          label="Provision"
+          value={formatCents(data.fee.releasedCents)}
+          hint={`${formatCents(data.fee.heldCents)} mehr, sobald das Escrow frei wird`}
           href="/admin/payments?status=RELEASED"
         />
-        <StatTile
-          label="Pro subscribers"
-          value={proSubscribers.toLocaleString("en-US")}
-          hint={`${formatCents(proSubscribers * PRO_SUBSCRIPTION_PRICE_CENTS)} a month`}
+        <KpiTile
+          label="Pro-Abos"
+          value={data.pro.paying.toLocaleString("de-DE")}
+          hint={`${formatCents(data.pro.paying * PRO_SUBSCRIPTION_PRICE_CENTS)} im Monat · ${data.pro.founding} mit Founding-Platz`}
           href="/admin/users?role=STARTUP&pro=1"
         />
-        <StatTile
-          label="Awaiting brand approval"
-          value={awaitingApproval.toLocaleString("en-US")}
-          hint="Posts submitted, payment still in escrow"
-          href="/admin/payments?status=SUBMITTED"
-        />
       </div>
-
-      <div className="grid gap-3 lg:grid-cols-2">
-        <DailyBarChart
-          title={`Sign-ups, last ${CHART_DAYS} days`}
-          points={signupSeries}
-          unit="count"
-          total={`${signups.length.toLocaleString("en-US")} total`}
-        />
-        <DailyBarChart
-          title={`Paid in by brands, last ${CHART_DAYS} days`}
-          points={volumeSeries}
-          unit="cents"
-          total={formatCents(paidIn.reduce((sum, p) => sum + (p.amountCents ?? 0), 0))}
-        />
-      </div>
-
-      <div className="grid gap-8 lg:grid-cols-2">
-        <section className="flex min-w-0 flex-col gap-2">
-          <div className="flex items-baseline justify-between px-1">
-            <h2 className="text-footnote text-neutral-500 dark:text-neutral-400">Newest users</h2>
-            <Link href="/admin/users" className="text-footnote underline">
-              All users
-            </Link>
+    ),
+    geld: cash && (
+      <DashCard title="Geld" right={<Link href="/admin/geld" className="text-xs underline">Details</Link>} className="h-full">
+        <p className="font-display text-[1.875rem] leading-9 font-black tracking-tight">{runwayText(cash.runway).big}</p>
+        <p className="mt-1 text-xs text-neutral-600 dark:text-neutral-400">
+          {cash.balanceCents === null ? "Trag auf der Geld-Seite deinen Kontostand ein." : `Kontostand ${money(cash.balanceCents)}`}
+        </p>
+        <div className="mt-4 grid grid-cols-2 gap-x-5 gap-y-4">
+          <Stat value={money(cash.feeMonth)} label="Provision diesen Monat" />
+          <Stat value={money(cash.fixedMonthly + cash.adsLast30)} label="Kosten (Fixkosten und Ads, 30 Tage)" />
+        </div>
+      </DashCard>
+    ),
+    ads: ads && (
+      <DashCard title="Ads" right={<Link href="/admin/ads" className="text-xs underline">Details</Link>} className="h-full">
+        {ads.hasSpend ? (
+          <div className="grid grid-cols-2 gap-x-5 gap-y-4">
+            <Stat value={money(ads.spendCents)} label="Ausgaben in 30 Tagen" />
+            <Stat value={ads.advertised.signups > 0 && ads.advertised.cpaCents !== null ? money(Math.round(ads.advertised.cpaCents)) : "–"} label="Kosten je Anmeldung" />
+            <Stat
+              value={ads.advertised.clickToSignup === null ? "–" : `${(ads.advertised.clickToSignup * 100).toLocaleString("de-DE", { maximumFractionDigits: 1 })} %`}
+              label="Klick zur Anmeldung"
+            />
+            <Stat value={`${ads.signupsTagged} von ${ads.signupsTotal}`} label="Anmeldungen mit Kampagnen-Angabe" />
           </div>
-          <ul className="rounded bg-fog">
+        ) : (
+          <p className="text-sm text-neutral-600 dark:text-neutral-400">
+            Noch keine Ausgaben importiert. Unter „Ads &amp; Kanäle“ baust du einen Link mit Kampagnennamen und lädst die Ausgaben als CSV hoch.
+          </p>
+        )}
+      </DashCard>
+    ),
+    ziele: (
+      <DashCard title="Ziele" right={<Link href="/admin/anpassen" className="text-xs underline">ändern</Link>} className="h-full">
+        <div className="grid grid-cols-3 gap-2">
+          <GoalRing label="Founding-Marken" value={data.founding.brands} goal={prefs.goalBrands} display={`${data.founding.brands}/${prefs.goalBrands}`} sub={`noch ${Math.max(0, prefs.goalBrands - data.founding.brands)} Plätze`} />
+          <GoalRing label="Founding-Creator" value={data.founding.creators} goal={prefs.goalCreators} display={`${data.founding.creators}/${prefs.goalCreators}`} sub={`noch ${Math.max(0, prefs.goalCreators - data.founding.creators)} Plätze`} />
+          <GoalRing
+            label="Provision im Monat"
+            value={data.fee.monthCents}
+            goal={prefs.goalMonthlyFeeCents}
+            display={`${monthPercent} %`}
+            sub={`${formatCents(data.fee.monthCents)} von ${formatCents(prefs.goalMonthlyFeeCents)}`}
+          />
+        </div>
+      </DashCard>
+    ),
+    markt: (
+      <DashCard title="Marktplatz-Gesundheit" right="letzte 30 Tage" className="h-full">
+        <div className="grid grid-cols-2 gap-x-5 gap-y-4">
+          <Stat value={data.market.liquidity === null ? "–" : `${data.market.liquidity} %`} label="der neuen Anfragen bekommen Interesse" />
+          <Stat value={data.market.requests30.toLocaleString("de-DE")} label="neue Anfragen" />
+          <Stat value={data.market.creatorsPerBrand === null ? "–" : `${data.market.creatorsPerBrand.toLocaleString("de-DE")} : 1`} label="Creator pro Marke" />
+          <Stat value={`${data.users.newLast30}`} label="neue Nutzer" />
+        </div>
+      </DashCard>
+    ),
+    funnel: (
+      <DashCard title="Funnel" right="Anmeldungen der letzten 30 Tage" className="h-full">
+        <FunnelBars steps={data.funnel} />
+      </DashCard>
+    ),
+    anmeldungen: (
+      <DailyBarChart title="Anmeldungen pro Tag" points={data.signupSeries} unit="count" total={`${data.users.newLast30.toLocaleString("de-DE")} in 30 Tagen`} />
+    ),
+  };
+
+  return (
+    <div className="flex flex-col gap-6">
+      <div className="flex flex-wrap items-end justify-between gap-3 pr-0 group-data-[panel=closed]/shell:lg:pr-28">
+        <div>
+          <h1 className="font-display text-title-1 font-black">Heute</h1>
+          <p className="mt-0.5 text-sm text-neutral-600 dark:text-neutral-400">
+            {greeting(now)}
+            {name} · {dateLabel}
+          </p>
+        </div>
+        <Link
+          href="/admin/anpassen"
+          className="inline-flex items-center gap-2 rounded-full border border-ink/10 px-3.5 py-1.5 text-xs font-bold transition hover:bg-fog"
+        >
+          <FiSliders className="h-4 w-4" aria-hidden />
+          Anpassen
+        </Link>
+      </div>
+
+      {/* Phones and tablets have no side panel, so the open tasks sit here. */}
+      <DashCard title="Offen" right={`${tasks.length}`} className="lg:hidden">
+        <TaskList
+          tasks={tasks.map((t) => ({ id: t.id, title: t.title, reason: t.reason, priority: t.priority, source: t.source, href: t.href }))}
+          compact
+          empty="Nichts offen. Gut so."
+        />
+      </DashCard>
+
+      <div className="grid gap-[var(--gap,1rem)] lg:grid-cols-2">
+        {visible.map((key) => (
+          <div key={key} className={HALF.includes(key) ? "min-w-0" : "min-w-0 lg:col-span-2"}>
+            {tiles[key]}
+          </div>
+        ))}
+      </div>
+
+      <div className="grid gap-[var(--gap,1rem)] lg:grid-cols-2">
+        <DashCard title="Neueste Nutzer" right={<Link href="/admin/users" className="text-xs underline">Alle Nutzer</Link>}>
+          <ul className="-my-1">
             {recentUsers.map((u) => (
-              <li key={u.id} className="border-ink/10 [&+&]:border-t">
-                <Link
-                  href={`/admin/users/${u.id}`}
-                  className="flex items-center justify-between gap-3 px-4 py-3 transition hover:bg-ink/5"
-                >
+              <li key={u.id} className="border-t border-ink/10 first:border-t-0">
+                <Link href={`/admin/users/${u.id}`} className="flex items-center justify-between gap-3 py-2.5 transition hover:opacity-70">
                   <span className="min-w-0">
-                    <span className="block truncate text-sm font-medium">
-                      {u.startupProfile?.companyName ?? u.creatorProfile?.displayName ?? u.email}
-                    </span>
-                    <span className="block truncate text-footnote text-neutral-500 dark:text-neutral-400">
+                    <span className="block truncate text-sm font-bold">{u.startupProfile?.companyName ?? u.creatorProfile?.displayName ?? u.email}</span>
+                    <span className="block truncate text-xs text-neutral-500">
                       {(u.startupProfile || u.creatorProfile) && <>{u.email} · </>}
-                      <LocalDate ms={u.createdAt.getTime()} />
+                      <LocalDate ms={u.createdAt.getTime()} locale="de-DE" />
                     </span>
                   </span>
                   <RoleBadge role={u.role} isAdmin={u.isAdmin} suspended={!!u.suspendedAt} />
@@ -195,29 +214,19 @@ export default async function AdminOverviewPage() {
               </li>
             ))}
           </ul>
-        </section>
-
-        <section className="flex min-w-0 flex-col gap-2">
-          <div className="flex items-baseline justify-between px-1">
-            <h2 className="text-footnote text-neutral-500 dark:text-neutral-400">Latest payments</h2>
-            <Link href="/admin/payments" className="text-footnote underline">
-              All payments
-            </Link>
-          </div>
+        </DashCard>
+        <DashCard title="Letzte Zahlungen" right={<Link href="/admin/payments" className="text-xs underline">Alle Zahlungen</Link>}>
           {recentPayments.length === 0 ? (
-            <p className="rounded bg-fog px-4 py-3 text-sm text-neutral-500 dark:text-neutral-400">No payments yet.</p>
+            <p className="text-sm text-neutral-500">Noch keine Zahlungen.</p>
           ) : (
-            <ul className="rounded bg-fog">
+            <ul className="-my-1">
               {recentPayments.map((p) => (
-                <li
-                  key={p.id}
-                  className="flex items-center justify-between gap-3 border-ink/10 px-4 py-3 [&+&]:border-t"
-                >
+                <li key={p.id} className="flex items-center justify-between gap-3 border-t border-ink/10 py-2.5 first:border-t-0">
                   <span className="min-w-0">
-                    <span className="block truncate text-sm font-medium">
+                    <span className="block truncate text-sm font-bold">
                       {p.request.startup.companyName} → {p.creator.displayName}
                     </span>
-                    <span className="block truncate text-footnote text-neutral-500 dark:text-neutral-400">
+                    <span className="block truncate text-xs text-neutral-500">
                       {formatCents(p.amountCents!)} · {p.request.title}
                     </span>
                   </span>
@@ -226,8 +235,17 @@ export default async function AdminOverviewPage() {
               ))}
             </ul>
           )}
-        </section>
+        </DashCard>
       </div>
+    </div>
+  );
+}
+
+function Stat({ value, label }: { value: string; label: string }) {
+  return (
+    <div>
+      <p className="font-display text-[1.375rem] leading-7 font-black tracking-tight">{value}</p>
+      <p className="text-xs text-neutral-600 dark:text-neutral-400">{label}</p>
     </div>
   );
 }
