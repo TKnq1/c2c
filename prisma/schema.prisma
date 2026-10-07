@@ -364,15 +364,18 @@ model StartupProfile {
   @@index([stripeSubscriptionId])
 }
 
-// A brand used the 14-day withdrawal on Pro. The money is already back
-// with them; this row is what the admin list shows.
+// A brand or a creator used the 14-day withdrawal on Pro. The money is
+// already back with them; this row is what the admin list shows. Exactly
+// one of startupId / creatorId is set.
 model ProWithdrawal {
-  id             String         @id @default(cuid())
-  startupId      String
-  startup        StartupProfile @relation(fields: [startupId], references: [id], onDelete: Cascade)
+  id             String          @id @default(cuid())
+  startupId      String?
+  startup        StartupProfile? @relation(fields: [startupId], references: [id], onDelete: Cascade)
+  creatorId      String?
+  creator        CreatorProfile? @relation(fields: [creatorId], references: [id], onDelete: Cascade)
   amountCents    Int
   stripeRefundId String?
-  createdAt      DateTime       @default(now())
+  createdAt      DateTime        @default(now())
 
   @@index([createdAt])
 }
@@ -413,13 +416,29 @@ model CreatorProfile {
   stripeAccountId String?
   stripeOnboarded Boolean @default(false)
 
-  platforms   CreatorPlatform[]
-  interests   Interest[]
-  reviews     Review[]
-  favoritedBy Favorite[]
-  passes      RequestPass[]
+  // Pro, the same plan brands have (see StartupProfile): a payment gets the
+  // reduced fee when either side has it. stripeCustomerId is the Billing
+  // customer for the subscription, not the Connect account above.
+  isPro                Boolean   @default(false)
+  proSince             DateTime?
+  stripeCustomerId     String?
+  stripeSubscriptionId String?
+  // The first creators (FOUNDING_CREATOR_LIMIT) get Pro for as long as the account exists, numbered on their
+  // own (creator no. 1 and brand no. 1 both exist). See src/lib/founding.ts.
+  foundingNumber       Int?      @unique
+  // Same as on StartupProfile: when the creator was told about the founding Pro.
+  foundingNoticeSentAt DateTime?
+
+  platforms      CreatorPlatform[]
+  interests      Interest[]
+  reviews        Review[]
+  favoritedBy    Favorite[]
+  passes         RequestPass[]
+  proWithdrawals ProWithdrawal[]
 
   @@index([stripeAccountId])
+  @@index([stripeCustomerId])
+  @@index([stripeSubscriptionId])
 }
 
 // A creator swiping a request away in their Feed, so it doesn't come back

@@ -82,6 +82,7 @@ describe("buildFunnel", () => {
       "matches",
       "swipe",
       "account",
+      "founding",
       "payouts",
       "alerts",
       "done",

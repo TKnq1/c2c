@@ -2,21 +2,42 @@ import Image from "next/image";
 import { FiBell, FiHeart } from "react-icons/fi";
 import { IoCardOutline, IoChatbubbleOutline, IoHome, IoSearchOutline, IoSettingsOutline } from "react-icons/io5";
 
-// A phone drawn in CSS around a screen of the real app. The screen follows
-// the visitor's light or dark mode, the same as the app itself would.
+// The titanium edge of the frame, catching light at two corners.
+const TITANIUM = "linear-gradient(135deg, #6a6a6f 0%, #2e2e31 20%, #1c1c1e 50%, #2e2e31 80%, #6a6a6f 100%)";
+
+// Action button and volume on the left, power on the right, where an iPhone has them (as a share of its height).
+const BUTTONS = [
+  { side: "left", top: "17%", height: "4.6%" },
+  { side: "left", top: "24.5%", height: "8.6%" },
+  { side: "left", top: "34.5%", height: "8.6%" },
+  { side: "right", top: "27%", height: "13.5%" },
+] as const;
+
+// An iPhone drawn in CSS around a screen of the real app: titanium frame, black bezel, Dynamic Island, side
+// buttons. The screen follows the visitor's light or dark mode, the same as the app itself would.
 export function PhoneFrame({ children, className = "" }: { children: React.ReactNode; className?: string }) {
   return (
-    <div className={`lp-phone relative shrink-0 rounded-[3rem] bg-[#0c0c0d] p-[9px] ${className}`}>
-      <div className="relative flex h-full w-full flex-col overflow-hidden rounded-[2.45rem] bg-paper text-left text-ink">
-        {/* The Dynamic Island in an iPhone's own proportions: 31% of the
-            screen's width, 3.4 times as wide as tall, 7px from the top, so
-            it shrinks along with a smaller phone. */}
-        <div
+    <div className={`lp-phone relative shrink-0 rounded-[3.25rem] p-[3px] ${className}`} style={{ background: TITANIUM }}>
+      {BUTTONS.map(({ side, top, height }) => (
+        <span
+          key={`${side}-${top}`}
           aria-hidden="true"
-          className="pointer-events-none absolute top-[7px] left-1/2 z-30 aspect-[3.4/1] w-[31%] -translate-x-1/2 rounded-full bg-black"
+          className="absolute w-[3px] rounded-[2px] bg-[linear-gradient(90deg,#3a3a3d,#5f5f64,#3a3a3d)]"
+          style={{ [side]: -2.5, top, height }}
         />
-        <StatusBar />
-        {children}
+      ))}
+      <div className="h-full w-full rounded-[3.05rem] bg-black p-[9px]">
+        <div className="relative flex h-full w-full flex-col overflow-hidden rounded-[2.45rem] bg-paper text-left text-ink">
+          {/* The Dynamic Island in an iPhone's own proportions: 31% of the
+              screen's width, 3.4 times as wide as tall, 7px from the top, so
+              it shrinks along with a smaller phone. */}
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute top-[7px] left-1/2 z-30 aspect-[3.4/1] w-[31%] -translate-x-1/2 rounded-full bg-black"
+          />
+          <StatusBar />
+          {children}
+        </div>
       </div>
     </div>
   );

@@ -8,6 +8,7 @@ import { anonymiseAccount, hasPaymentRecords, moneyInFlight } from "@/lib/accoun
 import { audit } from "@/lib/audit";
 import { revokeFoundingPro } from "@/lib/founding";
 import { sendFoundingNotices } from "@/lib/founding-notice";
+import { repriceOpenDeals } from "@/lib/open-deal-fees";
 import { prisma } from "@/lib/prisma";
 import { sendEmail } from "@/lib/email";
 import { accountSuspendedEmail, testEmail } from "@/lib/email-templates";
@@ -77,24 +78,29 @@ export async function unsuspendUserAction(userId: string): Promise<AdminActionRe
   return {};
 }
 
-// Takes the founding Pro away from a brand (e.g. a fake account) and frees its number for the next brand.
+// Takes the founding Pro away from a brand or a creator (e.g. a fake account) and frees its number for the next one.
 export async function revokeFoundingProAction(userId: string): Promise<AdminActionResult> {
   const session = await requireAdmin();
   if (!session) return { error: "Not authorized." };
 
-  const profile = await prisma.startupProfile.findUnique({
-    where: { userId },
-    select: { id: true, foundingNumber: true },
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: {
+      startupProfile: { select: { id: true, foundingNumber: true } },
+      creatorProfile: { select: { id: true, foundingNumber: true } },
+    },
   });
-  if (!profile?.foundingNumber) return { error: "This brand isn't a founding brand." };
+  const side = user?.startupProfile ? "brand" : "creator";
+  const profile = user?.startupProfile ?? user?.creatorProfile;
+  if (!profile?.foundingNumber) return { error: "This account doesn't have a founding place." };
 
-  await revokeFoundingPro(profile.id);
-  await audit(session.user.id, "user.revokeFoundingPro", userId, { foundingNumber: profile.foundingNumber });
+  await revokeFoundingPro(side, profile.id);
+  await audit(session.user.id, "user.revokeFoundingPro", userId, { side, foundingNumber: profile.foundingNumber });
   revalidateAdmin();
   return {};
 }
 
-// Tells the brands that were already on comtor when the founding places came about their Pro, once each (see
+// Tells the brands and creators that were already on comtor when the founding places came about their Pro, once each (see
 // src/lib/founding-notice.ts). Real mail to real people, so it asks for the password.
 export async function sendFoundingNoticesAction(password: string): Promise<AdminActionResult> {
   const session = await requireAdmin();
@@ -107,6 +113,25 @@ export async function sendFoundingNoticesAction(password: string): Promise<Admin
   revalidateAdmin();
   if (result.failed > 0) {
     return { error: `${result.sent} sent, ${result.failed} failed (they stay on the list). Check /admin/email, then try again.` };
+  }
+  return {};
+}
+
+// Moves the open deals (offered, awaiting payment, in escrow) of a brand or creator with Pro from the standard fee to the
+// Pro fee (see src/lib/open-deal-fees.ts). It changes what creators are paid out, so it asks for the password.
+export async function repriceOpenDealsAction(password: string): Promise<AdminActionResult> {
+  const session = await requireAdmin();
+  if (!session) return { error: "Not authorized." };
+  const passwordError = await confirmAdminPassword(session.user.id, password);
+  if (passwordError) return { error: passwordError };
+
+  const result = await repriceOpenDeals();
+  await audit(session.user.id, "deals.reprice", undefined, result);
+  revalidateAdmin();
+  revalidatePath("/dashboard/startup/payments");
+  revalidatePath("/dashboard/creator/payments");
+  if (result.skipped > 0) {
+    return { error: `${result.updated} updated, ${result.skipped} changed in the meantime and were skipped. Press it again to pick them up.` };
   }
   return {};
 }
@@ -187,6 +212,8 @@ export async function deleteUserAction(userId: string, password: string): Promis
     !!user.startupProfile?.stripeCustomerId ||
     !!user.startupProfile?.stripeSubscriptionId ||
     !!user.creatorProfile?.stripeAccountId ||
+    !!user.creatorProfile?.stripeCustomerId ||
+    !!user.creatorProfile?.stripeSubscriptionId ||
     stripePayments > 0;
   if (stripeLinked) {
     return { error: "This account is connected to Stripe or has payments through it. Deleting it here would leave those behind in Stripe." };

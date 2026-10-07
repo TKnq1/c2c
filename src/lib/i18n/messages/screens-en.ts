@@ -217,9 +217,11 @@ export const screens = {
     withdrawProBody: "You're within 14 days. Pro ends now and the {price} you paid is refunded. Your fee goes back to {rate}%.",
     withdrawing: "Withdrawing…",
     proWithdrawn: "Pro ended and the payment was refunded.",
-    standardFee: "A {rate}% platform fee is included in every payment you send.",
+    standardFee: "A {rate}% platform fee is included in every payment you send, {pro}% when the creator has Pro.",
+    standardFeeCreator: "comtor keeps {rate}% of every payment you get, {pro}% when the brand has Pro.",
     proPitch:
       "Pay {price}/month to drop your platform fee from {standard}% to {pro}% on every payment. Worth it once you're paying creators more than about {breakEven} a month.",
+    proPitchCreator: "Pay {price}/month to keep {keepPro}% instead of {keep}% of every payment. Worth it once you earn more than about {breakEven} a month.",
     goPro: "Go Pro for {price}/month",
     redirecting: "Redirecting…",
     serverUnreachable: "Couldn't reach the server. Check your connection and try again.",
@@ -317,7 +319,7 @@ export const screens = {
     followersHint: "Creators below this don't see the request.",
     messageAbout: "Message about this request",
     openingChat: "Opening chat…",
-    request: "Request", created: "Created", selected: "{count} selected", clearSelection: "Clear", closeSelected: "Close selected", closing: "Closing…", closedOne: "{count} request closed.", closedMany: "{count} requests closed.", minFollowersLine: "Min. {count} followers", interestedCount: "{count} interested", contacted: "Contacted", interestedHeading: "Interested creators ({count})", contactedHeading: "Creators you contacted ({count})", noInterest: "No creator interest yet.", noInterestBody: "Matching creators will show up here once they express interest.", moreActions: "More actions", requestClosed: "Request closed.", requestReopened: "Request reopened.", closeRequest: "Close request", reopenRequest: "Reopen request", offerAmount: "Offer amount in euros", sendingOffers: "Sending…", sendOfferTo: "Send offer to {count}", bulkOfferHint: "Same offer to everyone selected. Funds only move once each creator accepts, and we hold {fee}% of every accepted offer as our platform fee.", selectNotOffered: "Select all not yet offered ({count})", offerSentOne: "Offer sent to {count} creator.", offerSentMany: "Offer sent to {count} creators.",  duplicate: "Duplicate", openChat: "Open chat", requirementsGap: "You don't meet this request's requirements yet.", openRequests: "Open requests",
+    request: "Request", created: "Created", selected: "{count} selected", clearSelection: "Clear", closeSelected: "Close selected", closing: "Closing…", closedOne: "{count} request closed.", closedMany: "{count} requests closed.", minFollowersLine: "Min. {count} followers", interestedCount: "{count} interested", contacted: "Contacted", interestedHeading: "Interested creators ({count})", contactedHeading: "Creators you contacted ({count})", noInterest: "No creator interest yet.", noInterestBody: "Matching creators will show up here once they express interest.", moreActions: "More actions", requestClosed: "Request closed.", requestReopened: "Request reopened.", closeRequest: "Close request", reopenRequest: "Reopen request", offerAmount: "Offer amount in euros", sendingOffers: "Sending…", sendOfferTo: "Send offer to {count}", bulkOfferHint: "Same offer to everyone selected. Funds only move once each creator accepts, and we hold {fee}% of every accepted offer as our platform fee.", bulkOfferHintCreatorPro: "Same offer to everyone selected. Funds only move once each creator accepts, and we hold {fee}% of every accepted offer as our platform fee ({pro}% for creators with Pro).", selectNotOffered: "Select all not yet offered ({count})", offerSentOne: "Offer sent to {count} creator.", offerSentMany: "Offer sent to {count} creators.",  duplicate: "Duplicate", openChat: "Open chat", requirementsGap: "You don't meet this request's requirements yet.", openRequests: "Open requests",
   },
   discover: {
     brands: "Discover Brands",
@@ -394,7 +396,8 @@ export const screens = {
     creatorsWorkedMany: "{count} creators worked with",
     topRequest: "Top request",
     proFeeLine: "Pro plan: {pro}% fee per payment instead of {standard}%.",
-    standardFeeLine: "{rate}% fee per payment.",
+    standardFeeLine: "{rate}% fee per payment, {pro}% with creators who have Pro.",
+    standardFeeLineCreator: "{rate}% fee per payment, {pro}% when the brand has Pro.",
     proOfferLine: "{standard}% fee per payment. Pro lowers it to {pro}% for {price}/month.",
     manage: "Manage",
     goPro: "Go Pro",
@@ -648,9 +651,9 @@ export const screens = {
     imCreator: "I'm a Creator",
     chooseRole: "Choose the one that fits you. It can't be changed after you sign up.",
     feeBrand:
-      "You pay exactly what you offer, held in escrow until the work is live and you've approved it. We take {standard}% from the creator's payout, {pro}% with Pro.",
+      "You pay exactly what you offer, held in escrow until the work is live and you've approved it. We take {standard}% from the creator's payout, {pro}% when you or the creator has Pro.",
     feeCreator:
-      "Keep {keep}% of every deal, {keepPro}% when the brand's on Pro. Paid out once the brand approves your post, or automatically after {days} days.",
+      "Keep {keep}% of every deal, {keepPro}% when you or the brand has Pro. Paid out once the brand approves your post, or automatically after {days} days.",
     creating: "Creating account…",
     create: "Create account",
     resetSent: "If that email has an account, we've sent a reset link. Check your inbox.",

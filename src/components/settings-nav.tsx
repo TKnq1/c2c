@@ -14,11 +14,10 @@ type Group = { id: string; label: MessageKey; sections: string[] };
 function groupsFor(role: Role): Group[] {
   return [
     { id: "profile", label: "settingsNav.profile", sections: ["profile"] },
-    // Plan/billing only applies to brands; payouts only to creators —
-    // brands pay out, they don't receive.
-    role === "STARTUP"
-      ? { id: "plan", label: "settingsNav.plan", sections: ["plan"] }
-      : { id: "payouts", label: "settingsNav.payouts", sections: ["payouts"] },
+    // Both sides have a plan (Pro); payouts only creators — brands pay out,
+    // they don't receive.
+    { id: "plan", label: "settingsNav.plan", sections: ["plan"] },
+    ...(role === "STARTUP" ? [] : [{ id: "payouts", label: "settingsNav.payouts" as const, sections: ["payouts"] }]),
     { id: "appearance", label: "settingsNav.appearance", sections: ["appearance"] },
     { id: "password", label: "settingsNav.security", sections: ["password", "two-factor", "logins"] },
     { id: "push", label: "settingsNav.notifications", sections: ["push", "news"] },

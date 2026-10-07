@@ -7,10 +7,12 @@ import { LocalDate } from "@/components/local-date";
 import { formatCents } from "@/lib/format";
 import { PLATFORM_FEE_RATE, PRO_PLATFORM_FEE_RATE, PRO_SUBSCRIPTION_PRICE_CENTS } from "@/lib/constants";
 import { useI18n } from "@/components/i18n-provider";
+import type { FoundingSide } from "@/lib/founding-limits";
 
-// The contents of the Plan card on brand Settings (the card itself is the
-// section's, see SettingsSection).
+// The contents of the Plan card on brand and creator Settings (the card itself
+// is the section's, see SettingsSection).
 export function ProPlanCard({
+  side,
   isPro,
   proSince,
   foundingNumber,
@@ -18,10 +20,11 @@ export function ProPlanCard({
   canWithdraw,
   canPurchase,
 }: {
+  side: FoundingSide;
   isPro: boolean;
   proSince: Date | null;
-  // One of the founding brands: Pro for as long as the account exists, without a subscription (see
-  // src/lib/founding.ts). Nothing to cancel or withdraw unless the brand also pays for one.
+  // One of the founding places: Pro for as long as the account exists, without a subscription (see
+  // src/lib/founding.ts). Nothing to cancel or withdraw unless the account also pays for one.
   foundingNumber: number | null;
   hasSubscription: boolean;
   canWithdraw: boolean;
@@ -30,6 +33,9 @@ export function ProPlanCard({
   canPurchase: boolean;
 }) {
   const { t } = useI18n();
+  const creator = side === "creator";
+  const pro = PRO_PLATFORM_FEE_RATE * 100;
+  const standard = PLATFORM_FEE_RATE * 100;
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -53,7 +59,9 @@ export function ProPlanCard({
       <div className="flex flex-col gap-2">
         <div className="flex items-center justify-between gap-2">
           <p className="font-medium">
-            {founding ? t("founding.planTitle", { n: foundingNumber }) : t("screens.settings.proPlan")}
+            {founding
+              ? t(creator ? "founding.creator.planTitle" : "founding.planTitle", { n: foundingNumber })
+              : t("screens.settings.proPlan")}
           </p>
           <span className="whitespace-nowrap rounded-full bg-ink px-2.5 py-1 text-xs font-medium text-paper">{t("screens.settings.active")}</span>
         </div>
@@ -114,7 +122,9 @@ export function ProPlanCard({
           <p className="font-medium">{t("screens.settings.standardPlan")}</p>
           <span className="text-xs text-neutral-500 dark:text-neutral-400">{t("screens.settings.perPayment", { rate: PLATFORM_FEE_RATE * 100 })}</span>
         </div>
-        <p className="text-sm text-neutral-600 dark:text-neutral-400">{t("screens.settings.standardFee", { rate: PLATFORM_FEE_RATE * 100 })}</p>
+        <p className="text-sm text-neutral-600 dark:text-neutral-400">
+          {t(creator ? "screens.settings.standardFeeCreator" : "screens.settings.standardFee", { rate: standard, pro })}
+        </p>
       </div>
     );
   }
@@ -126,10 +136,12 @@ export function ProPlanCard({
         <span className="text-xs text-neutral-500 dark:text-neutral-400">{t("screens.settings.perPayment", { rate: PLATFORM_FEE_RATE * 100 })}</span>
       </div>
       <p className="text-sm text-neutral-600 dark:text-neutral-400">
-        {t("screens.settings.proPitch", {
+        {t(creator ? "screens.settings.proPitchCreator" : "screens.settings.proPitch", {
           price: formatCents(PRO_SUBSCRIPTION_PRICE_CENTS),
-          standard: PLATFORM_FEE_RATE * 100,
-          pro: PRO_PLATFORM_FEE_RATE * 100,
+          standard,
+          pro,
+          keep: 100 - standard,
+          keepPro: 100 - pro,
           breakEven: formatCents(Math.round(PRO_SUBSCRIPTION_PRICE_CENTS / (PLATFORM_FEE_RATE - PRO_PLATFORM_FEE_RATE))),
         })}
       </p>

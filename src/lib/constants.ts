@@ -38,13 +38,16 @@ export const PRODUCT_CATEGORIES = [
 export const PLATFORM_FEE_RATE = 0.1;
 
 // Pro subscription: a flat monthly fee for a reduced cut on every payment
-// instead of the standard rate above.
+// instead of the standard rate above. Brands and creators can both have it,
+// and a payment gets the reduced rate when either side has Pro (see
+// src/lib/payment-math.ts).
 export const PRO_PLATFORM_FEE_RATE = 0.03;
-export const PRO_SUBSCRIPTION_PRICE_CENTS = 4900; // €49/month — must match STRIPE_PRO_PRICE_ID's actual price
-// The first brands get Pro for as long as their account exists (see src/lib/founding.ts).
+export const PRO_SUBSCRIPTION_PRICE_CENTS = 1000; // €10/month — must match STRIPE_PRO_PRICE_ID's actual price
+// The first brands and the first creators get Pro for as long as their account exists (see src/lib/founding.ts).
 export const FOUNDING_BRAND_LIMIT = 50;
+export const FOUNDING_CREATOR_LIMIT = 100;
 // Statutory withdrawal window for a consumer distance contract. Offered to
-// every brand, because the app cannot tell a business from a private person.
+// everyone, because the app cannot tell a business from a private person.
 export const PRO_WITHDRAWAL_DAYS = 14;
 export const PRO_WITHDRAWAL_MS = PRO_WITHDRAWAL_DAYS * 24 * 60 * 60 * 1000;
 

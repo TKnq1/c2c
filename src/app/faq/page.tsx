@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { FOUNDING_BRAND_LIMIT, PLATFORM_FEE_RATE, PRO_PLATFORM_FEE_RATE, PRO_SUBSCRIPTION_PRICE_CENTS, RELEASE_REVIEW_DAYS } from "@/lib/constants";
+import { FOUNDING_BRAND_LIMIT, FOUNDING_CREATOR_LIMIT, PLATFORM_FEE_RATE, PRO_PLATFORM_FEE_RATE, PRO_SUBSCRIPTION_PRICE_CENTS, RELEASE_REVIEW_DAYS } from "@/lib/constants";
 import { formatCents } from "@/lib/format";
 import { canSellProSubscription } from "@/lib/native-app-server";
 import { getLocale } from "@/lib/i18n/server";
@@ -21,8 +21,8 @@ export async function generateMetadata(): Promise<Metadata> {
 // Stands in for the Pro upsell sentence in the payments answer, so the store
 // apps (which can't sell Pro, see canSellProSubscription) can drop it.
 const PRO_OFFER_MARKER = "{{pro-offer}}";
-const PRO_OFFER_SENTENCE = ` Brands doing regular volume can subscribe to Pro for ${formatCents(PRO_SUBSCRIPTION_PRICE_CENTS)}/month to drop that to ${PRO_PLATFORM_FEE_RATE * 100}%.`;
-const PRO_OFFER_SENTENCE_DE = ` Marken, die regelmäßig Anfragen stellen, können Pro für ${formatCents(PRO_SUBSCRIPTION_PRICE_CENTS)}/Monat abonnieren und die Gebühr auf ${PRO_PLATFORM_FEE_RATE * 100} % senken.`;
+const PRO_OFFER_SENTENCE = ` Brands and creators can subscribe to Pro for ${formatCents(PRO_SUBSCRIPTION_PRICE_CENTS)}/month to drop that to ${PRO_PLATFORM_FEE_RATE * 100}%. It applies to every payment where either side has Pro.`;
+const PRO_OFFER_SENTENCE_DE = ` Marken und Creator können Pro für ${formatCents(PRO_SUBSCRIPTION_PRICE_CENTS)}/Monat abonnieren und die Gebühr auf ${PRO_PLATFORM_FEE_RATE * 100} % senken. Das gilt für jede Zahlung, bei der eine der beiden Seiten Pro hat.`;
 const PRO_QUESTION = "What's the Pro plan?";
 const PRO_QUESTION_DE = "Was ist der Pro-Tarif?";
 
@@ -45,7 +45,7 @@ const FAQS: { question: string; answer: string }[] = [
   {
     question: PRO_QUESTION,
     answer:
-      `An optional monthly subscription for brands (${formatCents(PRO_SUBSCRIPTION_PRICE_CENTS)}/month) that lowers the platform fee from ${PLATFORM_FEE_RATE * 100}% to ${PRO_PLATFORM_FEE_RATE * 100}% on every offer. It pays for itself once you're sending roughly ${formatCents(Math.round(PRO_SUBSCRIPTION_PRICE_CENTS / (PLATFORM_FEE_RATE - PRO_PLATFORM_FEE_RATE)))}/month or more in offers. Billed monthly through Stripe. Manage or cancel it from Settings. The first ${FOUNDING_BRAND_LIMIT} brands that signed up get Pro for free for as long as their account exists.`,
+      `An optional monthly subscription for brands and creators (${formatCents(PRO_SUBSCRIPTION_PRICE_CENTS)}/month) that lowers the platform fee from ${PLATFORM_FEE_RATE * 100}% to ${PRO_PLATFORM_FEE_RATE * 100}%. The lower fee applies to every payment where the brand or the creator has Pro, so one side having it is enough. It pays for itself once roughly ${formatCents(Math.round(PRO_SUBSCRIPTION_PRICE_CENTS / (PLATFORM_FEE_RATE - PRO_PLATFORM_FEE_RATE)))}/month or more goes through your account. Billed monthly through Stripe. Manage or cancel it from Settings. The first ${FOUNDING_BRAND_LIMIT} brands and the first ${FOUNDING_CREATOR_LIMIT} creators that signed up get Pro for free for as long as their account exists.`,
   },
   {
     question: "What if the creator never posts?",
@@ -90,7 +90,7 @@ const FAQS_DE: { question: string; answer: string }[] = [
   },
   {
     question: PRO_QUESTION_DE,
-    answer: `Ein optionales Monatsabo für Marken (${formatCents(PRO_SUBSCRIPTION_PRICE_CENTS)}/Monat), das die Plattformgebühr bei jedem Angebot von ${PLATFORM_FEE_RATE * 100}\u00a0% auf ${PRO_PLATFORM_FEE_RATE * 100}\u00a0% senkt. Es rechnet sich, sobald du etwa ${formatCents(Math.round(PRO_SUBSCRIPTION_PRICE_CENTS / (PLATFORM_FEE_RATE - PRO_PLATFORM_FEE_RATE)))} im Monat oder mehr an Angeboten verschickst. Abgerechnet wird monatlich über Stripe. Verwalten oder kündigen kannst du es in den Einstellungen. Die ersten ${FOUNDING_BRAND_LIMIT} Marken, die sich angemeldet haben, bekommen Pro kostenlos, solange ihr Konto besteht.`,
+    answer: `Ein optionales Monatsabo für Marken und Creator (${formatCents(PRO_SUBSCRIPTION_PRICE_CENTS)}/Monat), das die Plattformgebühr von ${PLATFORM_FEE_RATE * 100} % auf ${PRO_PLATFORM_FEE_RATE * 100} % senkt. Die niedrigere Gebühr gilt für jede Zahlung, bei der die Marke oder der Creator Pro hat. Es reicht also, wenn eine Seite es hat. Es rechnet sich, sobald etwa ${formatCents(Math.round(PRO_SUBSCRIPTION_PRICE_CENTS / (PLATFORM_FEE_RATE - PRO_PLATFORM_FEE_RATE)))} im Monat oder mehr über dein Konto laufen. Abgerechnet wird monatlich über Stripe. Verwalten oder kündigen kannst du es in den Einstellungen. Die ersten ${FOUNDING_BRAND_LIMIT} Marken und die ersten ${FOUNDING_CREATOR_LIMIT} Creator, die sich angemeldet haben, bekommen Pro kostenlos, solange ihr Konto besteht.`,
   },
   {
     question: "Was, wenn der Creator nie postet?",

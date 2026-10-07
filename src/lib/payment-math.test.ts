@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { splitPayment } from "@/lib/payment-math";
+import { feeRatePercent, hasProRate, proSplitIfCheaper, splitPayment } from "@/lib/payment-math";
 
 describe("splitPayment", () => {
   it("takes the standard 10% platform fee", () => {
@@ -29,5 +29,43 @@ describe("splitPayment", () => {
         expect(platformFeeCents + payoutCents).toBe(amount);
       }
     }
+  });
+});
+
+describe("hasProRate", () => {
+  it("gives the Pro rate when either side has Pro", () => {
+    expect(hasProRate({ isPro: false }, { isPro: false })).toBe(false);
+    expect(hasProRate({ isPro: true }, { isPro: false })).toBe(true);
+    expect(hasProRate({ isPro: false }, { isPro: true })).toBe(true);
+    expect(hasProRate({ isPro: true }, { isPro: true })).toBe(true);
+  });
+
+  it("shows the matching rate in percent", () => {
+    expect(feeRatePercent({ isPro: false }, { isPro: false })).toBe(10);
+    expect(feeRatePercent({ isPro: false }, { isPro: true })).toBe(3);
+  });
+});
+
+describe("proSplitIfCheaper", () => {
+  it("moves a deal on the standard fee to the Pro fee", () => {
+    expect(proSplitIfCheaper(25_000, 2_500)).toEqual({ platformFeeCents: 750, payoutCents: 24_250 });
+  });
+
+  it("leaves a deal that already has the Pro fee alone", () => {
+    expect(proSplitIfCheaper(25_000, 750)).toBeNull();
+  });
+
+  it("never raises a fee", () => {
+    expect(proSplitIfCheaper(25_000, 100)).toBeNull();
+  });
+
+  it("skips a deal without a price", () => {
+    expect(proSplitIfCheaper(null, null)).toBeNull();
+    expect(proSplitIfCheaper(25_000, null)).toBeNull();
+  });
+
+  it("keeps fee and payout adding up to the amount", () => {
+    const split = proSplitIfCheaper(333, 33)!;
+    expect(split.platformFeeCents + split.payoutCents).toBe(333);
   });
 });

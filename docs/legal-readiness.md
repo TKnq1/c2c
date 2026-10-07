@@ -53,9 +53,12 @@ shows them locally, `?lang=en` for English.
    pages) decided after that.
 3. **DAC7 / Plattform-Steuertransparenzgesetz:** ask a tax adviser whether and from when comtor must register
    and report.
-4. **Terms of service:** have them reviewed by a lawyer (liability cap, indemnity, Pro for businesses only, VAT).
-5. **Pro subscription:** check the Stripe price's tax setting and invoices (VAT shown, reverse charge), decide that
-   Pro is for businesses only (avoids consumer rules such as the cancellation button), say so in terms and checkout.
+4. **Terms of service:** have them reviewed by a lawyer (liability cap, indemnity, Pro, VAT).
+5. **Pro subscription:** €10/month, sold to brands and to creators. Creators are often private persons, so Pro
+   is now sold to consumers too and "Pro for businesses only" is no longer an option: check the consumer rules for
+   an online subscription (the cancellation button under § 312k BGB, the pre-contract information, the 14-day
+   withdrawal the app already offers) against the Settings flow, and the Stripe price's tax setting and invoices
+   (VAT shown, reverse charge for businesses).
 6. **Processors:** accept or sign the data processing agreements with Vercel, Neon, Resend, Stripe, Google
    (Firebase Cloud Messaging) and, if used, Sentry. File them.
 7. **Records:** keep the record of processing activities (below) and the technical and organisational measures

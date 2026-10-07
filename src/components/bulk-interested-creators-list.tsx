@@ -9,6 +9,7 @@ import type { PaymentStage } from "@/components/payment-status-badge";
 import { toast } from "@/lib/toast";
 import { errorMessage } from "@/lib/error-message";
 import { useI18n } from "@/components/i18n-provider";
+import { PRO_PLATFORM_FEE_RATE } from "@/lib/constants";
 
 type InterestEntry = {
   id: string;
@@ -29,10 +30,13 @@ export function BulkInterestedCreatorsList({
   requestId,
   interests,
   feeRatePercent,
+  creatorProNote,
 }: {
   requestId: string;
   interests: InterestEntry[];
   feeRatePercent: number;
+  // The brand has no Pro: creators with Pro still get the Pro rate (see hasProRate), so the hint mentions it.
+  creatorProNote: boolean;
 }) {
   const { t } = useI18n();
   const router = useRouter();
@@ -86,7 +90,9 @@ export function BulkInterestedCreatorsList({
             </button>
           </div>
           <p className="text-xs text-neutral-500 dark:text-neutral-400">
-            {t("screens.requests.bulkOfferHint", { fee: feeRatePercent })}
+            {creatorProNote
+              ? t("screens.requests.bulkOfferHintCreatorPro", { fee: feeRatePercent, pro: PRO_PLATFORM_FEE_RATE * 100 })
+              : t("screens.requests.bulkOfferHint", { fee: feeRatePercent })}
           </p>
           <div className="flex items-center gap-2 flex-wrap">
             <span className="text-sm text-neutral-600 dark:text-neutral-400">€</span>

@@ -158,8 +158,8 @@ export async function signupAction(_prevState: ActionState, formData: FormData):
   // the link is waiting once onboarding is done; after the response (it
   // still runs through the redirect below), so signing up doesn't wait on
   // the mail provider.
-  // The first brands get Pro for good: decided here, so the welcome mail and the wizard both know.
-  const foundingNumber = data.role === "STARTUP" ? await claimFoundingProForUser(user.id).catch(() => null) : null;
+  // The first brands and the first creators get Pro for good: decided here, so the welcome mail and the wizard both know.
+  const foundingNumber = await claimFoundingProForUser(user.id).catch(() => null);
   after(() => sendVerificationEmail(user.id, user.email, locale, data.role, foundingNumber));
 
   try {

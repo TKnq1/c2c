@@ -1,7 +1,8 @@
 import type { founding } from "@/lib/i18n/messages/founding-en";
 import type { DeepString } from "@/lib/i18n/messages/types";
 
-// Die Founding Brands: Die ersten Marken bekommen Pro, solange ihr Konto besteht (src/lib/founding.ts).
+// Die Founding-Plätze: Die ersten Marken und die ersten Creator bekommen Pro, solange ihr Konto besteht
+// (src/lib/founding.ts).
 export const foundingDe: DeepString<typeof founding> = {
   teaser: "Die ersten {total} Marken bekommen Pro kostenlos, solange ihr Konto besteht. Noch {left} Plätze frei.",
   teaserLast: "Die ersten {total} Marken bekommen Pro kostenlos, solange ihr Konto besteht. Nur noch 1 Platz frei.",
@@ -15,4 +16,13 @@ export const foundingDe: DeepString<typeof founding> = {
   planBody:
     "Pro ist für dich kostenlos, solange dein Konto besteht: {pro} % statt {standard} % auf jede Zahlung. Du musst nichts bezahlen und nichts kündigen.",
   feeLine: "Founding Brand Nr. {n}: {pro} % Gebühr pro Zahlung statt {standard} %.",
+  creator: {
+    teaser: "Die ersten {total} Creator bekommen Pro kostenlos, solange ihr Konto besteht. Noch {left} Plätze frei.",
+    teaserLast: "Die ersten {total} Creator bekommen Pro kostenlos, solange ihr Konto besteht. Nur noch 1 Platz frei.",
+    ofTotal: "von {total} Founding Creatorn",
+    body: "Solange dein Konto besteht. comtor behält {pro} % statt {standard} % von jeder Zahlung, du bekommst {keep} %.",
+    doneLine: "Founding Creator Nr. {n}: Pro ist für dich kostenlos, solange dein Konto besteht.",
+    planTitle: "Pro · Founding Creator Nr. {n}",
+    feeLine: "Founding Creator Nr. {n}: {pro} % Gebühr pro Zahlung statt {standard} %.",
+  },
 };

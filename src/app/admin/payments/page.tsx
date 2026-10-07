@@ -4,6 +4,9 @@ import { FiCreditCard } from "react-icons/fi";
 import { prisma } from "@/lib/prisma";
 import { requireAdminSession } from "@/lib/admin-session";
 import { formatCents } from "@/lib/format";
+import { dealsToReprice, totalGainCents } from "@/lib/open-deal-fees";
+import { repriceOpenDealsAction } from "@/lib/actions/admin";
+import { ConfirmActionButton } from "@/components/confirm-action-button";
 import { EmptyState } from "@/components/empty-state";
 import { LocalDate } from "@/components/local-date";
 import { PaymentStatusBadge, type PaymentStage } from "@/components/payment-status-badge";
@@ -75,7 +78,7 @@ export default async function AdminPaymentsPage(props: PageProps<"/admin/payment
     ],
   };
 
-  const [payments, total, totals, stageCounts, withdrawals] = await Promise.all([
+  const [payments, total, totals, stageCounts, withdrawals, repricing] = await Promise.all([
     prisma.interest.findMany({
       where,
       orderBy: { createdAt: "desc" },
@@ -92,9 +95,14 @@ export default async function AdminPaymentsPage(props: PageProps<"/admin/payment
     prisma.proWithdrawal.findMany({
       orderBy: { createdAt: "desc" },
       take: 20,
-      include: { startup: { select: { companyName: true, user: { select: { email: true } } } } },
+      include: {
+        startup: { select: { companyName: true, user: { select: { email: true } } } },
+        creator: { select: { displayName: true, user: { select: { email: true } } } },
+      },
     }),
+    dealsToReprice(),
   ]);
+  const repricingGain = totalGainCents(repricing);
   const allCount = stageCounts.reduce((sum, n) => sum + n, 0);
 
   return (
@@ -106,19 +114,48 @@ export default async function AdminPaymentsPage(props: PageProps<"/admin/payment
         </p>
       </div>
 
+      {repricing.length > 0 && (
+        <div className="flex flex-col gap-3 rounded border border-dashed border-ink px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="text-sm">
+            <p className="font-medium">
+              {repricing.length} open {repricing.length === 1 ? "deal still has" : "deals still have"} the standard fee
+            </p>
+            <p className="text-neutral-600 dark:text-neutral-400">
+              One side of {repricing.length === 1 ? "it has" : "each has"} Pro, but the fee was fixed when the offer was made. Moving{" "}
+              {repricing.length === 1 ? "it" : "them"} to the Pro fee raises the creators&apos; payouts by {formatCents(repricingGain)} in
+              total. What the brands pay stays the same.
+            </p>
+          </div>
+          <ConfirmActionButton
+            action={repriceOpenDealsAction}
+            requirePassword
+            successMessage="The open deals are on the Pro fee."
+            title={`Move ${repricing.length} open ${repricing.length === 1 ? "deal" : "deals"} to the Pro fee?`}
+            description={`Offers, deals awaiting payment and payments in escrow where the brand or the creator has Pro get the Pro fee. The creators' payouts rise by ${formatCents(repricingGain)} in total; a fee is never raised. Paid out deals are not touched.`}
+            confirmLabel="Move"
+            pendingLabel="Moving…"
+            className="shrink-0 self-start rounded-full border border-ink px-4 py-2 text-sm font-medium transition hover:bg-fog sm:self-auto"
+          >
+            Apply Pro fee
+          </ConfirmActionButton>
+        </div>
+      )}
+
       <section className="flex flex-col gap-3 rounded border border-ink/10 p-4">
         <h2 className="font-display text-title-3 font-bold">
           Pro withdrawals <span className="tabular-nums text-neutral-500">{withdrawals.length}</span>
         </h2>
         {withdrawals.length === 0 ? (
-          <p className="text-sm text-neutral-500">No brand has withdrawn from Pro yet.</p>
+          <p className="text-sm text-neutral-500">No one has withdrawn from Pro yet.</p>
         ) : (
           <ul className="rounded bg-fog">
             {withdrawals.map((row) => (
               <li key={row.id} className="flex items-center justify-between gap-3 px-3 py-2.5 [&+&]:border-t [&+&]:border-ink/10">
                 <span className="min-w-0">
-                  <span className="block truncate text-sm font-medium">{row.startup.companyName || "Brand"}</span>
-                  <span className="block truncate text-footnote text-neutral-500">{row.startup.user.email}</span>
+                  <span className="block truncate text-sm font-medium">
+                    {row.startup ? row.startup.companyName || "Brand" : row.creator?.displayName || "Creator"}
+                  </span>
+                  <span className="block truncate text-footnote text-neutral-500">{(row.startup ?? row.creator)?.user.email}</span>
                 </span>
                 <span className="shrink-0 text-right text-footnote text-neutral-500">
                   <span className="block font-medium text-ink">{formatCents(row.amountCents)} refunded</span>

@@ -90,10 +90,10 @@ export function OnboardingDone({
           <p className="mt-2 text-pretty text-neutral-600 dark:text-neutral-400">
             {role === "brand" ? t("onboarding.done.brandBody") : t("onboarding.done.creatorBody")}
           </p>
-          {role === "brand" && foundingNumber && (
+          {foundingNumber && (
             <p className="mt-3 flex items-center justify-center gap-2 rounded bg-fog px-4 py-2.5 text-sm font-medium">
               <IoSparkles className="h-4 w-4 shrink-0" aria-hidden />
-              {t("founding.doneLine", { n: foundingNumber })}
+              {t(role === "brand" ? "founding.doneLine" : "founding.creator.doneLine", { n: foundingNumber })}
             </p>
           )}
         </div>

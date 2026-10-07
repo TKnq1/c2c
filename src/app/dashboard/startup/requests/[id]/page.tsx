@@ -52,7 +52,9 @@ export default async function RequestDetailPage({ params }: { params: Promise<{ 
   if (!request || request.startupId !== startup.id) notFound();
   const photos = (await photoUrlsByRequestId([request])).get(request.id) ?? [];
   const isOpen = request.status === "OPEN";
+  // The brand's own rate. Without Pro on the brand, a creator with Pro still gets the Pro rate, which the hint says.
   const feeRatePercent = (startup.isPro ? PRO_PLATFORM_FEE_RATE : PLATFORM_FEE_RATE) * 100;
+  const creatorProNote = !startup.isPro;
 
   // Both a creator applying and this startup reaching out directly create
   // the same Interest row — split them back apart so "interested" only
@@ -139,6 +141,7 @@ export default async function RequestDetailPage({ params }: { params: Promise<{ 
                 requestId={request.id}
                 interests={interestedCreators.map(toInterestEntry)}
                 feeRatePercent={feeRatePercent}
+                creatorProNote={creatorProNote}
               />
             )}
           </section>
@@ -150,6 +153,7 @@ export default async function RequestDetailPage({ params }: { params: Promise<{ 
                 requestId={request.id}
                 interests={contactedCreators.map(toInterestEntry)}
                 feeRatePercent={feeRatePercent}
+                creatorProNote={creatorProNote}
               />
             </section>
           )}

@@ -18,6 +18,7 @@ import { CreatorAha } from "@/components/onboarding-aha";
 import { OnboardingSwipeDemo } from "@/components/onboarding-swipe-demo";
 import { OnboardingPayoutStep, PAYOUTS_AVAILABLE } from "@/components/onboarding-payout-step";
 import { OnboardingAccountStep } from "@/components/onboarding-account-step";
+import { FoundingStep } from "@/components/onboarding-founding";
 import { OnboardingPushStep, usePushOffer } from "@/components/onboarding-push-step";
 import {
   FIELD_CLASS,
@@ -53,11 +54,15 @@ export function CreatorOnboarding({
   emailVerified,
   mode = "account",
   onLeave,
+  foundingNumber: initialFoundingNumber = null,
 }: {
   emailVerified: boolean;
   mode?: "guest" | "account";
   // Guests can step back out to the creator/brand choice.
   onLeave?: () => void;
+  // The creator already has one of the founding places (signed up with the plain form). Guests learn it from
+  // the account step instead.
+  foundingNumber?: number | null;
 }) {
   const { t } = useI18n();
   const guest = mode === "guest";
@@ -73,6 +78,7 @@ export function CreatorOnboarding({
     platforms?: OnboardingInsight;
   }>({});
   const [payoutsStarted, setPayoutsStarted] = useState(false);
+  const [foundingNumber, setFoundingNumber] = useState<number | null>(initialFoundingNumber);
   const pushOffer = usePushOffer();
   const sealed = useRef(false);
 
@@ -251,11 +257,22 @@ export function CreatorOnboarding({
                 niche=""
                 photoDataUrl={photoDataUrl}
                 onBack={() => back(i)}
-                onDone={() => {
+                onDone={(state) => {
+                  setFoundingNumber(state.foundingNumber ?? null);
                   replayGuestSteps(i);
                   finish(i);
                 }}
               />
+            ),
+          },
+        ]
+      : []),
+    ...(foundingNumber
+      ? [
+          {
+            key: "founding" as const,
+            render: (i: number) => (
+              <FoundingStep side="creator" active={step === i} number={foundingNumber} onNext={() => finish(i)} />
             ),
           },
         ]
@@ -295,7 +312,15 @@ export function CreatorOnboarding({
   if (guest && !booted) return <div className="flex flex-1" />;
 
   if (finished) {
-    return <OnboardingDone role="creator" name={name} emailVerified={emailVerified} payoutsStarted={payoutsStarted} />;
+    return (
+      <OnboardingDone
+        role="creator"
+        name={name}
+        emailVerified={emailVerified}
+        payoutsStarted={payoutsStarted}
+        foundingNumber={foundingNumber}
+      />
+    );
   }
 
   const bar = guest ? BAR_STEPS : SETUP_STEPS;

@@ -20,6 +20,7 @@ import { withdrawOfferAction } from "@/lib/actions/payments";
 import { formatCents, isWithinLastWeek } from "@/lib/format";
 import { DEPOSITS_ENABLED, RELEASE_REVIEW_DAYS, RELEASE_REVIEW_MS } from "@/lib/constants";
 import { PageTitle } from "@/components/page-title";
+import { ProFeeBar } from "@/components/pro-fee-bar";
 import { getT } from "@/lib/i18n/server";
 
 const primaryButton =
@@ -89,6 +90,13 @@ export default async function CreatorPaymentsPage() {
           { label: t("screens.payments.inProgress"), value: String(inProgressCount) },
           { label: t("screens.payments.rating"), value: averageRating === null ? "–" : `${averageRating.toFixed(1)} ★` },
         ]}
+      />
+
+      <ProFeeBar
+        side="creator"
+        isPro={creator.isPro}
+        foundingNumber={creator.foundingNumber}
+        hasSubscription={!!creator.stripeSubscriptionId}
       />
 
       {creator.stripeOnboarded ? (

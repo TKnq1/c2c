@@ -110,9 +110,12 @@ export async function signupFromDraftAction(_prevState: OnboardingState, formDat
         await notifyBrandsAboutCreator(user.creatorProfile, maxFollowers).catch(() => undefined);
       }
       revalidatePath("/");
-      after(() => sendWelcome(user.id, user.email, "CREATOR", locale));
+      // One of the first creators? Then the wizard's next screen says so, and so does the welcome mail.
+      const foundingNumber = await claimFoundingProForUser(user.id).catch(() => null);
+      after(() => sendWelcome(user.id, user.email, "CREATOR", locale, foundingNumber));
       if (field(formData, "marketing") === "yes") queueMarketingConsent(user.id);
-      return await signInWithoutLeaving(data.email, data.password);
+      const result = await signInWithoutLeaving(data.email, data.password);
+      return result?.success ? { ...result, foundingNumber } : result;
     }
 
     if (brandParsed?.success) {
