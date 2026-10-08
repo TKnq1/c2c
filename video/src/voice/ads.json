@@ -1,1 +1,102 @@
-{}
+{
+  "AB1-1": {
+    "file": "vo/ads/AB1-1.mp3",
+    "seconds": 3.318
+  },
+  "AB1-2": {
+    "file": "vo/ads/AB1-2.mp3",
+    "seconds": 1.28
+  },
+  "AB1-3": {
+    "file": "vo/ads/AB1-3.mp3",
+    "seconds": 2.142
+  },
+  "AB1-4": {
+    "file": "vo/ads/AB1-4.mp3",
+    "seconds": 1.62
+  },
+  "AB1-5": {
+    "file": "vo/ads/AB1-5.mp3",
+    "seconds": 3.579
+  },
+  "AB2-1": {
+    "file": "vo/ads/AB2-1.mp3",
+    "seconds": 3.971
+  },
+  "AB2-2": {
+    "file": "vo/ads/AB2-2.mp3",
+    "seconds": 0.731
+  },
+  "AB2-3": {
+    "file": "vo/ads/AB2-3.mp3",
+    "seconds": 3.109
+  },
+  "AB2-4": {
+    "file": "vo/ads/AB2-4.mp3",
+    "seconds": 1.358
+  },
+  "AB2-5": {
+    "file": "vo/ads/AB2-5.mp3",
+    "seconds": 3.84
+  },
+  "AB3-1": {
+    "file": "vo/ads/AB3-1.mp3",
+    "seconds": 4.389
+  },
+  "AB3-2": {
+    "file": "vo/ads/AB3-2.mp3",
+    "seconds": 1.829
+  },
+  "AB3-3": {
+    "file": "vo/ads/AB3-3.mp3",
+    "seconds": 3.004
+  },
+  "AB3-4": {
+    "file": "vo/ads/AB3-4.mp3",
+    "seconds": 1.358
+  },
+  "AB3-5": {
+    "file": "vo/ads/AB3-5.mp3",
+    "seconds": 3.579
+  },
+  "AC2-1": {
+    "file": "vo/ads/AC2-1.mp3",
+    "seconds": 3.892
+  },
+  "AC2-2": {
+    "file": "vo/ads/AC2-2.mp3",
+    "seconds": 1.097
+  },
+  "AC2-3": {
+    "file": "vo/ads/AC2-3.mp3",
+    "seconds": 3.109
+  },
+  "AC2-4": {
+    "file": "vo/ads/AC2-4.mp3",
+    "seconds": 1.959
+  },
+  "AC2-5": {
+    "file": "vo/ads/AC2-5.mp3",
+    "seconds": 3.5
+  },
+  "AC4-1": {
+    "file": "vo/ads/AC4-1.mp3",
+    "seconds": 3.318
+  },
+  "AC4-2": {
+    "file": "vo/ads/AC4-2.mp3",
+    "seconds": 0.914
+  },
+  "AC4-3": {
+    "file": "vo/ads/AC4-3.mp3",
+    "seconds": 3.579
+  },
+  "AC4-4": {
+    "file": "vo/ads/AC4-4.mp3",
+    "seconds": 1.881
+  },
+  "AC4-5": {
+    "file": "vo/ads/AC4-5.mp3",
+    "seconds": 3.422
+  }
+}

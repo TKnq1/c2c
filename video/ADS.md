@@ -47,6 +47,14 @@ Nokar-Bild und -Profilbild sind noch Platzhalter (`nokar-hoodie.jpg`, `nokar-ava
 
 ## Voiceover (ElevenLabs)
 
+**Stand:** aufgenommen und eingebaut sind AC2, AC4, AB1, AB2, AB3 (Rohdateien in `voice/source/ads/`: AC2 und AC4 mit
+„Christian – Polite and Calm“, AB1, AB2 und AB3 mit „Chris Beck – Young Ads“, Speed 1,00). **AC1 hat noch keine Aufnahme**
+und läuft ohne Voiceover. Weil die Stimmen langsamer sprechen als das Zeitbudget unten (ca. 3 Silben pro Sekunde),
+kürzt `make-ad-voiceover.py` Pausen innerhalb einer Zeile auf höchstens 0,22 s und spielt die Stimme mit 1,08 facher
+Geschwindigkeit (Tonhöhe bleibt, `GAP_CAP` und `TEMPO` im Skript). Die Ads werden dadurch 16,5–18 s lang. Wer kürzere Ads
+will, nimmt in ElevenLabs mit Speed 1,15 bis 1,2 auf und setzt `TEMPO = 1.0`. Die Anzahl der Sprechabschnitte je Zeile
+(`PLAN` im Skript) gilt für diese Aufnahmen; bei einer Neuaufnahme anpassen oder Einzeldateien liefern.
+
 Stimme wie bei den langen Videos: „Damien – Iconic Commercial Power“, Speed 1,10, Stability 44, Similarity 100.
 Creator-Ads jung und energisch, Marken-Ads ruhig und sicher (eine Stimme für alle ist ok). Zahlen sind ausgeschrieben.
 Aussprache prüfen: „comtor“ (notfalls „Kom-tor“), „Ju-Dschi-Si“ (UGC, steht schon in Lautschrift; bei schiefer Betonung „Juh Dschih Ssih“ probieren), „D-M-s“ (steht schon buchstabiert), „Kaltakquise“.
