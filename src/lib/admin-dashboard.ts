@@ -24,6 +24,13 @@ export function funnelSteps(steps: { label: string; count: number }[]): FunnelSt
   }));
 }
 
+// How wide a step's bar is, in percent of its track: the share of the step before. A step without a share (the first one, or
+// one after an empty step) gets the full track, but a step with nothing in it stays empty.
+export function funnelBarWidth(step: FunnelStep): number {
+  if (step.count === 0) return 0;
+  return Math.min(100, step.shareOfPrevious ?? 100);
+}
+
 export type DashboardData = Awaited<ReturnType<typeof loadDashboard>>;
 
 // Everything the "Heute" page shows, from the live data. The ad figures arrive with the marketing packages.

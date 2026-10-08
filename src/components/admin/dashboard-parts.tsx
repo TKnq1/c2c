@@ -2,7 +2,7 @@ import Link from "next/link";
 import { useId } from "react";
 import type { IconType } from "react-icons";
 import { FiArrowDownRight, FiArrowUpRight } from "react-icons/fi";
-import type { FunnelStep } from "@/lib/admin-dashboard";
+import { funnelBarWidth, type FunnelStep } from "@/lib/admin-dashboard";
 import type { TrendPoint } from "@/lib/admin-trends";
 import { ChartTable } from "@/components/admin/chart-table";
 import { TrendLine } from "@/components/admin/trend-line";
@@ -201,7 +201,7 @@ export function FunnelBars({ steps }: { steps: FunnelStep[] }) {
             </span>
           </div>
           <div className="h-3.5 rounded-full bg-ink/10">
-            <div className="adm-bar h-full rounded-full" style={{ width: `${step.shareOfPrevious ?? 100}%`, minWidth: step.count > 0 ? 6 : 0 }} />
+            <div className="adm-bar h-full rounded-full" style={{ width: `${funnelBarWidth(step)}%`, minWidth: step.count > 0 ? 6 : 0 }} />
           </div>
         </div>
       ))}

@@ -107,6 +107,9 @@ function initials(name: string | null, email: string) {
 
 const badgeText = (n: number) => (n > 99 ? "99+" : String(n));
 
+// The search and command palette, opened from the top bar, the sidebar and the phone's header alike.
+const openSearch = () => window.dispatchEvent(new Event(OPEN_ADMIN_PALETTE));
+
 // One row of the sidebar: icon, name and, where something waits, a count. The page you are on has a soft background and the
 // accent as a bar on the sidebar's edge.
 const ITEM = "relative flex items-center gap-3 rounded-[var(--adm-r-row)] px-3.5 py-2.5 text-[0.9375rem] transition";
@@ -118,13 +121,12 @@ const COUNT = "ml-auto min-w-5 rounded-full bg-ink px-1.5 text-center text-xs fo
 // The search, the inbox, the account and the sign-out, top right on every page. On "Heute" the search is a wide field; elsewhere
 // it shrinks to a button so the page's own heading keeps its room.
 function TopControls({ counts, email, name, wide }: { counts: { notices: number }; email: string; name: string | null; wide: boolean }) {
-  const search = () => window.dispatchEvent(new Event(OPEN_ADMIN_PALETTE));
   return (
     <div className="absolute top-0 right-0 z-20 hidden items-center gap-2.5 lg:flex">
       {wide && (
         <button
           type="button"
-          onClick={search}
+          onClick={openSearch}
           className="adm-field hidden h-12 w-[17.5rem] grid-cols-[auto_1fr_auto] items-center gap-3 px-5 text-left text-sm text-graphite xl:grid"
         >
           <FiSearch className="h-[18px] w-[18px]" aria-hidden />
@@ -132,7 +134,7 @@ function TopControls({ counts, email, name, wide }: { counts: { notices: number 
           <kbd className="rounded-md border border-ink/15 px-1.5 py-0.5 text-[0.6875rem] font-bold">⌘K</kbd>
         </button>
       )}
-      <button type="button" onClick={search} aria-label="Suchen" className={`adm-round grid h-11 w-11 place-items-center text-graphite hover:text-ink ${wide ? "xl:hidden" : ""}`}>
+      <button type="button" onClick={openSearch} aria-label="Suchen" className={`adm-round grid h-11 w-11 place-items-center text-graphite hover:text-ink ${wide ? "xl:hidden" : ""}`}>
         <FiSearch className="h-[18px] w-[18px]" aria-hidden />
       </button>
       <Link href="/admin/mitteilungen" aria-label={counts.notices > 0 ? `Mitteilungen, ${counts.notices} ungelesen` : "Mitteilungen"} className="adm-round relative grid h-11 w-11 place-items-center text-graphite hover:text-ink">
@@ -203,6 +205,11 @@ export function AdminShell({
           <LogoMark width={48} />
           <span className="rounded-full border border-ink/15 px-2 py-px text-[0.6875rem] font-bold text-graphite">Admin</span>
         </Link>
+        <button type="button" onClick={openSearch} className="adm-field mb-2.5 flex h-10 items-center gap-2.5 px-3.5 text-left text-sm text-graphite hover:text-ink">
+          <FiSearch className="h-4 w-4 shrink-0" aria-hidden />
+          <span className="flex-1 truncate">Suchen…</span>
+          <kbd className="rounded-md border border-ink/15 px-1.5 py-0.5 text-[0.6875rem] font-bold">⌘K</kbd>
+        </button>
         <nav aria-label="Admin" className="flex flex-col gap-1">
           {main.map((section) => {
             const Icon = section.icon;
@@ -286,6 +293,9 @@ export function AdminShell({
             <span className="rounded-full border border-ink/10 px-2 py-0.5 text-xs font-bold text-graphite">Admin</span>
           </Link>
           <div className="flex items-center gap-1">
+            <button type="button" onClick={openSearch} aria-label="Suchen" className="rounded-full p-2 text-graphite transition hover:bg-fog hover:text-ink">
+              <FiSearch className="h-[18px] w-[18px]" aria-hidden />
+            </button>
             <Bell count={counts.notices} />
             <LogoutButton className="rounded-full border border-ink/10 px-3 py-1 text-xs font-bold">Abmelden</LogoutButton>
           </div>
