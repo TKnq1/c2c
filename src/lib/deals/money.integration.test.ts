@@ -562,14 +562,17 @@ describe.skipIf(!DB)("the money around a deal (needs a database)", () => {
     const countOf = (checks: { key: string; title: string }[], key: string) => Number(keyOf(checks, key)?.title.match(/^\d+/)?.[0] ?? 0);
     const later = () => new Date(Date.now() + 3 * DAY);
 
-    it("asks for a decision on a frozen deal", async () => {
+    it("asks for a decision on a frozen deal, once", async () => {
       const before = countOf(await adminChecks.dealChecks(later()), "deal-disputes-open");
+      const legacyBefore = countOf(await adminTasks.computeChecks(), "disputes-open");
       await seed("DISPUTED");
       const checks = await adminChecks.dealChecks(later());
       expect(countOf(checks, "deal-disputes-open")).toBe(before + 1);
       expect(keyOf(checks, "deal-disputes-open")).toMatchObject({ priority: "HIGH", href: "/admin/deals" });
-      // The page's own check list has it too.
-      expect((await adminTasks.computeChecks()).some((c) => c.key === "deal-disputes-open")).toBe(true);
+      // The page's own check list has it too, and the check for payments from before brand deals does not count it again.
+      const all = await adminTasks.computeChecks();
+      expect(countOf(all, "deal-disputes-open")).toBe(before + 1);
+      expect(countOf(all, "disputes-open")).toBe(legacyBefore);
     });
 
     it("flags a payout that has been due for a day, not one that is due now", async () => {

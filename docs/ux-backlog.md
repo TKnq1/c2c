@@ -32,9 +32,12 @@ Reihenfolge innerhalb einer Gruppe = meine Empfehlung.
 11. **Feste Speichern-Leiste unten mit Fehlerzahl** (M): „2 Fehler“ springt zum ersten Fehler. Heute stehen Fehlerliste und
     Button am Ende einer dreibildschirmlangen Seite.
 12. **Vorlagen** (M): „Reel + Story“, „Nur TikTok“, „UGC ohne Posting“ füllen das Briefing vor.
+    *Backend steht (Stand 9.10.):* Vorlagen speichern, umbenennen, löschen, als Standard setzen, auf mehrere Anfragen anwenden,
+    unvollständige Entwürfe. Es fehlt nur die Oberfläche.
 13. **Drei Schritte statt sechs Abschnitte** (M): Inhalt → Kennzeichnung und Fristen → Rechte. Exklusivität und Nutzungsrechte
     standardmäßig zu („Brauche ich nicht“).
 14. **Briefing aus früherer Anfrage kopieren und Standardwerte merken** (M).
+    *Backend steht:* Kopie aus einer Anfrage, Standardvorlage für neue Anfragen, Anfrage duplizieren kopiert das Briefing.
 15. **Bessere Vorbelegung** (S): Markt aus dem Land der Marke, Kennzeichnung „Werbung“ und Paid-Partnership-Schalter schon an.
 
 ## D. Geschäftsdaten und Vertrag
@@ -55,12 +58,14 @@ Reihenfolge innerhalb einer Gruppe = meine Empfehlung.
 ## F. Benachrichtigungen
 
 22. **Erinnerungen mit Direktlink zum Formular** (S–M): Push oder Mail „Entwurf fällig in 24 Std.“ öffnet den Abschnitt
-    (`#drafts`, `#post`).
+    (`#drafts`, `#post`). *Backend steht:* Hinweise führen zu `#contract`, `#escrow`, `#drafts`, `#posts`, `#usage`, `#dispute`;
+    Fristen und Abbrüche gehen zusätzlich per E-Mail raus.
 23. **Stündlicher Cron** (S, braucht Vercel Pro): Haltefrist und Erinnerungen werden sonst bis zu einen Tag später ausgewertet.
 
 ## G. Listen und Sprache
 
 24. **Deals-Liste mit Filtern** (S): „Wartet auf mich · Aktiv · Abgeschlossen“, bei vielen Deals nach Kampagne gruppiert.
+    *Backend steht:* `/dashboard/deals?filter=mine|active|done` filtert; Filterleiste und Gruppierung fehlen noch.
 25. **Karte auf der Startseite** (S): „3 Deals warten auf dich“ mit Direktlink.
 26. **Weniger Fachwörter im Hauptfluss** (S): „Escrow“ → „sicher hinterlegt“, Steuerzeilen unter „Details“.
 

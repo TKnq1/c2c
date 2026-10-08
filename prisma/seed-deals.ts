@@ -79,6 +79,8 @@ async function removeEarlierDemos(startupId: string) {
 async function main() {
   assertLocal();
   process.env.BRAND_DEALS_ENABLED = "1";
+  // The notices on the way would be mailed to the demo accounts: nothing is sent from here.
+  process.env.EMAIL_DRY_RUN = "1";
   // The platform's own VAT ID, so the invoices of the completed demo deal can be written.
   process.env.IMPRINT_VAT_ID ||= "DE123456789";
 

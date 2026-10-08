@@ -126,7 +126,8 @@ export async function computeChecks(now = new Date()): Promise<CheckResult[]> {
   const releaseSoonBefore = new Date(now.getTime() - (RELEASE_REVIEW_MS - DAY));
   const [reports, disputes, releaseSoon, foundingUnnotified, foundingCreatorsUnnotified, reconciliations, reprice, snapshots, mailFailures24h, activeFixedCosts, settings, dealResults] = await Promise.all([
     prisma.report.aggregate({ where: { status: "OPEN" }, _count: true, _min: { createdAt: true } }),
-    prisma.interest.count({ where: { paymentStatus: "HELD", disputedAt: { not: null } } }),
+    // Collabs from before brand deals; a frozen deal has its own check (deals/admin-checks.ts), so it is not counted twice.
+    prisma.interest.count({ where: { paymentStatus: "HELD", disputedAt: { not: null }, deal: { is: null } } }),
     prisma.interest.count({ where: { paymentStatus: "HELD", disputedAt: null, proofSubmittedAt: { lte: releaseSoonBefore } } }),
     prisma.startupProfile.count({
       where: { foundingNumber: { not: null }, foundingNoticeSentAt: null, user: { suspendedAt: null, deletedAt: null } },

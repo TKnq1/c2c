@@ -86,6 +86,16 @@ describe("sendEmail", () => {
     expect(send.mock.calls[2][0]).not.toHaveProperty("attachments");
   });
 
+  it("sends nothing and logs nothing in a dry run, even with a key", async () => {
+    vi.stubEnv("RESEND_API_KEY", "re_key");
+    vi.stubEnv("EMAIL_DRY_RUN", "1");
+    const { sendEmail } = await load();
+
+    expect(await sendEmail(email)).toEqual({ ok: true, id: "dry-run" });
+    expect(send).not.toHaveBeenCalled();
+    expect(logMail).not.toHaveBeenCalled();
+  });
+
   it("doesn't throw without an API key", async () => {
     vi.stubEnv("RESEND_API_KEY", "");
     const { sendEmail } = await load();
