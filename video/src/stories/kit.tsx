@@ -26,6 +26,22 @@ export const StoryNight: React.FC<{ children: ReactNode }> = ({ children }) => (
   </AbsoluteFill>
 );
 
+// The light twin of StoryNight: the app in its light mode. White with a little grey towards the edges, the mark huge and
+// faint behind everything (`mark={false}` leaves it out), the film grain on top.
+export const StoryDay: React.FC<{ mark?: boolean; children: ReactNode }> = ({ mark = true, children }) => (
+  <AbsoluteFill style={{ backgroundColor: colors.paper, color: colors.ink, fontFamily: FONT, overflow: "hidden" }}>
+    <AbsoluteFill style={{ background: "radial-gradient(ellipse 75% 50% at 50% 46%, #ffffff 0%, #ebebeb 100%)" }} />
+    {mark && (
+      <Img
+        src={staticFile("logo.png")}
+        style={{ position: "absolute", left: "50%", top: HEIGHT / 2, width: 1740, height: 1740, transform: "translate(-50%, -50%)", opacity: 0.07 }}
+      />
+    )}
+    <AbsoluteFill style={{ opacity: 0.1, mixBlendMode: "multiply", backgroundImage: GRAIN }} />
+    {children}
+  </AbsoluteFill>
+);
+
 // The light look of the landing page: white with the colour of one product photo washed over it (see Canvas in
 // posts/kit.tsx), here for a full-height story. `focus` is the point of the photo (0 to 1 across and down) that lands
 // in the middle.
@@ -190,9 +206,8 @@ export const StoryPhone: React.FC<{
   fade?: boolean | number;
   example?: boolean;
   light?: boolean;
-  photo?: PhotoKey;
   icon?: boolean;
-}> = ({ lines, screen, callout, at = [0, 0], rotate = 0, scale = 2.2, phoneTop = 660, phoneScale = 1.8, size = 84, top = 340, fade = true, example = true, light, photo = "glasses", icon = true }) => {
+}> = ({ lines, screen, callout, at = [0, 0], rotate = 0, scale = 2.2, phoneTop = 660, phoneScale = 1.8, size = 84, top = 340, fade = true, example = true, light, icon = true }) => {
   const phone = (
     <IPhone left={(WIDTH - IPHONE_WIDTH * phoneScale) / 2} top={phoneTop} scale={phoneScale}>
       {screen}
@@ -210,5 +225,5 @@ export const StoryPhone: React.FC<{
       {example && <StoryExample dark={!light} fade={light ? false : fade} />}
     </>
   );
-  return light ? <StoryPaper photo={photo} veil={0.5}>{body}</StoryPaper> : <StoryNight>{body}</StoryNight>;
+  return light ? <StoryDay>{body}</StoryDay> : <StoryNight>{body}</StoryNight>;
 };

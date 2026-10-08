@@ -6,21 +6,20 @@ import { AppHeader, AppTabBar, DeckButtons, FeedCard, GreyAvatar, Toast } from "
 import { pillStyle } from "../pinned/layout";
 import { IPhone } from "../pinned/iphone";
 import { CreatorChatScreen, NewRequestScreen } from "../pinned/screens";
-import { AddressPill, FadeOut, StoryExample, StoryPaper, StoryPhone, TopMark, Type } from "./kit";
+import { AddressPill, FadeOut, StoryDay, StoryExample, StoryPhone, TopMark, Type } from "./kit";
 import { ODD_BLOOM } from "./Stills";
 
-// The highlight "Was ist comtor?": a short introduction in seven cards and a cover, light, with one colour wash for
-// all of them. The name stays at the top, the mark does not.
+// The highlight "Was ist comtor?": a short introduction in seven cards and a cover, in the light look of the app (the
+// same backdrop as the dark stories, white). The name stays at the top, the mark does not.
 
-const WASH = "glasses" as const;
 const SOFT = "#737373";
 const HAIRLINE = "rgba(7,7,7,0.1)";
 
 const Frame: React.FC<{ children: ReactNode }> = ({ children }) => (
-  <StoryPaper photo={WASH} veil={0.5}>
+  <StoryDay>
     <TopMark icon={false} />
     {children}
-  </StoryPaper>
+  </StoryDay>
 );
 
 // Height of the deck between the header and the buttons, in app pixels (as in the pinned cover).
@@ -90,7 +89,6 @@ export const IntroCreator: React.FC = () => (
   <StoryPhone
     light
     icon={false}
-    photo={WASH}
     lines={[{ text: "Wisch bezahlte" }, { text: "Marken-Deals." }]}
     size={100}
     top={340}
@@ -106,7 +104,6 @@ export const IntroPays: React.FC = () => (
   <StoryPhone
     light
     icon={false}
-    photo={WASH}
     lines={[{ text: "Die Marke zahlt zuerst." }, { text: "Das Geld wartet,", soft: true }, { text: "bis du postest.", soft: true }]}
     size={80}
     screen={<CreatorChatScreen paid />}
@@ -127,7 +124,6 @@ export const IntroBrand: React.FC = () => (
   <StoryPhone
     light
     icon={false}
-    photo={WASH}
     lines={[{ text: "Anfrage in einer Minute." }, { text: "Creator melden", soft: true }, { text: "sich bei dir.", soft: true }]}
     size={80}
     screen={<NewRequestScreen />}
@@ -180,9 +176,9 @@ export const IntroGo: React.FC = () => (
 
 // The cover of the highlight: Instagram cuts it to a circle, so the mark sits in the middle.
 export const IntroCover: React.FC = () => (
-  <StoryPaper photo={WASH} veil={0.5}>
+  <StoryDay mark={false}>
     <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
-      <Img src={staticFile("logo.png")} style={{ width: 560, height: 560, mixBlendMode: "multiply" }} />
+      <Img src={staticFile("logo.png")} style={{ width: 560, height: 560 }} />
     </div>
-  </StoryPaper>
+  </StoryDay>
 );
