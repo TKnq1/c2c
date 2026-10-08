@@ -42,7 +42,7 @@ export function DailyPlan({ plan }: { plan: Plan }) {
         </div>
         {plan.streak > 0 && (
           <p className="text-sm font-bold">
-            🔥 {plan.streak} {plan.streak === 1 ? "Tag" : "Tage"} in Folge alles erledigt
+            {plan.streak} {plan.streak === 1 ? "Tag" : "Tage"} in Folge alles erledigt
           </p>
         )}
       </div>
