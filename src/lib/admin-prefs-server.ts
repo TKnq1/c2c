@@ -20,7 +20,6 @@ export const getAdminPrefs = cache(async (userId: string): Promise<AdminPrefs> =
     morningToHour: row.morningToHour,
     morningEveryTime: row.morningEveryTime,
     songVolume: row.songVolume,
-    panelOpen: row.panelOpen,
     kpiSet: isKpiSet(row.kpiSet) ? row.kpiSet : DEFAULT_PREFS.kpiSet,
     mailDaily: row.mailDaily,
     mailUrgent: row.mailUrgent,

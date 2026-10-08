@@ -1,7 +1,7 @@
 "use client";
 
 import { useSyncExternalStore } from "react";
-import { FiChevronDown } from "react-icons/fi";
+import { FiChevronDown, FiGrid } from "react-icons/fi";
 
 const listeners = new Set<() => void>();
 // What was chosen in this visit, so the toggle works even where storage is blocked.
@@ -46,11 +46,18 @@ export function Disclosure({ title, hint, storageKey, children }: { title: strin
         onClick={toggle}
         aria-expanded={open}
         aria-controls={`${storageKey}-content`}
-        className="flex w-full items-center gap-3 rounded border border-ink/10 bg-paper px-[var(--pad,1.25rem)] py-3 text-left transition hover:bg-fog"
+        className="adm-card flex w-full items-center gap-3.5 px-[var(--pad,1.25rem)] py-3 text-left"
       >
-        <span className="font-display text-base font-black">{title}</span>
-        <span className="min-w-0 flex-1 truncate text-xs text-neutral-600 dark:text-neutral-400">{open ? "" : hint}</span>
-        <FiChevronDown className={`h-5 w-5 shrink-0 text-graphite transition ${open ? "rotate-180" : ""}`} aria-hidden />
+        <span className="grid h-[38px] w-[38px] shrink-0 place-items-center rounded-full bg-ink/5">
+          <FiGrid className="h-[18px] w-[18px]" aria-hidden />
+        </span>
+        <span className="min-w-0 flex-1">
+          <span className="block font-display text-base font-black">{title}</span>
+          <span className="block truncate text-xs text-neutral-600 dark:text-neutral-400">{open ? "" : hint}</span>
+        </span>
+        <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-ink/5">
+          <FiChevronDown className={`h-5 w-5 text-graphite transition ${open ? "rotate-180" : ""}`} aria-hidden />
+        </span>
       </button>
       <div id={`${storageKey}-content`} hidden={!open} className="mt-[var(--gap,1rem)]">
         {children}

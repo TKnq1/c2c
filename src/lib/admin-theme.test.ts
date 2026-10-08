@@ -2,10 +2,10 @@ import { describe, expect, it } from "vitest";
 import { ACCENTS, accentCss, onAccent, parseAccent } from "@/lib/admin-theme";
 
 describe("parseAccent", () => {
-  it("keeps a known accent and falls back to green", () => {
-    expect(parseAccent("blue")).toBe("blue");
-    expect(parseAccent("hotpink")).toBe("green");
-    expect(parseAccent(undefined)).toBe("green");
+  it("keeps a known accent and falls back to blue", () => {
+    expect(parseAccent("green")).toBe("green");
+    expect(parseAccent("hotpink")).toBe("blue");
+    expect(parseAccent(undefined)).toBe("blue");
   });
 });
 

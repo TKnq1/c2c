@@ -32,7 +32,7 @@ export function DailyPlan({ plan }: { plan: Plan }) {
   const percent = plan.total ? Math.round((done / plan.total) * 100) : 0;
 
   return (
-    <section aria-label="Tagesplan" className="rounded border border-ink/10 bg-paper p-[var(--pad,1.25rem)]">
+    <section aria-label="Tagesplan" className="adm-card p-[var(--pad,1.25rem)]">
       <div className="flex flex-wrap items-end justify-between gap-2">
         <div>
           <h2 className="font-display text-title-3 font-black">Tagesplan</h2>
@@ -46,8 +46,8 @@ export function DailyPlan({ plan }: { plan: Plan }) {
           </p>
         )}
       </div>
-      <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-fog" role="progressbar" aria-valuenow={percent} aria-valuemin={0} aria-valuemax={100} aria-label="Fortschritt heute">
-        <div className="h-full rounded-full bg-ink transition-[width]" style={{ width: `${percent}%` }} />
+      <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-ink/10" role="progressbar" aria-valuenow={percent} aria-valuemin={0} aria-valuemax={100} aria-label="Fortschritt heute">
+        <div className="adm-bar h-full rounded-full transition-[width]" style={{ width: `${percent}%` }} />
       </div>
 
       <div className="mt-4 grid gap-5 lg:grid-cols-3">

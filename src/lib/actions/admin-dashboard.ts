@@ -32,18 +32,6 @@ export async function savePrefsAction(input: unknown): Promise<DashboardActionRe
   return {};
 }
 
-// The Claude panel opens and closes at once on screen; this only remembers it.
-export async function setPanelOpenAction(open: boolean): Promise<DashboardActionResult> {
-  const session = await requireAdmin();
-  if (!session) return NOT_AUTHORIZED;
-  await prisma.adminPreference.upsert({
-    where: { userId: session.user.id },
-    create: { userId: session.user.id, panelOpen: !!open },
-    update: { panelOpen: !!open },
-  });
-  return {};
-}
-
 export async function completeSetupAction(): Promise<DashboardActionResult> {
   const session = await requireAdmin();
   if (!session) return NOT_AUTHORIZED;

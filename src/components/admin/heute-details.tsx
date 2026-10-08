@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { FiActivity, FiCreditCard, FiDollarSign, FiFileText, FiFilter, FiFlag, FiMessageSquare, FiPercent, FiStar, FiTarget, FiUsers } from "react-icons/fi";
 import { prisma } from "@/lib/prisma";
 import { formatCents } from "@/lib/format";
 import { PRO_SUBSCRIPTION_PRICE_CENTS } from "@/lib/constants";
@@ -9,7 +10,7 @@ import { loadAds } from "@/lib/admin-ads";
 import { forecastGoal, forecastText, PACE_DAYS } from "@/lib/admin-forecast";
 import { paymentStage } from "@/lib/payment-stage";
 import { DashCard, FunnelBars, GoalRing, KpiTile, Stat, money } from "@/components/admin/dashboard-parts";
-import { DailyBarChart } from "@/components/admin/daily-bar-chart";
+import { DailyLineChart } from "@/components/admin/daily-line-chart";
 import { PaymentStatusBadge } from "@/components/payment-status-badge";
 import { LocalDate } from "@/components/local-date";
 import { RoleBadge } from "@/components/admin/role-badge";
@@ -47,6 +48,7 @@ export async function HeuteDetails({ prefs, now }: { prefs: AdminPrefs; now: Dat
       <div className="grid gap-[var(--gap,1rem)] sm:grid-cols-2 xl:grid-cols-3">
         <KpiTile
           label="Nutzer"
+          icon={FiUsers}
           value={data.users.total.toLocaleString("de-DE")}
           change={data.users.change}
           trend={data.users.trend}
@@ -55,13 +57,15 @@ export async function HeuteDetails({ prefs, now }: { prefs: AdminPrefs; now: Dat
         />
         <KpiTile
           label="Offene Anfragen"
+          icon={FiFileText}
           value={data.requests.open.toLocaleString("de-DE")}
           hint={`${data.requests.closed} geschlossen · ${data.requests.all} insgesamt`}
           href="/admin/requests"
         />
-        <KpiTile label="Collabs gestartet" value={data.requests.collabs.toLocaleString("de-DE")} hint="Gespräche zwischen Marken und Creatorn" href="/admin/requests" />
+        <KpiTile icon={FiMessageSquare} label="Collabs gestartet" value={data.requests.collabs.toLocaleString("de-DE")} hint="Gespräche zwischen Marken und Creatorn" href="/admin/requests" />
         <KpiTile
           label="Zahlungsvolumen"
+          icon={FiCreditCard}
           value={formatCents(data.volume.cents)}
           change={data.volume.change}
           trend={data.volume.trend}
@@ -70,12 +74,14 @@ export async function HeuteDetails({ prefs, now }: { prefs: AdminPrefs; now: Dat
         />
         <KpiTile
           label="Provision"
+          icon={FiPercent}
           value={formatCents(data.fee.releasedCents)}
           hint={`${formatCents(data.fee.heldCents)} mehr, sobald das Escrow frei wird`}
           href="/admin/payments?status=RELEASED"
         />
         <KpiTile
           label="Pro-Abos"
+          icon={FiStar}
           value={data.pro.paying.toLocaleString("de-DE")}
           hint={`${formatCents(data.pro.paying * PRO_SUBSCRIPTION_PRICE_CENTS)} im Monat · ${data.pro.founding} mit Founding-Platz`}
           href="/admin/users?role=STARTUP&pro=1"
@@ -83,7 +89,7 @@ export async function HeuteDetails({ prefs, now }: { prefs: AdminPrefs; now: Dat
       </div>
     ),
     geld: cash && (
-      <DashCard title="Geld" right={<Link href="/admin/geld" className="text-xs underline">Details</Link>} className="h-full">
+      <DashCard icon={FiDollarSign} title="Geld" right={<Link href="/admin/geld" className="text-xs underline">Details</Link>} className="h-full">
         <p className="font-display text-[1.875rem] leading-9 font-black tracking-tight">{runwayText(cash.runway).big}</p>
         <p className="mt-1 text-xs text-neutral-600 dark:text-neutral-400">
           {cash.balanceCents === null ? "Trag auf der Geld-Seite deinen Kontostand ein." : `Kontostand ${money(cash.balanceCents)}`}
@@ -95,7 +101,7 @@ export async function HeuteDetails({ prefs, now }: { prefs: AdminPrefs; now: Dat
       </DashCard>
     ),
     ads: ads && (
-      <DashCard title="Ads" right={<Link href="/admin/ads" className="text-xs underline">Details</Link>} className="h-full">
+      <DashCard icon={FiTarget} title="Ads" right={<Link href="/admin/ads" className="text-xs underline">Details</Link>} className="h-full">
         {ads.hasSpend ? (
           <div className="grid grid-cols-2 gap-x-5 gap-y-4">
             <Stat value={money(ads.spendCents)} label="Ausgaben in 30 Tagen" />
@@ -114,7 +120,7 @@ export async function HeuteDetails({ prefs, now }: { prefs: AdminPrefs; now: Dat
       </DashCard>
     ),
     ziele: (
-      <DashCard title="Ziele" right={<Link href="/admin/anpassen" className="text-xs underline">ändern</Link>} className="h-full">
+      <DashCard icon={FiFlag} title="Ziele" right={<Link href="/admin/anpassen" className="text-xs underline">ändern</Link>} className="h-full">
         <div className="grid grid-cols-3 gap-2">
           <GoalRing label="Founding-Marken" value={data.founding.brands} goal={prefs.goalBrands} display={`${data.founding.brands}/${prefs.goalBrands}`} sub={`noch ${Math.max(0, prefs.goalBrands - data.founding.brands)} Plätze`} note={forecastText(forecastGoal({ current: data.founding.brands, goal: prefs.goalBrands, gainedInPaceWindow: gainedBrands }, now))} />
           <GoalRing label="Founding-Creator" value={data.founding.creators} goal={prefs.goalCreators} display={`${data.founding.creators}/${prefs.goalCreators}`} sub={`noch ${Math.max(0, prefs.goalCreators - data.founding.creators)} Plätze`} note={forecastText(forecastGoal({ current: data.founding.creators, goal: prefs.goalCreators, gainedInPaceWindow: gainedCreators }, now))} />
@@ -129,7 +135,7 @@ export async function HeuteDetails({ prefs, now }: { prefs: AdminPrefs; now: Dat
       </DashCard>
     ),
     markt: (
-      <DashCard title="Marktplatz-Gesundheit" right="letzte 30 Tage" className="h-full">
+      <DashCard icon={FiActivity} title="Marktplatz-Gesundheit" right="letzte 30 Tage" className="h-full">
         <div className="grid grid-cols-2 gap-x-5 gap-y-4">
           <Stat value={data.market.liquidity === null ? "–" : `${data.market.liquidity} %`} label="der neuen Anfragen bekommen Interesse" />
           <Stat value={data.market.requests30.toLocaleString("de-DE")} label="neue Anfragen" />
@@ -139,12 +145,12 @@ export async function HeuteDetails({ prefs, now }: { prefs: AdminPrefs; now: Dat
       </DashCard>
     ),
     funnel: (
-      <DashCard title="Funnel" right="Anmeldungen der letzten 30 Tage" className="h-full">
+      <DashCard icon={FiFilter} title="Funnel" right="Anmeldungen der letzten 30 Tage" className="h-full">
         <FunnelBars steps={data.funnel} />
       </DashCard>
     ),
     anmeldungen: (
-      <DailyBarChart title="Anmeldungen pro Tag" points={data.signupSeries} unit="count" total={`${data.users.newLast30.toLocaleString("de-DE")} in 30 Tagen`} />
+      <DailyLineChart title="Anmeldungen pro Tag" points={data.signupSeries} unit="count" total={`${data.users.newLast30.toLocaleString("de-DE")} in 30 Tagen`} />
     ),
   };
 
@@ -159,12 +165,15 @@ export async function HeuteDetails({ prefs, now }: { prefs: AdminPrefs; now: Dat
       </div>
 
       <div className="grid gap-[var(--gap,1rem)] lg:grid-cols-2">
-        <DashCard title="Neueste Nutzer" right={<Link href="/admin/users" className="text-xs underline">Alle Nutzer</Link>}>
+        <DashCard icon={FiUsers} title="Neueste Nutzer" right={<Link href="/admin/users" className="text-xs underline">Alle Nutzer</Link>}>
           <ul className="-my-1">
             {recentUsers.map((u) => (
               <li key={u.id} className="border-t border-ink/10 first:border-t-0">
-                <Link href={`/admin/users/${u.id}`} className="flex items-center justify-between gap-3 py-2.5 transition hover:opacity-70">
-                  <span className="min-w-0">
+                <Link href={`/admin/users/${u.id}`} className="flex items-center gap-3 py-2.5 transition hover:opacity-70">
+                  <span className="grid h-[38px] w-[38px] shrink-0 place-items-center rounded-full bg-(--accent-soft) text-[0.8125rem] font-black text-(--accent-ink)" aria-hidden>
+                    {(u.startupProfile?.companyName ?? u.creatorProfile?.displayName ?? u.email).slice(0, 2).toUpperCase()}
+                  </span>
+                  <span className="min-w-0 flex-1">
                     <span className="block truncate text-sm font-bold">{u.startupProfile?.companyName ?? u.creatorProfile?.displayName ?? u.email}</span>
                     <span className="block truncate text-xs text-neutral-500">
                       {(u.startupProfile || u.creatorProfile) && <>{u.email} · </>}
@@ -177,7 +186,7 @@ export async function HeuteDetails({ prefs, now }: { prefs: AdminPrefs; now: Dat
             ))}
           </ul>
         </DashCard>
-        <DashCard title="Letzte Zahlungen" right={<Link href="/admin/payments" className="text-xs underline">Alle Zahlungen</Link>}>
+        <DashCard icon={FiCreditCard} title="Letzte Zahlungen" right={<Link href="/admin/payments" className="text-xs underline">Alle Zahlungen</Link>}>
           {recentPayments.length === 0 ? (
             <p className="text-sm text-neutral-500">Noch keine Zahlungen.</p>
           ) : (

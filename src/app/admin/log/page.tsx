@@ -49,7 +49,7 @@ export default async function AdminLogPage(props: PageProps<"/admin/log">) {
                   </div>
                   <DeleteDecisionButton id={e.id} title={e.title} />
                 </div>
-                <p className="mt-1 text-sm whitespace-pre-line">{e.decision}</p>
+                {e.decision !== e.title && <p className="mt-1 text-sm whitespace-pre-line">{e.decision}</p>}
                 {e.reason && <p className="mt-1 text-sm whitespace-pre-line text-neutral-600 dark:text-neutral-400">Warum: {e.reason}</p>}
               </li>
             ))}
