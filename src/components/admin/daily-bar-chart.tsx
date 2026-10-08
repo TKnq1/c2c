@@ -1,31 +1,14 @@
 "use client";
 
 import { useState } from "react";
-import { formatCents } from "@/lib/format";
+import { formatDay, formatValue, niceMax, type DailyPoint } from "@/lib/admin-chart";
 
-export type DailyPoint = { day: string; value: number };
+export type { DailyPoint };
 
 const HEIGHT = 140;
 const AXIS_GAP = 20;
 const BAR_GAP = 2;
 const MAX_BAR_WIDTH = 24;
-
-function formatValue(value: number, unit: "count" | "cents") {
-  return unit === "cents" ? formatCents(value) : value.toLocaleString("de-DE");
-}
-
-function formatDay(day: string) {
-  return new Date(`${day}T00:00:00Z`).toLocaleDateString("de-DE", { day: "numeric", month: "short", timeZone: "UTC" });
-}
-
-// Rounds the top of the scale up to 1/2/5 × 10^n so the one gridline label
-// is a clean number.
-function niceMax(max: number) {
-  if (max <= 0) return 1;
-  const magnitude = 10 ** Math.floor(Math.log10(max));
-  const step = [1, 2, 5, 10].find((s) => s * magnitude >= max)!;
-  return step * magnitude;
-}
 
 // One series of daily columns in the accent colour. Hover a day for its
 // exact value; the visually hidden table carries every value for screen
@@ -47,7 +30,7 @@ export function DailyBarChart({
   const shown = active === null ? null : points[active];
 
   return (
-    <figure className="flex min-w-0 flex-col gap-3 rounded border border-ink/10 bg-paper p-5">
+    <figure className="adm-card flex min-w-0 flex-col gap-3 p-5">
       <figcaption className="flex flex-col">
         <span className="text-sm font-medium">{title}</span>
         <span className="text-footnote tabular-nums text-neutral-500 dark:text-neutral-400" aria-live="polite">

@@ -12,7 +12,7 @@ export const ACCENTS = {
 
 export type AccentKey = keyof typeof ACCENTS;
 export const ACCENT_KEYS = Object.keys(ACCENTS) as AccentKey[];
-export const DEFAULT_ACCENT: AccentKey = "green";
+export const DEFAULT_ACCENT: AccentKey = "blue";
 
 export function parseAccent(value: unknown): AccentKey {
   return typeof value === "string" && value in ACCENTS ? (value as AccentKey) : DEFAULT_ACCENT;

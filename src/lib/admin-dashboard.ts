@@ -154,6 +154,16 @@ export async function loadDashboard(now = new Date()) {
 }
 
 
+// What came in over the last 24 hours, for the line under the greeting on "Heute".
+export async function loadDaySummary(now = new Date()) {
+  const dayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+  const [newUsers, payments] = await Promise.all([
+    prisma.user.count({ where: { role: { in: ["STARTUP", "CREATOR"] }, deletedAt: null, createdAt: { gte: dayAgo } } }),
+    prisma.interest.count({ where: { paymentStatus: { in: ["HELD", "RELEASED", "REFUNDED"] }, paidAt: { gte: dayAgo } } }),
+  ]);
+  return { newUsers, payments };
+}
+
 // The few numbers the morning screen shows, plus how far the founding-brand goal still is.
 export async function loadMorningStats(goalBrands: number, now = new Date()) {
   const dayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);

@@ -1,45 +1,70 @@
 import { Suspense } from "react";
-import Link from "next/link";
-import { FiSliders } from "react-icons/fi";
+import type { IconType } from "react-icons";
+import { FiActivity, FiBarChart2, FiClock, FiCreditCard, FiMessageSquare, FiMousePointer, FiPercent, FiStar, FiTag, FiTarget, FiUsers } from "react-icons/fi";
 import { requireAdminSession } from "@/lib/admin-session";
 import { getAdminPrefs } from "@/lib/admin-prefs-server";
 import { FOCUS_SHOWN, focusSummary } from "@/lib/admin-focus";
 import { loadAnomalies } from "@/lib/admin-anomalies";
+import { loadDaySummary } from "@/lib/admin-dashboard";
 import { loadKpis } from "@/lib/admin-kpis";
-import { PERIODS, parsePeriod } from "@/lib/admin-period";
+import { parsePeriod } from "@/lib/admin-period";
 import { listOpenTasks } from "@/lib/admin-tasks";
+import { berlinHour, daySummary, greetingFor } from "@/lib/admin-today";
 import { Disclosure } from "@/components/admin/disclosure";
 import { FocusCard } from "@/components/admin/focus-card";
+import { HeuteColumn } from "@/components/admin/heute-column";
 import { HeuteDetails } from "@/components/admin/heute-details";
 import { KpiTile } from "@/components/admin/dashboard-parts";
-import { FilterTabs, firstParams } from "@/components/admin/list-controls";
+import { firstParams } from "@/components/admin/list-controls";
+import { PeriodTabs } from "@/components/admin/period-tabs";
 import type { TaskView } from "@/components/admin/task-list";
 
 const TIME_ZONE = "Europe/Berlin";
 
-function greeting(now: Date) {
-  const hour = Number(new Intl.DateTimeFormat("de-DE", { hour: "numeric", hourCycle: "h23", timeZone: TIME_ZONE }).format(now));
-  return hour < 11 ? "Guten Morgen" : hour < 18 ? "Guten Tag" : "Guten Abend";
-}
+// The icon in front of each headline figure's name.
+const KPI_ICONS: Record<string, IconType> = {
+  users: FiUsers,
+  active: FiActivity,
+  founding: FiStar,
+  waiting: FiMessageSquare,
+  fee: FiPercent,
+  volume: FiCreditCard,
+  pro: FiStar,
+  runway: FiClock,
+  adspend: FiTarget,
+  cpa: FiTarget,
+  clicks: FiMousePointer,
+  tagged: FiTag,
+};
 
 function DetailsSkeleton() {
   return (
     <div className="flex flex-col gap-[var(--gap,1rem)]" aria-busy="true" aria-label="Lädt">
       {[0, 1].map((i) => (
-        <div key={i} className="h-40 animate-pulse rounded border border-ink/10 bg-fog" />
+        <div key={i} className="adm-card h-40 animate-pulse" />
+      ))}
+    </div>
+  );
+}
+
+function ColumnSkeleton() {
+  return (
+    <div className="flex flex-col gap-4" aria-busy="true" aria-label="Lädt">
+      {[0, 1, 2].map((i) => (
+        <div key={i} className="adm-row h-24 animate-pulse" />
       ))}
     </div>
   );
 }
 
 // "Heute" answers one question first: does anything need me? Below that come four figures on growth, and everything else
-// waits behind "Mehr Details".
+// waits behind "Mehr Details". On a wide screen the deadlines, the latest notices and a line for the decision log stand beside it.
 export default async function AdminTodayPage(props: PageProps<"/admin">) {
   const session = await requireAdminSession();
   const prefs = await getAdminPrefs(session.user.id);
   const now = new Date();
   const period = parsePeriod(firstParams(await props.searchParams).z);
-  const [tiles, tasks, anomalies] = await Promise.all([loadKpis({ now, period, prefs }), listOpenTasks(now), loadAnomalies(now)]);
+  const [tiles, tasks, anomalies, day] = await Promise.all([loadKpis({ now, period, prefs }), listOpenTasks(now), loadAnomalies(now), loadDaySummary(now)]);
 
   const summary = focusSummary(tasks);
   const views: TaskView[] = tasks
@@ -47,49 +72,71 @@ export default async function AdminTodayPage(props: PageProps<"/admin">) {
     .slice(0, FOCUS_SHOWN)
     .map((t) => ({ id: t.id, title: t.title, reason: t.reason, priority: t.priority, source: t.source, href: t.href }));
 
+  const line = daySummary({ newUsers: day.newUsers, payments: day.payments, waiting: summary.urgentTotal });
   const dateLabel = new Intl.DateTimeFormat("de-DE", { weekday: "long", day: "numeric", month: "long", timeZone: TIME_ZONE }).format(now);
   const time = new Intl.DateTimeFormat("de-DE", { hour: "2-digit", minute: "2-digit", timeZone: TIME_ZONE }).format(now);
-  const name = prefs.displayName ? `, ${prefs.displayName}` : "";
 
   return (
-    <div className="flex flex-col gap-6">
-      <div className="flex flex-wrap items-end justify-between gap-3 pr-0 group-data-[panel=closed]/shell:lg:pr-28">
-        <div>
-          <h1 className="font-display text-title-1 font-black">Heute</h1>
-          <p className="mt-0.5 text-sm text-neutral-600 dark:text-neutral-400">
-            {greeting(now)}
-            {name} · {dateLabel} · Stand {time} Uhr
-          </p>
+    <div className="flex flex-col gap-7">
+      <header className="lg:pr-60 xl:pr-[31rem]">
+        <h1 className="font-display text-[2.25rem] leading-[1.05] font-black tracking-[-0.035em] sm:text-[2.75rem]">
+          {greetingFor(berlinHour(now))}
+          {prefs.displayName && (
+            <>
+              , <span className="text-(--accent-ink)">{prefs.displayName}</span>
+            </>
+          )}
+          .
+        </h1>
+        <p className="mt-2 text-sm text-neutral-600 dark:text-neutral-400">
+          {dateLabel} · Stand {time} Uhr
+        </p>
+        <p className="mt-1 text-[0.9375rem]">
+          In den letzten 24 Stunden: <b>{line.signups}</b> und <b>{line.payments}</b> · <b>{line.waiting.count}</b> {line.waiting.rest}.
+        </p>
+      </header>
+
+      <div className="grid gap-6 min-[1360px]:grid-cols-[minmax(0,1fr)_20rem]">
+        <div className="adm-panel flex min-w-0 flex-col gap-[var(--gap,1rem)] lg:p-[var(--pad,1.25rem)]">
+          <FocusCard summary={summary} tasks={views} allTotal={tasks.length} anomalies={anomalies} />
+
+          <section aria-label="Die vier Zahlen" className="flex flex-col gap-3">
+            <div className="flex flex-wrap items-center justify-between gap-2 px-1">
+              <h2 className="text-[0.9375rem] font-black">Die vier Zahlen</h2>
+              <PeriodTabs current={period} />
+            </div>
+            <div className="grid gap-[var(--gap,1rem)] sm:grid-cols-2 xl:grid-cols-4">
+              {tiles.map((tile) => (
+                <KpiTile
+                  key={tile.key}
+                  icon={KPI_ICONS[tile.key] ?? FiBarChart2}
+                  label={tile.label}
+                  value={tile.value}
+                  delta={tile.delta}
+                  series={tile.series}
+                  previous={tile.previous}
+                  hint={tile.hint}
+                  href={tile.href}
+                />
+              ))}
+            </div>
+          </section>
+
+          <Disclosure title="Mehr Details" hint="Alle Kennzahlen, Geld, Ziele, Marktplatz, Funnel, Ads, neue Nutzer und Zahlungen" storageKey="admin-heute-details">
+            <Suspense fallback={<DetailsSkeleton />}>
+              <HeuteDetails prefs={prefs} now={now} />
+            </Suspense>
+          </Disclosure>
         </div>
-        <Link href="/admin/anpassen" className="inline-flex items-center gap-2 rounded-full border border-ink/10 px-3.5 py-1.5 text-xs font-bold transition hover:bg-fog">
-          <FiSliders className="h-4 w-4" aria-hidden />
-          Anpassen
-        </Link>
+
+        <aside className="hidden min-[1360px]:block">
+          <div className="sticky top-6">
+            <Suspense fallback={<ColumnSkeleton />}>
+              <HeuteColumn now={now} />
+            </Suspense>
+          </div>
+        </aside>
       </div>
-
-      <FocusCard summary={summary} tasks={views} allTotal={tasks.length} anomalies={anomalies} />
-
-      <section aria-label="Die vier Zahlen" className="flex flex-col gap-3">
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <FilterTabs
-            path="/admin"
-            params={{ z: String(period) }}
-            name="z"
-            options={PERIODS.map((p) => ({ value: String(p), label: p === 7 ? "7 Tage" : `${p} Tage` }))}
-          />
-        </div>
-        <div className="grid gap-[var(--gap,1rem)] sm:grid-cols-2 xl:grid-cols-4">
-          {tiles.map((tile) => (
-            <KpiTile key={tile.key} label={tile.label} value={tile.value} delta={tile.delta} series={tile.series} previous={tile.previous} hint={tile.hint} href={tile.href} />
-          ))}
-        </div>
-      </section>
-
-      <Disclosure title="Mehr Details" hint="Alle Kennzahlen, Geld, Ziele, Marktplatz, Funnel, Ads, neue Nutzer und Zahlungen" storageKey="admin-heute-details">
-        <Suspense fallback={<DetailsSkeleton />}>
-          <HeuteDetails prefs={prefs} now={now} />
-        </Suspense>
-      </Disclosure>
     </div>
   );
 }
