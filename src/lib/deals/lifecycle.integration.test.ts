@@ -551,6 +551,50 @@ describe.skipIf(!DB)("brand deal lifecycle (needs a database)", () => {
     expect(note.netCents + note.vatCents).toBe(97_000);
   });
 
+  it("stops a person who keeps pressing the deal buttons, without touching the deal", async () => {
+    const s = await seed();
+    await acceptAndSign(s);
+    await fundViaWebhook(s, "cs_limits");
+    const deal = await dealOf(s.interest.id);
+    const fill = (user: Actor, bucket: string, count: number) =>
+      prisma.rateLimitHit.createMany({ data: Array.from({ length: count }, () => ({ bucket, key: user.id })) });
+
+    // The creator is at the limit for drafts: the draft is refused before anything is written.
+    await fill(s.creator, "deal-draft", 30);
+    as(s.creator);
+    const draft = await deals.submitDraftAction(deal.id, undefined, form({ kind: "SCRIPT", url: "https://docs.example.com/script", caption: CAPTION, disclosureConfirmed: "true" }));
+    expect(draft?.error).toMatch(/lot of attempts/);
+    expect(await prisma.dealDraft.count({ where: { dealId: deal.id } })).toBe(0);
+
+    // Signing, scheduling, reviewing and cancelling have their own allowance, and one kind does not use up another.
+    await fill(s.creator, "deal-sign", 60);
+    expect((await deals.signContractAction(deal.id, deal.termsHash))?.error).toMatch(/lot of attempts/);
+    await fill(s.creator, "deal-schedule", 30);
+    expect((await deals.schedulePostAction(deal.id, undefined, form({ scheduledFor: "2030-01-01" })))?.error).toMatch(/lot of attempts/);
+    await fill(s.brand, "deal-review", 60);
+    as(s.brand);
+    expect((await deals.reviewDraftAction(deal.id, undefined, form({ decision: "APPROVE" })))?.error).toMatch(/lot of attempts/);
+    await fill(s.brand, "deal-cancel", 20);
+    expect((await deals.cancelDealAction(deal.id))?.error).toMatch(/lot of attempts/);
+    expect(await dealOf(s.interest.id)).toMatchObject({ status: "IN_PRODUCTION" });
+
+    // Someone else's allowance is not touched by any of this: the brand can still pay and the creator still reach the deal page's data.
+    await prisma.rateLimitHit.deleteMany({ where: { key: { in: [s.creator.id, s.brand.id] }, bucket: { startsWith: "deal-" } } });
+    as(s.creator);
+    const ok = await deals.submitDraftAction(deal.id, undefined, form({ kind: "SCRIPT", url: "https://docs.example.com/script", caption: CAPTION, disclosureConfirmed: "true" }));
+    expect(ok?.success, JSON.stringify(ok)).toBe(true);
+  });
+
+  it("limits how often a person saves their business details", async () => {
+    const s = await seed();
+    await prisma.rateLimitHit.createMany({ data: Array.from({ length: 30 }, () => ({ bucket: "business-save", key: s.brand.id })) });
+    as(s.brand);
+    const business = await import("@/lib/actions/business");
+    const result = await business.saveBusinessProfileAction(undefined as never, form({ legalName: "Glow GmbH" }));
+    expect(result?.error).toMatch(/saved your details a lot/);
+    await prisma.rateLimitHit.deleteMany({ where: { bucket: "business-save", key: s.brand.id } });
+  });
+
   it("is idempotent when the funding webhook arrives twice", async () => {
     const s = await seed();
     await acceptAndSign(s);

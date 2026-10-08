@@ -33,7 +33,23 @@ type Party = { session: Session; role: Role; view: DealView; locale: DealLocale 
 
 const MAX_PROOF_BYTES = 4 * 1024 * 1024;
 
-async function party(dealId: string, only?: Role): Promise<Party | { refusal: DealActionState }> {
+// What a person can do on deals in a day, per kind of action. Generous for someone doing the work, a stop for a script or a button
+// that keeps being pressed: every one of these writes to the deal and tells the other side. It only counts once the person has been
+// let in (their own deal, their own role), so nobody can use up another's allowance.
+const LIMITS = {
+  sign: { bucket: "deal-sign", count: 60 },
+  cancel: { bucket: "deal-cancel", count: 20 },
+  draft: { bucket: "deal-draft", count: 30 },
+  review: { bucket: "deal-review", count: 60 },
+  schedule: { bucket: "deal-schedule", count: 30 },
+  confirmPost: { bucket: "deal-confirm", count: 60 },
+  usage: { bucket: "deal-usage", count: 20 },
+  confirmUsage: { bucket: "deal-usage-confirm", count: 30 },
+} as const;
+
+type Limit = (typeof LIMITS)[keyof typeof LIMITS];
+
+async function party(dealId: string, only?: Role, limit?: Limit): Promise<Party | { refusal: DealActionState }> {
   const session = await auth();
   const locale = dealLocale(await getLocale());
   const role = session?.user.role;
@@ -42,6 +58,9 @@ async function party(dealId: string, only?: Role): Promise<Party | { refusal: De
   }
   const view = await loadDealForParty(dealId, session.user.id, role);
   if (!view) return { refusal: { error: say(locale, "This deal could not be found.", "Dieser Deal wurde nicht gefunden.") } };
+  if (limit && !(await takeToken(limit.bucket, session.user.id, limit.count, DAY))) {
+    return { refusal: { error: say(locale, "That was a lot of attempts today. Try again tomorrow.", "Das waren heute sehr viele Versuche. Versuche es morgen erneut.") } };
+  }
   return { session, role, view, locale };
 }
 
@@ -83,7 +102,7 @@ function httpUrl(value: string): string | null {
 // Confirming the contract: the terms as frozen when the offer was accepted. The terms hash the person saw has to be the
 // one on file. Needs complete business details; with the second signature the deal moves to the escrow step.
 export async function signContractAction(dealId: string, termsHash: string): Promise<DealActionState> {
-  const ctx = await party(dealId);
+  const ctx = await party(dealId, undefined, LIMITS.sign);
   if ("refusal" in ctx) return ctx.refusal;
   const { session, role, view, locale } = ctx;
   if (!(await emailIsVerified(session.user.id))) return { error: VERIFY_EMAIL_MESSAGE };
@@ -129,7 +148,7 @@ export async function signContractAction(dealId: string, termsHash: string): Pro
 // A party backs out of a deal that has not produced anything yet. A brand may do so until the creator handed in a draft
 // (the escrow is refunded in full); a creator may withdraw until their post is up. After that, a dispute is the way.
 export async function cancelDealAction(dealId: string): Promise<DealActionState> {
-  const ctx = await party(dealId);
+  const ctx = await party(dealId, undefined, LIMITS.cancel);
   if ("refusal" in ctx) return ctx.refusal;
   const { session, role, view, locale } = ctx;
   const status = view.deal.status;
@@ -165,7 +184,7 @@ function captionFormat(terms: DealTerms): PostFormat | null {
 const DRAFT_KINDS = ["SCRIPT", "VIDEO_PREVIEW", "IMAGE", "OTHER"] as const;
 
 export async function submitDraftAction(dealId: string, _prev: DealActionState, formData: FormData): Promise<DealActionState> {
-  const ctx = await party(dealId, "CREATOR");
+  const ctx = await party(dealId, "CREATOR", LIMITS.draft);
   if ("refusal" in ctx) return ctx.refusal;
   const { session, view, locale } = ctx;
   const { deal, terms } = view;
@@ -227,7 +246,7 @@ export async function submitDraftAction(dealId: string, _prev: DealActionState, 
 }
 
 export async function reviewDraftAction(dealId: string, _prev: DealActionState, formData: FormData): Promise<DealActionState> {
-  const ctx = await party(dealId, "STARTUP");
+  const ctx = await party(dealId, "STARTUP", LIMITS.review);
   if ("refusal" in ctx) return ctx.refusal;
   const { session, view, locale } = ctx;
   const { deal, terms } = view;
@@ -288,7 +307,7 @@ export async function reviewDraftAction(dealId: string, _prev: DealActionState, 
 // ---------------------------------------------------------------------------------------------------------------------
 
 export async function schedulePostAction(dealId: string, _prev: DealActionState, formData: FormData): Promise<DealActionState> {
-  const ctx = await party(dealId, "CREATOR");
+  const ctx = await party(dealId, "CREATOR", LIMITS.schedule);
   if ("refusal" in ctx) return ctx.refusal;
   const { session, view, locale } = ctx;
   const { deal, terms } = view;
@@ -461,7 +480,7 @@ export async function confirmPostAction(postId: string): Promise<DealActionState
 
   const post = await prisma.dealPost.findUnique({ where: { id: postId }, select: { id: true, dealId: true, source: true, status: true } });
   if (!post) return { error: say(locale, "This post could not be found.", "Dieser Post wurde nicht gefunden.") };
-  const ctx = await party(post.dealId, "STARTUP");
+  const ctx = await party(post.dealId, "STARTUP", LIMITS.confirmPost);
   if ("refusal" in ctx) return ctx.refusal;
   if (post.source !== "PROOF" || post.status !== "PENDING" || ctx.view.deal.status !== "POST_SUBMITTED") return wrongStage(locale);
 
@@ -491,7 +510,7 @@ export async function recheckPostsAction(dealId: string): Promise<DealActionStat
 // The creator hands over what lets the brand run the post as an ad: the Spark Ads code (TikTok) and/or the confirmation
 // that the partner-ad permission is granted (Meta, YouTube, whitelisting). The payout waits for it.
 export async function deliverUsageAction(dealId: string, _prev: DealActionState, formData: FormData): Promise<DealActionState> {
-  const ctx = await party(dealId, "CREATOR");
+  const ctx = await party(dealId, "CREATOR", LIMITS.usage);
   if ("refusal" in ctx) return ctx.refusal;
   const { session, view, locale } = ctx;
   const { deal, terms } = view;
@@ -519,7 +538,7 @@ export async function deliverUsageAction(dealId: string, _prev: DealActionState,
 }
 
 export async function confirmUsageAction(dealId: string): Promise<DealActionState> {
-  const ctx = await party(dealId, "STARTUP");
+  const ctx = await party(dealId, "STARTUP", LIMITS.confirmUsage);
   if ("refusal" in ctx) return ctx.refusal;
   const { session, view, locale } = ctx;
   if (!view.deal.usageDeliveredAt) return wrongStage(locale);

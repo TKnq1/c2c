@@ -87,7 +87,7 @@ export async function GET() {
         omit: { taxSnapshot: true },
         include: {
           drafts: true,
-          posts: { include: { proofs: { select: { id: true, kind: true, contentType: true, sha256: true, createdAt: true } }, metrics: true } },
+          posts: { include: { proofs: { select: { id: true, kind: true, contentType: true, sha256: true, createdAt: true, purgedAt: true } }, metrics: true } },
           events: { orderBy: { createdAt: "asc" } },
           disputes: true,
         },

@@ -23,19 +23,18 @@ export function emailSetup() {
 
 export type SendEmailResult = { ok: true; id: string } | { ok: false; error: string };
 
-export async function sendEmail(email: Email & { to: string; headers?: Record<string, string> }): Promise<SendEmailResult> {
+// A file that goes with the mail (an invoice as a PDF).
+export type MailAttachment = { filename: string; content: Uint8Array };
+
+type Outgoing = Email & { to: string; headers?: Record<string, string>; attachments?: MailAttachment[] };
+
+export async function sendEmail(email: Outgoing): Promise<SendEmailResult> {
   const result = await deliver(email);
   await logMail(email.subject, result);
   return result;
 }
 
-async function deliver({
-  to,
-  subject,
-  html,
-  text,
-  headers,
-}: Email & { to: string; headers?: Record<string, string> }): Promise<SendEmailResult> {
+async function deliver({ to, subject, html, text, headers, attachments }: Outgoing): Promise<SendEmailResult> {
   try {
     // Constructed here, not at module scope — the Resend constructor throws
     // immediately on a missing key, and Next.js evaluates this module while
@@ -44,7 +43,15 @@ async function deliver({
     // from a hosting dashboard paste breaks the Authorization header, not
     // the key itself.
     const resend = new Resend(process.env.RESEND_API_KEY?.trim());
-    const { data, error } = await resend.emails.send({ from: FROM_EMAIL, to, subject, html, text, ...(headers && { headers }) });
+    const { data, error } = await resend.emails.send({
+      from: FROM_EMAIL,
+      to,
+      subject,
+      html,
+      text,
+      ...(headers && { headers }),
+      ...(attachments?.length && { attachments: attachments.map((a) => ({ filename: a.filename, content: Buffer.from(a.content) })) }),
+    });
     if (error) return failed(subject, `${error.name}: ${error.message}`);
     return { ok: true, id: data?.id ?? "" };
   } catch (err) {

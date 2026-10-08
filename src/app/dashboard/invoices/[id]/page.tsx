@@ -1,11 +1,10 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
-import { IoChevronBack } from "react-icons/io5";
+import { IoChevronBack, IoDownloadOutline } from "react-icons/io5";
 import { auth } from "@/lib/auth";
 import { hasAdminAccess } from "@/lib/admin-access";
 import { prisma } from "@/lib/prisma";
 import { getLocale } from "@/lib/i18n/server";
-import { PrintButton } from "@/components/print-button";
 import { dealLocale } from "@/lib/deals/copy";
 import { parseBody } from "@/lib/billing/invoice";
 import type { InvoiceParty } from "@/lib/billing/issuer";
@@ -53,7 +52,15 @@ export default async function InvoicePage(props: PageProps<"/dashboard/invoices/
           <IoChevronBack className="h-4 w-4" aria-hidden />
           {u("invoices.deal")}
         </Link>
-        <PrintButton />
+        <a
+          href={`/api/invoices/${invoice.id}/pdf`}
+          download
+          aria-label={u("invoices.downloadPdf", { number: invoice.number })}
+          className="inline-flex items-center gap-1.5 rounded-full border border-neutral-300 px-3 py-1.5 text-sm font-medium transition hover:border-neutral-400 dark:border-neutral-700"
+        >
+          <IoDownloadOutline className="h-4 w-4" aria-hidden />
+          PDF
+        </a>
       </div>
 
       <article className="flex flex-col gap-6 rounded bg-fog p-5 print:bg-transparent print:p-0 sm:p-8">

@@ -1357,8 +1357,11 @@ model DealProof {
   kind        DealProofKind @default(SCREENSHOT)
   contentType String
   sha256      String
+  // Emptied (zero bytes) when the retention period after the end of the deal is over; the row and the hash stay as the record that
+  // there was one (src/lib/deals/retention.ts).
   data        Bytes
   createdAt   DateTime      @default(now())
+  purgedAt    DateTime?
 
   @@index([postId])
 }

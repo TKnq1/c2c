@@ -44,6 +44,9 @@ let webhook: typeof import("@/app/api/webhooks/stripe/route");
 let adminChecks: typeof import("@/lib/deals/admin-checks");
 let adminTasks: typeof import("@/lib/admin-tasks");
 let issue: typeof import("@/lib/billing/issue");
+let retention: typeof import("@/lib/deals/retention");
+let proofRoute: typeof import("@/app/api/deals/[id]/proofs/[proofId]/route");
+let authMock: Mock;
 
 const created: string[] = [];
 
@@ -98,6 +101,9 @@ describe.skipIf(!DB)("the money around a deal (needs a database)", () => {
     adminChecks = await import("@/lib/deals/admin-checks");
     adminTasks = await import("@/lib/admin-tasks");
     issue = await import("@/lib/billing/issue");
+    retention = await import("@/lib/deals/retention");
+    proofRoute = await import("@/app/api/deals/[id]/proofs/[proofId]/route");
+    authMock = (await import("@/lib/auth")).auth as unknown as Mock;
   });
 
   beforeEach(async () => {
@@ -453,7 +459,7 @@ describe.skipIf(!DB)("the money around a deal (needs a database)", () => {
       expect(await dealOf(waiting.interest.id)).toMatchObject({ status: "AWAITING_ESCROW" });
     });
 
-    it("tells the admins about a completed deal whose invoices cannot be written, and writes them when it can", async () => {
+    it("catches up the invoices of a completed deal once the platform's tax data is there, and tells the recipients", async () => {
       const s = await seed("COMPLETED");
       const vat = process.env.IMPRINT_VAT_ID;
       delete process.env.IMPRINT_VAT_ID;
@@ -471,6 +477,82 @@ describe.skipIf(!DB)("the money around a deal (needs a database)", () => {
       const brandNotice = await prisma.notification.findFirstOrThrow({ where: { userId: s.brand.id, message: { contains: "invoice RE-" } } });
       expect(brandNotice.link).toMatch(/^\/dashboard\/invoices\//);
       expect(await prisma.notification.count({ where: { userId: s.creator.id, message: { contains: "credit note GS-" } } })).toBe(1);
+    });
+  });
+
+  describe("the proof images", () => {
+    const DAYS = (n: number) => n * DAY;
+
+    // A deal in `status` since `daysAgo` days, with one post and one proof image.
+    async function withProof(status: "COMPLETED" | "CANCELLED" | "IN_PRODUCTION", daysAgo: number) {
+      const s = await seed(status === "IN_PRODUCTION" ? "IN_PRODUCTION" : "COMPLETED");
+      await prisma.deal.update({ where: { id: s.dealId }, data: { status, statusChangedAt: new Date(Date.now() - DAYS(daysAgo)) } });
+      const post = await prisma.dealPost.create({ data: { dealId: s.dealId, format: "TIKTOK_VIDEO", url: "https://www.tiktok.com/@mia/video/1", status: "VERIFIED" } });
+      const proof = await prisma.dealProof.create({ data: { postId: post.id, contentType: "image/png", sha256: "ab".repeat(32), data: Buffer.from("not really a png") } });
+      return { ...s, proofId: proof.id };
+    }
+    const proofOf = (id: string) => prisma.dealProof.findUniqueOrThrow({ where: { id } });
+
+    it("deletes the image 90 days after the deal ended, and keeps the record that it existed", async () => {
+      const completed = await withProof("COMPLETED", 100);
+      const cancelled = await withProof("CANCELLED", 91);
+
+      expect(await retention.purgeOldProofs()).toBeGreaterThanOrEqual(2);
+
+      for (const s of [completed, cancelled]) {
+        const proof = await proofOf(s.proofId);
+        expect(proof.purgedAt).not.toBeNull();
+        expect(proof.data.length).toBe(0);
+        expect(proof).toMatchObject({ sha256: "ab".repeat(32), contentType: "image/png" });
+      }
+    });
+
+    it("keeps the image while it is needed", async () => {
+      const recent = await withProof("COMPLETED", 30);
+      const running = await withProof("IN_PRODUCTION", 400);
+      const disputed = await withProof("CANCELLED", 200);
+      await prisma.dealDispute.create({ data: { dealId: disputed.dealId, reason: "CONTENT_MISMATCH", details: "Still open.", openedByRole: "STARTUP", openedByUserId: disputed.brand.id } });
+
+      await retention.purgeOldProofs();
+
+      for (const s of [recent, running, disputed]) {
+        const proof = await proofOf(s.proofId);
+        expect(proof.purgedAt).toBeNull();
+        expect(Buffer.from(proof.data).toString()).toBe("not really a png");
+      }
+      // Once the dispute is settled the clock is already past, so the next run deletes it.
+      await prisma.dealDispute.updateMany({ where: { dealId: disputed.dealId }, data: { status: "RESOLVED_REFUND", resolvedAt: new Date() } });
+      await retention.purgeOldProofs();
+      expect((await proofOf(disputed.proofId)).purgedAt).not.toBeNull();
+    });
+
+    it("deletes once, and the daily job does it", async () => {
+      const s = await withProof("COMPLETED", 120);
+      const summary = await handlers.runDealDeadlines();
+      expect(summary.proofsPurged).toBeGreaterThanOrEqual(1);
+      const first = await proofOf(s.proofId);
+      expect(first.purgedAt).not.toBeNull();
+
+      await retention.purgeOldProofs();
+      expect((await proofOf(s.proofId)).purgedAt?.getTime()).toBe(first.purgedAt?.getTime());
+    });
+
+    it("answers 'gone' for a deleted image, to the people who may see it, and still refuses everyone else", async () => {
+      const s = await withProof("COMPLETED", 100);
+      const call = () => proofRoute.GET(new Request("http://localhost/x"), { params: Promise.resolve({ id: s.dealId, proofId: s.proofId }) } as never);
+      const as = (id: string, role: string) => authMock.mockResolvedValue({ user: { id, role, email: "x@test.local", isAdmin: false }, expires: "2099-01-01" });
+
+      as(s.brand.id, "STARTUP");
+      const live = await call();
+      expect(live.status).toBe(200);
+      expect(Buffer.from(await live.arrayBuffer()).toString()).toBe("not really a png");
+
+      await retention.purgeOldProofs();
+      expect((await call()).status).toBe(410);
+      as(s.creator.id, "CREATOR");
+      expect((await call()).status).toBe(410);
+      as("someone-else", "STARTUP");
+      expect((await call()).status).toBe(404);
     });
   });
 

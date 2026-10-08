@@ -75,7 +75,7 @@ export default async function DealPage(props: PageProps<"/dashboard/deals/[id]">
       {data.status === "CONTRACT_PENDING" ? (
         <ContractPanel ctx={ctx} clashes={clashes} />
       ) : (
-        <details className={`${cardClass} group`}>
+        <details id="contract" className={`${cardClass} group scroll-mt-6`}>
           <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between gap-3 text-sm font-medium [&::-webkit-details-marker]:hidden">
             {u("contract.title")}
             <IoChevronDown className="h-4 w-4 shrink-0 text-neutral-500 transition-transform group-open:rotate-180" aria-hidden />

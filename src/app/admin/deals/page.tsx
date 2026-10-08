@@ -56,7 +56,7 @@ export default async function AdminDealsPage(props: PageProps<"/admin/deals">) {
         deal: {
           include: {
             ...dealParties,
-            posts: { select: { id: true, format: true, url: true, status: true, caption: true, proofs: { select: { id: true } } } },
+            posts: { select: { id: true, format: true, url: true, status: true, caption: true, proofs: { select: { id: true, purgedAt: true } } } },
             drafts: { orderBy: { version: "desc" }, take: 1, select: { url: true, status: true, feedback: true } },
           },
         },
@@ -169,9 +169,13 @@ export default async function AdminDealsPage(props: PageProps<"/admin/deals">) {
                         {p.proofs.map((proof) => (
                           <span key={proof.id}>
                             {" · "}
-                            <a href={`/api/deals/${deal.id}/proofs/${proof.id}`} target="_blank" rel="noopener noreferrer" className="underline">
-                              Nachweis
-                            </a>
+                            {proof.purgedAt ? (
+                              "Nachweis gelöscht"
+                            ) : (
+                              <a href={`/api/deals/${deal.id}/proofs/${proof.id}`} target="_blank" rel="noopener noreferrer" className="underline">
+                                Nachweis
+                              </a>
+                            )}
                           </span>
                         ))}
                       </li>

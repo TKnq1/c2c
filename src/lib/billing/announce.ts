@@ -1,10 +1,12 @@
 import { prisma } from "@/lib/prisma";
 import { correctInvoice, type CorrectionPatch, type CorrectionResult } from "@/lib/billing/correct";
+import { mailDocuments } from "@/lib/billing/deliver";
 import { issueDealInvoices, type IssueResult, type IssuedDocument } from "@/lib/billing/issue";
 import { parseTerms } from "@/lib/deals/terms";
 import { notifyDealParty } from "@/lib/deals/notify";
 
-// Tells each recipient that a document of theirs is ready. Never throws: the documents exist whether or not the news gets out.
+// Tells each recipient that a document of theirs is ready, in the app and by e-mail with the PDF attached. Never throws: the
+// documents exist whether or not the news gets out.
 export async function announceInvoices(dealId: string, documents: IssuedDocument[]): Promise<void> {
   if (documents.length === 0) return;
   try {
@@ -18,6 +20,14 @@ export async function announceInvoices(dealId: string, documents: IssuedDocument
         { title, number: document.number },
         `/dashboard/invoices/${document.id}`,
       );
+      await mailDocuments({
+        userId: document.recipientUserId,
+        kind: document.kind === "BRAND_INVOICE" ? "invoice" : "credit",
+        title,
+        number: document.number,
+        openId: document.id,
+        attachIds: [document.id],
+      });
     }
   } catch (err) {
     console.error("Announcing the invoices failed", { dealId, err });
@@ -38,12 +48,22 @@ export async function correctAndAnnounce(args: { invoiceId: string; reason: stri
   try {
     const deal = await prisma.deal.findUnique({ where: { id: result.dealId }, select: { terms: true } });
     if (deal) {
+      const title = parseTerms(deal.terms).requestTitle;
       await notifyDealParty(
         result.replacement.recipientUserId,
         "invoice_corrected",
-        { title: parseTerms(deal.terms).requestTitle, old: result.replacedNumber, new: result.replacement.number },
+        { title, old: result.replacedNumber, new: result.replacement.number },
         `/dashboard/invoices/${result.replacement.id}`,
       );
+      await mailDocuments({
+        userId: result.replacement.recipientUserId,
+        kind: "corrected",
+        title,
+        number: result.replacement.number,
+        replaces: result.replacedNumber,
+        openId: result.replacement.id,
+        attachIds: [result.cancellation.id, result.replacement.id],
+      });
     }
   } catch (err) {
     console.error("Announcing the correction failed", { dealId: result.dealId, err });

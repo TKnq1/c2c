@@ -12,6 +12,7 @@ import { getLocale } from "@/lib/i18n/server";
 import { nextStep } from "@/lib/deals/next-step";
 import { formatDealDate } from "@/lib/deals/notices";
 import { canUseDeals, isMyTurn, listDealsForUser, type DealListItem } from "@/lib/deals/queries";
+import { filterDeals, parseDealFilter } from "@/lib/deals/list-filter";
 import { isTerminal } from "@/lib/deals/status";
 import { parseTerms } from "@/lib/deals/terms";
 import { uiText } from "@/lib/deals/ui-copy";
@@ -19,7 +20,7 @@ import { businessReadiness } from "@/lib/tax/business";
 import { hasErrors } from "@/lib/deals/issues";
 import { formatCents } from "@/lib/format";
 
-export default async function DealsPage() {
+export default async function DealsPage(props: PageProps<"/dashboard/deals">) {
   const session = await auth();
   if (!session || (session.user.role !== "STARTUP" && session.user.role !== "CREATOR")) redirect("/login");
   const role = session.user.role;
@@ -33,9 +34,12 @@ export default async function DealsPage() {
   ]);
   const needsBusiness = hasErrors(businessReadiness(profile, role));
 
-  const mine = deals.filter((d) => !isTerminal(d.status) && isMyTurn(d, role));
-  const running = deals.filter((d) => !isTerminal(d.status) && !isMyTurn(d, role));
-  const finished = deals.filter((d) => isTerminal(d.status));
+  // ?filter=mine|active|done narrows the list (see list-filter.ts); anything else shows every deal.
+  const filter = parseDealFilter((await props.searchParams).filter);
+  const shown = filterDeals(deals, filter, role);
+  const mine = shown.filter((d) => !isTerminal(d.status) && isMyTurn(d, role));
+  const running = shown.filter((d) => !isTerminal(d.status) && !isMyTurn(d, role));
+  const finished = shown.filter((d) => isTerminal(d.status));
 
   return (
     <div className="mx-auto flex w-full max-w-2xl flex-col gap-6 pb-8">
@@ -52,6 +56,13 @@ export default async function DealsPage() {
 
       {deals.length === 0 ? (
         <EmptyState icon={IoBriefcaseOutline} title={u("deals.empty")} description={role === "STARTUP" ? u("deals.emptyBrand") : u("deals.emptyCreator")} />
+      ) : shown.length === 0 ? (
+        <div className={`${cardClass} flex flex-col items-start gap-2 text-sm`}>
+          <p>{u("deals.filterEmpty")}</p>
+          <Link href="/dashboard/deals" className="underline">
+            {u("deals.showAll")}
+          </Link>
+        </div>
       ) : (
         <>
           {mine.length > 0 && <DealGroup title={u("deals.yourTurn")} deals={mine} role={role} locale={locale} highlight />}

@@ -29,6 +29,8 @@ const CORE_WORDS = {
   "chat.heldDeal": { en: "In escrow. The work, the checks and the payout run on the deal page.", de: "Im Treuhandkonto. Arbeit, Prüfungen und Auszahlung laufen auf der Deal-Seite." },
   "deals.open": { en: "Open deal", de: "Deal öffnen" },
   "deals.invoices": { en: "Invoices", de: "Rechnungen" },
+  "deals.filterEmpty": { en: "No deal matches this filter.", de: "Kein Deal passt zu diesem Filter." },
+  "deals.showAll": { en: "Show all deals", de: "Alle Deals zeigen" },
   "deals.businessLink": { en: "Business details", de: "Geschäftsdaten" },
 
   // ----- status
@@ -134,6 +136,7 @@ const CORE_WORDS = {
   "contract.usageCross": { en: "Repost on the brand's channels for {days} days", de: "Repost auf den Kanälen der Marke für {days} Tage" },
   "contract.usagePaid": { en: "Paid ads for {days} days ({channels}), {territory}, fee {fee}", de: "Bezahlte Ads für {days} Tage ({channels}), {territory}, Vergütung {fee}" },
   "contract.termsId": { en: "Terms ID", de: "Vertrags-ID" },
+  "contract.downloadPdf": { en: "Download as PDF", de: "Als PDF herunterladen" },
   "contract.signedBy": { en: "Confirmed by {name}", de: "Bestätigt von {name}" },
   "contract.notSigned": { en: "Not confirmed yet by {name}", de: "Noch nicht bestätigt von {name}" },
   "contract.continue": { en: "Continue", de: "Weiter" },
@@ -205,6 +208,7 @@ const CORE_WORDS = {
   "posts.labelMissing": { en: "No label found in the caption", de: "Keine Kennzeichnung in der Caption gefunden" },
   "posts.partnershipOn": { en: "Platform label on", de: "Plattform-Label an" },
   "posts.proof": { en: "Proof", de: "Nachweis" },
+  "posts.proofDeleted": { en: "Proof deleted after the retention period.", de: "Nachweis nach der Aufbewahrungsfrist gelöscht." },
   "posts.confirm": { en: "Confirm post", de: "Post bestätigen" },
   "posts.confirmed": { en: "Post confirmed.", de: "Post bestätigt." },
   "posts.confirmBy": { en: "Counts as confirmed automatically on {date}.", de: "Gilt am {date} automatisch als bestätigt." },
@@ -289,6 +293,7 @@ const CORE_WORDS = {
   "invoices.storno.BRAND_INVOICE": { en: "Cancellation invoice", de: "Stornorechnung" },
   "invoices.storno.CREATOR_CREDIT_NOTE": { en: "Cancellation credit note", de: "Stornogutschrift" },
   "invoices.open": { en: "Open", de: "Öffnen" },
+  "invoices.downloadPdf": { en: "Download {number} as PDF", de: "{number} als PDF herunterladen" },
   "invoices.issuedOn": { en: "{date}", de: "{date}" },
   "invoices.listTitle": { en: "Invoices & credit notes", de: "Rechnungen & Gutschriften" },
   "invoices.listDescription": { en: "Issued for finished deals. Keep them for your accounts.", de: "Für abgeschlossene Deals ausgestellt. Bewahre sie für deine Buchhaltung auf." },

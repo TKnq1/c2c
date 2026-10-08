@@ -12,6 +12,7 @@ import {
   foundingNoticeEmail,
   accountSuspendedEmail,
   dealNoticeEmail,
+  dealDocumentEmail,
 } from "@/lib/email-templates";
 
 describe("verificationEmail", () => {
@@ -339,5 +340,32 @@ describe("dealNoticeEmail", () => {
     // The hidden line an inbox shows after the subject: the text cut at 107 characters, then the filler that keeps the body out.
     const preview = email.html.match(/mso-hide:all;">([^<]*)<\/div>/)?.[1].split("&#847;")[0];
     expect(preview).toBe(`${"x".repeat(107)}…`);
+  });
+});
+
+describe("dealDocumentEmail", () => {
+  const url = "https://www.comtor.app/dashboard/invoices/inv_1";
+
+  it("announces an invoice and a credit note in the language of the account", () => {
+    const invoice = dealDocumentEmail({ kind: "invoice", title: "Autumn launch", number: "RE-2026-000001", url }, "en");
+    expect(invoice.subject).toBe("Your invoice RE-2026-000001");
+    expect(invoice.text).toContain("The invoice RE-2026-000001 for “Autumn launch” is attached as a PDF.");
+    expect(invoice.html.split(`href="${url}"`)).toHaveLength(3);
+
+    const credit = dealDocumentEmail({ kind: "credit", title: "Herbst", number: "GS-2026-000001", url }, "de");
+    expect(credit.subject).toBe("Deine Gutschrift GS-2026-000001");
+    expect(credit.text).toContain("Die Gutschrift GS-2026-000001 für „Herbst“ hängt als PDF an.");
+  });
+
+  it("says which document a correction replaces", () => {
+    const mail = dealDocumentEmail({ kind: "corrected", title: "Herbst", number: "RE-2026-000003", replaces: "RE-2026-000001", url }, "de");
+    expect(mail.subject).toBe("Beleg korrigiert: RE-2026-000001 ersetzt durch RE-2026-000003");
+    expect(mail.text).toContain("Die Stornierung und der neue Beleg hängen als PDF an.");
+    expect(dealDocumentEmail({ kind: "corrected", title: "Autumn", number: "RE-2026-000003", replaces: "RE-2026-000001", url }, "en").subject).toBe("Document corrected: RE-2026-000001 replaced by RE-2026-000003");
+  });
+
+  it("escapes a title a brand typed", () => {
+    const mail = dealDocumentEmail({ kind: "invoice", title: "<img src=x onerror=alert(1)>", number: "RE-2026-000001", url }, "en");
+    expect(mail.html).not.toContain("<img src=x");
   });
 });

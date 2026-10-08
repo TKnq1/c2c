@@ -23,6 +23,9 @@ let issue: typeof import("@/lib/billing/issue");
 let correct: typeof import("@/lib/billing/correct");
 let announce: typeof import("@/lib/billing/announce");
 let adminActions: typeof import("@/lib/actions/deal-admin");
+let pdfRoute: typeof import("@/app/api/invoices/[id]/pdf/route");
+let exportRoute: typeof import("@/app/api/admin/export/invoices/route");
+let contractRoute: typeof import("@/app/api/deals/[id]/contract/route");
 
 const created: string[] = [];
 const PASSWORD = "Correct-horse-1";
@@ -61,6 +64,9 @@ describe.skipIf(!DB)("notices and documents (needs a database)", () => {
     correct = await import("@/lib/billing/correct");
     announce = await import("@/lib/billing/announce");
     adminActions = await import("@/lib/actions/deal-admin");
+    pdfRoute = await import("@/app/api/invoices/[id]/pdf/route");
+    exportRoute = await import("@/app/api/admin/export/invoices/route");
+    contractRoute = await import("@/app/api/deals/[id]/contract/route");
   });
 
   beforeEach(async () => {
@@ -187,12 +193,12 @@ describe.skipIf(!DB)("notices and documents (needs a database)", () => {
       expect(await prisma.invoice.findUniqueOrThrow({ where: { id: s.credit.id } })).toMatchObject({ status: "ISSUED", revision: 0 });
       expect((await issue.issueDealInvoices(s.dealId)).issued).toEqual([]);
       expect(await prisma.invoice.count({ where: { dealId: s.dealId } })).toBe(4);
-      // The recipient hears about it in the app, not by mail.
+      // The recipient hears about it in the app, and gets the PDFs by mail (the content of that mail is checked below).
       const notice = await prisma.notification.findFirstOrThrow({ where: { userId: s.brand.id, message: { contains: "was corrected" } } });
       expect(notice.message).toContain(original.number);
       expect(notice.message).toContain(replacement.number);
       expect(notice.link).toBe(`/dashboard/invoices/${replacement.id}`);
-      expect(sendEmail).not.toHaveBeenCalled();
+      expect(sendEmail).toHaveBeenCalledTimes(1);
     });
 
     it("does not correct the same document twice, and corrects the replacement again", async () => {
@@ -244,6 +250,222 @@ describe.skipIf(!DB)("notices and documents (needs a database)", () => {
 
       expect(await prisma.invoice.findUniqueOrThrow({ where: { id: s.invoice.id } })).toMatchObject({ status: "ISSUED", cancelledAt: null });
       expect(await prisma.invoiceSequence.findMany({ orderBy: { key: "asc" } })).toEqual(numbersBefore);
+    });
+  });
+
+  describe("the PDF of a document", () => {
+    type Mail = { to: string; subject: string; text: string; attachments?: { filename: string; content: Uint8Array }[] };
+    const mails = () => sendEmail.mock.calls.map(([mail]) => mail as Mail);
+    const isPdf = (content: Uint8Array) => Buffer.from(content.slice(0, 5)).toString() === "%PDF-";
+
+    it("goes to each recipient with the document it was issued for", async () => {
+      const s = await seed("COMPLETED");
+      const brand = await prisma.user.findUniqueOrThrow({ where: { id: s.brand.id } });
+      const creator = await prisma.user.findUniqueOrThrow({ where: { id: s.creator.id } });
+
+      await announce.issueAndAnnounce(s.dealId);
+
+      const sent = mails();
+      expect(sent).toHaveLength(2);
+      const toBrand = sent.find((m) => m.to === brand.email)!;
+      const toCreator = sent.find((m) => m.to === creator.email)!;
+      expect(toBrand.subject).toMatch(/^Your invoice RE-\d{4}-\d{6}$/);
+      expect(toBrand.attachments).toHaveLength(1);
+      expect(toBrand.attachments![0].filename).toMatch(/^RE-\d{4}-\d{6}\.pdf$/);
+      expect(isPdf(toBrand.attachments![0].content)).toBe(true);
+      expect(toCreator.subject).toMatch(/^Your credit note GS-\d{4}-\d{6}$/);
+      expect(toCreator.attachments![0].filename).toMatch(/^GS-\d{4}-\d{6}\.pdf$/);
+      // Nothing more is sent when the daily job comes by again.
+      await announce.issueAndAnnounce(s.dealId);
+      expect(sendEmail).toHaveBeenCalledTimes(2);
+    });
+
+    it("goes out with a correction as the cancellation and the replacement", async () => {
+      const s = await invoiced();
+      const brand = await prisma.user.findUniqueOrThrow({ where: { id: s.brand.id } });
+
+      const result = await announce.correctAndAnnounce({ invoiceId: s.invoice.id, reason: "The brand's address was wrong.", patch: { recipient: { name: "Glow Cosmetics GmbH" } } });
+      if (!result.ok) throw new Error(result.error);
+
+      expect(mails()).toHaveLength(1);
+      const [mail] = mails();
+      expect(mail.to).toBe(brand.email);
+      expect(mail.subject).toBe(`Document corrected: ${s.invoice.number} replaced by ${result.replacement.number}`);
+      expect(mail.attachments!.map((a) => a.filename)).toEqual([`${result.cancellation.number}.pdf`, `${result.replacement.number}.pdf`]);
+      expect(mail.attachments!.every((a) => isPdf(a.content))).toBe(true);
+    });
+
+    it("is not mailed to an address that is not confirmed, but the documents are in the app all the same", async () => {
+      const s = await seed("COMPLETED");
+      await prisma.user.update({ where: { id: s.brand.id }, data: { emailVerified: false } });
+
+      await announce.issueAndAnnounce(s.dealId);
+
+      expect(mails().map((m) => m.to)).not.toContain((await prisma.user.findUniqueOrThrow({ where: { id: s.brand.id } })).email);
+      expect(await prisma.invoice.count({ where: { dealId: s.dealId, recipientUserId: s.brand.id } })).toBe(1);
+      expect(await prisma.notification.count({ where: { userId: s.brand.id, message: { contains: "invoice RE-" } } })).toBe(1);
+    });
+
+    describe("the download", () => {
+      const call = (id: string) => pdfRoute.GET(new Request(`http://localhost/api/invoices/${id}/pdf`), { params: Promise.resolve({ id }) } as never);
+      const as = (user: { id: string; role: string; isAdmin?: boolean } | null) => authMock.mockResolvedValue(user ? { user: { email: "x@test.local", isAdmin: false, ...user }, expires: "2099-01-01" } : null);
+
+      it("gives the recipient their PDF, and only theirs", async () => {
+        const s = await invoiced();
+
+        as({ id: s.brand.id, role: "STARTUP" });
+        const response = await call(s.invoice.id);
+        expect(response.status).toBe(200);
+        expect(response.headers.get("content-type")).toBe("application/pdf");
+        expect(response.headers.get("content-disposition")).toBe(`attachment; filename="${s.invoice.number}.pdf"`);
+        expect(response.headers.get("cache-control")).toBe("private, no-store");
+        expect(response.headers.get("x-content-type-options")).toBe("nosniff");
+        expect(Buffer.from(await response.arrayBuffer()).subarray(0, 5).toString()).toBe("%PDF-");
+
+        // The creator cannot get the brand's invoice, and gets their own credit note.
+        as({ id: s.creator.id, role: "CREATOR" });
+        expect((await call(s.invoice.id)).status).toBe(404);
+        expect((await call(s.credit.id)).status).toBe(200);
+      });
+
+      it("answers a stranger and a missing document the same, and asks a visitor to sign in", async () => {
+        const s = await invoiced();
+        const stranger = await seed("AWAITING_ESCROW");
+
+        as({ id: stranger.brand.id, role: "STARTUP" });
+        expect((await call(s.invoice.id)).status).toBe(404);
+        expect((await call("does-not-exist")).status).toBe(404);
+        as(null);
+        expect((await call(s.invoice.id)).status).toBe(401);
+      });
+
+      it("lets an admin open any document, and limits how often one account can download", async () => {
+        const s = await invoiced();
+        as({ id: s.brand.id, role: "ADMIN", isAdmin: true });
+        expect((await call(s.invoice.id)).status).toBe(200);
+
+        const downloader = await seed("AWAITING_ESCROW");
+        as({ id: downloader.brand.id, role: "STARTUP" });
+        await prisma.rateLimitHit.createMany({ data: Array.from({ length: 60 }, () => ({ bucket: "invoice-pdf", key: downloader.brand.id })) });
+        // Not their document: refused before the limit is even looked at, so nothing is counted for a stranger.
+        expect((await call(s.invoice.id)).status).toBe(404);
+        const own = await invoiced();
+        as({ id: own.brand.id, role: "STARTUP" });
+        await prisma.rateLimitHit.createMany({ data: Array.from({ length: 60 }, () => ({ bucket: "invoice-pdf", key: own.brand.id })) });
+        expect((await call(own.invoice.id)).status).toBe(429);
+        await prisma.rateLimitHit.deleteMany({ where: { bucket: "invoice-pdf", key: { in: [downloader.brand.id, own.brand.id] } } });
+      });
+    });
+  });
+
+  describe("the contract as a PDF", () => {
+    const call = (id: string) => contractRoute.GET(new Request(`http://localhost/api/deals/${id}/contract`), { params: Promise.resolve({ id }) } as never);
+    const as = (user: { id: string; role: string; isAdmin?: boolean } | null) => authMock.mockResolvedValue(user ? { user: { email: "x@test.local", isAdmin: false, ...user }, expires: "2099-01-01" } : null);
+
+    it("goes to both parties, with the frozen terms, and to an admin", async () => {
+      const s = await seed("IN_PRODUCTION");
+
+      for (const who of [{ id: s.brand.id, role: "STARTUP" }, { id: s.creator.id, role: "CREATOR" }, { id: s.brand.id, role: "ADMIN", isAdmin: true }]) {
+        as(who);
+        const response = await call(s.dealId);
+        expect(response.status).toBe(200);
+        expect(response.headers.get("content-type")).toBe("application/pdf");
+        expect(response.headers.get("content-disposition")).toBe(`attachment; filename="comtor-vertrag-${s.dealId}.pdf"`);
+        expect(response.headers.get("cache-control")).toBe("private, no-store");
+        const bytes = Buffer.from(await response.arrayBuffer());
+        expect(bytes.subarray(0, 5).toString()).toBe("%PDF-");
+        const pdf = await (await import("pdf-lib")).PDFDocument.load(bytes);
+        expect(pdf.getTitle()).toBe("Kooperationsvertrag Autumn launch");
+      }
+    });
+
+    it("is not for anyone else, and a visitor is asked to sign in", async () => {
+      const s = await seed("IN_PRODUCTION");
+      const stranger = await seed("AWAITING_ESCROW");
+
+      as({ id: stranger.brand.id, role: "STARTUP" });
+      expect((await call(s.dealId)).status).toBe(404);
+      as({ id: stranger.creator.id, role: "CREATOR" });
+      expect((await call(s.dealId)).status).toBe(404);
+      expect((await call("does-not-exist")).status).toBe(404);
+      as(null);
+      expect((await call(s.dealId)).status).toBe(401);
+    });
+
+    it("limits how often one account can download", async () => {
+      const s = await seed("IN_PRODUCTION");
+      as({ id: s.brand.id, role: "STARTUP" });
+      await prisma.rateLimitHit.createMany({ data: Array.from({ length: 60 }, () => ({ bucket: "contract-pdf", key: s.brand.id })) });
+      expect((await call(s.dealId)).status).toBe(429);
+      await prisma.rateLimitHit.deleteMany({ where: { bucket: "contract-pdf", key: s.brand.id } });
+    });
+  });
+
+  describe("the exports for the tax advisor", () => {
+    const get = (query: string) => exportRoute.GET(new Request(`http://localhost/api/admin/export/invoices?${query}`));
+    const thisMonth = new Intl.DateTimeFormat("sv-SE", { timeZone: "Europe/Berlin", year: "numeric", month: "2-digit" }).format(new Date());
+    const thisQuarter = `${thisMonth.slice(0, 4)}-Q${Math.floor((Number(thisMonth.slice(5)) - 1) / 3) + 1}`;
+
+    async function signIn(role: "ADMIN" | "STARTUP") {
+      const user = await prisma.user.create({
+        data: { email: `export-${Date.now()}-${Math.random().toString(36).slice(2, 6)}@test.local`, passwordHash: "x", role, emailVerified: true },
+      });
+      created.push(user.id);
+      authMock.mockResolvedValue({ user: { id: user.id, role, email: user.email, isAdmin: role === "ADMIN" }, expires: "2099-01-01" });
+      return user;
+    }
+
+    it("lists the month's documents, and logs who downloaded it", async () => {
+      const s = await invoiced();
+      const admin = await signIn("ADMIN");
+
+      const response = await get(`month=${thisMonth}`);
+
+      expect(response.status).toBe(200);
+      expect(response.headers.get("content-type")).toBe("text/csv; charset=utf-8");
+      expect(response.headers.get("content-disposition")).toBe(`attachment; filename="comtor-belege-${thisMonth}.csv"`);
+      expect(response.headers.get("cache-control")).toBe("no-store");
+      const csv = await response.text();
+      expect(csv).toContain(s.invoice.number);
+      expect(csv).toContain(s.credit.number);
+      expect(csv).toContain("Rechnung");
+      expect(csv).toContain("Inland, mit USt");
+      expect(await prisma.adminAuditLog.count({ where: { adminId: admin.id, action: "export.invoices", targetId: thisMonth } })).toBe(1);
+    });
+
+    it("shows a correction as the cancelled document, its cancellation and the replacement", async () => {
+      const s = await invoiced();
+      await signIn("ADMIN");
+      const result = await correct.correctInvoice({ invoiceId: s.invoice.id, reason: "The brand's address was wrong.", patch: { recipient: { name: "Glow Cosmetics GmbH" } } });
+      if (!result.ok) throw new Error(result.error);
+
+      const csv = await (await get(`month=${thisMonth}`)).text();
+      const lines = csv.split("\r\n");
+      expect(lines.find((l) => l.startsWith(`${s.invoice.number};`))).toContain(";Storniert;");
+      expect(lines.find((l) => l.startsWith(`${result.cancellation.number};`))).toMatch(/^[^;]+;Stornorechnung;.*;-1000,00;19;-190,00;-1190,00;Ausgestellt;/);
+      expect(lines.find((l) => l.startsWith(`${result.cancellation.number};`))).toContain(`;${s.invoice.number};`);
+      expect(lines.find((l) => l.startsWith(`${result.replacement.number};`))).toContain("Glow Cosmetics GmbH");
+    });
+
+    it("gives the summary of the services to EU businesses for a quarter", async () => {
+      await signIn("ADMIN");
+      const response = await get(`report=zm&quarter=${thisQuarter}`);
+      expect(response.status).toBe(200);
+      expect(response.headers.get("content-disposition")).toBe(`attachment; filename="comtor-zm-${thisQuarter}.csv"`);
+      expect(await response.text()).toContain("Land;USt-IdNr. des Leistungsempfängers;");
+    });
+
+    it("is for admins only, and wants a valid period", async () => {
+      await signIn("STARTUP");
+      expect((await get(`month=${thisMonth}`)).status).toBe(403);
+      authMock.mockResolvedValue(null);
+      expect((await get(`month=${thisMonth}`)).status).toBe(403);
+
+      await signIn("ADMIN");
+      expect((await get("month=2026-13")).status).toBe(400);
+      expect((await get("")).status).toBe(400);
+      expect((await get(`report=zm&month=${thisMonth}`)).status).toBe(400);
+      expect((await get("report=zm&quarter=2026-Q5")).status).toBe(400);
     });
   });
 

@@ -5,7 +5,8 @@ import { Avatar } from "@/components/avatar";
 import { CompletePaymentButton } from "@/components/complete-payment-button";
 import { ConfirmPostButton, ConfirmUsageButton, ContinueContractButton, DeliverUsageForm, OpenDisputeButton, RecheckButton, ReviewDraftForm, ScheduleForm, SignContractButton, SubmitDraftForm, SubmitPostForm, CancelDealButton } from "@/components/deals/forms";
 import { Badge, Row, Section, cardClass } from "@/components/deals/ui";
-import { USAGE_CHANNELS, isUsageChannel, usageState } from "@/lib/compliance/usage-rights";
+import { usageState } from "@/lib/compliance/usage-rights";
+import { contractView } from "@/lib/deals/contract-rows";
 import type { DealLocale } from "@/lib/deals/copy";
 import type { FieldIssue } from "@/lib/deals/action-state";
 import { CANCEL_REASON_TEXT, formatDealDate } from "@/lib/deals/notices";
@@ -98,75 +99,38 @@ export function ContractPanel({ ctx, clashes, bare = false }: { ctx: PanelContex
   const signedAt = role === "STARTUP" ? data.brandSignedAt : data.creatorSignedAt;
   const otherSignedAt = role === "STARTUP" ? data.creatorSignedAt : data.brandSignedAt;
   const otherName = role === "STARTUP" ? terms.creatorName : terms.brandName;
-  const w = terms.workflow;
-  const ex = terms.exclusivity;
-  const us = terms.usage;
-  const channels = us.channels.map((c) => (isUsageChannel(c) ? USAGE_CHANNELS[c].label : c)).join(", ");
-  // The figures as they stand now: a side that went Pro since the offer moved the fee down.
-  const payoutCents = data.interest.payoutCents ?? terms.payoutCents;
-  const feeCents = data.interest.platformFeeCents ?? terms.platformFeeCents;
-  const exScope = [...(ex.categories.length > 0 ? ex.categories : [terms.productCategory]), ...ex.competitors].join(", ");
+  // The lines are the same ones the contract PDF prints (src/lib/deals/contract-rows.ts).
+  const { rows, notes } = contractView({
+    terms,
+    snapshot,
+    viewer: role,
+    payoutCents: data.interest.payoutCents ?? terms.payoutCents,
+    feeCents: data.interest.platformFeeCents ?? terms.platformFeeCents,
+    u,
+  });
 
   const card = (
       <div className={cardClass}>
         <dl className="divide-y divide-neutral-200 dark:divide-neutral-700">
-          <Row label={u("contract.price")}>{formatCents(terms.amountCents)}</Row>
-          {role === "STARTUP" &&
-            (snapshot ? (
-              <>
-                <Row label={u("contract.vat", { rate: snapshot.tax.brand.rateBp / 100 })}>{formatCents(snapshot.tax.brand.vatCents)}</Row>
-                <Row label={u("tax.treatment")}>{u(`tax.${snapshot.tax.brand.treatment}`)}</Row>
-                <Row label={u("contract.total")}>{formatCents(snapshot.tax.brand.totalCents)}</Row>
-              </>
-            ) : (
-              <p className="py-1.5 text-xs text-neutral-500 dark:text-neutral-400">{u("contract.vatPending")}</p>
-            ))}
-          {role === "CREATOR" && (
-            <>
-              <Row label={u("contract.fee")}>
-                {formatCents(feeCents)} ({Math.round((feeCents / Math.max(terms.amountCents, 1)) * 1000) / 10} %)
+          {rows.map((r) =>
+            r.kind === "row" ? (
+              <Row key={r.label} label={r.label}>
+                {r.value}
               </Row>
-              <Row label={u("contract.payout")}>{formatCents(payoutCents)}</Row>
-              {snapshot && <Row label={u("tax.treatment")}>{u(`tax.${snapshot.tax.creator.treatment}`)}</Row>}
-            </>
+            ) : (
+              <p key="pending" className="py-1.5 text-xs text-neutral-500 dark:text-neutral-400">
+                {r.text}
+              </p>
+            ),
           )}
-          <Row label={u("contract.formats")}>{terms.contentFormats.map((f) => POST_FORMATS[f].label).join(", ")}</Row>
-          <Row label={u("contract.market")}>{terms.targetMarket}</Row>
-          <Row label={u("contract.labels")}>{terms.disclosure.labels.join(" / ")}</Row>
-          {terms.disclosure.requirePaidPartnershipLabel && <Row label={u("contract.partnershipLabel")}>✓</Row>}
-          {terms.requiredHashtags.length > 0 && <Row label={u("contract.hashtags")}>{terms.requiredHashtags.map((t) => `#${t}`).join(" ")}</Row>}
-          {terms.requiredMentions.length > 0 && <Row label={u("contract.mentions")}>{terms.requiredMentions.map((m) => `@${m}`).join(" ")}</Row>}
-          <Row label={u("contract.workflow")}>
-            {w.draftRequired ? u("contract.draftRequired", { days: w.brandReviewDays, rounds: w.maxRevisionRounds }) : u("contract.noDraft")}
-          </Row>
-          <Row label={u("contract.window")}>
-            {w.postingWindowEnd ? `${w.postingWindowStart ? `${w.postingWindowStart} – ` : "… – "}${w.postingWindowEnd}` : u("contract.windowFlexible", { days: 30 })}
-          </Row>
-          <Row label={u("contract.minLive")}>{w.minLiveHours >= 48 && w.minLiveHours % 24 === 0 ? u("contract.days", { count: w.minLiveHours / 24 }) : u("contract.hours", { count: w.minLiveHours })}</Row>
-          <Row label={u("contract.exclusivity")}>
-            {ex.enabled ? u("contract.exclusivityScope", { scope: exScope, before: ex.daysBefore, after: ex.daysAfter }) : u("contract.exclusivityNone")}
-          </Row>
-          <Row label={u("contract.usage")}>
-            {us.type === "ORGANIC_ONLY"
-              ? u("contract.usageOrganic")
-              : us.type === "CROSS_POST"
-                ? u("contract.usageCross", { days: us.durationDays ?? 0 })
-                : u("contract.usagePaid", { days: us.durationDays ?? 0, channels, territory: us.territory, fee: formatCents(us.feeCents ?? 0) })}
-          </Row>
         </dl>
 
-        {terms.talkingPoints && (
-          <p className="mt-3 text-sm">
-            <span className="font-medium">{u("contract.talkingPoints")}: </span>
-            {terms.talkingPoints}
+        {notes.map((note, index) => (
+          <p key={note.label} className={`${index === 0 ? "mt-3" : "mt-2"} text-sm`}>
+            <span className="font-medium">{note.label}: </span>
+            {note.value}
           </p>
-        )}
-        {terms.doNots && (
-          <p className="mt-2 text-sm">
-            <span className="font-medium">{u("contract.doNots")}: </span>
-            {terms.doNots}
-          </p>
-        )}
+        ))}
 
         {clashes.length > 0 && (
           <ul className="mt-3 flex flex-col gap-1 rounded border border-neutral-300 p-3 text-sm dark:border-neutral-700">
@@ -184,6 +148,10 @@ export function ContractPanel({ ctx, clashes, bare = false }: { ctx: PanelContex
           {signedAt ? u("contract.signedBy", { name: role === "STARTUP" ? terms.brandName : terms.creatorName }) : null}
           {signedAt && otherSignedAt ? " · " : null}
           {otherSignedAt ? u("contract.signedBy", { name: otherName }) : u("contract.notSigned", { name: otherName })}
+          {" · "}
+          <a href={`/api/deals/${data.id}/contract`} download className="underline">
+            {u("contract.downloadPdf")}
+          </a>
         </p>
 
         {data.status === "CONTRACT_PENDING" && signedAt && otherSignedAt && (
@@ -207,7 +175,7 @@ export function ContractPanel({ ctx, clashes, bare = false }: { ctx: PanelContex
   );
   if (bare) return card;
   return (
-    <Section title={u("contract.title")} description={u("contract.intro")}>
+    <Section id="contract" title={u("contract.title")} description={u("contract.intro")}>
       {card}
     </Section>
   );
@@ -221,7 +189,7 @@ export function EscrowPanel({ ctx }: { ctx: PanelContext }) {
   if (data.status === "CONTRACT_PENDING" || (data.status === "CANCELLED" && status !== "REFUNDED")) return null;
   const total = data.brandTotalCents ?? data.interest.amountCents ?? 0;
   return (
-    <Section title={u("escrow.title")}>
+    <Section id="escrow" title={u("escrow.title")}>
       <div className={cardClass}>
         {data.status === "AWAITING_ESCROW" ? (
           <>
@@ -252,7 +220,7 @@ export function DraftsPanel({ ctx }: { ctx: PanelContext }) {
   const canReview = role === "STARTUP" && data.status === "DRAFT_SUBMITTED";
 
   return (
-    <Section title={u("drafts.title")}>
+    <Section id="drafts" title={u("drafts.title")}>
       <div className={`${cardClass} flex flex-col gap-4`}>
         {data.drafts.length === 0 && <p className="text-sm text-neutral-500 dark:text-neutral-400">{u("drafts.none")}</p>}
         {data.drafts.map((draft) => (
@@ -303,6 +271,7 @@ export function PostsPanel({ ctx }: { ctx: PanelContext }) {
 
   return (
     <Section
+      id="posts"
       title={u("posts.title")}
       action={canRecheck ? <RecheckButton dealId={data.id} /> : undefined}
       description={status === "VERIFYING" && data.verificationEndsAt ? u("posts.holdUntil", { date: date(data.verificationEndsAt, locale) }) : undefined}
@@ -341,12 +310,18 @@ export function PostsPanel({ ctx }: { ctx: PanelContext }) {
               </p>
               {post.proofs.length > 0 && (
                 <div className="mt-2 flex gap-2">
-                  {post.proofs.map((proof) => (
-                    <a key={proof.id} href={`/api/deals/${data.id}/proofs/${proof.id}`} target="_blank" rel="noopener noreferrer" aria-label={u("posts.proof")}>
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src={`/api/deals/${data.id}/proofs/${proof.id}`} alt={u("posts.proof")} className="h-24 w-auto rounded border border-neutral-200 object-cover dark:border-neutral-700" />
-                    </a>
-                  ))}
+                  {post.proofs.map((proof) =>
+                    proof.purgedAt ? (
+                      <p key={proof.id} className="text-xs text-neutral-500 dark:text-neutral-400">
+                        {u("posts.proofDeleted")}
+                      </p>
+                    ) : (
+                      <a key={proof.id} href={`/api/deals/${data.id}/proofs/${proof.id}`} target="_blank" rel="noopener noreferrer" aria-label={u("posts.proof")}>
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src={`/api/deals/${data.id}/proofs/${proof.id}`} alt={u("posts.proof")} className="h-24 w-auto rounded border border-neutral-200 object-cover dark:border-neutral-700" />
+                      </a>
+                    ),
+                  )}
                 </div>
               )}
               {role === "STARTUP" && proofPending && status === "POST_SUBMITTED" && (
@@ -402,7 +377,7 @@ export function UsagePanel({ ctx }: { ctx: PanelContext }) {
     role === "CREATOR" && us.type === "PAID_ADS" && !data.usageDeliveredAt && ["POST_SUBMITTED", "VERIFYING", "REPOST_REQUIRED", "PAYOUT_PENDING"].includes(data.status);
 
   return (
-    <Section title={u("usage.title")}>
+    <Section id="usage" title={u("usage.title")}>
       <div className={`${cardClass} flex flex-col gap-3 text-sm`}>
         <p className="font-medium">{u(`usage.state.${state}`, { date: date(data.usageExpiresAt, locale) })}</p>
         {us.type === "PAID_ADS" && (
@@ -433,7 +408,7 @@ export function DisputePanel({ ctx }: { ctx: PanelContext }) {
   const canOpen = allowedActions(data.status, role).includes("OPEN_DISPUTE");
   if (data.disputes.length === 0 && !canOpen) return null;
   return (
-    <Section title={u("dispute.title")}>
+    <Section id="dispute" title={u("dispute.title")}>
       <div className={`${cardClass} flex flex-col gap-3 text-sm`}>
         {data.disputes.map((d) => (
           <div key={d.id}>
@@ -461,7 +436,7 @@ export function InvoicesPanel({ ctx }: { ctx: PanelContext }) {
   if (data.status !== "COMPLETED") return null;
   const mine = data.invoices.filter((i) => i.recipientUserId === userId);
   return (
-    <Section title={u("invoices.title")}>
+    <Section id="invoices" title={u("invoices.title")}>
       <div className={`${cardClass} flex flex-col gap-2`}>
         {mine.length === 0 && <p className="text-sm text-neutral-500 dark:text-neutral-400">{u("invoices.none")}</p>}
         {mine.map((invoice) => (
@@ -486,7 +461,7 @@ export function TimelinePanel({ ctx }: { ctx: PanelContext }) {
   const { data, u, locale } = ctx;
   const known = (key: string): key is UiKey => key in UI_WORDS;
   return (
-    <Section title={u("deal.timeline")}>
+    <Section id="timeline" title={u("deal.timeline")}>
       <ol className="flex flex-col gap-2 px-1 text-sm">
         {data.events.length === 0 && <li className="text-neutral-500 dark:text-neutral-400">{u("deal.noEvents")}</li>}
         {data.events.map((event) => {

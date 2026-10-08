@@ -35,6 +35,10 @@ export async function saveBusinessProfileAction(_prev: BusinessActionState, form
   }
   const role = session.user.role;
   const userId = session.user.id;
+  // Saving writes the profile and may ask VIES: a person filling in a form does this a handful of times, not dozens.
+  if (!(await takeToken("business-save", userId, 30, HOUR))) {
+    return { error: say(locale, "You saved your details a lot just now. Try again later.", "Du hast deine Angaben gerade sehr oft gespeichert. Versuche es später erneut.") };
+  }
 
   const vatInput = field(formData, "vatId", 30);
   const input: BusinessInput = {

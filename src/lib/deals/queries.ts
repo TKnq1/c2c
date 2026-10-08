@@ -104,7 +104,7 @@ export async function loadDealPage(dealId: string) {
       posts: {
         orderBy: { submittedAt: "desc" },
         include: {
-          proofs: { select: { id: true, kind: true, createdAt: true } },
+          proofs: { select: { id: true, kind: true, createdAt: true, purgedAt: true } },
           metrics: { orderBy: { capturedAt: "desc" }, take: 1 },
         },
       },

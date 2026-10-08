@@ -447,6 +447,49 @@ export function dealNoticeEmail(args: { subject: string; text: string; url: stri
   });
 }
 
+// The documents of a deal as an e-mail, with the PDFs attached: a new invoice, a new credit note, or a correction (the cancelled
+// document and its replacement). The PDFs are German like the documents; the mail is in the language of the account.
+export function dealDocumentEmail(
+  args: { kind: "invoice" | "credit" | "corrected"; title: string; number: string; replaces?: string; url: string },
+  locale: Locale = DEFAULT_LOCALE,
+): Email {
+  const { title, number, url } = args;
+  const copy = {
+    invoice: {
+      subject: pick(locale, `Your invoice ${number}`, `Deine Rechnung ${number}`),
+      heading: pick(locale, "Your invoice is ready.", "Deine Rechnung ist da."),
+      body: pick(locale, `The invoice ${number} for “${title}” is attached as a PDF. You also find it under Deals, Invoices.`, `Die Rechnung ${number} für „${title}“ hängt als PDF an. Du findest sie auch unter Deals, Rechnungen.`),
+    },
+    credit: {
+      subject: pick(locale, `Your credit note ${number}`, `Deine Gutschrift ${number}`),
+      heading: pick(locale, "Your credit note is ready.", "Deine Gutschrift ist da."),
+      body: pick(locale, `The credit note ${number} for “${title}” is attached as a PDF. You also find it under Deals, Invoices.`, `Die Gutschrift ${number} für „${title}“ hängt als PDF an. Du findest sie auch unter Deals, Rechnungen.`),
+    },
+    corrected: {
+      subject: pick(locale, `Document corrected: ${args.replaces ?? ""} replaced by ${number}`, `Beleg korrigiert: ${args.replaces ?? ""} ersetzt durch ${number}`),
+      heading: pick(locale, "A document was corrected.", "Ein Beleg wurde korrigiert."),
+      body: pick(
+        locale,
+        `The document ${args.replaces ?? ""} for “${title}” was cancelled and replaced by ${number}. The cancellation and the new document are attached as PDFs.`,
+        `Der Beleg ${args.replaces ?? ""} für „${title}“ wurde storniert und durch ${number} ersetzt. Die Stornierung und der neue Beleg hängen als PDF an.`,
+      ),
+    },
+  }[args.kind];
+  return render({
+    locale,
+    subject: copy.subject,
+    preview: copy.body.length > 110 ? `${copy.body.slice(0, 107)}…` : copy.body,
+    heading: copy.heading,
+    body: copy.body,
+    action: { label: pick(locale, "Open the document", "Beleg öffnen"), url },
+    note: pick(
+      locale,
+      "You get this e-mail because a document was issued for one of your deals. Keep it for your accounts.",
+      "Du bekommst diese E-Mail, weil für einen deiner Deals ein Beleg ausgestellt wurde. Bewahre ihn für deine Buchhaltung auf.",
+    ),
+  });
+}
+
 // What /admin/email sends to check that mail gets out and looks right.
 export function testEmail(url: string, locale: Locale = DEFAULT_LOCALE): Email {
   return render({

@@ -21,6 +21,7 @@ export async function GET(_request: Request, ctx: RouteContext<"/api/deals/[id]/
     select: {
       contentType: true,
       data: true,
+      purgedAt: true,
       post: {
         select: {
           dealId: true,
@@ -34,6 +35,9 @@ export async function GET(_request: Request, ctx: RouteContext<"/api/deals/[id]/
   const { creator, request } = proof.post.deal.interest;
   const isParty = session.user.id === creator.userId || session.user.id === request.startup.userId;
   if (!isParty && !hasAdminAccess(session.user)) return new Response("Not found", { status: 404 });
+
+  // Deleted after the retention period (src/lib/deals/retention.ts): gone, not missing.
+  if (proof.purgedAt) return new Response("This proof was deleted after the retention period.", { status: 410, headers: HEADERS });
 
   return new Response(new Uint8Array(proof.data), { headers: { ...HEADERS, "Content-Type": proof.contentType } });
 }

@@ -4,6 +4,7 @@ import { alertAdmins, dayKey } from "@/lib/deals/alerts";
 import { planDealActions, type DealSnapshot, type PlannedAction } from "@/lib/deals/deadlines";
 import { DEAL_POLICY, type ReminderKey } from "@/lib/deals/policy";
 import { onEscrowFunded } from "@/lib/deals/escrow";
+import { purgeOldProofs } from "@/lib/deals/retention";
 import { dealHref, notifyDealParty } from "@/lib/deals/notify";
 import type { NoticeKey } from "@/lib/deals/notices";
 import { claimReminder, loadDeal, moveDeal, type DealView } from "@/lib/deals/service";
@@ -156,6 +157,7 @@ export type RunSummary = {
   failures: { dealId: string; error: string }[];
   invoicesIssued: number;
   healed: number;
+  proofsPurged: number;
 };
 
 // A deal that waits for the payment while the money is already held: the webhook was cut off between the payment and the
@@ -212,7 +214,7 @@ async function issueMissingInvoices(): Promise<number> {
 export async function runDealDeadlines(now = new Date()): Promise<RunSummary> {
   const snapshots = await loadSnapshots();
   const actions = planDealActions(snapshots, now);
-  const summary: RunSummary = { planned: actions.length, results: {}, failures: [], invoicesIssued: 0, healed: 0 };
+  const summary: RunSummary = { planned: actions.length, results: {}, failures: [], invoicesIssued: 0, healed: 0, proofsPurged: 0 };
 
   for (const action of actions) {
     try {
@@ -230,5 +232,10 @@ export async function runDealDeadlines(now = new Date()): Promise<RunSummary> {
   }
   summary.healed = await healFundedDeals(now);
   summary.invoicesIssued = await issueMissingInvoices();
+  // A failing clean-up must not hide what the rest of the job did.
+  summary.proofsPurged = await purgeOldProofs(now).catch((err) => {
+    console.error("Deleting old proofs failed", err);
+    return 0;
+  });
   return summary;
 }

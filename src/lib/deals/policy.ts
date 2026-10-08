@@ -29,6 +29,10 @@ export const DEAL_POLICY = {
   // Paid usage rights have to be handed over (code / permission) before the payout; this long after the hold window the
   // deal is frozen for review if they still are not.
   usageDeliveryGraceDays: 7,
+  // The screenshots a creator uploads as proof of a post are personal data of the creator (analytics, account names). They are
+  // needed until the deal is settled; this long after it ended (and with no dispute open) the image is deleted. The hash and the
+  // verification result stay.
+  proofRetentionDays: 90,
 } as const;
 
 export type ReminderKey =
