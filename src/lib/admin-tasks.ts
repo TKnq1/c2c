@@ -2,6 +2,7 @@ import type { AdminTask, AdminTaskPriority, AdminTaskStatus } from "@prisma/clie
 import { prisma } from "@/lib/prisma";
 import { RELEASE_REVIEW_MS } from "@/lib/constants";
 import { readSnapshots, type SentrySnapshot, type StripeSnapshot } from "@/lib/admin-external";
+import { dealsToReprice } from "@/lib/open-deal-fees";
 
 const HOUR = 60 * 60 * 1000;
 const DAY = 24 * HOUR;
@@ -122,13 +123,21 @@ export function setupChecks(f: SetupFacts, now: Date): CheckResult[] {
 // The fixed checks: things in the data that wait on the admin. Each returns nothing when there is nothing to do.
 export async function computeChecks(now = new Date()): Promise<CheckResult[]> {
   const releaseSoonBefore = new Date(now.getTime() - (RELEASE_REVIEW_MS - DAY));
-  const [reports, disputes, releaseSoon, foundingUnnotified, snapshots, mailFailures24h, activeFixedCosts, settings] = await Promise.all([
+  const [reports, disputes, releaseSoon, foundingUnnotified, foundingCreatorsUnnotified, reconciliations, reprice, snapshots, mailFailures24h, activeFixedCosts, settings] = await Promise.all([
     prisma.report.aggregate({ where: { status: "OPEN" }, _count: true, _min: { createdAt: true } }),
     prisma.interest.count({ where: { paymentStatus: "HELD", disputedAt: { not: null } } }),
     prisma.interest.count({ where: { paymentStatus: "HELD", disputedAt: null, proofSubmittedAt: { lte: releaseSoonBefore } } }),
     prisma.startupProfile.count({
       where: { foundingNumber: { not: null }, foundingNoticeSentAt: null, user: { suspendedAt: null, deletedAt: null } },
     }),
+    prisma.creatorProfile.count({
+      where: { foundingNumber: { not: null }, foundingNoticeSentAt: null, user: { suspendedAt: null, deletedAt: null } },
+    }),
+    // Money whose transfer or refund failed without a clear answer (see payment-release.ts): only a person can settle it.
+    prisma.report.count({
+      where: { status: "OPEN", reason: { in: ["Automated: Payout needs reconciliation", "Automated: Refund needs reconciliation"] } },
+    }),
+    dealsToReprice().then((deals) => deals.length),
     readSnapshots(),
     prisma.mailLog.count({ where: { ok: false, createdAt: { gte: new Date(now.getTime() - DAY) } } }),
     prisma.fixedCost.count({ where: { active: true } }),
@@ -173,6 +182,33 @@ export async function computeChecks(now = new Date()): Promise<CheckResult[]> {
       reason: "Sie haben Pro auf Lebenszeit, wissen es aber noch nicht",
       priority: "MEDIUM",
       href: "/admin/users?role=STARTUP&pro=1",
+    });
+  }
+  if (foundingCreatorsUnnotified > 0) {
+    checks.push({
+      key: "founding-notice-creators",
+      title: `Founding-Mail an ${plural(foundingCreatorsUnnotified, "Creator", "Creator")} noch nicht verschickt`,
+      reason: "Sie haben Pro kostenlos, wissen es aber noch nicht",
+      priority: "MEDIUM",
+      href: "/admin/users?role=CREATOR&pro=1",
+    });
+  }
+  if (reconciliations > 0) {
+    checks.push({
+      key: "money-reconciliation",
+      title: `${plural(reconciliations, "Auszahlung oder Erstattung", "Auszahlungen oder Erstattungen")} in Stripe prüfen`,
+      reason: "Der Vorgang ist ohne klare Antwort abgebrochen: erst in Stripe nachsehen, dann entscheiden",
+      priority: "HIGH",
+      href: "/admin/moderation",
+    });
+  }
+  if (reprice > 0) {
+    checks.push({
+      key: "deals-reprice",
+      title: `${plural(reprice, "offener Deal hat", "offene Deals haben")} noch die Standardgebühr`,
+      reason: "Eine Seite hat inzwischen Pro: auf 3 % umstellen",
+      priority: "LOW",
+      href: "/admin/payments",
     });
   }
   checks.push(
