@@ -83,6 +83,8 @@ export async function saveBriefing(requestId: string, input: BriefingInput): Pro
       });
       version = row.version;
     }
+    // A saved briefing replaces the unfinished one.
+    await tx.briefingDraft.deleteMany({ where: { requestId } });
     // The request's "post by" date follows the briefing's window, so the feed and the deal never show two dates.
     if (input.postingWindowEnd) await tx.request.update({ where: { id: requestId }, data: { postBy: input.postingWindowEnd } });
     const staleOffers = await tx.interest.count({

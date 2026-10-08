@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { briefingToValues, eurosToCents, parseBriefingForm } from "@/lib/compliance/briefing-form";
+import { BRIEFING_FORM_KEYS, briefingToValues, cleanFormValues, eurosToCents, parseBriefingForm, withoutWindow } from "@/lib/compliance/briefing-form";
+import { defaultBriefingFor } from "@/lib/deals/terms";
 import { validateBriefing } from "@/lib/compliance/briefing";
 
 describe("eurosToCents", () => {
@@ -106,5 +107,29 @@ describe("briefingToValues", () => {
       usageTerritory: "EU",
     });
     expect(parseBriefingForm(briefingToValues(original))).toEqual(original);
+  });
+});
+
+describe("form values from outside", () => {
+  it("lists exactly the fields briefingToValues writes", () => {
+    const values = briefingToValues(defaultBriefingFor({ platform: "TikTok", postBy: null }));
+    expect([...BRIEFING_FORM_KEYS].sort()).toEqual(Object.keys(values).sort());
+  });
+
+  it("keeps known fields as strings and nothing else", () => {
+    const clean = cleanFormValues({ targetMarket: "DE", minLiveHours: 24, evil: "x", talkingPoints: "a".repeat(9000), usageType: null });
+    expect(Object.keys(clean).sort()).toEqual(["talkingPoints", "targetMarket"]);
+    expect(clean.talkingPoints).toHaveLength(4000);
+  });
+
+  it("copes with values that are not an object", () => {
+    expect(cleanFormValues(null)).toEqual({});
+    expect(cleanFormValues("x")).toEqual({});
+    expect(cleanFormValues(undefined)).toEqual({});
+  });
+
+  it("drops the posting window", () => {
+    const values = { targetMarket: "DE", postingWindowStart: "2026-11-01", postingWindowEnd: "2026-12-01" };
+    expect(withoutWindow(values)).toEqual({ targetMarket: "DE" });
   });
 });

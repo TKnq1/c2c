@@ -99,6 +99,7 @@ model User {
   pushSubscriptions       PushSubscription[]
   onboardingEvents        OnboardingEvent[]
   businessProfile         BusinessProfile?
+  briefingTemplates       BriefingTemplate[]
 }
 
 // What happened at each step of the onboarding wizard, so /admin/onboarding
@@ -529,10 +530,11 @@ model Request {
   closedByAdmin   Boolean        @default(false)
   createdAt       DateTime       @default(now())
 
-  images    RequestImage[]
-  interests Interest[]
-  passes    RequestPass[]
-  briefing  CampaignBriefing?
+  images        RequestImage[]
+  interests     Interest[]
+  passes        RequestPass[]
+  briefing      CampaignBriefing?
+  briefingDraft BriefingDraft?
 
   @@index([startupId, createdAt])
   @@index([niche])
@@ -1179,6 +1181,37 @@ model CampaignBriefing {
   usageFeeCents     Int?
   usageTerritory    String          @default("EU")
 
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// A brand's saved briefing: a starting point for the briefing of a request. A copy, not a link: changing a template
+// later changes no request and no deal.
+model BriefingTemplate {
+  id         String    @id @default(cuid())
+  userId     String
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name       String
+  // The briefing builder's field values (src/lib/compliance/briefing-form.ts) without the posting window, which belongs
+  // to a request. Read back with parseBriefingForm, so a field added later falls back to its default.
+  values     Json
+  // The one the brand's new requests start from (at most one per brand, kept in code).
+  isDefault  Boolean   @default(false)
+  lastUsedAt DateTime?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  @@unique([userId, name])
+  @@index([userId, updatedAt])
+}
+
+// A briefing the brand started and has not finished (it still has errors). It is not active: the request keeps the
+// briefing it had, or the defaults, until a save without errors replaces it.
+model BriefingDraft {
+  id        String   @id @default(cuid())
+  requestId String   @unique
+  request   Request  @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  values    Json
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }

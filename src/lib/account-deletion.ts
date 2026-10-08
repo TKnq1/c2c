@@ -63,6 +63,9 @@ export async function anonymiseAccount(userId: string, role: Role) {
     prisma.dealDraft.deleteMany({ where: { deal: { interest: mine } } }),
     prisma.dealPost.deleteMany({ where: { deal: { interest: mine } } }),
     prisma.businessProfile.deleteMany({ where: { userId } }),
+    // Saved briefings and unfinished ones: working material, not a record of money.
+    prisma.briefingTemplate.deleteMany({ where: { userId } }),
+    prisma.briefingDraft.deleteMany({ where: { request: { startup: { userId } } } }),
     prisma.review.updateMany({ where: { interest: mine, authorRole: role }, data: { comment: null } }),
     prisma.creatorPlatform.deleteMany({ where: { creator: { userId } } }),
     prisma.startupSocialLink.deleteMany({ where: { startup: { userId } } }),

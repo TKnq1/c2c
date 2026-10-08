@@ -36,3 +36,19 @@ export function say(locale: DealLocale, en: string, de: string): string {
 export type BusinessActionState =
   | (NonNullable<DealActionState> & { vatStatus?: "UNCHECKED" | "VALID" | "INVALID" | "UNAVAILABLE" })
   | undefined;
+
+// What the briefing-template actions hand back: the template they made or changed, or what happened to each request a
+// template was applied to.
+export type AppliedResult = {
+  requestId: string;
+  title: string;
+  ok: boolean;
+  changed?: boolean;
+  staleOffers?: number;
+  message?: string;
+  issues?: FieldIssue[];
+};
+
+export type TemplateActionState =
+  | (NonNullable<DealActionState> & { templateId?: string; applied?: AppliedResult[] })
+  | undefined;

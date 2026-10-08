@@ -13,6 +13,8 @@ import { sniffImage, type ImageType } from "@/lib/image-sniff";
 import { DAY, takeToken } from "@/lib/rate-limit";
 import { VERIFY_EMAIL_MESSAGE, emailIsVerified } from "@/lib/verified";
 import { REQUEST_PHOTO_TYPES } from "@/lib/request-photo-types";
+import { dealsEnabled } from "@/lib/deals/flag";
+import { applyDefaultTemplateToNewRequest, copyBriefingToNewRequest } from "@/lib/deals/briefing-templates";
 
 export type ActionState = { error?: string } | undefined;
 
@@ -147,8 +149,12 @@ export async function createRequestAction(_prevState: ActionState, formData: For
 
   const request = await prisma.request.create({
     data: { ...requestFields(parsed.data), startupId: startup.id, images: { create: images } },
-    select: { niche: true, languages: true, minFollowers: true, title: true },
+    select: { id: true, niche: true, languages: true, minFollowers: true, title: true },
   });
+
+  // The brand's default briefing template (if it has one) is the new request's briefing from the start, so creators see the
+  // campaign rules the brand actually wants. Never fails the request.
+  if (dealsEnabled()) await applyDefaultTemplateToNewRequest(request.id, session.user.id);
 
   // Let creators whose niche, language and follower count already qualify know right
   // away, instead of relying on them to check back on their own.
@@ -207,6 +213,11 @@ export async function duplicateRequestAction(requestId: string) {
       },
     },
   });
+
+  // The copy starts with the original's briefing, or with the default template when the original has none.
+  if (dealsEnabled() && !(await copyBriefingToNewRequest(session.user.id, source.id, duplicate.id))) {
+    await applyDefaultTemplateToNewRequest(duplicate.id, session.user.id);
+  }
 
   await notifyMatchingCreators(duplicate, startup, session.user.id);
 

@@ -8,6 +8,57 @@ import { parseEuroInput } from "@/lib/euro-input";
 
 export type FormValues = Record<string, string | undefined>;
 
+// The fields of a briefing form, as briefingToValues writes them.
+export const BRIEFING_FORM_KEYS = [
+  "targetMarket",
+  "contentFormats",
+  "talkingPoints",
+  "doNots",
+  "requiredHashtags",
+  "requiredMentions",
+  "disclosureLabels",
+  "requirePaidPartnershipLabel",
+  "draftRequired",
+  "draftDueDaysBeforePost",
+  "brandReviewDays",
+  "maxRevisionRounds",
+  "postingWindowStart",
+  "postingWindowEnd",
+  "minLiveHours",
+  "exclusivityEnabled",
+  "exclusivityCategories",
+  "exclusivityCompetitors",
+  "exclusivityDaysBefore",
+  "exclusivityDaysAfter",
+  "usageType",
+  "usageChannels",
+  "usageDurationDays",
+  "usageFeeEuros",
+  "usageTerritory",
+] as const;
+
+const MAX_VALUE_LENGTH = 4000;
+
+// What is kept of form values that came from outside (a request body, a stored draft): the known fields, as strings, not
+// longer than any real briefing needs.
+export function cleanFormValues(raw: unknown): FormValues {
+  const source = raw && typeof raw === "object" ? (raw as Record<string, unknown>) : {};
+  const clean: FormValues = {};
+  for (const key of BRIEFING_FORM_KEYS) {
+    const value = source[key];
+    if (typeof value === "string") clean[key] = value.slice(0, MAX_VALUE_LENGTH);
+  }
+  return clean;
+}
+
+// The same, without the posting window: the dates belong to one request, not to a briefing that is used again.
+export function withoutWindow(values: FormValues): FormValues {
+  const clean = cleanFormValues(values);
+  delete clean.postingWindowStart;
+  delete clean.postingWindowEnd;
+  return clean;
+}
+
 const list = (value: string | undefined) =>
   (value ?? "")
     .split(",")

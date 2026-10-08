@@ -20,7 +20,7 @@ export async function GET() {
     },
   });
 
-  const [startupProfile, creatorProfile, notifications, loginHistory, reportsFiled, reportsReceived, blocksMade, businessProfile, deals, invoices] =
+  const [startupProfile, creatorProfile, notifications, loginHistory, reportsFiled, reportsReceived, blocksMade, businessProfile, deals, invoices, briefingTemplates, briefingDrafts] =
     await Promise.all([
       prisma.startupProfile.findUnique({
         where: { userId: user.id },
@@ -93,6 +93,9 @@ export async function GET() {
         },
       }),
       prisma.invoice.findMany({ where: { recipientUserId: user.id }, orderBy: { issuedAt: "asc" } }),
+      // The brand's saved briefings and the unfinished ones on its requests.
+      prisma.briefingTemplate.findMany({ where: { userId: user.id }, orderBy: { createdAt: "asc" } }),
+      prisma.briefingDraft.findMany({ where: { request: { startup: { userId: user.id } } }, orderBy: { createdAt: "asc" } }),
     ]);
 
   const data = {
@@ -111,6 +114,8 @@ export async function GET() {
     businessProfile,
     deals,
     invoices,
+    briefingTemplates,
+    briefingDrafts,
     notifications,
     loginHistory,
     reportsFiled,
