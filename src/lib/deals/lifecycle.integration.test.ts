@@ -3,6 +3,7 @@
 //   DEAL_TEST_DATABASE_URL=postgresql://user:pw@localhost:5432/c2c_test npx vitest run src/lib/deals/lifecycle.integration.test.ts
 // The data it creates is removed again; point it at a scratch database all the same.
 import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
+import { seedOffer, type SeedOptions } from "@/lib/deals/test-helpers";
 
 const DB = process.env.DEAL_TEST_DATABASE_URL;
 
@@ -62,101 +63,7 @@ function stubPlatform(status: number, body: unknown = { title: CAPTION }) {
   vi.stubGlobal("fetch", vi.fn(async () => new Response(JSON.stringify(body), { status, headers: { "content-type": "application/json" } })));
 }
 
-async function seed(options: { brand?: string; category?: string; exclusivity?: { days: number }; budget?: number; creatorId?: string; creatorUserId?: string } = {}) {
-  counter += 1;
-  const tag = `${Date.now()}${counter}`;
-  const brandUser = await prisma.user.create({
-    data: {
-      email: `brand-${tag}@test.local`,
-      passwordHash: "x",
-      role: "STARTUP",
-      emailVerified: true,
-      startupProfile: { create: { companyName: options.brand ?? "Glow GmbH" } },
-    },
-    include: { startupProfile: true },
-  });
-  const creatorUser = options.creatorUserId
-    ? await prisma.user.findUniqueOrThrow({ where: { id: options.creatorUserId }, include: { creatorProfile: true } })
-    : await prisma.user.create({
-        data: {
-          email: `creator-${tag}@test.local`,
-          passwordHash: "x",
-          role: "CREATOR",
-          emailVerified: true,
-          creatorProfile: { create: { displayName: "Mia Summers", niches: ["Beauty"], niche: "Beauty", stripeAccountId: "acct_test", stripeOnboarded: true } },
-        },
-        include: { creatorProfile: true },
-      });
-  created.push(brandUser.id);
-  if (!options.creatorUserId) created.push(creatorUser.id);
-
-  const now = new Date();
-  for (const [user, name, role] of [[brandUser, options.brand ?? "Glow GmbH", "STARTUP"], [creatorUser, "Mia Summers", "CREATOR"]] as const) {
-    await prisma.businessProfile.upsert({
-      where: { userId: user.id },
-      update: {},
-      create: {
-        userId: user.id,
-        legalName: name,
-        businessType: role === "STARTUP" ? "COMPANY" : "FREELANCER",
-        country: "DE",
-        addressLine1: "Teststraße 1",
-        postalCode: "10115",
-        city: "Berlin",
-        taxNumber: "12/345/67890",
-        traderSelfCertifiedAt: now,
-        traderCertVersion: "2026-10",
-        ...(role === "CREATOR" ? { selfBillingAcceptedAt: now, selfBillingVersion: "2026-10" } : {}),
-      },
-    });
-  }
-
-  const startup = brandUser.startupProfile!;
-  const creator = creatorUser.creatorProfile!;
-  const request = await prisma.request.create({
-    data: {
-      startupId: startup.id,
-      title: "Autumn launch",
-      description: "Show our new cream",
-      niche: "Beauty",
-      productCategory: options.category ?? "Cosmetics",
-      platform: "TikTok",
-      deliverables: "1 TikTok video",
-      budgetMinCents: options.budget ?? 100_000,
-      budgetMaxCents: options.budget ?? 100_000,
-      postBy: new Date(Date.now() + 20 * DAY),
-    },
-  });
-  await prisma.campaignBriefing.create({
-    data: {
-      requestId: request.id,
-      targetMarket: "DE",
-      contentFormats: ["TIKTOK_VIDEO"],
-      disclosureLabels: ["Werbung", "Anzeige"],
-      requirePaidPartnershipLabel: true,
-      draftRequired: true,
-      minLiveHours: 24,
-      postingWindowEnd: new Date(Date.now() + 20 * DAY),
-      exclusivityEnabled: Boolean(options.exclusivity),
-      exclusivityDaysAfter: options.exclusivity?.days ?? 0,
-    },
-  });
-  const amount = options.budget ?? 100_000;
-  const interest = await prisma.interest.create({
-    data: {
-      requestId: request.id,
-      creatorId: creator.id,
-      amountCents: amount,
-      platformFeeCents: Math.round(amount * 0.1),
-      payoutCents: amount - Math.round(amount * 0.1),
-      paymentStatus: "OFFERED",
-      offerRole: "STARTUP",
-      offeredAt: now,
-    },
-  });
-  await prisma.offerEvent.create({ data: { interestId: interest.id, role: "STARTUP", amountCents: amount, outcome: "PENDING" } });
-  return { brand: { id: brandUser.id, role: "STARTUP" as const }, creator: { id: creatorUser.id, role: "CREATOR" as const }, interest, request, amount };
-}
+const seed = (options: SeedOptions = {}) => seedOffer(prisma, created, options);
 
 type Seeded = Awaited<ReturnType<typeof seed>>;
 
@@ -179,7 +86,7 @@ async function acceptAndSign(s: Seeded) {
 }
 
 // The escrow, the way Stripe's webhook funds it.
-async function fundViaWebhook(s: Seeded, sessionId = `cs_${Date.now()}${counter}`) {
+async function fundViaWebhook(s: Seeded, sessionId = `cs_${Date.now()}${++counter}`) {
   const deal = await dealOf(s.interest.id);
   stripe.checkout.sessions.create.mockResolvedValue({ id: sessionId, url: "https://stripe.test/pay", status: "open" });
   as(s.brand);
@@ -217,6 +124,7 @@ describe.skipIf(!DB)("brand deal lifecycle (needs a database)", () => {
     process.env.STRIPE_WEBHOOK_SECRET = "whsec_test";
     process.env.IMPRINT_VAT_ID = "DE123456789";
     process.env.REQUIRE_VERIFIED_EMAIL = "0";
+    process.env.BRAND_DEALS_ENABLED = "1";
     prisma = (await import("@/lib/prisma")).prisma;
     stripe = (await import("@/lib/stripe")).stripe as unknown as typeof stripe;
     authMock = (await import("@/lib/auth")).auth as unknown as ReturnType<typeof vi.fn>;

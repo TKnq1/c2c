@@ -36,6 +36,7 @@ import { SidebarProfile } from "@/components/sidebar-profile";
 import type { Me } from "@/app/api/me/route";
 import { useNavigationBlocker } from "@/lib/navigation-blocker";
 import { isTextField, resetPageScroll } from "@/lib/keyboard";
+import { dealsEnabled } from "@/lib/deals/flag";
 
 type NavId = "requests" | "feed" | "discover" | "messages" | "deals" | "payments" | "settings" | "matches" | "notifications";
 
@@ -63,7 +64,7 @@ function activeHrefFor(links: NavLink[], pathname: string) {
     .find((l) => pathname === l.href || pathname.startsWith(`${l.href}/`))?.href;
 }
 
-export type NavCounts = { unreadCount: number; unreadMessages: number; pendingPayments: number; dealsToDo?: number };
+export type NavCounts = { unreadCount: number; unreadMessages: number; pendingPayments: number; dealsToDo?: number; dealsVisible?: boolean };
 
 const ZERO_COUNTS: NavCounts = { unreadCount: 0, unreadMessages: 0, pendingPayments: 0 };
 
@@ -208,7 +209,9 @@ export function Nav() {
 
   if (!showNav || !role) return null;
 
-  const { unreadCount, unreadMessages, pendingPayments, dealsToDo = 0 } = counts;
+  const { unreadCount, unreadMessages, pendingPayments, dealsToDo = 0, dealsVisible = false } = counts;
+  // The tab is there where brand deals are switched on, or for someone who has deals (they must stay reachable).
+  const showDeals = dealsEnabled() || dealsVisible;
   const base = role === "STARTUP" ? "/dashboard/startup" : "/dashboard/creator";
 
   const links: NavLink[] =
@@ -217,7 +220,7 @@ export function Nav() {
           { href: "/dashboard/startup", id: "requests", label: t("nav.requests"), badge: 0 },
           { href: "/dashboard/startup/discover", id: "discover", label: t("nav.discover"), badge: 0 },
           { href: "/dashboard/messages", id: "messages", label: t("nav.messages"), badge: unreadMessages },
-          { href: "/dashboard/deals", id: "deals", label: t("nav.deals"), badge: dealsToDo },
+          ...(showDeals ? [{ href: "/dashboard/deals", id: "deals" as const, label: t("nav.deals"), badge: dealsToDo }] : []),
           { href: "/dashboard/startup/payments", id: "payments", label: t("nav.payments"), badge: pendingPayments },
           { href: "/dashboard/startup/settings", id: "settings", label: t("nav.settings"), badge: 0 },
         ]
@@ -225,7 +228,7 @@ export function Nav() {
           { href: "/dashboard/creator", id: "feed", label: t("nav.feed"), badge: 0 },
           { href: "/dashboard/creator/discover", id: "discover", label: t("nav.discover"), badge: 0 },
           { href: "/dashboard/messages", id: "messages", label: t("nav.messages"), badge: unreadMessages },
-          { href: "/dashboard/deals", id: "deals", label: t("nav.deals"), badge: dealsToDo },
+          ...(showDeals ? [{ href: "/dashboard/deals", id: "deals" as const, label: t("nav.deals"), badge: dealsToDo }] : []),
           { href: "/dashboard/creator/payments", id: "payments", label: t("nav.payments"), badge: pendingPayments },
           { href: "/dashboard/creator/settings", id: "settings", label: t("nav.settings"), badge: 0 },
         ];

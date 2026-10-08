@@ -1,6 +1,7 @@
 import type { DealStatus, Role } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { waitingFor } from "@/lib/deals/status";
+import { dealsEnabled } from "@/lib/deals/flag";
 
 // What the deal screens read. Selects only what the pages show: never the other side's payment ids or account data.
 
@@ -70,6 +71,18 @@ const OPEN_STATUSES: DealStatus[] = [
 export function isMyTurn(deal: Pick<DealListItem, "status" | "brandSignedAt" | "creatorSignedAt">, role: Role): boolean {
   const waiting = waitingFor(deal.status, { brandSigned: deal.brandSignedAt !== null, creatorSigned: deal.creatorSignedAt !== null });
   return waiting.includes(role === "STARTUP" ? "STARTUP" : "CREATOR");
+}
+
+// Whether the person has any deal at all.
+export async function hasDeals(userId: string, role: Role): Promise<boolean> {
+  if (role !== "STARTUP" && role !== "CREATOR") return false;
+  return (await prisma.deal.count({ where: dealWhereForUser(userId, role), take: 1 })) > 0;
+}
+
+// Whether the Deals screens are open to this person: the feature is on, or they already have deals (which must stay
+// reachable when the switch is turned off, see flag.ts).
+export async function canUseDeals(userId: string, role: Role): Promise<boolean> {
+  return dealsEnabled() || (await hasDeals(userId, role));
 }
 
 // For the badge on the Deals tab: deals that wait for this person.

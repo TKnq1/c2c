@@ -14,6 +14,8 @@ export type DealActionState =
       issues?: FieldIssue[];
       // Set when the action wants the person to fix something elsewhere first: where to go.
       fixHref?: string;
+      // A saved briefing changed the rules: this many open offers were made under the old ones and need to be confirmed again.
+      staleOffers?: number;
     }
   | undefined;
 

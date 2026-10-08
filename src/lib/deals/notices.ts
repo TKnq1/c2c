@@ -164,6 +164,14 @@ export const NOTICE_TEXT = {
     en: "The ad usage rights for “{title}” have ended. The post must no longer be used as an ad.",
     de: "Die Ads-Nutzungsrechte für „{title}“ sind abgelaufen. Der Post darf nicht mehr als Anzeige genutzt werden.",
   },
+  offer_reconfirm_needed: {
+    en: "{who} wanted to accept your offer for “{title}”, but the campaign briefing changed after you made it. Confirm the offer again so it can be accepted.",
+    de: "{who} wollte dein Angebot für „{title}“ annehmen, aber das Kampagnen-Briefing hat sich seit dem Angebot geändert. Bestätige das Angebot erneut, damit es angenommen werden kann.",
+  },
+  offer_reconfirmed: {
+    en: "{who} confirmed the offer for “{title}” again under the updated briefing. Take a look at the briefing and accept if it suits you.",
+    de: "{who} hat das Angebot für „{title}“ unter dem aktualisierten Briefing erneut bestätigt. Sieh dir das Briefing an und nimm das Angebot an, wenn es passt.",
+  },
 } as const satisfies Record<string, Text>;
 
 export type NoticeKey = keyof typeof NOTICE_TEXT;

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { redirect } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { IoChevronBack, IoDocumentTextOutline } from "react-icons/io5";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
@@ -10,11 +10,13 @@ import { cardClass } from "@/components/deals/ui";
 import { dealLocale } from "@/lib/deals/copy";
 import { formatDealDate } from "@/lib/deals/notices";
 import { uiText } from "@/lib/deals/ui-copy";
+import { canUseDeals } from "@/lib/deals/queries";
 import { formatCents } from "@/lib/format";
 
 export default async function InvoicesPage() {
   const session = await auth();
   if (!session || (session.user.role !== "STARTUP" && session.user.role !== "CREATOR")) redirect("/login");
+  if (!(await canUseDeals(session.user.id, session.user.role))) notFound();
   const locale = dealLocale(await getLocale());
   const u = uiText(locale);
 

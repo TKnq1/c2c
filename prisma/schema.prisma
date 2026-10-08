@@ -596,20 +596,24 @@ model Interest {
   // own — they hadn't. Drives how each side's UI describes/labels the row.
   initiatedBy Role           @default(CREATOR)
 
-  amountCents      Int?
-  platformFeeCents Int?
-  payoutCents      Int?
-  paymentStatus    PaymentStatus?
+  amountCents          Int?
+  platformFeeCents     Int?
+  payoutCents          Int?
+  paymentStatus        PaymentStatus?
   // Who made the current pending proposal (paymentStatus "OFFERED") — the
   // other role is the one who can accept/decline/counter it. Cleared
   // whenever an offer resolves (accepted, declined, or withdrawn).
-  offerRole        Role?
-  offeredAt        DateTime?
-  acceptedAt       DateTime?
-  paidAt           DateTime?
-  releasedAt       DateTime?
-  refundedAt       DateTime?
-  proofUrl         String?
+  offerRole            Role?
+  offeredAt            DateTime?
+  // The version of the request's campaign briefing (CampaignBriefing.version, 0 = no briefing, the defaults) the proposer
+  // made this offer under. Accepting is refused when the briefing has changed since: the contract is a copy of the
+  // briefing at that moment, and nobody should accept terms they have not seen. Null = an offer from before deals.
+  offerBriefingVersion Int?
+  acceptedAt           DateTime?
+  paidAt               DateTime?
+  releasedAt           DateTime?
+  refundedAt           DateTime?
+  proofUrl             String?
   // The approval step between "posted" and "paid out" — paymentStatus stays
   // HELD throughout. The creator submits the link to their post
   // (proofSubmittedAt); the brand then approves it, which releases the
@@ -617,9 +621,9 @@ model Interest {
   // until an admin releases or refunds it from /admin. No answer within
   // RELEASE_REVIEW_DAYS and it's released automatically (see
   // api/cron/release-payments).
-  proofSubmittedAt DateTime?
-  disputedAt       DateTime?
-  disputeReason    String?
+  proofSubmittedAt     DateTime?
+  disputedAt           DateTime?
+  disputeReason        String?
 
   // Stripe identifiers for the real money movement behind this interest —
   // separate charges & transfers pattern (see src/lib/actions/payments.ts):
@@ -1131,6 +1135,9 @@ model CampaignBriefing {
   id        String  @id @default(cuid())
   requestId String  @unique
   request   Request @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  // Goes up by one whenever a save changes the rules (a save that changes nothing leaves it). Offers are made under a
+  // version, see Interest.offerBriefingVersion.
+  version   Int     @default(1)
 
   // Where the ad is shown to people: decides which disclosure labels count (DE, AT, CH, FR, ...).
   targetMarket     String   @default("DE")

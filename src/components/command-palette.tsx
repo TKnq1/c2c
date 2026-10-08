@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import { dealsEnabled } from "@/lib/deals/flag";
 import { useRouter } from "next/navigation";
 import type { IconType } from "react-icons";
 import {
@@ -112,6 +113,7 @@ export function CommandPalette({ role }: { role: Role }) {
   const groups = useMemo<Group[]>(() => {
     const q = query.trim().toLowerCase();
     const pages = PAGES[role]
+      .filter((p) => p.key !== "p-deals" || dealsEnabled())
       .map((p) => ({ key: p.key, title: t(p.titleKey), href: p.href, icon: p.icon }))
       .filter((p) => !q || p.title.toLowerCase().includes(q));
     // Short queries don't search; stale results from a longer one don't show.

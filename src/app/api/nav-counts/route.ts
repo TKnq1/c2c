@@ -3,7 +3,7 @@ import { auth } from "@/lib/auth";
 import { getUnreadCount } from "@/lib/notifications";
 import { getUnreadMessageCount } from "@/lib/messages";
 import { getBrandPendingPaymentActionCount, getPendingPaymentActionCount } from "@/lib/payments";
-import { getDealActionCount } from "@/lib/deals/queries";
+import { canUseDeals, getDealActionCount } from "@/lib/deals/queries";
 import type { NavCounts } from "@/components/nav";
 
 // Fetched client-side by Nav (see nav.tsx) instead of passed down as a
@@ -16,15 +16,16 @@ export async function GET() {
   const session = await auth();
   if (!session) return NextResponse.json({ error: "Not authorized" }, { status: 401 });
 
-  const [unreadCount, unreadMessages, pendingPayments, dealsToDo] = await Promise.all([
+  const [unreadCount, unreadMessages, pendingPayments, dealsToDo, dealsVisible] = await Promise.all([
     getUnreadCount(session.user.id),
     getUnreadMessageCount(session.user.id, session.user.role),
     session.user.role === "CREATOR"
       ? getPendingPaymentActionCount(session.user.id)
       : getBrandPendingPaymentActionCount(session.user.id),
     getDealActionCount(session.user.id, session.user.role),
+    canUseDeals(session.user.id, session.user.role),
   ]);
 
-  const counts: NavCounts = { unreadCount, unreadMessages, pendingPayments, dealsToDo };
+  const counts: NavCounts = { unreadCount, unreadMessages, pendingPayments, dealsToDo, dealsVisible };
   return NextResponse.json(counts);
 }

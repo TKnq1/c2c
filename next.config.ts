@@ -53,6 +53,8 @@ const CSP = [
 ].join("; ");
 
 const nextConfig: NextConfig = {
+  // The brand-deals switch (src/lib/deals/flag.ts), readable in client components like the navigation.
+  env: { NEXT_PUBLIC_BRAND_DEALS_ENABLED: process.env.BRAND_DEALS_ENABLED ?? "" },
   // Local dev only: the Next.js badge sat on top of the sidebar's account
   // button in the bottom-left corner.
   devIndicators: { position: "bottom-right" },

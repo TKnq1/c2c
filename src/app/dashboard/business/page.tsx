@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { redirect } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { IoChevronBack } from "react-icons/io5";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
@@ -10,12 +10,14 @@ import { cardClass } from "@/components/deals/ui";
 import { dealLocale, issueMessage } from "@/lib/deals/copy";
 import { hasErrors } from "@/lib/deals/issues";
 import { uiText } from "@/lib/deals/ui-copy";
+import { canUseDeals } from "@/lib/deals/queries";
 import { businessReadiness } from "@/lib/tax/business";
 
 export default async function BusinessPage() {
   const session = await auth();
   if (!session || (session.user.role !== "STARTUP" && session.user.role !== "CREATOR")) redirect("/login");
   const role = session.user.role;
+  if (!(await canUseDeals(session.user.id, role))) notFound();
   const locale = dealLocale(await getLocale());
   const u = uiText(locale);
 

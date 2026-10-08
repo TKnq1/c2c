@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { redirect } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { IoBriefcaseOutline, IoDocumentTextOutline } from "react-icons/io5";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
@@ -11,7 +11,7 @@ import { dealLocale } from "@/lib/deals/copy";
 import { getLocale } from "@/lib/i18n/server";
 import { nextStep } from "@/lib/deals/next-step";
 import { formatDealDate } from "@/lib/deals/notices";
-import { isMyTurn, listDealsForUser, type DealListItem } from "@/lib/deals/queries";
+import { canUseDeals, isMyTurn, listDealsForUser, type DealListItem } from "@/lib/deals/queries";
 import { isTerminal } from "@/lib/deals/status";
 import { parseTerms } from "@/lib/deals/terms";
 import { uiText } from "@/lib/deals/ui-copy";
@@ -23,6 +23,7 @@ export default async function DealsPage() {
   const session = await auth();
   if (!session || (session.user.role !== "STARTUP" && session.user.role !== "CREATOR")) redirect("/login");
   const role = session.user.role;
+  if (!(await canUseDeals(session.user.id, role))) notFound();
   const locale = dealLocale(await getLocale());
   const u = uiText(locale);
 

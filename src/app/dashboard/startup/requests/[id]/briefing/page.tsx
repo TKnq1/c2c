@@ -9,12 +9,14 @@ import { PageTitle } from "@/components/page-title";
 import { briefingToValues } from "@/lib/compliance/briefing-form";
 import { briefingInputFor } from "@/lib/deals/create";
 import { dealLocale } from "@/lib/deals/copy";
+import { dealsEnabled } from "@/lib/deals/flag";
 import { uiText } from "@/lib/deals/ui-copy";
 
 export default async function BriefingPage(props: PageProps<"/dashboard/startup/requests/[id]/briefing">) {
   const { id } = await props.params;
   const session = await auth();
   if (!session || session.user.role !== "STARTUP") redirect("/login");
+  if (!dealsEnabled()) notFound();
   const u = uiText(dealLocale(await getLocale()));
 
   const request = await prisma.request.findUnique({

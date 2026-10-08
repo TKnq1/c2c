@@ -15,6 +15,7 @@ import { PLATFORM_FEE_RATE, PRO_PLATFORM_FEE_RATE } from "@/lib/constants";
 import { photoUrlsByRequestId, requestPhotoIds } from "@/lib/request-photos";
 import { getLocale, getT } from "@/lib/i18n/server";
 import { dealLocale } from "@/lib/deals/copy";
+import { dealsEnabled } from "@/lib/deals/flag";
 import { uiText } from "@/lib/deals/ui-copy";
 
 export default async function RequestDetailPage({ params }: { params: Promise<{ id: string }> }) {
@@ -128,18 +129,20 @@ export default async function RequestDetailPage({ params }: { params: Promise<{ 
             </div>
           </dl>
           {/* The campaign rules a deal is made under: advertising label, process, exclusivity, usage rights. */}
-          <Link
-            href={`/dashboard/startup/requests/${request.id}/briefing`}
-            className="flex flex-col gap-0.5 rounded bg-fog px-4 py-3 transition hover:bg-neutral-200/60 dark:hover:bg-neutral-700/60"
-          >
-            <span className="flex items-center justify-between gap-3">
-              <span className="font-medium">{u("briefing.open")}</span>
-              <span className="rounded-full border border-neutral-300 px-2.5 py-0.5 text-xs font-medium dark:border-neutral-700">
-                {request.briefing ? u("briefing.set") : u("briefing.defaults")}
+          {dealsEnabled() && (
+            <Link
+              href={`/dashboard/startup/requests/${request.id}/briefing`}
+              className="flex flex-col gap-0.5 rounded bg-fog px-4 py-3 transition hover:bg-neutral-200/60 dark:hover:bg-neutral-700/60"
+            >
+              <span className="flex items-center justify-between gap-3">
+                <span className="font-medium">{u("briefing.open")}</span>
+                <span className="rounded-full border border-neutral-300 px-2.5 py-0.5 text-xs font-medium dark:border-neutral-700">
+                  {request.briefing ? u("briefing.set") : u("briefing.defaults")}
+                </span>
               </span>
-            </span>
-            <span className="text-footnote text-neutral-500 dark:text-neutral-400">{u("briefing.openHint")}</span>
-          </Link>
+              <span className="text-footnote text-neutral-500 dark:text-neutral-400">{u("briefing.openHint")}</span>
+            </Link>
+          )}
         </aside>
 
         <div className="flex min-w-0 flex-col gap-8 lg:col-start-1">
