@@ -8,6 +8,8 @@ import { loadAnomalies } from "@/lib/admin-anomalies";
 import { loadKpis } from "@/lib/admin-kpis";
 import { PERIODS, parsePeriod } from "@/lib/admin-period";
 import { listOpenTasks } from "@/lib/admin-tasks";
+import { loadDailyPlan } from "@/lib/admin-routines-server";
+import { DailyPlan } from "@/components/admin/daily-plan";
 import { Disclosure } from "@/components/admin/disclosure";
 import { FocusCard } from "@/components/admin/focus-card";
 import { HeuteDetails } from "@/components/admin/heute-details";
@@ -39,7 +41,12 @@ export default async function AdminTodayPage(props: PageProps<"/admin">) {
   const prefs = await getAdminPrefs(session.user.id);
   const now = new Date();
   const period = parsePeriod(firstParams(await props.searchParams).z);
-  const [tiles, tasks, anomalies] = await Promise.all([loadKpis({ now, period, prefs }), listOpenTasks(now), loadAnomalies(now)]);
+  const [tiles, tasks, anomalies, plan] = await Promise.all([
+    loadKpis({ now, period, prefs }),
+    listOpenTasks(now),
+    loadAnomalies(now),
+    loadDailyPlan(session.user.id, now),
+  ]);
 
   const summary = focusSummary(tasks);
   const views: TaskView[] = tasks
@@ -68,6 +75,8 @@ export default async function AdminTodayPage(props: PageProps<"/admin">) {
       </div>
 
       <FocusCard summary={summary} tasks={views} allTotal={tasks.length} anomalies={anomalies} />
+
+      <DailyPlan plan={plan} />
 
       <section aria-label="Die vier Zahlen" className="flex flex-col gap-3">
         <div className="flex flex-wrap items-center justify-between gap-2">
