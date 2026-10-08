@@ -36,6 +36,8 @@ export async function GET(req: Request) {
       paymentStatus: "HELD",
       disputedAt: null,
       proofSubmittedAt: { lte: new Date(Date.now() - RELEASE_REVIEW_MS) },
+      // Brand deals are released by their own job (deal-deadlines) after the post stayed live.
+      deal: { is: null },
     },
     select: { id: true },
   });

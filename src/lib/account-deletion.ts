@@ -58,6 +58,11 @@ export async function anonymiseAccount(userId: string, role: Role) {
     prisma.request.updateMany({ where: { startup: { userId }, status: "OPEN" }, data: { status: "CLOSED" } }),
     // What is kept is the payment, not what was said around it.
     prisma.message.deleteMany({ where: { interest: mine } }),
+    // Of a brand deal what stays is the contract, its trail and the invoices (retention duty); the drafts, the posts with
+    // their proof images and the trader data of the person go.
+    prisma.dealDraft.deleteMany({ where: { deal: { interest: mine } } }),
+    prisma.dealPost.deleteMany({ where: { deal: { interest: mine } } }),
+    prisma.businessProfile.deleteMany({ where: { userId } }),
     prisma.review.updateMany({ where: { interest: mine, authorRole: role }, data: { comment: null } }),
     prisma.creatorPlatform.deleteMany({ where: { creator: { userId } } }),
     prisma.startupSocialLink.deleteMany({ where: { startup: { userId } } }),

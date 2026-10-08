@@ -1,5 +1,6 @@
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { participantOf } from "@/lib/account-deletion";
 
 export async function GET() {
   const session = await auth();
@@ -19,7 +20,7 @@ export async function GET() {
     },
   });
 
-  const [startupProfile, creatorProfile, notifications, loginHistory, reportsFiled, reportsReceived, blocksMade] =
+  const [startupProfile, creatorProfile, notifications, loginHistory, reportsFiled, reportsReceived, blocksMade, businessProfile, deals, invoices] =
     await Promise.all([
       prisma.startupProfile.findUnique({
         where: { userId: user.id },
@@ -78,6 +79,20 @@ export async function GET() {
         where: { blockerId: user.id },
         select: { createdAt: true },
       }),
+      prisma.businessProfile.findUnique({ where: { userId: user.id } }),
+      // The brand deals this person is a party to. The tax snapshot holds the other side's details and is left out;
+      // proof images are listed by id and checksum, not inlined.
+      prisma.deal.findMany({
+        where: { interest: participantOf(user.id) },
+        omit: { taxSnapshot: true },
+        include: {
+          drafts: true,
+          posts: { include: { proofs: { select: { id: true, kind: true, contentType: true, sha256: true, createdAt: true } }, metrics: true } },
+          events: { orderBy: { createdAt: "asc" } },
+          disputes: true,
+        },
+      }),
+      prisma.invoice.findMany({ where: { recipientUserId: user.id }, orderBy: { issuedAt: "asc" } }),
     ]);
 
   const data = {
@@ -93,6 +108,9 @@ export async function GET() {
       })),
     },
     creatorProfile,
+    businessProfile,
+    deals,
+    invoices,
     notifications,
     loginHistory,
     reportsFiled,

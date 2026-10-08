@@ -105,8 +105,8 @@ describe("findExclusivityConflicts", () => {
     const candidate = deal({ id: "b", windowStart: day("2026-10-20"), windowEnd: day("2026-10-25") });
     const conflicts = findExclusivityConflicts(candidate, [existing]);
     expect(conflicts).toHaveLength(1);
-    expect(exclusivityIssues(candidate, conflicts, [existing]).map((i) => i.severity)).toEqual(["warning"]);
+    expect(exclusivityIssues(candidate, conflicts).map((i) => i.severity)).toEqual(["warning"]);
     const exact = { ...candidate, scheduledFor: day("2026-10-22") };
-    expect(exclusivityIssues(exact, findExclusivityConflicts(exact, [existing]), [existing]).map((i) => i.severity)).toEqual(["error"]);
+    expect(exclusivityIssues(exact, findExclusivityConflicts(exact, [existing])).map((i) => i.severity)).toEqual(["error"]);
   });
 });

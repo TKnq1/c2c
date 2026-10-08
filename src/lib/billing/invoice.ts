@@ -156,3 +156,15 @@ export function documentIsConsistent(draft: InvoiceDraft): boolean {
   const lineSum = draft.lines.reduce((sum, line) => sum + line.netCents, 0);
   return draft.netCents + draft.vatCents === draft.grossCents && lineSum === draft.netCents && draft.lines.every((l) => l.netCents >= 0);
 }
+
+// What goes into Invoice.lines: the items and the sentences below them.
+export type InvoiceBody = { items: InvoiceLine[]; notes: string[] };
+
+export function bodyOf(draft: Pick<InvoiceDraft, "lines" | "notes">): InvoiceBody {
+  return { items: draft.lines, notes: draft.notes };
+}
+
+export function parseBody(json: unknown): InvoiceBody {
+  const body = json as Partial<InvoiceBody> | null;
+  return { items: Array.isArray(body?.items) ? body.items : [], notes: Array.isArray(body?.notes) ? body.notes : [] };
+}

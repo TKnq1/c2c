@@ -26,6 +26,9 @@ export const DEAL_POLICY = {
   removalConfirmFailures: 2,
   // A reminder goes out this long before a brand's review time runs out.
   reviewReminderHours: 24,
+  // Paid usage rights have to be handed over (code / permission) before the payout; this long after the hold window the
+  // deal is frozen for review if they still are not.
+  usageDeliveryGraceDays: 7,
 } as const;
 
 export type ReminderKey =
@@ -34,6 +37,9 @@ export type ReminderKey =
   | "revision_due"
   | "post_due"
   | "scheduled_missed"
+  | "usage_delivery"
+  | "payout_blocked"
+  | "story_confirm"
   | "usage_expiring"
   | "usage_expired";
 

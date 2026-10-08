@@ -18,6 +18,11 @@ import { VERIFY_EMAIL_MESSAGE, emailIsVerified } from "@/lib/verified";
 import { RELEASE_REVIEW_DAYS } from "@/lib/constants";
 import { refundHeldPayment, releaseHeldPayment, type MoneyMoveResult } from "@/lib/payment-release";
 import { recordProposal, settleProposal } from "@/lib/offer-events";
+import { getLocale } from "@/lib/i18n/server";
+import { dealLocale, firstErrorMessage } from "@/lib/deals/copy";
+import { briefingBlockers, createDealInTx } from "@/lib/deals/create";
+import { dealHref, notifyDealParty } from "@/lib/deals/notify";
+import { parseTaxSnapshot } from "@/lib/deals/parties";
 
 export type PaymentActionState = { error?: string; success?: boolean } | undefined;
 
@@ -28,7 +33,7 @@ type OfferInterest = Awaited<ReturnType<typeof loadInterestForOfferAction>>;
 async function loadInterestForOfferAction(interestId: string, role: Role, userId: string) {
   const interest = await prisma.interest.findUnique({
     where: { id: interestId },
-    include: { request: { include: { startup: true } }, creator: true },
+    include: { request: { include: { startup: true, briefing: true } }, creator: true },
   });
   if (!interest) return null;
   if (role === "STARTUP" && interest.request.startup.userId !== userId) return null;
@@ -46,6 +51,26 @@ function actorName(interest: NonNullable<OfferInterest>, role: Role) {
 
 function paymentsHref(role: Role) {
   return role === "STARTUP" ? "/dashboard/creator/payments" : "/dashboard/startup/payments";
+}
+
+// An offer is made (and accepted) under the request's campaign rules. A request without a briefing gets the German
+// defaults; one whose rules are unlawful or unworkable (no advertising label, a posting window in the past, ...) blocks
+// the offer until the brand fixes the briefing.
+async function briefingRefusal(request: Parameters<typeof briefingBlockers>[0]): Promise<string | null> {
+  const blockers = briefingBlockers(request);
+  if (blockers.length === 0) return null;
+  const locale = dealLocale(await getLocale());
+  const lead = locale === "de" ? "Das Kampagnen-Briefing muss noch angepasst werden: " : "The campaign briefing needs work first: ";
+  return `${lead}${firstErrorMessage(blockers, locale)}`;
+}
+
+// A collab that runs as a brand deal is handled on its deal page; the old approve / report / refund buttons do not apply.
+async function dealBlock(interestId: string): Promise<string | null> {
+  const deal = await prisma.deal.findUnique({ where: { interestId }, select: { id: true } });
+  if (!deal) return null;
+  return dealLocale(await getLocale()) === "de"
+    ? "Diese Kooperation läuft als Brand Deal. Alles Weitere findest du unter Deals."
+    : "This collab runs as a brand deal. Continue under Deals.";
 }
 
 async function revalidateOfferPaths(requestId: string, interestId?: string) {
@@ -79,12 +104,14 @@ export async function sendOfferAction(
   const startup = await prisma.startupProfile.findUniqueOrThrow({ where: { userId: session.user.id } });
   const interest = await prisma.interest.findUnique({
     where: { id: interestId },
-    include: { request: true, creator: true },
+    include: { request: { include: { briefing: true } }, creator: true },
   });
 
   if (!interest || interest.request.startupId !== startup.id) {
     return { error: "This interest could not be found." };
   }
+  const briefingProblem = await briefingRefusal(interest.request);
+  if (briefingProblem) return { error: briefingProblem };
   if (interest.paymentStatus !== null) {
     return { error: "There's already an offer or payment in progress for this creator." };
   }
@@ -145,8 +172,10 @@ export async function bulkSendOfferAction(requestId: string, interestIds: string
   if (!(await emailIsVerified(session.user.id))) throw new Error(VERIFY_EMAIL_MESSAGE);
 
   const startup = await prisma.startupProfile.findUniqueOrThrow({ where: { userId: session.user.id } });
-  const request = await prisma.request.findUnique({ where: { id: requestId } });
+  const request = await prisma.request.findUnique({ where: { id: requestId }, include: { briefing: true } });
   if (!request || request.startupId !== startup.id) throw new Error("This request could not be found.");
+  const briefingProblem = await briefingRefusal(request);
+  if (briefingProblem) throw new Error(briefingProblem);
 
   // Whoever has blocked this brand (or was blocked by it) is left out of the batch.
   const blocked = new Set(await getMutualBlockedUserIds(session.user.id));
@@ -308,44 +337,45 @@ export async function acceptOfferAction(interestId: string, expectedAmountCents:
   if (interest.paymentStatus !== "OFFERED" || interest.offerRole === role) {
     throw new Error("This offer isn't awaiting your response.");
   }
+  // The deal is made under the request's campaign rules: if they are unlawful or unworkable, nothing is accepted.
+  const briefingProblem = await briefingRefusal(interest.request);
+  if (briefingProblem) throw new Error(briefingProblem);
 
   // offerRole is deliberately left as-is (not cleared) — once accepted it's
   // no longer read for authorization, but it's a harmless historical record
   // of who proposed the accepted price, useful for the collab timeline.
   //
-  // Not HELD yet — the brand still has to actually pay via Stripe Checkout
-  // (createCheckoutSessionAction). Real money only starts existing once the
-  // webhook confirms it, regardless of which side clicked accept here.
-  const accepted = await prisma.$transaction(async (tx) => {
+  // Not HELD yet. The accepted offer becomes a brand deal (briefing terms frozen as the contract): both sides confirm
+  // it, and only then does the brand fund the escrow through Stripe Checkout (createCheckoutSessionAction). Real money
+  // only starts existing once the webhook confirms it, regardless of which side clicked accept here.
+  const dealId = await prisma.$transaction(async (tx) => {
     const claimed = await tx.interest.updateMany({
       where: { id: interestId, paymentStatus: "OFFERED", offerRole: { not: role }, amountCents: expectedAmountCents },
       data: { paymentStatus: "ACCEPTED", acceptedAt: new Date() },
     });
-    if (claimed.count !== 1) return false;
+    if (claimed.count !== 1) return null;
     await settleProposal(tx, interestId, "ACCEPTED");
-    return true;
+    // Read after the claim: the fee on the offer may have moved to the Pro rate since the page was loaded.
+    const fresh = await tx.interest.findUniqueOrThrow({ where: { id: interestId } });
+    const deal = await createDealInTx(tx, {
+      id: fresh.id,
+      creatorId: fresh.creatorId,
+      amountCents: fresh.amountCents,
+      payoutCents: fresh.payoutCents,
+      platformFeeCents: fresh.platformFeeCents,
+      request: interest.request,
+      creator: interest.creator,
+    });
+    return deal.id;
   });
-  if (!accepted) throw new Error("The offer changed in the meantime. Please look at the new offer.");
+  if (!dealId) throw new Error("The offer changed in the meantime. Please look at the new offer.");
 
-  const startupUserId = interest.request.startup.userId;
-  const message =
-    role === "STARTUP"
-      ? `${actorName(interest, role)} accepted your offer of ${formatCents(expectedAmountCents)} for "${interest.request.title}". Waiting on the brand to complete payment.`
-      : `${actorName(interest, role)} accepted your offer of ${formatCents(expectedAmountCents)} for "${interest.request.title}". Head to Payments to pay and hold it in escrow.`;
-  await notify(otherPartyUserId(interest, role), message, paymentsHref(role), "payments");
-  // The brand always needs a nudge to actually pay, even when they were the
-  // one who clicked accept just now (they already know in that case, but
-  // this keeps the notification consistent with "you have something to pay").
-  if (role === "CREATOR") {
-    await notify(
-      startupUserId,
-      `Accepted: pay ${formatCents(expectedAmountCents)} for "${interest.request.title}" to hold it in escrow`,
-      "/dashboard/startup/payments",
-      "payments",
-    );
-  }
+  const link = dealHref(dealId);
+  await notifyDealParty(interest.request.startup.userId, "deal_created", { title: interest.request.title }, link);
+  await notifyDealParty(interest.creator.userId, "deal_created", { title: interest.request.title }, link);
 
   await revalidateOfferPaths(interest.requestId, interestId);
+  revalidatePath("/dashboard/deals");
 }
 
 // Brand starts (or resumes) a Stripe Checkout for an accepted offer.
@@ -367,6 +397,25 @@ export async function createCheckoutSessionAction(interestId: string): Promise<{
   if (!interest || interest.request.startupId !== startup.id) return { error: "This interest could not be found." };
   if (interest.paymentStatus !== "ACCEPTED") return { error: "This offer isn't ready for payment." };
   if (!(await emailIsVerified(session.user.id))) return { error: VERIFY_EMAIL_MESSAGE };
+
+  // A brand deal is paid only once both sides confirmed the contract, and the brand pays what the tax engine fixed then:
+  // the net price plus VAT where German VAT applies. Without a deal (an older collab) the price is all there is.
+  const deal = await prisma.deal.findUnique({
+    where: { interestId },
+    select: { id: true, status: true, brandNetCents: true, brandVatCents: true, brandTotalCents: true, taxSnapshot: true },
+  });
+  if (deal && (deal.status !== "AWAITING_ESCROW" || deal.brandTotalCents === null || deal.brandNetCents === null)) {
+    return {
+      error:
+        dealLocale(await getLocale()) === "de"
+          ? "Beide Seiten müssen zuerst den Vertrag bestätigen. Das geht auf der Deal-Seite."
+          : "Both sides have to confirm the contract first. You can do that on the deal page.",
+    };
+  }
+  const netCents = deal?.brandNetCents ?? interest.amountCents!;
+  const vatCents = deal?.brandVatCents ?? 0;
+  const totalCents = deal?.brandTotalCents ?? interest.amountCents!;
+  const vatRateBp = deal ? (parseTaxSnapshot(deal.taxSnapshot)?.tax.brand.rateBp ?? 0) : 0;
 
   // Reuse a still-open session rather than always minting a new one —
   // stripeCheckoutSessionId is unique per interest, so overwriting it while
@@ -400,19 +449,31 @@ export async function createCheckoutSessionAction(interestId: string): Promise<{
         {
           price_data: {
             currency: "eur",
-            unit_amount: interest.amountCents!,
+            unit_amount: netCents,
             product_data: { name: `Collab with ${interest.creator.displayName}: "${interest.request.title}"` },
           },
           quantity: 1,
         },
+        ...(vatCents > 0
+          ? [
+              {
+                price_data: {
+                  currency: "eur",
+                  unit_amount: vatCents,
+                  product_data: { name: `VAT ${vatRateBp / 100} %` },
+                },
+                quantity: 1,
+              },
+            ]
+          : []),
       ],
       // Names the interest so the page knows which row to wait on while the
       // webhook catches up (see CheckoutReturn).
       success_url: `${SITE_URL}/dashboard/startup/payments?checkout=success&interest=${interest.id}`,
       cancel_url: `${SITE_URL}/dashboard/startup/payments?checkout=cancelled`,
-      metadata: { interestId: interest.id },
+      metadata: { interestId: interest.id, ...(deal ? { dealId: deal.id } : {}) },
     },
-    { idempotencyKey: `checkout-${interest.id}-${interest.amountCents}-${previousSessionId ?? "none"}` },
+    { idempotencyKey: `checkout-${interest.id}-${totalCents}-${previousSessionId ?? "none"}` },
   );
 
   const saved = await prisma.interest.updateMany({
@@ -501,6 +562,8 @@ export async function submitPostAction(
   if (!interest || interest.creatorId !== creator.id) {
     return { error: "This payment could not be found." };
   }
+  const submitBlock = await dealBlock(interestId);
+  if (submitBlock) return { error: submitBlock };
   if (interest.paymentStatus !== "HELD") {
     return { error: "This payment isn't held anymore." };
   }
@@ -550,6 +613,8 @@ export async function approvePaymentAction(interestId: string): Promise<MoneyMov
 
   const interest = await loadBrandHeldPayment(interestId, session.user.id);
   if (!interest) return { error: "This payment could not be found." };
+  const approveBlock = await dealBlock(interestId);
+  if (approveBlock) return { error: approveBlock };
   if (interest.paymentStatus !== "HELD" || !interest.proofSubmittedAt) {
     return { error: "There's no submitted post to approve on this payment." };
   }
@@ -576,6 +641,8 @@ export async function reportProblemAction(
 
   const interest = await loadBrandHeldPayment(interestId, session.user.id);
   if (!interest) return { error: "This payment could not be found." };
+  const reportBlock = await dealBlock(interestId);
+  if (reportBlock) return { error: reportBlock };
   if (interest.disputedAt) return { error: "You already reported a problem. We're looking into it." };
 
   // Claimed like a release, so a report and the daily job (or a double
@@ -631,6 +698,8 @@ export async function refundPaymentAction(interestId: string): Promise<MoneyMove
 
   const interest = await loadBrandHeldPayment(interestId, session.user.id);
   if (!interest) return { error: "This payment could not be found." };
+  const refundBlock = await dealBlock(interestId);
+  if (refundBlock) return { error: refundBlock };
 
   return refundHeldPayment(interestId, "brand");
 }

@@ -113,12 +113,12 @@ export function findExclusivityConflicts(candidate: ExclusivityDeal, others: Exc
   return conflicts;
 }
 
-// Conflicts as issues. A window that is only a posting window (no exact date yet) can overlap without a real clash, so
-// those are warnings; once either side has an exact date they are errors.
-export function exclusivityIssues(candidate: ExclusivityDeal, conflicts: ExclusivityConflict[], others: ExclusivityDeal[]): Issue[] {
+// Conflicts as issues. They are errors once the deal being checked has an exact publication date (the creator picked a day
+// inside somebody's window, or inside the window this deal's own exclusivity spans), and warnings while only the posting
+// window is known: then the creator can still choose a day outside the protected range.
+export function exclusivityIssues(candidate: ExclusivityDeal, conflicts: ExclusivityConflict[]): Issue[] {
+  const exact = Boolean(candidate.publishedAt ?? candidate.scheduledFor);
   return conflicts.map((conflict) => {
-    const other = others.find((o) => o.id === conflict.dealId);
-    const exact = Boolean(candidate.publishedAt ?? candidate.scheduledFor) || Boolean(other && (other.publishedAt ?? other.scheduledFor));
     const code = conflict.direction === "BLOCKED_BY_EXISTING" ? "EXCLUSIVITY_CONFLICT_EXISTING" : "EXCLUSIVITY_CONFLICT_OTHER_DEAL";
     const params = { brand: conflict.brandName };
     return exact ? errorIssue(code, "scheduledFor", params) : warningIssue(code, "scheduledFor", params);
