@@ -65,3 +65,26 @@ Stories, die gut laufen, kannst du in den Highlights auf dem Profil sammeln: „
 ## Aufbau des Codes
 
 `src/stories/kit.tsx` hat die gemeinsamen Teile: den dunklen Hintergrund (`StoryNight`), den hellen mit der Farbe eines Produktfotos (`StoryPaper`), Kopfzeile, Label, Schrift in zwei Tönen (`Type`), Adress-Knopf und das iPhone mit einer App-Ansicht (`StoryPhone`). `Stills.tsx` hat die Bilder, `Hook.tsx` und `Number.tsx` die zwei Videos, `index.ts` die Liste. Eine neue Story ist eine Komponente dort plus eine Zeile in `index.ts`; `scripts/render-stories.mjs` rendert sie mit.
+
+## Highlight „Was ist comtor?“
+
+Sieben Karten und ein Cover, die erklären, was comtor ist. Hell, im Look der App im Hell-Modus. Karte 1 ist ein kurzes Video mit Ton, die anderen sind Bilder.
+
+```
+node scripts/render-stories.mjs StoryIntroTitle StoryIntroIdea StoryIntroCreator StoryIntroPays StoryIntroBrand StoryIntroPrice StoryIntroGo StoryIntroCover --browser-executable=<Chromium>
+```
+
+| Nr. | Karte | Inhalt |
+|---|---|---|
+| 1 | Titel (`intro-title.mp4`) | „Was ist comtor?“, die drei Deal-Karten fächern sich auf |
+| 2 | Idee (`intro-idea.png`) | Marken posten Deals, Creator wischen nach rechts |
+| 3 | Für Creator (`intro-creator.png`) | der Feed mit einem Deal |
+| 4 | Sicher bezahlt (`intro-pays.png`) | die Marke zahlt zuerst, das Geld wird zurückgehalten |
+| 5 | Für Marken (`intro-brand.png`) | Anfrage in einer Minute |
+| 6 | Kosten (`intro-price.png`) | Creator 90 %, Marken 10 % pro Zahlung, Pro gratis für die ersten 100 und 50 |
+| 7 | Los geht's (`intro-go.png`) | comtor.app, „Tipp auf den Link“ |
+| – | Cover (`intro-cover.png`) | das Logo in der Mitte, Instagram schneidet es rund aus |
+
+In Instagram: die Karten 1 bis 7 nacheinander als Story hochladen, auf Karte 7 den Link-Sticker setzen, dann auf „Highlights“ tippen, den Namen „Was ist comtor?“ eintragen und das Cover als Bild wählen.
+
+Die Fotos und Profilbilder (Raw Supplies, Nakar, Vintage Steals) liegen als Ausschnitte der Screenshots in `public/real/`. Eine Karte mit anderen Bildern: die Dateien dort ersetzen oder in `src/stories/Intro.tsx` die Deals (`RAW_DEAL`, `NAKAR_DEAL`, `VINTAGE_DEAL`) ändern. Namen, Logos und Produktfotos echter Marken nur mit deren Erlaubnis posten; die Budgets sind erfunden, der Hinweis unten sagt das.

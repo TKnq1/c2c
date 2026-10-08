@@ -14,7 +14,7 @@ import { AddressPill, FadeOut, StoryDay, StoryExample, StoryPhone, TopMark, Type
 const SOFT = "#737373";
 const HAIRLINE = "rgba(7,7,7,0.1)";
 
-const Frame: React.FC<{ children: ReactNode }> = ({ children }) => (
+export const Frame: React.FC<{ children: ReactNode }> = ({ children }) => (
   <StoryDay>
     <TopMark icon={false} />
     {children}
@@ -23,9 +23,9 @@ const Frame: React.FC<{ children: ReactNode }> = ({ children }) => (
 
 // The brands of the examples: their own photos and profile pictures (public/real/, cut from what was sent). The budgets
 // are made up, so the cards say so; no ratings are shown for a brand that is real.
-const NOTE = "Beispiel: Die Deals und Budgets sind erfunden.";
+export const NOTE = "Beispiel: Die Deals und Budgets sind erfunden.";
 
-const RAW_DEAL: FeedDeal = {
+export const RAW_DEAL: FeedDeal = {
   photo: "serum",
   photoSrc: "real/raw-hoodie.jpg",
   avatarSrc: "real/raw-logo.png",
@@ -37,9 +37,10 @@ const RAW_DEAL: FeedDeal = {
   deliverables: "1 Video",
 };
 
-const NAKAR_DEAL: FeedDeal = {
+export const NAKAR_DEAL: FeedDeal = {
   photo: "serum",
   photoSrc: "real/nakar-front.jpg",
+  avatarSrc: "real/nakar-logo.png",
   budget: "300 €",
   company: "Nakar",
   title: "Hoodie, erste Eindrücke",
@@ -48,7 +49,7 @@ const NAKAR_DEAL: FeedDeal = {
   deliverables: "1 Reel",
 };
 
-const VINTAGE_DEAL: FeedDeal = {
+export const VINTAGE_DEAL: FeedDeal = {
   photo: "serum",
   photoSrc: "real/vintage-jacket.jpg",
   avatarSrc: "real/vintage-logo.png",
@@ -81,7 +82,7 @@ const FeedScreen: React.FC<{ deal: FeedDeal }> = ({ deal }) => (
 );
 
 // A deal card on its own, as it comes up in the Feed.
-const Card: React.FC<{ deal: FeedDeal; x: number; y: number; rotate: number; scale: number }> = ({ deal, x, y, rotate, scale }) => (
+export const Card: React.FC<{ deal: FeedDeal; x: number; y: number; rotate: number; scale: number }> = ({ deal, x, y, rotate, scale }) => (
   <div
     style={{
       position: "absolute",
@@ -99,17 +100,7 @@ const Card: React.FC<{ deal: FeedDeal; x: number; y: number; rotate: number; sca
   </div>
 );
 
-// 1. The title. In the story it is a short video: the words come in one after another, then the three deals fan out.
-export const IntroTitle: React.FC = () => (
-  <Frame>
-    <Type top={420} size={156} lines={[{ text: "Was ist" }, { text: "comtor?" }]} />
-    <Type top={790} size={62} lineHeight={1.2} lines={[{ text: "Der Marktplatz für", soft: true }, { text: "Marken und Creator.", soft: true }]} />
-    <Card deal={VINTAGE_DEAL} x={320} y={1290} rotate={-9} scale={1.25} />
-    <Card deal={NAKAR_DEAL} x={760} y={1290} rotate={9} scale={1.25} />
-    <Card deal={RAW_DEAL} x={540} y={1270} rotate={0} scale={1.35} />
-    <StoryExample>{NOTE}</StoryExample>
-  </Frame>
-);
+// 1. The title is a video: see IntroTitle.tsx.
 
 // 2. The idea: the brand's request on one side, the creator's Feed on the other.
 const Side: React.FC<{ x: number; children: ReactNode }> = ({ x, children }) => (

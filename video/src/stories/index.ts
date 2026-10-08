@@ -1,10 +1,11 @@
 import { Hook, HOOK_DURATION } from "./Hook";
-import { IntroBrand, IntroCover, IntroCreator, IntroGo, IntroIdea, IntroPays, IntroPrice, IntroTitle } from "./Intro";
+import { IntroBrand, IntroCover, IntroCreator, IntroGo, IntroIdea, IntroPays, IntroPrice } from "./Intro";
+import { INTRO_TITLE_DURATION, IntroTitle } from "./IntroTitle";
 import { Number90, NUMBER_DURATION } from "./Number";
 import { BrandApprove, BrandFees, BrandRequest, Cta, Deal, Founding, Myth, Pays, Poll, Question, Quiz } from "./Stills";
 
-// The stories, one composition each: two short videos with sound (the hook and the number), the rest still images
-// (one frame). Rendered by scripts/render-stories.mjs; what to post when is in STORIES.md.
+// The stories, one composition each: short videos with sound (the hook, the number, the highlight's title), the rest still
+// images (one frame). Rendered by scripts/render-stories.mjs; what to post when is in STORIES.md.
 export const STORIES = [
   { id: "StoryHook", component: Hook, duration: HOOK_DURATION },
   { id: "StoryMyth", component: Myth, duration: 1 },
@@ -19,7 +20,7 @@ export const STORIES = [
   { id: "StoryBrandApprove", component: BrandApprove, duration: 1 },
   { id: "StoryBrandFees", component: BrandFees, duration: 1 },
   { id: "StoryCta", component: Cta, duration: 1 },
-  { id: "StoryIntroTitle", component: IntroTitle, duration: 1 },
+  { id: "StoryIntroTitle", component: IntroTitle, duration: INTRO_TITLE_DURATION },
   { id: "StoryIntroIdea", component: IntroIdea, duration: 1 },
   { id: "StoryIntroCreator", component: IntroCreator, duration: 1 },
   { id: "StoryIntroPays", component: IntroPays, duration: 1 },
