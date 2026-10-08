@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { IoChevronDown } from "react-icons/io5";
 import { notFound, redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { getLocale } from "@/lib/i18n/server";
@@ -53,7 +54,6 @@ export default async function DealPage(props: PageProps<"/dashboard/deals/[id]">
     locale,
   );
   const funded = interest.paymentStatus === "HELD";
-  const finished = data.status === "COMPLETED" || data.status === "CANCELLED";
 
   return (
     <div className="mx-auto flex w-full max-w-2xl flex-col gap-6 pb-8">
@@ -70,15 +70,20 @@ export default async function DealPage(props: PageProps<"/dashboard/deals/[id]">
         )}
       </div>
 
-      {finished ? (
-        <details className="group">
-          <summary className="cursor-pointer px-1 text-footnote text-neutral-500 dark:text-neutral-400">{u("contract.title")}</summary>
-          <div className="mt-2">
-            <ContractPanel ctx={ctx} clashes={clashes} />
+      {/* Until both sides have confirmed, the contract is the task. After that it is reference: one tap away, and the
+          form that is due (draft, post, review) is what comes next on a phone instead of a screenful of terms. */}
+      {data.status === "CONTRACT_PENDING" ? (
+        <ContractPanel ctx={ctx} clashes={clashes} />
+      ) : (
+        <details className={`${cardClass} group`}>
+          <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between gap-3 text-sm font-medium [&::-webkit-details-marker]:hidden">
+            {u("contract.title")}
+            <IoChevronDown className="h-4 w-4 shrink-0 text-neutral-500 transition-transform group-open:rotate-180" aria-hidden />
+          </summary>
+          <div className="mt-3">
+            <ContractPanel ctx={ctx} clashes={clashes} bare />
           </div>
         </details>
-      ) : (
-        <ContractPanel ctx={ctx} clashes={clashes} />
       )}
       <EscrowPanel ctx={ctx} />
       <DraftsPanel ctx={ctx} />

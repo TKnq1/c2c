@@ -46,7 +46,7 @@ export function DealHeader({ data, role, u, locale }: PanelContext) {
       <div className="flex items-center gap-3">
         <Avatar src={other.avatarUrl} name={name} size={48} />
         <div className="min-w-0 flex-1">
-          <h1 className="truncate font-display text-title-2 font-bold">{interest.request.title}</h1>
+          <h1 className="break-words font-display text-title-2 font-bold">{interest.request.title}</h1>
           <p className="truncate text-sm text-neutral-500 dark:text-neutral-400">{u("deal.with", { name })}</p>
         </div>
         <Badge strong={data.status === "DISPUTED"}>{u(`status.${data.status}`)}</Badge>
@@ -91,7 +91,8 @@ export function Stepper({ data, u }: Pick<PanelContext, "data" | "u">) {
 
 // ---------------------------------------------------------------------------------------------------------------------
 
-export function ContractPanel({ ctx, clashes }: { ctx: PanelContext; clashes: FieldIssue[] }) {
+// bare: only the card, for a place that brings its own heading (the collapsed contract on the deal page).
+export function ContractPanel({ ctx, clashes, bare = false }: { ctx: PanelContext; clashes: FieldIssue[]; bare?: boolean }) {
   const { data, terms, role, u } = ctx;
   const snapshot = parseTaxSnapshot(data.taxSnapshot);
   const signedAt = role === "STARTUP" ? data.brandSignedAt : data.creatorSignedAt;
@@ -106,8 +107,7 @@ export function ContractPanel({ ctx, clashes }: { ctx: PanelContext; clashes: Fi
   const feeCents = data.interest.platformFeeCents ?? terms.platformFeeCents;
   const exScope = [...(ex.categories.length > 0 ? ex.categories : [terms.productCategory]), ...ex.competitors].join(", ");
 
-  return (
-    <Section title={u("contract.title")} description={u("contract.intro")}>
+  const card = (
       <div className={cardClass}>
         <dl className="divide-y divide-neutral-200 dark:divide-neutral-700">
           <Row label={u("contract.price")}>{formatCents(terms.amountCents)}</Row>
@@ -204,6 +204,11 @@ export function ContractPanel({ ctx, clashes }: { ctx: PanelContext; clashes: Fi
           </div>
         )}
       </div>
+  );
+  if (bare) return card;
+  return (
+    <Section title={u("contract.title")} description={u("contract.intro")}>
+      {card}
     </Section>
   );
 }
