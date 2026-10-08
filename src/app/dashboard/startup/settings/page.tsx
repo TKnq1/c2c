@@ -51,7 +51,7 @@ export default async function StartupSettingsPage() {
         marketingTokenExpiresAt: true,
       },
     }),
-    prisma.request.count({ where: { startup: { userId: session.user.id } } }),
+    prisma.request.count({ where: { startup: { userId: session.user.id }, status: { not: "DRAFT" } } }),
   ]);
 
   return (

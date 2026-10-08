@@ -19,7 +19,7 @@ type RequestEntry = {
   budget: string | null;
   // For sorting by budget; the low end of the range.
   budgetMinCents: number | null;
-  status: "OPEN" | "CLOSED";
+  status: "OPEN" | "CLOSED" | "DRAFT";
   interestCount: number;
   coverUrl: string | null;
   createdAt: number;
@@ -27,6 +27,9 @@ type RequestEntry = {
 
 type SortKey = "title" | "status" | "interest" | "budget" | "created";
 type Sort = { key: SortKey; dir: "asc" | "desc" } | null;
+
+// A draft isn't a request yet: it opens in the form, where it can be finished and posted.
+const hrefFor = (r: RequestEntry) => (r.status === "DRAFT" ? `/dashboard/startup/requests/${r.id}/edit` : `/dashboard/startup/requests/${r.id}`);
 
 const CHECKBOX =
   "h-4 w-4 shrink-0 appearance-none rounded border border-neutral-300 bg-white checked:border-neutral-900 checked:bg-neutral-900 transition dark:border-neutral-600 dark:bg-neutral-800 dark:checked:border-white dark:checked:bg-white";
@@ -57,6 +60,9 @@ export function BulkRequestsList({ requests }: { requests: RequestEntry[] }) {
   }, [requests, sort]);
 
   const openIds = requests.filter((r) => r.status === "OPEN").map((r) => r.id);
+  const titleOf = (r: RequestEntry) => r.title.trim() || t("screens.requests.untitledDraft");
+  const statusLabel = (r: RequestEntry) =>
+    r.status === "OPEN" ? t("screens.requests.open") : r.status === "DRAFT" ? t("screens.requests.draft") : t("screens.requests.closed");
   const allOpenSelected = openIds.length > 0 && openIds.every((id) => selected.has(id));
 
   function toggle(id: string) {
@@ -159,7 +165,7 @@ export function BulkRequestsList({ requests }: { requests: RequestEntry[] }) {
               </div>
             )}
             <Link
-              href={`/dashboard/startup/requests/${r.id}`}
+              href={hrefFor(r)}
               className={`flex min-w-0 flex-1 items-center gap-3 py-3 pr-4 ${r.status === "OPEN" ? "pl-3" : "pl-4"}`}
             >
               {r.coverUrl && (
@@ -169,10 +175,10 @@ export function BulkRequestsList({ requests }: { requests: RequestEntry[] }) {
               )}
               <div className="min-w-0 flex-1">
                 <p className="font-bold flex items-center gap-2">
-                  {r.title}
-                  {r.status === "CLOSED" && (
+                  {titleOf(r)}
+                  {r.status !== "OPEN" && (
                     <span className="text-xs font-normal rounded bg-paper text-neutral-500 px-2 py-0.5 dark:text-neutral-400">
-                      {t("screens.requests.closed")}
+                      {statusLabel(r)}
                     </span>
                   )}
                 </p>
@@ -216,7 +222,7 @@ export function BulkRequestsList({ requests }: { requests: RequestEntry[] }) {
             {sorted.map((r) => (
               <tr
                 key={r.id}
-                onClick={() => router.push(`/dashboard/startup/requests/${r.id}`)}
+                onClick={() => router.push(hrefFor(r))}
                 className={`cursor-pointer transition hover:bg-ink/5 ${r.status === "CLOSED" ? "text-neutral-500 dark:text-neutral-400" : ""}`}
               >
                 <td className="py-3 pl-4" onClick={(e) => e.stopPropagation()}>
@@ -238,11 +244,11 @@ export function BulkRequestsList({ requests }: { requests: RequestEntry[] }) {
                     )}
                     <div className="min-w-0">
                       <Link
-                        href={`/dashboard/startup/requests/${r.id}`}
+                        href={hrefFor(r)}
                         onClick={(e) => e.stopPropagation()}
                         className="block truncate font-semibold text-ink hover:underline"
                       >
-                        {r.title}
+                        {titleOf(r)}
                       </Link>
                       <p className="truncate text-footnote text-neutral-500 dark:text-neutral-400">
                         {nicheLabel(t, r.niche)} · {t("screens.requests.minFollowersLine", { count: r.minFollowers.toLocaleString(locale) })}
@@ -253,10 +259,10 @@ export function BulkRequestsList({ requests }: { requests: RequestEntry[] }) {
                 <td className="px-3 py-3">
                   <span
                     className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium ${
-                      r.status === "OPEN" ? "border border-ink text-ink" : "bg-ink/10"
+                      r.status === "OPEN" ? "border border-ink text-ink" : r.status === "DRAFT" ? "border border-dashed border-ink/40" : "bg-ink/10"
                     }`}
                   >
-                    {r.status === "OPEN" ? t("screens.requests.open") : t("screens.requests.closed")}
+                    {statusLabel(r)}
                   </span>
                 </td>
                 <td className={`px-3 py-3 text-right tabular-nums ${r.interestCount > 0 ? "font-semibold text-ink" : ""}`}>

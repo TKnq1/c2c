@@ -28,7 +28,7 @@ export async function activityEvents(since: Date): Promise<ActivityEvent[]> {
   const orderBy = { createdAt: "desc" as const };
   const [logins, requests, interests, messages] = await Promise.all([
     prisma.loginAttempt.findMany({ where: { succeeded: true, userId: { not: null }, createdAt: { gte: since } }, select: { userId: true, createdAt: true }, orderBy, take }),
-    prisma.request.findMany({ where: { createdAt: { gte: since } }, select: { createdAt: true, startup: { select: { userId: true } } }, orderBy, take }),
+    prisma.request.findMany({ where: { createdAt: { gte: since }, status: { not: "DRAFT" } }, select: { createdAt: true, startup: { select: { userId: true } } }, orderBy, take }),
     prisma.interest.findMany({ where: { createdAt: { gte: since } }, select: { createdAt: true, creator: { select: { userId: true } } }, orderBy, take }),
     prisma.message.findMany({
       where: { createdAt: { gte: since } },
@@ -113,7 +113,7 @@ export async function loadGrowth(now = new Date()) {
         return Promise.all([
           prisma.user.count({ where: { ...people, role: "STARTUP", createdAt: range } }),
           prisma.user.count({ where: { ...people, role: "CREATOR", createdAt: range } }),
-          prisma.request.count({ where: { createdAt: range } }),
+          prisma.request.count({ where: { createdAt: range, status: { not: "DRAFT" } } }),
           prisma.interest.count({ where: { createdAt: range } }),
           prisma.interest.count({ where: { paidAt: range, paymentStatus: { in: ["HELD", "RELEASED"] } } }),
           prisma.interest.aggregate({ where: { paidAt: range, paymentStatus: { in: ["HELD", "RELEASED"] } }, _sum: { amountCents: true } }),

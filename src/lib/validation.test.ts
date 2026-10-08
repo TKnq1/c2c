@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   createRequestSchema,
+  draftRequestSchema,
   loginSchema,
   onboardingNichesSchema,
   onboardingPlatformsSchema,
@@ -127,6 +128,60 @@ describe("createRequestSchema", () => {
     const { productIncluded, ...rest } = valid;
     void productIncluded;
     expect(createRequestSchema.parse(rest).productIncluded).toBe(false);
+  });
+});
+
+describe("draftRequestSchema", () => {
+  // What the form posts for a brand that has only picked the defaults so far.
+  const bare = {
+    title: "",
+    description: "",
+    niche: "Beauty",
+    languages: "English",
+    minFollowers: "0",
+    productCategory: "Cosmetics",
+    platform: "Instagram",
+    deliverables: "",
+    budgetMin: "",
+    budgetMax: "",
+    postBy: "",
+    productIncluded: "false",
+  };
+
+  it("saves a request that is hardly filled in", () => {
+    const r = draftRequestSchema.parse(bare);
+    expect(r.title).toBe("");
+    expect(r.budgetMin).toBeNull();
+    expect(r.budgetMax).toBeNull();
+    expect(r.postBy).toBeNull();
+  });
+
+  it("is not enough to post: createRequestSchema still wants the fields", () => {
+    expect(createRequestSchema.safeParse(bare).success).toBe(false);
+  });
+
+  it("turns what is filled in into the same values as a posted request", () => {
+    const r = draftRequestSchema.parse({ ...bare, title: " Serum ", budgetMin: "199,50", budgetMax: "300" });
+    expect(r.title).toBe("Serum");
+    expect(r.budgetMin).toBe(19_950);
+    expect(r.budgetMax).toBe(30_000);
+  });
+
+  it("still rejects values that can't be right", () => {
+    expect(draftRequestSchema.safeParse({ ...bare, platform: "MySpace" }).success).toBe(false);
+    expect(draftRequestSchema.safeParse({ ...bare, title: "x".repeat(121) }).success).toBe(false);
+    expect(draftRequestSchema.safeParse({ ...bare, budgetMin: "lots" }).success).toBe(false);
+    expect(draftRequestSchema.safeParse({ ...bare, languages: "" }).success).toBe(false);
+  });
+
+  it("rejects a range that runs backwards", () => {
+    expect(draftRequestSchema.safeParse({ ...bare, budgetMin: "400", budgetMax: "200" }).success).toBe(false);
+  });
+
+  it("drops a top of the range that has no bottom", () => {
+    const r = draftRequestSchema.parse({ ...bare, budgetMax: "300" });
+    expect(r.budgetMin).toBeNull();
+    expect(r.budgetMax).toBeNull();
   });
 });
 

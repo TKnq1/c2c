@@ -281,7 +281,7 @@ export default async function AdminUserPage(props: PageProps<"/admin/users/[id]"
                       {r.niche} · {r._count.interests} interested · <LocalDate ms={r.createdAt.getTime()} />
                     </span>
                   </span>
-                  <span className="shrink-0 text-xs font-medium">{r.status === "OPEN" ? "Open" : "Closed"}</span>
+                  <span className="shrink-0 text-xs font-medium">{r.status === "OPEN" ? "Open" : r.status === "DRAFT" ? "Draft" : "Closed"}</span>
                 </li>
               ))}
             </ul>

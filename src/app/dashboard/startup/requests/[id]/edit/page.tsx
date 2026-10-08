@@ -3,6 +3,8 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { brandRating, legacyRequestPhotoUrl, requestPhotoUrl } from "@/lib/request-photos";
 import { emailIsVerified } from "@/lib/verified";
+import { deleteDraftAction } from "@/lib/actions/requests";
+import { ConfirmActionButton } from "@/components/confirm-action-button";
 import { RequestForm } from "@/components/request-form";
 import type { PhotoItem } from "@/components/request-photos-input";
 import { PageTitle } from "@/components/page-title";
@@ -35,12 +37,15 @@ export default async function EditRequestPage({ params }: { params: Promise<{ id
         ? [{ key: "legacy", kind: "legacy", url: legacyRequestPhotoUrl(request.id) }]
         : [];
 
+  const isDraft = request.status === "DRAFT";
+
   return (
     // On phones the header shows the title (see getPageTitle in nav.tsx).
     <div className="flex flex-col gap-6">
-      <PageTitle>{t("nav.editRequest")}</PageTitle>
+      <PageTitle>{isDraft ? t("screens.requests.editDraft") : t("nav.editRequest")}</PageTitle>
       <RequestForm
         requestId={request.id}
+        status={request.status}
         brand={{ companyName: startup.companyName, avatarUrl: startup.avatarUrl, rating }}
         emailVerified={emailVerified}
         initial={{
@@ -59,6 +64,19 @@ export default async function EditRequestPage({ params }: { params: Promise<{ id
           productIncluded: request.productIncluded,
         }}
       />
+      {isDraft && (
+        <ConfirmActionButton
+          action={deleteDraftAction.bind(null, request.id)}
+          successMessage={t("screens.requests.draftDeleted")}
+          title={t("screens.requests.deleteDraftTitle")}
+          description={t("screens.requests.deleteDraftBody")}
+          confirmLabel={t("screens.requests.deleteDraft")}
+          redirectTo="/dashboard/startup"
+          className="self-start text-sm text-neutral-500 underline transition hover:text-ink dark:text-neutral-400"
+        >
+          {t("screens.requests.deleteDraft")}
+        </ConfirmActionButton>
+      )}
     </div>
   );
 }
