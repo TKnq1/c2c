@@ -6,6 +6,7 @@ import { z } from "zod";
 import { requireAdmin } from "@/lib/admin-guard";
 import { prefsSchema } from "@/lib/admin-prefs";
 import { prisma } from "@/lib/prisma";
+import { berlinDay, isRoutineKey } from "@/lib/admin-routines";
 
 export type DashboardActionResult = { error?: string };
 
@@ -110,6 +111,22 @@ export async function markNoticesReadAction(): Promise<DashboardActionResult> {
   const session = await requireAdmin();
   if (!session) return NOT_AUTHORIZED;
   await markAllNoticesRead();
+  refresh();
+  return {};
+}
+
+// Ticks a routine of the daily plan off (or back on) for today in Berlin. Ticking twice stays one row.
+export async function toggleRoutineAction(key: string, done: boolean): Promise<DashboardActionResult> {
+  const session = await requireAdmin();
+  if (!session) return NOT_AUTHORIZED;
+  if (typeof key !== "string" || !isRoutineKey(key)) return { error: "Aufgabe nicht gefunden." };
+  const adminId = session.user.id;
+  const { day } = berlinDay(new Date());
+  if (done) {
+    await prisma.adminRoutineCheck.upsert({ where: { adminId_day_key: { adminId, day, key } }, create: { adminId, day, key }, update: {} });
+  } else {
+    await prisma.adminRoutineCheck.deleteMany({ where: { adminId, day, key } });
+  }
   refresh();
   return {};
 }

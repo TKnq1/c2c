@@ -9,7 +9,9 @@ import { loadDaySummary } from "@/lib/admin-dashboard";
 import { loadKpis } from "@/lib/admin-kpis";
 import { parsePeriod } from "@/lib/admin-period";
 import { listOpenTasks } from "@/lib/admin-tasks";
+import { loadDailyPlan } from "@/lib/admin-routines-server";
 import { berlinHour, daySummary, greetingFor } from "@/lib/admin-today";
+import { DailyPlan } from "@/components/admin/daily-plan";
 import { Disclosure } from "@/components/admin/disclosure";
 import { FocusCard } from "@/components/admin/focus-card";
 import { HeuteColumn } from "@/components/admin/heute-column";
@@ -64,7 +66,13 @@ export default async function AdminTodayPage(props: PageProps<"/admin">) {
   const prefs = await getAdminPrefs(session.user.id);
   const now = new Date();
   const period = parsePeriod(firstParams(await props.searchParams).z);
-  const [tiles, tasks, anomalies, day] = await Promise.all([loadKpis({ now, period, prefs }), listOpenTasks(now), loadAnomalies(now), loadDaySummary(now)]);
+  const [tiles, tasks, anomalies, day, plan] = await Promise.all([
+    loadKpis({ now, period, prefs }),
+    listOpenTasks(now),
+    loadAnomalies(now),
+    loadDaySummary(now),
+    loadDailyPlan(session.user.id, now),
+  ]);
 
   const summary = focusSummary(tasks);
   const views: TaskView[] = tasks
@@ -99,6 +107,8 @@ export default async function AdminTodayPage(props: PageProps<"/admin">) {
       <div className="grid gap-6 min-[1360px]:grid-cols-[minmax(0,1fr)_20rem]">
         <div className="adm-panel flex min-w-0 flex-col gap-[var(--gap,1rem)] lg:p-[var(--pad,1.25rem)]">
           <FocusCard summary={summary} tasks={views} allTotal={tasks.length} anomalies={anomalies} />
+
+          <DailyPlan plan={plan} />
 
           <section aria-label="Die vier Zahlen" className="flex flex-col gap-3">
             <div className="flex flex-wrap items-center justify-between gap-2 px-1">

@@ -843,6 +843,20 @@ model AdminTask {
   @@index([status, priority])
 }
 
+// The daily plan on "Heute": one row per routine ticked off, per admin and calendar day in Berlin
+// (src/lib/admin-routines.ts). The checks in AdminTask are separate; these are the fixed habits.
+model AdminRoutineCheck {
+  id      String   @id @default(cuid())
+  adminId String
+  // "2026-10-08", the day in Europe/Berlin.
+  day     String
+  key     String
+  doneAt  DateTime @default(now())
+
+  @@unique([adminId, day, key])
+  @@index([adminId, day])
+}
+
 // Business figures the admin types in. One row (id 1): the bank balance on a given day, which the cash view needs for
 // the runway. Every change also leaves a CashSnapshot, so the balance has a history.
 model AdminSettings {
