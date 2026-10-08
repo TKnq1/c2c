@@ -87,9 +87,9 @@ export async function GET(req: NextRequest) {
       ...requests.map((r) => ({
         kind: "request" as const,
         id: r.id,
-        title: r.title,
-        subtitle: `Request · ${r.status === "OPEN" ? "Open" : "Closed"} · ${r.niche}`,
-        href: `/dashboard/startup/requests/${r.id}`,
+        title: r.title || "Untitled draft",
+        subtitle: `Request · ${r.status === "OPEN" ? "Open" : r.status === "DRAFT" ? "Draft" : "Closed"} · ${r.niche}`,
+        href: r.status === "DRAFT" ? `/dashboard/startup/requests/${r.id}/edit` : `/dashboard/startup/requests/${r.id}`,
         avatarUrl: null,
       })),
     ];

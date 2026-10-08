@@ -4,7 +4,7 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { createRequestSchema } from "@/lib/validation";
+import { createRequestSchema, draftRequestSchema } from "@/lib/validation";
 import { getCreatorFeed } from "@/lib/visibility";
 import { getMutualBlockedUserIds, isBlocked } from "@/lib/moderation";
 import { notify } from "@/lib/notifications";
@@ -14,7 +14,8 @@ import { DAY, takeToken } from "@/lib/rate-limit";
 import { VERIFY_EMAIL_MESSAGE, emailIsVerified } from "@/lib/verified";
 import { REQUEST_PHOTO_TYPES } from "@/lib/request-photo-types";
 
-export type ActionState = { error?: string } | undefined;
+// `code` lets the form tell a missing email confirmation (which it explains with a link) from other errors.
+export type ActionState = { error?: string; code?: "VERIFY_EMAIL" } | undefined;
 
 // The client resizes and re-encodes every photo before submitting (see
 // RequestPhotosInput), so a real upload lands far under this — it's a
@@ -71,11 +72,44 @@ function legacyPhoto(imageUrl: string | null) {
   return { contentType: match[1], data: new Uint8Array(Buffer.from(match[2], "base64")) };
 }
 
-// The validated form fields, as the Request columns they're stored in.
-function requestFields(data: ReturnType<typeof createRequestSchema.parse>) {
+const PHOTO_ERROR = "Something went wrong with the photos. Try adding them again.";
+
+// The photos of a request that doesn't exist yet: every one of them has to be a new upload.
+async function readNewPhotos(
+  formData: FormData,
+): Promise<{ images: { position: number; contentType: string; data: Uint8Array<ArrayBuffer> }[] } | { error: string }> {
+  const photos = await readPhotos(formData);
+  if ("error" in photos) return photos;
+  if (photos.tokens.some((t) => t.kind !== "new")) return { error: PHOTO_ERROR };
+  return {
+    images: photos.tokens.map((t, position) => {
+      const file = photos.files[(t as { index: number }).index];
+      return { position, contentType: file.type, data: file.data };
+    }),
+  };
+}
+
+// The validated form fields, as the Request columns they're stored in. A draft may have no budget yet.
+function requestFields<T extends { budgetMin: number | null; budgetMax: number | null }>(data: T) {
   const { budgetMin, budgetMax, ...rest } = data;
   return { ...rest, budgetMinCents: budgetMin, budgetMaxCents: budgetMax ?? budgetMin };
 }
+
+const firstIssue = (error: { issues: { message: string }[] }) => error.issues[0]?.message ?? "Please fill in all fields correctly.";
+
+// Limits on putting a request live, the same for a new one, a copy and a draft being posted. A post
+// notifies every matching creator and stores up to five photos in the database.
+const MAX_OPEN_REQUESTS = 50;
+const OPEN_LIMIT_MESSAGE = `You have ${MAX_OPEN_REQUESTS} open requests. Close some before posting new ones.`;
+const DAILY_LIMIT_MESSAGE = "You've reached today's limit for new requests. Try again tomorrow.";
+const openRequestCount = (userId: string) => prisma.request.count({ where: { startup: { userId }, status: "OPEN" } });
+// Taken last, once everything else about the request is known to be fine: an attempt that fails on the
+// form itself shouldn't use up the day's allowance.
+const takePostAllowance = (userId: string) => takeToken("create-request", userId, 10, DAY);
+
+// Drafts hold their photos in the database like requests do, so there are only so many.
+const MAX_DRAFTS = 20;
+const takeDraftAllowance = (userId: string) => takeToken("save-draft", userId, 60, DAY);
 
 // Shared by createRequestAction and duplicateRequestAction — a duplicate is
 // a genuinely new, open request, so it should reach matching creators too.
@@ -115,38 +149,53 @@ async function notifyMatchingCreators(
   }
 }
 
+// A request saved without posting it. It only exists for its brand until it's posted (see updateRequestAction).
+async function createDraft(userId: string, formData: FormData): Promise<ActionState> {
+  const parsed = draftRequestSchema.safeParse(Object.fromEntries(formData));
+  if (!parsed.success) return { error: firstIssue(parsed.error) };
+
+  const drafts = await prisma.request.count({ where: { startup: { userId }, status: "DRAFT" } });
+  if (drafts >= MAX_DRAFTS) return { error: `You have ${MAX_DRAFTS} drafts. Post or delete some before saving new ones.` };
+
+  const photos = await readNewPhotos(formData);
+  if ("error" in photos) return { error: photos.error };
+
+  if (!(await takeDraftAllowance(userId))) return { error: "You've saved a lot of drafts today. Try again tomorrow." };
+
+  const startup = await prisma.startupProfile.findUniqueOrThrow({ where: { userId } });
+  await prisma.request.create({
+    data: { ...requestFields(parsed.data), status: "DRAFT", startupId: startup.id, images: { create: photos.images } },
+  });
+
+  revalidatePath("/dashboard/startup");
+  redirect("/dashboard/startup?status=DRAFT");
+}
+
 export async function createRequestAction(_prevState: ActionState, formData: FormData): Promise<ActionState> {
   const session = await auth();
   if (!session || session.user.role !== "STARTUP") {
     return { error: "Not authorized." };
   }
 
-  if (!(await emailIsVerified(session.user.id))) return { error: VERIFY_EMAIL_MESSAGE };
+  // "Save as draft": nothing leaves the brand's account, so no confirmed email or posting limit applies.
+  if (formData.get("intent") === "draft") return createDraft(session.user.id, formData);
+
+  if (!(await emailIsVerified(session.user.id))) return { error: VERIFY_EMAIL_MESSAGE, code: "VERIFY_EMAIL" };
 
   const parsed = createRequestSchema.safeParse(Object.fromEntries(formData));
-  if (!parsed.success) {
-    return { error: parsed.error.issues[0]?.message ?? "Please fill in all fields correctly." };
-  }
+  if (!parsed.success) return { error: firstIssue(parsed.error) };
 
-  // A request notifies every matching creator and stores up to five photos in the database.
-  if (!(await takeToken("create-request", session.user.id, 10, DAY))) {
-    return { error: "You've reached today's limit for new requests. Try again tomorrow." };
-  }
-  const openRequests = await prisma.request.count({ where: { startup: { userId: session.user.id }, status: "OPEN" } });
-  if (openRequests >= 50) return { error: "You have 50 open requests. Close some before posting new ones." };
+  if ((await openRequestCount(session.user.id)) >= MAX_OPEN_REQUESTS) return { error: OPEN_LIMIT_MESSAGE };
 
-  const photos = await readPhotos(formData);
+  const photos = await readNewPhotos(formData);
   if ("error" in photos) return { error: photos.error };
-  if (photos.tokens.some((t) => t.kind !== "new")) return { error: "Something went wrong with the photos. Try adding them again." };
-  const images = photos.tokens.map((t, position) => {
-    const file = photos.files[(t as { index: number }).index];
-    return { position, contentType: file.type, data: file.data };
-  });
+
+  if (!(await takePostAllowance(session.user.id))) return { error: DAILY_LIMIT_MESSAGE };
 
   const startup = await prisma.startupProfile.findUniqueOrThrow({ where: { userId: session.user.id } });
 
   const request = await prisma.request.create({
-    data: { ...requestFields(parsed.data), startupId: startup.id, images: { create: images } },
+    data: { ...requestFields(parsed.data), startupId: startup.id, images: { create: photos.images } },
     select: { niche: true, languages: true, minFollowers: true, title: true },
   });
 
@@ -165,13 +214,7 @@ export async function duplicateRequestAction(requestId: string) {
   const session = await auth();
   if (!session || session.user.role !== "STARTUP") throw new Error("Not authorized.");
   if (!(await emailIsVerified(session.user.id))) redirect("/dashboard/verify-email");
-  // A copy goes live and notifies creators like a new request, so it counts against the same limits.
-  if (!(await takeToken("create-request", session.user.id, 10, DAY))) {
-    throw new Error("You've reached today's limit for new requests.");
-  }
-  if ((await prisma.request.count({ where: { startup: { userId: session.user.id }, status: "OPEN" } })) >= 50) {
-    throw new Error("You have 50 open requests. Close some before posting new ones.");
-  }
+  if ((await openRequestCount(session.user.id)) >= MAX_OPEN_REQUESTS) throw new Error(OPEN_LIMIT_MESSAGE);
 
   const startup = await prisma.startupProfile.findUniqueOrThrow({ where: { userId: session.user.id } });
   const source = await prisma.request.findUnique({
@@ -179,6 +222,11 @@ export async function duplicateRequestAction(requestId: string) {
     include: { images: { orderBy: { position: "asc" } } },
   });
   if (!source || source.startupId !== startup.id) throw new Error("This request could not be found.");
+  // A draft can be unfinished, and a copy goes live as it is: it has to be posted from its own page.
+  if (source.status === "DRAFT") throw new Error("Post this draft instead of copying it.");
+
+  // A copy goes live and notifies creators like a new request, so it counts against the same limits.
+  if (!(await takePostAllowance(session.user.id))) throw new Error(DAILY_LIMIT_MESSAGE);
 
   // A post-by date that's already gone would go live on the copy as-is —
   // leave it flexible instead; Edit is right after anyway.
@@ -214,6 +262,13 @@ export async function duplicateRequestAction(requestId: string) {
   redirect(`/dashboard/startup/requests/${duplicate.id}/edit`);
 }
 
+// A save that found the request in another state than the form was opened on (posted or deleted in
+// another tab): nothing it wrote is kept.
+class RequestChanged extends Error {}
+
+// Saves the edit form. A draft has two ways out of the form (`intent`): "draft" keeps it a draft, anything
+// else posts it, with everything a new request has to pass. A request that is already posted or closed
+// just saves.
 export async function updateRequestAction(
   requestId: string,
   _prevState: ActionState,
@@ -224,22 +279,28 @@ export async function updateRequestAction(
     return { error: "Not authorized." };
   }
 
-  const parsed = createRequestSchema.safeParse(Object.fromEntries(formData));
-  if (!parsed.success) {
-    return { error: parsed.error.issues[0]?.message ?? "Please fill in all fields correctly." };
-  }
-
-  const photos = await readPhotos(formData);
-  if ("error" in photos) return { error: photos.error };
-
   const startup = await prisma.startupProfile.findUniqueOrThrow({ where: { userId: session.user.id } });
   const request = await prisma.request.findUnique({
     where: { id: requestId },
-    select: { startupId: true, imageUrl: true, images: { select: { id: true } } },
+    select: { startupId: true, status: true, imageUrl: true, images: { select: { id: true } } },
   });
   if (!request || request.startupId !== startup.id) {
     return { error: "This request could not be found." };
   }
+
+  const isDraft = request.status === "DRAFT";
+  const savingDraft = isDraft && formData.get("intent") === "draft";
+  const posting = isDraft && !savingDraft;
+
+  if (posting && !(await emailIsVerified(session.user.id))) return { error: VERIFY_EMAIL_MESSAGE, code: "VERIFY_EMAIL" };
+
+  const parsed = (savingDraft ? draftRequestSchema : createRequestSchema).safeParse(Object.fromEntries(formData));
+  if (!parsed.success) return { error: firstIssue(parsed.error) };
+
+  if (posting && (await openRequestCount(session.user.id)) >= MAX_OPEN_REQUESTS) return { error: OPEN_LIMIT_MESSAGE };
+
+  const photos = await readPhotos(formData);
+  if ("error" in photos) return { error: photos.error };
 
   // Everything the new photo order needs, read before the transaction so
   // it stays short: new files' bytes, and which existing ids are really
@@ -260,19 +321,52 @@ export async function updateRequestAction(
   }
   const keptIds = plan.flatMap((p) => ("id" in p ? [p.id] : []));
 
-  await prisma.$transaction(async (tx) => {
-    // Whatever the legacy image was, it's either a proper photo now or gone.
-    await tx.request.update({ where: { id: requestId }, data: { ...requestFields(parsed.data), imageUrl: null } });
-    await tx.requestImage.deleteMany({ where: { requestId, id: { notIn: keptIds } } });
-    for (const p of plan) {
-      if ("id" in p) await tx.requestImage.update({ where: { id: p.id }, data: { position: p.position } });
-      else await tx.requestImage.create({ data: { requestId, position: p.position, contentType: p.contentType, data: p.data } });
-    }
-  });
+  if (posting && !(await takePostAllowance(session.user.id))) return { error: DAILY_LIMIT_MESSAGE };
+  if (savingDraft && !(await takeDraftAllowance(session.user.id))) return { error: "You've saved a lot of drafts today. Try again tomorrow." };
+
+  try {
+    await prisma.$transaction(async (tx) => {
+      // Whatever the legacy image was, it's either a proper photo now or gone. A posted draft goes live
+      // now: that's when it counts as created (the order creators see, the admin's numbers).
+      const saved = await tx.request.updateMany({
+        where: { id: requestId, status: request.status },
+        data: {
+          ...requestFields(parsed.data),
+          imageUrl: null,
+          ...(posting ? { status: "OPEN" as const, createdAt: new Date() } : {}),
+        },
+      });
+      if (saved.count !== 1) throw new RequestChanged();
+      await tx.requestImage.deleteMany({ where: { requestId, id: { notIn: keptIds } } });
+      for (const p of plan) {
+        if ("id" in p) await tx.requestImage.update({ where: { id: p.id }, data: { position: p.position } });
+        else await tx.requestImage.create({ data: { requestId, position: p.position, contentType: p.contentType, data: p.data } });
+      }
+    });
+  } catch (err) {
+    if (err instanceof RequestChanged) return { error: "This request changed in the meantime. Reload the page and try again." };
+    throw err;
+  }
+
+  if (posting) await notifyMatchingCreators(parsed.data, startup, session.user.id);
 
   revalidatePath(`/dashboard/startup/requests/${requestId}`);
   revalidatePath("/dashboard/startup");
-  redirect(`/dashboard/startup/requests/${requestId}`);
+  redirect(savingDraft ? "/dashboard/startup?status=DRAFT" : posting ? "/dashboard/startup" : `/dashboard/startup/requests/${requestId}`);
+}
+
+// Throws away a draft and its photos. Only drafts: a posted request may have creators and payments
+// behind it.
+export async function deleteDraftAction(requestId: string) {
+  const session = await auth();
+  if (!session || session.user.role !== "STARTUP") throw new Error("Not authorized.");
+
+  const { count } = await prisma.request.deleteMany({
+    where: { id: requestId, status: "DRAFT", startup: { userId: session.user.id } },
+  });
+  if (count !== 1) throw new Error("This draft could not be found.");
+
+  revalidatePath("/dashboard/startup");
 }
 
 export async function closeRequestAction(requestId: string) {
@@ -282,6 +376,7 @@ export async function closeRequestAction(requestId: string) {
   const startup = await prisma.startupProfile.findUniqueOrThrow({ where: { userId: session.user.id } });
   const request = await prisma.request.findUnique({ where: { id: requestId } });
   if (!request || request.startupId !== startup.id) throw new Error("This request could not be found.");
+  if (request.status === "DRAFT") throw new Error("A draft isn't posted yet: post or delete it instead.");
 
   await prisma.request.update({ where: { id: requestId }, data: { status: "CLOSED" } });
 
@@ -296,6 +391,8 @@ export async function reopenRequestAction(requestId: string) {
   const startup = await prisma.startupProfile.findUniqueOrThrow({ where: { userId: session.user.id } });
   const request = await prisma.request.findUnique({ where: { id: requestId } });
   if (!request || request.startupId !== startup.id) throw new Error("This request could not be found.");
+  // A draft goes live by being posted, with everything that checks (see updateRequestAction).
+  if (request.status === "DRAFT") throw new Error("A draft isn't posted yet: post it from its edit page.");
   // Closed by moderation: only an admin can open it again.
   if (request.closedByAdmin) throw new Error("This request was closed by moderation and can't be reopened.");
 

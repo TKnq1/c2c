@@ -66,7 +66,7 @@ export default async function DiscoverBrandsPage() {
     }),
     // Each brand's tile shows a photo from its requests, newest first.
     prisma.request.findMany({
-      where: { startupId: { in: brands.map((b) => b.id) } },
+      where: { startupId: { in: brands.map((b) => b.id) }, status: "OPEN" },
       select: { id: true, startupId: true, ...requestPhotoIds },
       orderBy: { createdAt: "desc" },
     }),

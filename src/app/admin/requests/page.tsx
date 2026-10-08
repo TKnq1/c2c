@@ -21,7 +21,8 @@ export default async function AdminRequestsPage(props: PageProps<"/admin/request
   const q = params.q?.trim();
 
   const where: Prisma.RequestWhereInput = {
-    ...(status && { status }),
+    // A draft is only its brand's: it was never posted.
+    status: status ?? { not: "DRAFT" },
     ...(q && {
       OR: [
         { title: { contains: q, mode: "insensitive" } },
@@ -43,7 +44,7 @@ export default async function AdminRequestsPage(props: PageProps<"/admin/request
       },
     }),
     prisma.request.count({ where }),
-    prisma.request.groupBy({ by: ["status"], _count: true }),
+    prisma.request.groupBy({ by: ["status"], where: { status: { not: "DRAFT" } }, _count: true }),
   ]);
   const countFor = (s: RequestStatus) => statusCounts.find((c) => c.status === s)?._count ?? 0;
 

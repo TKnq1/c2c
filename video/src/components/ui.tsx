@@ -212,8 +212,11 @@ export const Photo: React.FC<{ photo: PhotoKey; style?: CSSProperties }> = ({ ph
 
 const AVATAR_COLORS = ["#f43f5e", "#f59e0b", "#10b981", "#3b82f6", "#8b5cf6", "#ec4899"];
 
-export const Avatar: React.FC<{ name: string; size?: number; color?: string; style?: CSSProperties }> = ({ name, size = 64, color, style }) => {
+export const Avatar: React.FC<{ name: string; size?: number; color?: string; image?: string; style?: CSSProperties }> = ({ name, size = 64, color, image, style }) => {
   const fallback = AVATAR_COLORS[name.charCodeAt(0) % AVATAR_COLORS.length];
+  if (image) {
+    return <Img src={staticFile(image)} style={{ width: size, height: size, borderRadius: 999, flexShrink: 0, objectFit: "cover", display: "block", boxShadow: "0 0 0 2px rgba(7,7,7,0.1)", ...style }} />;
+  }
   return (
     <div
       style={{
@@ -304,6 +307,10 @@ export type Deal = {
   deliverables: string;
   productIncluded: boolean;
   rating: [string, number];
+  // Profile picture of the brand (public/), instead of the coloured initial.
+  avatar?: string;
+  // Where a photo that is cropped to the card is anchored, e.g. "left center".
+  photoPosition?: string;
 };
 
 export const ODD_BLOOM: Deal = {
@@ -344,7 +351,7 @@ export const DealCard: React.FC<{ deal: Deal; width: number; height: number; sty
         ...style,
       }}
     >
-      <Photo photo={deal.photo} style={{ position: "absolute", inset: 0 }} />
+      <Photo photo={deal.photo} style={{ position: "absolute", inset: 0, objectPosition: deal.photoPosition }} />
       <div
         style={{
           position: "absolute",
@@ -378,7 +385,7 @@ export const DealCard: React.FC<{ deal: Deal; width: number; height: number; sty
         }}
       >
         <div style={{ display: "flex", alignItems: "center", gap: 20 * scale }}>
-          <Avatar name={deal.company} size={76 * scale} />
+          <Avatar name={deal.company} image={deal.avatar} size={76 * scale} />
           <div>
             <div style={{ fontSize: 24 * scale, color: "rgba(255,255,255,0.75)" }}>{deal.company}</div>
             <div style={{ fontSize: 30 * scale, fontWeight: 700 }}>{deal.title}</div>

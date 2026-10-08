@@ -1,4 +1,5 @@
 import { Composition, Folder } from "remotion";
+import { ADS, HAS_VOICE } from "./ads";
 import { BRAND_DURATION, BrandVideo } from "./brand/BrandVideo";
 import { CREATOR_DURATION, CreatorVideo } from "./creator/CreatorVideo";
 import "./fonts";
@@ -12,6 +13,11 @@ export const RemotionRoot: React.FC = () => (
   <>
     <Composition id="CreatorVideo" component={CreatorVideo} defaultProps={{ music: true, sfx: true, voice: true }} durationInFrames={CREATOR_DURATION} fps={FPS} width={WIDTH} height={HEIGHT} />
     <Composition id="BrandVideo" component={BrandVideo} defaultProps={{ music: true, sfx: true, voice: true }} durationInFrames={BRAND_DURATION} fps={FPS} width={WIDTH} height={HEIGHT} />
+    <Folder name="Ads">
+      {ADS.map(({ id, component, duration }) => (
+        <Composition key={id} id={id} component={component} defaultProps={{ music: true, sfx: true, voice: HAS_VOICE }} durationInFrames={duration} fps={FPS} width={WIDTH} height={HEIGHT} />
+      ))}
+    </Folder>
     <Folder name="Styleframes">
       {STYLEFRAMES.map(({ id, component, keyframe }) => (
         <Composition key={id} id={id} component={component} durationInFrames={keyframe + 1} fps={FPS} width={WIDTH} height={HEIGHT} />

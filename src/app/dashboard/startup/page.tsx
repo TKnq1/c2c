@@ -49,9 +49,10 @@ export default async function StartupDashboardPage(props: PageProps<"/dashboard/
   const openPayments = offersToAnswer + toPay;
 
   const hasAnyRequests = allRequests.length > 0;
+  const hasDrafts = allRequests.some((r) => r.status === "DRAFT");
   const photosByRequestId = await photoUrlsByRequestId(allRequests);
   const requests = allRequests
-    .filter((r) => (status === "OPEN" || status === "CLOSED" ? r.status === status : true))
+    .filter((r) => (status === "OPEN" || status === "CLOSED" || status === "DRAFT" ? r.status === status : true))
     .sort((a, b) => {
       if (sort === "oldest") return a.createdAt.getTime() - b.createdAt.getTime();
       if (sort === "interest") return b._count.interests - a._count.interests;
@@ -114,7 +115,7 @@ export default async function StartupDashboardPage(props: PageProps<"/dashboard/
 
       {hasAnyRequests && (
         <Suspense fallback={<div className="h-10" />}>
-          <RequestsFilterBar />
+          <RequestsFilterBar showDrafts={hasDrafts} />
         </Suspense>
       )}
 

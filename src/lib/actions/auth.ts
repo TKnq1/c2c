@@ -369,20 +369,32 @@ export async function confirmEmailVerificationAction(
   /* eslint-enable @typescript-eslint/no-unused-vars */
   const tokenHash = hashToken(token);
   const verifyToken = await prisma.emailVerificationToken.findUnique({ where: { tokenHash } });
-  if (!verifyToken || verifyToken.usedAt || verifyToken.expiresAt < new Date()) {
-    return { error: "This verification link is invalid or has expired." };
+  if (!verifyToken) return { error: "This verification link is invalid or has expired." };
+
+  // A link that was already used (a second tab, a double tap) for an address that is verified by now
+  // is not a failure.
+  const verifiedAlready = async () =>
+    (await prisma.user.findUnique({ where: { id: verifyToken.userId }, select: { emailVerified: true } }))?.emailVerified === true;
+  if (verifyToken.usedAt || verifyToken.expiresAt < new Date()) {
+    return (await verifiedAlready()) ? { success: true } : { error: "This verification link is invalid or has expired." };
   }
 
-  // Used exactly once even if two requests arrive together.
-  const claimed = await prisma.emailVerificationToken.updateMany({
-    where: { id: verifyToken.id, usedAt: null },
-    data: { usedAt: new Date() },
-  });
-  if (claimed.count !== 1) return { error: "This verification link is invalid or has expired." };
-
+  // Used exactly once even if two requests arrive together, and never used up without the address
+  // being marked verified: both happen in one transaction.
   // (Two-factor can't be switched on before this point, see startTwoFactorEnrollmentAction, so an
   // address someone only typed into the sign-up form can't have an authenticator planted on it.)
-  await prisma.user.update({ where: { id: verifyToken.userId }, data: { emailVerified: true } });
+  const claimed = await prisma.$transaction(async (tx) => {
+    const result = await tx.emailVerificationToken.updateMany({
+      where: { id: verifyToken.id, usedAt: null },
+      data: { usedAt: new Date() },
+    });
+    if (result.count !== 1) return false;
+    await tx.user.update({ where: { id: verifyToken.userId }, data: { emailVerified: true } });
+    return true;
+  });
+  if (!claimed) {
+    return (await verifiedAlready()) ? { success: true } : { error: "This verification link is invalid or has expired." };
+  }
 
   return { success: true };
 }

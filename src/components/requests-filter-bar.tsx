@@ -10,15 +10,18 @@ const STATUS_TABS: { value: string; label: MessageKey }[] = [
   { value: "OPEN", label: "screens.requests.open" },
   { value: "CLOSED", label: "screens.requests.closed" },
 ];
+const DRAFT_TAB: { value: string; label: MessageKey } = { value: "DRAFT", label: "screens.requests.drafts" };
 
-export function RequestsFilterBar() {
+// The Drafts tab is only there when there are drafts (or the page is already on it).
+export function RequestsFilterBar({ showDrafts }: { showDrafts: boolean }) {
   const { t } = useI18n();
   const [{ status, sort }, setParam] = useUrlState(["status", "sort"]);
+  const tabs = showDrafts || status === DRAFT_TAB.value ? [...STATUS_TABS, DRAFT_TAB] : STATUS_TABS;
 
   return (
     <div className="flex items-center justify-between gap-3 flex-wrap">
       <div className="flex gap-1 rounded bg-fog p-1">
-        {STATUS_TABS.map((tab) => (
+        {tabs.map((tab) => (
           <button
             key={tab.value}
             type="button"

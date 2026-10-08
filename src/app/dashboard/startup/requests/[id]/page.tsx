@@ -50,6 +50,8 @@ export default async function RequestDetailPage({ params }: { params: Promise<{ 
   ]);
 
   if (!request || request.startupId !== startup.id) notFound();
+  // Nothing to look at yet (no creators, no facts for them): a draft opens in the form.
+  if (request.status === "DRAFT") redirect(`/dashboard/startup/requests/${id}/edit`);
   const photos = (await photoUrlsByRequestId([request])).get(request.id) ?? [];
   const isOpen = request.status === "OPEN";
   // The brand's own rate. Without Pro on the brand, a creator with Pro still gets the Pro rate, which the hint says.

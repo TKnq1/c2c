@@ -1,6 +1,8 @@
 "use client";
 
-import { startTransition, useActionState, useState } from "react";
+import { startTransition, useActionState, useEffect, useState } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { FiCheck, FiChevronRight } from "react-icons/fi";
 import { createRequestAction, updateRequestAction } from "@/lib/actions/requests";
 import { NICHES, PLATFORMS, PRODUCT_CATEGORIES, LANGUAGES } from "@/lib/constants";
@@ -48,6 +50,10 @@ type Props = {
   // Who the live preview shows as the brand.
   brand: { companyName: string; avatarUrl: string | null; rating: { average: number; count: number } };
   initial?: RequestFormInitial;
+  // Posting needs a confirmed email address; the form says so before it's tried.
+  emailVerified: boolean;
+  // Only on Edit. A draft can be saved as it is or posted; a request that is already posted just saves.
+  status?: "OPEN" | "CLOSED" | "DRAFT";
 };
 
 type Sheet = "description" | "platform" | "content" | "budget" | "postBy" | "category" | "niche" | "followers" | "languages";
@@ -63,11 +69,28 @@ const cents = (value: string) => {
 // sheet to change it — and a live preview of the card creators will swipe.
 // Every value lives in state and goes up as a hidden input, since a
 // sheet's contents only exist while it's open.
-export function RequestForm({ requestId, brand, initial }: Props) {
+export function RequestForm({ requestId, brand, initial, emailVerified, status }: Props) {
   const { t, locale } = useI18n();
+  const router = useRouter();
   const action = requestId ? updateRequestAction.bind(null, requestId) : createRequestAction;
   const [state, formAction, pending] = useActionState(action, undefined);
   const [clientError, setClientError] = useState<string | null>(null);
+  // A new request and a draft end in "Post request" (and, beside it, "Save draft"); one that is
+  // already posted only saves.
+  const isDraftForm = !requestId || status === "DRAFT";
+  const [mode, setMode] = useState<"post" | "draft">("post");
+  const needsVerification = isDraftForm && !emailVerified;
+
+  // The link in the mail is usually opened in another tab or app: coming back re-reads whether the
+  // address is confirmed by now, keeping everything typed into the form.
+  useEffect(() => {
+    if (!needsVerification) return;
+    const onVisible = () => {
+      if (document.visibilityState === "visible") router.refresh();
+    };
+    document.addEventListener("visibilitychange", onVisible);
+    return () => document.removeEventListener("visibilitychange", onVisible);
+  }, [needsVerification, router]);
   const [sheet, setSheet] = useState<Sheet | null>(null);
   const close = () => setSheet(null);
 
@@ -113,23 +136,31 @@ export function RequestForm({ requestId, brand, initial }: Props) {
 
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    // Enter in the title field submits with the form's first button, which is "Post request".
+    const submitter = (e.nativeEvent as SubmitEvent).submitter as HTMLButtonElement | null;
+    const asDraft = isDraftForm && submitter?.value === "draft";
+    setMode(asDraft ? "draft" : "post");
     // The rows aren't native inputs, so check what they'd otherwise have
     // enforced with `required` — the server re-checks everything anyway.
-    const missing = !title.trim()
-      ? t("screens.requests.missingTitle")
-      : !description.trim()
-        ? t("screens.requests.missingDescription")
-        : !deliverables.trim()
-          ? t("screens.requests.missingContent")
-          : minCents === null
-            ? t("screens.requests.missingBudget")
-            : null;
+    // A draft can be saved however little is filled in.
+    const missing = asDraft
+      ? null
+      : !title.trim()
+        ? t("screens.requests.missingTitle")
+        : !description.trim()
+          ? t("screens.requests.missingDescription")
+          : !deliverables.trim()
+            ? t("screens.requests.missingContent")
+            : minCents === null
+              ? t("screens.requests.missingBudget")
+              : null;
     const newPhotos = photos.filter((p) => p.kind === "new");
     const tooLarge = newPhotos.reduce((sum, p) => sum + p.file.size, 0) > MAX_UPLOAD_BYTES;
     setClientError(missing ?? (tooLarge ? t("screens.requests.photosTooLarge") : null));
     if (missing || tooLarge) return;
 
     const formData = new FormData(e.currentTarget);
+    formData.set("intent", asDraft ? "draft" : "post");
     for (const p of newPhotos) formData.append("photos", p.file);
     formData.set(
       "photoOrder",
@@ -138,7 +169,8 @@ export function RequestForm({ requestId, brand, initial }: Props) {
     startTransition(() => formAction(formData));
   }
 
-  const error = clientError ?? state?.error;
+  // The notice below already says it when the address isn't confirmed.
+  const error = clientError ?? (state?.code === "VERIFY_EMAIL" && needsVerification ? null : state?.error);
 
   return (
     <>
@@ -218,14 +250,35 @@ export function RequestForm({ requestId, brand, initial }: Props) {
         </aside>
 
         <div className="flex flex-col gap-3 md:col-start-1">
+          {needsVerification && (
+            <p className="rounded bg-fog px-4 py-3 text-sm text-ink">
+              {t("screens.requests.verifyFirst")}{" "}
+              <Link href="/dashboard/verify-email" className="font-medium underline">
+                {t("screens.requests.verifyLink")}
+              </Link>
+            </p>
+          )}
           {error && <p className="text-sm text-ink">{error}</p>}
-          <button
-            type="submit"
-            disabled={pending}
-            className="w-full rounded-full bg-ink px-4 py-3 font-medium text-paper transition hover:bg-graphite disabled:opacity-50 md:w-auto md:self-start md:px-8"
-          >
-            {pending ? t("common.saving") : requestId ? t("screens.requests.saveChanges") : t("screens.requests.post")}
-          </button>
+          <div className="flex flex-col gap-3 md:flex-row md:items-center">
+            <button
+              type="submit"
+              value="post"
+              disabled={pending}
+              className="w-full rounded-full bg-ink px-4 py-3 font-medium text-paper transition hover:bg-graphite disabled:opacity-50 md:w-auto md:px-8"
+            >
+              {pending && mode === "post" ? t("common.saving") : isDraftForm ? t("screens.requests.post") : t("screens.requests.saveChanges")}
+            </button>
+            {isDraftForm && (
+              <button
+                type="submit"
+                value="draft"
+                disabled={pending}
+                className="w-full rounded-full border border-neutral-300 px-4 py-3 font-medium transition hover:border-ink disabled:opacity-50 md:w-auto md:px-8 dark:border-neutral-700"
+              >
+                {pending && mode === "draft" ? t("common.saving") : t("screens.requests.saveDraft")}
+              </button>
+            )}
+          </div>
         </div>
       </form>
 

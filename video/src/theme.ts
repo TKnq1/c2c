@@ -27,6 +27,13 @@ export const PHOTOS = {
   cream: "photos/cream-lemon.jpg",
   lotion: "photos/bottle-blue.jpg",
   flask: "photos/flask-pastel.jpg",
+  // Real brands of the ads (src/ads/brands.ts).
+  rawHoodie: "photos/brands/raw-hoodie-front.jpg",
+  rawHoodieBack: "photos/brands/raw-hoodie-back.jpg",
+  rawPants: "photos/brands/raw-pants.jpg",
+  vsCatalog1: "photos/brands/vs-catalog-1.jpg",
+  vsCatalog2: "photos/brands/vs-catalog-2.jpg",
+  nokarHoodie: "photos/brands/nokar-hoodie.jpg",
 } as const;
 
 export type PhotoKey = keyof typeof PHOTOS;

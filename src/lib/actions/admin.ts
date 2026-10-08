@@ -145,6 +145,8 @@ export async function setRequestStatusAction(requestId: string, status: "OPEN" |
     select: { status: true, startup: { select: { user: { select: { suspendedAt: true } } } } },
   });
   if (!request) return { error: "This request no longer exists." };
+  // Never posted: only its brand can post it (with the checks that come with that).
+  if (request.status === "DRAFT") return { error: "This is a draft the brand hasn't posted yet." };
   if (request.status === status) return { error: `This request is already ${status === "OPEN" ? "open" : "closed"}.` };
   if (status === "OPEN" && request.startup.user.suspendedAt) {
     return { error: "The brand behind this request is suspended. Unsuspend the account first." };
