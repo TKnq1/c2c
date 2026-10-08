@@ -4,6 +4,7 @@ import type { IconType } from "react-icons";
 import { FiArrowDownRight, FiArrowUpRight } from "react-icons/fi";
 import type { FunnelStep } from "@/lib/admin-dashboard";
 import type { TrendPoint } from "@/lib/admin-trends";
+import { ChartTable } from "@/components/admin/chart-table";
 import { TrendLine } from "@/components/admin/trend-line";
 
 // A soft card, the dashboard's basic building block. The title can carry an icon in a tinted circle.
@@ -257,16 +258,7 @@ export function ColumnChart({ points, format }: { points: { label: string; value
           </span>
         ))}
       </div>
-      <table className="sr-only">
-        <tbody>
-          {points.map((p) => (
-            <tr key={p.label}>
-              <td>{p.label}</td>
-              <td>{format(p.value)}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+      <ChartTable rows={points.map((p) => [p.label, format(p.value)])} />
     </figure>
   );
 }

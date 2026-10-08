@@ -3,6 +3,7 @@
 import { useId, useState } from "react";
 import type { TrendPoint } from "@/lib/admin-trends";
 import { smoothPath } from "@/lib/smooth-path";
+import { ChartTable } from "@/components/admin/chart-table";
 
 const W = 300;
 const H = 64;
@@ -80,17 +81,7 @@ export function TrendLine({ points, previous, label }: { points: TrendPoint[]; p
           </span>
         )}
       </figcaption>
-      <table className="sr-only">
-        <caption>{label}</caption>
-        <tbody>
-          {points.map((p) => (
-            <tr key={p.day}>
-              <td>{formatDay(p.day)}</td>
-              <td>{p.value}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+      <ChartTable caption={label} rows={points.map((p) => [formatDay(p.day), String(p.value)])} />
     </figure>
   );
 }

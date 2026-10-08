@@ -3,6 +3,7 @@
 import { useId, useState } from "react";
 import { formatDay, formatValue, niceMax, type DailyPoint } from "@/lib/admin-chart";
 import { smoothPath } from "@/lib/smooth-path";
+import { ChartTable } from "@/components/admin/chart-table";
 
 const HEIGHT = 168;
 const AXIS_GAP = 22;
@@ -80,23 +81,7 @@ export function DailyLineChart({ title, points, unit, total }: { title: string; 
         </div>
       </div>
 
-      <table className="sr-only">
-        <caption>{title}</caption>
-        <thead>
-          <tr>
-            <th scope="col">Tag</th>
-            <th scope="col">Wert</th>
-          </tr>
-        </thead>
-        <tbody>
-          {points.map((p) => (
-            <tr key={p.day}>
-              <td>{formatDay(p.day)}</td>
-              <td>{formatValue(p.value, unit)}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+      <ChartTable caption={title} head={["Tag", "Wert"]} rows={points.map((p) => [formatDay(p.day), formatValue(p.value, unit)])} />
     </figure>
   );
 }
