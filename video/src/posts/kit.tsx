@@ -271,17 +271,20 @@ export const DeckButtons: React.FC<{ heartScale?: number }> = ({ heartScale = 1 
   </div>
 );
 
-export const ChatHeader: React.FC<{ name: string }> = ({ name }) => (
+export const ChatHeader: React.FC<{ name: string; avatar?: string }> = ({ name, avatar }) => (
   <div style={{ display: "flex", alignItems: "center", gap: 8, flexShrink: 0, padding: "0 8px 8px", borderBottom: `1px solid ${HAIRLINE}` }}>
     <FiChevronLeft size={24} />
-    <GreyAvatar name={name} size={28} />
+    <GreyAvatar name={name} size={28} src={avatar} />
     <span style={{ fontSize: 14, lineHeight: "20px", fontWeight: 700 }}>{name}</span>
   </div>
 );
 
 // --- Pieces of the app ----------------------------------------------------------------------------------------
 
-export const GreyAvatar: React.FC<{ name: string; size: number }> = ({ name, size }) => (
+export const GreyAvatar: React.FC<{ name: string; size: number; src?: string }> = ({ name, size, src }) =>
+  src ? (
+    <Img src={staticFile(src)} style={{ width: size, height: size, flexShrink: 0, borderRadius: 999, objectFit: "cover", boxShadow: `0 0 0 1px ${HAIRLINE}` }} />
+  ) : (
   <div
     style={{
       width: size,
@@ -300,7 +303,7 @@ export const GreyAvatar: React.FC<{ name: string; size: number }> = ({ name, siz
   >
     {name.charAt(0).toUpperCase()}
   </div>
-);
+  );
 
 const Stars: React.FC<{ rating: number; light?: boolean }> = ({ rating, light }) => (
   <span style={{ display: "inline-flex", gap: 1 }}>
@@ -335,10 +338,14 @@ const Chip: React.FC<{ filled?: boolean; children: ReactNode }> = ({ filled, chi
 
 export type FeedDeal = {
   photo: PhotoKey;
+  // A picture of one's own (a path under public/) instead of one of the stock photos, the brand's profile picture, and
+  // no rating for a brand that is real.
+  photoSrc?: string;
+  avatarSrc?: string;
   budget: string;
   company: string;
   title: string;
-  rating: [number, number];
+  rating: [number, number] | null;
   platform: "TikTok" | "Instagram";
   deliverables: string;
 };
@@ -346,7 +353,7 @@ export type FeedDeal = {
 // The swipe card of the Feed: the photo full-bleed, the budget up top, brand, title and what the job is over the
 // bottom (src/components/request-card-face.tsx).
 export const FeedCard: React.FC<{ deal: FeedDeal; height: number; marginTop?: number }> = ({ deal, height, marginTop = 12 }) => {
-  const photo = staticFile(PHOTOS[deal.photo]);
+  const photo = staticFile(deal.photoSrc ?? PHOTOS[deal.photo]);
   return (
     <div style={{ position: "relative", marginTop, height, flexShrink: 0 }}>
       <div style={{ position: "absolute", inset: 0, borderRadius: "0 0 28px 28px", boxShadow: SHADOW_XL }}>
@@ -384,11 +391,11 @@ export const FeedCard: React.FC<{ deal: FeedDeal; height: number; marginTop?: nu
             <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to top, rgba(0,0,0,0.7), transparent)" }} />
             <div style={{ position: "relative", display: "flex", flexDirection: "column", gap: 16, padding: "24px 24px 32px", color: "#fff" }}>
               <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
-                <GreyAvatar name={deal.company} size={56} />
+                <GreyAvatar name={deal.company} size={56} src={deal.avatarSrc} />
                 <div>
                   <div style={{ fontSize: 16, lineHeight: "24px", color: "rgba(255,255,255,0.7)" }}>{deal.company}</div>
                   <div style={{ fontSize: 17, lineHeight: "22px", fontWeight: 700 }}>{deal.title}</div>
-                  <Rating average={deal.rating[0]} count={deal.rating[1]} light />
+                  {deal.rating && <Rating average={deal.rating[0]} count={deal.rating[1]} light />}
                 </div>
               </div>
               <div style={{ display: "flex", flexWrap: "wrap", gap: 10, fontSize: 14, lineHeight: "20px", color: "rgba(255,255,255,0.9)" }}>

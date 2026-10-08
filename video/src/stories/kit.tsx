@@ -167,7 +167,7 @@ export const AddressPill: React.FC<{ dark?: boolean; size?: number; style?: CSSP
 
 // "Beispiel" at the foot of the safe area, for the stories that show made-up brands and prices. `fade` first darkens
 // the bottom of the story so the line reads over a phone.
-export const StoryExample: React.FC<{ dark?: boolean; fade?: boolean | number }> = ({ dark, fade }) => {
+export const StoryExample: React.FC<{ dark?: boolean; fade?: boolean | number; children?: ReactNode }> = ({ dark, fade, children = "Beispiel: Marken, Preise und Bewertungen sind erfunden." }) => {
   const tone = dark ? "11,11,11" : "255,255,255";
   const gradient =
     fade === true
@@ -177,7 +177,7 @@ export const StoryExample: React.FC<{ dark?: boolean; fade?: boolean | number }>
     <>
       {fade && <div style={{ position: "absolute", left: 0, right: 0, bottom: 0, height: fade === true ? 700 : fade, background: gradient }} />}
       <div style={{ position: "absolute", top: HEIGHT - SAFE_BOTTOM - 48, left: 0, right: 0, textAlign: "center", fontSize: 26, color: dark ? "#8f8f8f" : "#525252" }}>
-        Beispiel: Marken, Preise und Bewertungen sind erfunden.
+        {children}
       </div>
     </>
   );
@@ -207,7 +207,8 @@ export const StoryPhone: React.FC<{
   example?: boolean;
   light?: boolean;
   icon?: boolean;
-}> = ({ lines, screen, callout, at = [0, 0], rotate = 0, scale = 2.2, phoneTop = 660, phoneScale = 1.8, size = 84, top = 340, fade = true, example = true, light, icon = true }) => {
+  note?: string;
+}> = ({ lines, screen, callout, at = [0, 0], rotate = 0, scale = 2.2, phoneTop = 660, phoneScale = 1.8, size = 84, top = 340, fade = true, example = true, light, icon = true, note }) => {
   const phone = (
     <IPhone left={(WIDTH - IPHONE_WIDTH * phoneScale) / 2} top={phoneTop} scale={phoneScale}>
       {screen}
@@ -222,7 +223,7 @@ export const StoryPhone: React.FC<{
       {callout && (
         <div style={{ position: "absolute", left: at[0], top: at[1], transform: `translate(-50%, -50%) rotate(${rotate}deg) scale(${scale})`, color: colors.ink }}>{callout}</div>
       )}
-      {example && <StoryExample dark={!light} fade={light ? false : fade} />}
+      {example && <StoryExample dark={!light} fade={light ? false : fade}>{note}</StoryExample>}
     </>
   );
   return light ? <StoryDay>{body}</StoryDay> : <StoryNight>{body}</StoryNight>;

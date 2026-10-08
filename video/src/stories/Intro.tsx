@@ -2,12 +2,11 @@ import type { ReactNode } from "react";
 import { FiArrowDown, FiArrowRight } from "react-icons/fi";
 import { IoLockClosed } from "react-icons/io5";
 import { Img, staticFile } from "remotion";
-import { AppHeader, AppTabBar, DeckButtons, FeedCard, GreyAvatar, Toast } from "../posts/kit";
+import { AppHeader, AppTabBar, DeckButtons, FeedCard, Toast, type FeedDeal } from "../posts/kit";
 import { pillStyle } from "../pinned/layout";
 import { IPhone } from "../pinned/iphone";
 import { CreatorChatScreen, NewRequestScreen } from "../pinned/screens";
 import { AddressPill, FadeOut, StoryDay, StoryExample, StoryPhone, TopMark, Type } from "./kit";
-import { ODD_BLOOM } from "./Stills";
 
 // The highlight "Was ist comtor?": a short introduction in seven cards and a cover, in the light look of the app (the
 // same backdrop as the dark stories, white). The name stays at the top, the mark does not.
@@ -22,16 +21,58 @@ const Frame: React.FC<{ children: ReactNode }> = ({ children }) => (
   </StoryDay>
 );
 
+// The brands of the examples: their own photos and profile pictures (public/real/, cut from what was sent). The budgets
+// are made up, so the cards say so; no ratings are shown for a brand that is real.
+const NOTE = "Beispiel: Die Deals und Budgets sind erfunden.";
+
+const RAW_DEAL: FeedDeal = {
+  photo: "serum",
+  photoSrc: "real/raw-hoodie.jpg",
+  avatarSrc: "real/raw-logo.png",
+  budget: "250 €",
+  company: "Raw Supplies",
+  title: "Hoodie, erste Eindrücke",
+  rating: null,
+  platform: "TikTok",
+  deliverables: "1 Video",
+};
+
+const NAKAR_DEAL: FeedDeal = {
+  photo: "serum",
+  photoSrc: "real/nakar-front.jpg",
+  budget: "300 €",
+  company: "Nakar",
+  title: "Hoodie, erste Eindrücke",
+  rating: null,
+  platform: "Instagram",
+  deliverables: "1 Reel",
+};
+
+const VINTAGE_DEAL: FeedDeal = {
+  photo: "serum",
+  photoSrc: "real/vintage-jacket.jpg",
+  avatarSrc: "real/vintage-logo.png",
+  budget: "200 €",
+  company: "Vintage Steals",
+  title: "Jacke, erste Eindrücke",
+  rating: null,
+  platform: "TikTok",
+  deliverables: "1 Video",
+};
+
+const NAKAR_PHOTOS: [string, string, string] = ["real/nakar-front.jpg", "real/nakar-back.jpg", "real/nakar-print.jpg"];
+const NAKAR_REQUEST = "Unser neuer Hoodie, erste Eindrücke";
+
 // Height of the deck between the header and the buttons, in app pixels (as in the pinned cover).
 const DECK = 451;
 
 // The creator's Feed at rest: the header, one deal card, the buttons and the tab bar.
-const FeedScreen: React.FC = () => (
+const FeedScreen: React.FC<{ deal: FeedDeal }> = ({ deal }) => (
   <>
     <AppHeader title="Feed" />
     <div style={{ position: "relative", height: DECK, flexShrink: 0 }}>
       <div style={{ position: "absolute", inset: 0 }}>
-        <FeedCard deal={ODD_BLOOM} height={DECK - 12} />
+        <FeedCard deal={deal} height={DECK - 12} />
       </div>
     </div>
     <DeckButtons />
@@ -39,23 +80,34 @@ const FeedScreen: React.FC = () => (
   </>
 );
 
-// 1. The title. In the story it is a short video: the words come in one after another, then the two sides join.
+// A deal card on its own, as it comes up in the Feed.
+const Card: React.FC<{ deal: FeedDeal; x: number; y: number; rotate: number; scale: number }> = ({ deal, x, y, rotate, scale }) => (
+  <div
+    style={{
+      position: "absolute",
+      left: x,
+      top: y,
+      width: 296,
+      height: 430,
+      transform: `translate(-50%, -50%) rotate(${rotate}deg) scale(${scale})`,
+      borderRadius: 28,
+      overflow: "hidden",
+      boxShadow: "0 40px 70px -20px rgba(0,0,0,0.35)",
+    }}
+  >
+    <FeedCard deal={deal} height={430} marginTop={0} />
+  </div>
+);
+
+// 1. The title. In the story it is a short video: the words come in one after another, then the three deals fan out.
 export const IntroTitle: React.FC = () => (
   <Frame>
     <Type top={420} size={156} lines={[{ text: "Was ist" }, { text: "comtor?" }]} />
     <Type top={790} size={62} lineHeight={1.2} lines={[{ text: "Der Marktplatz für", soft: true }, { text: "Marken und Creator.", soft: true }]} />
-    <div style={{ position: "absolute", top: 1110, left: 0, right: 0, height: 260 }}>
-      <div style={{ position: "absolute", left: 300, right: 300, top: 129, borderTop: "4px dashed rgba(7,7,7,0.3)" }} />
-      <div style={{ position: "absolute", left: 540, top: 130, transform: "translate(-50%, -50%)", padding: "10px 28px", borderRadius: 999, backgroundColor: "#070707", color: "#fff", fontSize: 38, fontWeight: 900 }}>Deal</div>
-      <div style={{ position: "absolute", left: 170, top: 0 }}>
-        <GreyAvatar name="Odd Bloom" size={260} />
-      </div>
-      <div style={{ position: "absolute", left: 650, top: 0 }}>
-        <GreyAvatar name="Mia K." size={260} />
-      </div>
-    </div>
-    <div style={{ position: "absolute", top: 1390, left: 170, width: 260, textAlign: "center", fontSize: 40, fontWeight: 900 }}>Marke</div>
-    <div style={{ position: "absolute", top: 1390, left: 650, width: 260, textAlign: "center", fontSize: 40, fontWeight: 900 }}>Creator</div>
+    <Card deal={VINTAGE_DEAL} x={320} y={1290} rotate={-9} scale={1.25} />
+    <Card deal={NAKAR_DEAL} x={760} y={1290} rotate={9} scale={1.25} />
+    <Card deal={RAW_DEAL} x={540} y={1270} rotate={0} scale={1.35} />
+    <StoryExample>{NOTE}</StoryExample>
   </Frame>
 );
 
@@ -71,16 +123,16 @@ export const IntroIdea: React.FC = () => (
     <Side x={560}>Creator</Side>
     <FadeOut from={440}>
       <IPhone left={100} top={700} scale={1.2}>
-        <NewRequestScreen />
+        <NewRequestScreen title={NAKAR_REQUEST} photos={NAKAR_PHOTOS} />
       </IPhone>
       <IPhone left={560} top={700} scale={1.2}>
-        <FeedScreen />
+        <FeedScreen deal={NAKAR_DEAL} />
       </IPhone>
     </FadeOut>
     <div style={{ position: "absolute", left: 540, top: 1130, transform: "translate(-50%, -50%)", width: 96, height: 96, borderRadius: 999, backgroundColor: "#070707", color: "#fff", display: "grid", placeItems: "center", boxShadow: "0 12px 30px rgba(0,0,0,0.3)" }}>
       <FiArrowRight size={52} />
     </div>
-    <StoryExample />
+    <StoryExample>{NOTE}</StoryExample>
   </Frame>
 );
 
@@ -95,7 +147,8 @@ export const IntroCreator: React.FC = () => (
     phoneTop={610}
     phoneScale={1.5}
     fade={460}
-    screen={<FeedScreen />}
+    note={NOTE}
+    screen={<FeedScreen deal={RAW_DEAL} />}
   />
 );
 
@@ -106,7 +159,8 @@ export const IntroPays: React.FC = () => (
     icon={false}
     lines={[{ text: "Die Marke zahlt zuerst." }, { text: "Das Geld wartet,", soft: true }, { text: "bis du postest.", soft: true }]}
     size={80}
-    screen={<CreatorChatScreen paid />}
+    note={NOTE}
+    screen={<CreatorChatScreen paid brand="Vintage Steals" avatar="real/vintage-logo.png" product="Unser neuer Drop, ehrliche erste Eindrücke." />}
     callout={
       <span style={pillStyle}>
         <IoLockClosed size={16} />
@@ -126,7 +180,8 @@ export const IntroBrand: React.FC = () => (
     icon={false}
     lines={[{ text: "Anfrage in einer Minute." }, { text: "Creator melden", soft: true }, { text: "sich bei dir.", soft: true }]}
     size={80}
-    screen={<NewRequestScreen />}
+    note={NOTE}
+    screen={<NewRequestScreen title={NAKAR_REQUEST} photos={NAKAR_PHOTOS} />}
     callout={<Toast>Anfrage veröffentlicht.</Toast>}
     at={[850, 835]}
     rotate={-3}

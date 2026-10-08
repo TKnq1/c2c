@@ -118,14 +118,19 @@ export const DealDetailsScreen: React.FC = () => (
 );
 
 // The chat with the brand: the question, the deal, the brand's offer.
-export const CreatorChatScreen: React.FC<{ paid?: boolean }> = ({ paid }) => (
+export const CreatorChatScreen: React.FC<{ paid?: boolean; brand?: string; avatar?: string; product?: string }> = ({
+  paid,
+  brand = "Odd Bloom",
+  avatar,
+  product = "Unser neues Serum, ehrliche erste Eindrücke.",
+}) => (
   <>
-    <ChatHeader name="Odd Bloom" />
+    <ChatHeader name={brand} avatar={avatar} />
     {/* Messages sit at the bottom, above the composer, as in the app. */}
     <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "flex-end", gap: 6, padding: 12 }}>
       <Bubble>Hey Mia, wir lieben deinen Content!</Bubble>
       <Bubble mine>Danke! Was habt ihr geplant?</Bubble>
-      <Bubble>Unser neues Serum, ehrliche erste Eindrücke.</Bubble>
+      <Bubble>{product}</Bubble>
       <Bubble>Ein TikTok für 250 €?</Bubble>
       <Bubble mine>Deal!</Bubble>
       <div style={{ marginTop: 6 }}>
@@ -133,10 +138,10 @@ export const CreatorChatScreen: React.FC<{ paid?: boolean }> = ({ paid }) => (
           <ChatOffer
             eyebrow="Bezahlt · zurückgehalten"
             amount="250,00 €"
-            detail="Poste den Inhalt und reiche dann den Link ein. Du bekommst 225,00 €, sobald Odd Bloom den Post freigibt."
+            detail={`Poste den Inhalt und reiche dann den Link ein. Du bekommst 225,00 €, sobald ${brand} den Post freigibt.`}
           />
         ) : (
-          <ChatOffer eyebrow="Angebot von Odd Bloom" amount="250,00 €" detail="Nach der Gebühr von 10 % bekommst du 225,00 €." actions={["Annehmen", "Ablehnen"]} />
+          <ChatOffer eyebrow={`Angebot von ${brand}`} amount="250,00 €" detail="Nach der Gebühr von 10 % bekommst du 225,00 €." actions={["Annehmen", "Ablehnen"]} />
         )}
       </div>
     </div>
@@ -182,28 +187,38 @@ export const PaymentsScreen: React.FC = () => (
 
 // --- Brands -----------------------------------------------------------------------------------------------
 
-const Thumb: React.FC<{ photo: PhotoKey; on?: boolean }> = ({ photo, on }) => (
+const Thumb: React.FC<{ photo?: PhotoKey; src?: string; on?: boolean }> = ({ photo, src, on }) => (
   <Img
-    src={staticFile(PHOTOS[photo])}
+    src={staticFile(src ?? PHOTOS[photo ?? "serum"])}
     style={{ width: 52, height: 52, objectFit: "cover", borderRadius: 4, outline: on ? `2px solid ${colors.ink}` : undefined, outlineOffset: 2, opacity: on ? 1 : 0.7 }}
   />
 );
 
 // New request: everything a creator sees on the card, set in one go.
-export const NewRequestScreen: React.FC = () => (
+export const NewRequestScreen: React.FC<{ title?: string; photos?: [string, string, string] }> = ({ title = "Unser neues Parfüm, erste Eindrücke", photos }) => (
   <>
     <AppHeader title="Neue Anfrage" />
     <div style={{ display: "flex", flexDirection: "column", gap: 14, padding: 14 }}>
       <div>
         <Label>Titel</Label>
-        <div style={{ marginTop: 6, border: `1px solid ${palette[300]}`, borderRadius: 4, padding: "9px 10px", fontSize: 14 }}>Unser neues Parfüm, erste Eindrücke</div>
+        <div style={{ marginTop: 6, border: `1px solid ${palette[300]}`, borderRadius: 4, padding: "9px 10px", fontSize: 14 }}>{title}</div>
       </div>
       <div>
         <Label>Foto</Label>
         <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
-          <Thumb photo="flask" on />
-          <Thumb photo="serum" />
-          <Thumb photo="tote" />
+          {photos ? (
+            <>
+              <Thumb src={photos[0]} on />
+              <Thumb src={photos[1]} />
+              <Thumb src={photos[2]} />
+            </>
+          ) : (
+            <>
+              <Thumb photo="flask" on />
+              <Thumb photo="serum" />
+              <Thumb photo="tote" />
+            </>
+          )}
         </div>
       </div>
       <div>
