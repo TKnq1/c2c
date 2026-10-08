@@ -96,6 +96,17 @@ describe("sendEmail", () => {
     expect(logMail).not.toHaveBeenCalled();
   });
 
+  it("ignores the dry-run switch on the live site", async () => {
+    vi.stubEnv("RESEND_API_KEY", "re_key");
+    vi.stubEnv("EMAIL_DRY_RUN", "1");
+    vi.stubEnv("VERCEL_ENV", "production");
+    send.mockResolvedValue({ data: { id: "abc123" }, error: null });
+    const { sendEmail } = await load();
+
+    expect(await sendEmail(email)).toEqual({ ok: true, id: "abc123" });
+    expect(send).toHaveBeenCalledTimes(1);
+  });
+
   it("doesn't throw without an API key", async () => {
     vi.stubEnv("RESEND_API_KEY", "");
     const { sendEmail } = await load();

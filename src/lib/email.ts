@@ -30,8 +30,8 @@ type Outgoing = Email & { to: string; headers?: Record<string, string>; attachme
 
 export async function sendEmail(email: Outgoing): Promise<SendEmailResult> {
   // For local seeds and demos (prisma/seed-deals.ts): nothing leaves the machine, nothing is logged, so a developer's real key
-  // never mails the demo accounts.
-  if (process.env.EMAIL_DRY_RUN === "1") return { ok: true, id: "dry-run" };
+  // never mails the demo accounts. Never on the live site: a switch left on there would silently drop every mail.
+  if (process.env.EMAIL_DRY_RUN === "1" && process.env.VERCEL_ENV !== "production") return { ok: true, id: "dry-run" };
   const result = await deliver(email);
   await logMail(email.subject, result);
   return result;
