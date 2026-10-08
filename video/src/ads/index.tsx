@@ -39,11 +39,11 @@ const SPECS: AdSpec[] = [
     payoff: [["Kein Verhandeln.", { mark: "Nur wischen." }]],
     cta: ["Wisch dich zum", { mark: "ersten Deal." }],
     vo: [
-      "Was nimmst du für einen Post? Jede Woche die gleiche Frage.",
+      "Was nimmst du für einen Post? Immer dieselbe Frage.",
       "Schluss damit.",
-      "Auf comtor steht das Budget schon auf der Karte.",
+      "Auf comtor steht das Budget auf der Karte. Ein Klick.",
       "Kein Verhandeln. Nur wischen.",
-      "Die ersten hundert Creator bekommen Pro kostenlos. Auf comtor punkt app.",
+      "Hundert Plätze. Pro kostenlos. comtor punkt app.",
     ],
   },
   {
@@ -56,11 +56,11 @@ const SPECS: AdSpec[] = [
     payoff: [["Erst bezahlt.", { mark: "Dann posten." }]],
     cta: ["Nie wieder", { mark: "Rechnungen jagen." }],
     vo: [
-      "Post ist online. Das Geld nicht.",
-      "Ab jetzt andersrum.",
-      "Auf comtor zahlt die Marke zuerst. Das Geld wird zurückgehalten, bis dein Post online ist.",
+      "Post ist online. Das Geld nicht. Seit siebenundvierzig Tagen.",
+      "Jetzt andersrum.",
+      "Die Marke zahlt zuerst. Das Geld wird zurückgehalten.",
       "Erst bezahlt. Dann posten.",
-      "Jetzt auf comtor punkt app.",
+      "Hundert Plätze. Pro kostenlos. comtor punkt app.",
     ],
   },
   {
@@ -73,11 +73,11 @@ const SPECS: AdSpec[] = [
     payoff: [["Du wählst.", { mark: "Nicht umgekehrt." }]],
     cta: ["Dein nächster Deal", { mark: "wartet schon." }],
     vo: [
-      "Noch keine Marke hat dir geschrieben?",
-      "Warte nicht länger.",
-      "Auf comtor wischst du durch bezahlte Deals.",
+      "Noch keine Marke hat dir geschrieben? Seit dreißig Tagen?",
+      "Nicht warten.",
+      "Auf comtor wählst du bezahlte Deals aus. Mit einem Klick.",
       "Du wählst. Nicht umgekehrt.",
-      "Jetzt auf comtor punkt app.",
+      "Hundert Plätze. Pro kostenlos. comtor punkt app.",
     ],
   },
   {
@@ -91,11 +91,11 @@ const SPECS: AdSpec[] = [
     payoff: [["UGC statt", { mark: "Werbung." }], "Echte Creator. Echte Videos."],
     cta: ["Sichere dir", { mark: "deinen Platz." }],
     vo: [
-      "Deine Anzeige? Weggewischt.",
-      "Aber echten Creatorn hören die Leute zu.",
-      "Auf comtor melden sie sich bei dir.",
+      "Deine Anzeige? Weggewischt. Die nächste? Auch.",
+      "Creatorn hört man zu.",
+      "Auf comtor melden sich Creator bei dir.",
       "U-G-C statt Werbung.",
-      "Die ersten fünfzig Marken bekommen Pro kostenlos. comtor punkt app.",
+      "Fünfzig Plätze. Pro kostenlos. comtor punkt app.",
     ],
   },
   {
@@ -108,11 +108,11 @@ const SPECS: AdSpec[] = [
     payoff: [["Null", { mark: "Kaltakquise." }], "Ohne eine einzige DM."],
     cta: ["Sichere dir", { mark: "deinen Platz." }],
     vo: [
-      "Siebenundvierzig DMs. Zwei Antworten.",
+      "Siebenundvierzig D-M-s. Zwei Antworten. Das kann besser.",
       "Dreh es um.",
-      "Auf comtor postest du eine Anfrage – und passende Creator melden sich bei dir.",
-      "Ohne eine einzige Kalt-DM.",
-      "Sichere dir deinen Platz auf comtor punkt app.",
+      "Du postest eine Anfrage. Creator melden sich bei dir.",
+      "Null Kaltakquise.",
+      "Fünfzig Plätze. Pro kostenlos. comtor punkt app.",
     ],
   },
   {
@@ -125,11 +125,11 @@ const SPECS: AdSpec[] = [
     payoff: [["Du behältst", { mark: "die Kontrolle." }]],
     cta: ["Zahl erst,", { mark: "wenn's live ist." }],
     vo: [
-      "Bezahlt – und gepostet hat niemand?",
+      "Bezahlt. Und gepostet hat niemand. Gesehen. Keine Antwort.",
       "Nicht auf comtor.",
-      "Dein Geld wird zurückgehalten, bis der Post online ist und du ihn freigibst.",
+      "Dein Geld wird zurückgehalten, bis der Post online ist.",
       "Du behältst die Kontrolle.",
-      "Jetzt auf comtor punkt app.",
+      "Fünfzig Plätze. Pro kostenlos. comtor punkt app.",
     ],
   },
 ];

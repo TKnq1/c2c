@@ -47,45 +47,65 @@ Nokar-Bild und -Profilbild sind noch Platzhalter (`nokar-hoodie.jpg`, `nokar-ava
 
 ## Voiceover (ElevenLabs)
 
-**Eine Datei pro Zeile**, benannt nach der ID, in `voice/source/ads/` legen (`AC1-1.mp3` … `AB3-5.mp3`). Stille
-am Anfang und Ende ist egal. Danach:
+Stimme wie bei den langen Videos: „Damien – Iconic Commercial Power“, Speed 1,10, Stability 44, Similarity 100.
+Creator-Ads jung und energisch, Marken-Ads ruhig und sicher (eine Stimme für alle ist ok). Zahlen sind ausgeschrieben.
+Aussprache prüfen: „comtor“ (notfalls „Kom-tor“), „U-G-C“ und „D-M-s“ (stehen schon buchstabiert), „Kaltakquise“.
+
+**Wie liefern:** entweder **eine Datei pro Ad** (`AC1.mp3` … `AB3.mp3`, die fünf Zeilen nacheinander mit etwa einer
+Sekunde Pause dazwischen) oder **eine Datei pro Zeile** (`AC1-1.mp3` … `AB3-5.mp3`). Beides in `voice/source/ads/`,
+auch gemischt (die Einzeldatei gewinnt). Stille am Anfang und Ende ist egal. Jeder Satz ist ein eigener Sprechabschnitt:
+ElevenLabs setzt nach Punkt und Fragezeichen eine Pause, daran werden die Zeilen geschnitten. Stimmt die Anzahl nicht,
+bricht das Skript mit einer Liste der gefundenen Abschnitte ab, dann die Ad als Einzeldateien schicken.
 
 ```
 npm run ads:voice   # schneidet, normalisiert, passt jede Szene in ganzen Beats an die Zeile an, Musik neu
 npm run ads:video   # rendert out/ads/<ID>-final.mp4
 ```
 
-Einstellungen wie in `VOICEOVER.md` (Multilingual v2, Stability 40–50 %, Similarity 75 %, Style 10–20 %). Creator
-eher jung und energisch, Marken ruhig und sicher. Fehlt eine Zeile, behält die Szene ihr gezeichnetes Timing. Ist
-eine Zeile länger als die Szene, wird die Szene länger (die Ad dann etwas über 15 s).
+**Zeitbudget:** Die Szene wächst automatisch, wenn die Zeile nicht reinpasst (jede Überschreitung kostet etwa 0,5 s).
+Bleibst du darunter, bleibt die Ad bei 15 s; realistisch sind 15,5–16 s. Fehlt eine Zeile, behält die Szene ihr
+gezeichnetes Timing.
 
-| ID | Text |
-|---|---|
-| AC1-1 | Was nimmst du für einen Post? Jede Woche die gleiche Frage. |
-| AC1-2 | Schluss damit. |
-| AC1-3 | Auf comtor steht das Budget schon auf der Karte. |
-| AC1-4 | Kein Verhandeln. Nur wischen. |
-| AC1-5 | Die ersten hundert Creator bekommen Pro kostenlos. Auf comtor punkt app. |
-| AC2-1 | Post ist online. Das Geld nicht. |
-| AC2-2 | Ab jetzt andersrum. |
-| AC2-3 | Auf comtor zahlt die Marke zuerst. Das Geld wird zurückgehalten, bis dein Post online ist. |
-| AC2-4 | Erst bezahlt. Dann posten. |
-| AC2-5 | Jetzt auf comtor punkt app. |
-| AC4-1 | Noch keine Marke hat dir geschrieben? |
-| AC4-2 | Warte nicht länger. |
-| AC4-3 | Auf comtor wischst du durch bezahlte Deals. |
-| AC4-4 | Du wählst. Nicht umgekehrt. |
-| AC4-5 | Jetzt auf comtor punkt app. |
-| AB1-1 | Deine Anzeige? Weggewischt. |
-| AB1-2 | Aber echten Creatorn hören die Leute zu. |
-| AB1-3 | Auf comtor melden sie sich bei dir. |
-| AB1-4 | U-G-C statt Werbung. |
-| AB1-5 | Die ersten fünfzig Marken bekommen Pro kostenlos. comtor punkt app. |
-| AB2-1 | Siebenundvierzig DMs. Zwei Antworten. |
-| AB2-2 | Dreh es um. |
-| AB2-3 | Auf comtor postest du eine Anfrage – und passende Creator melden sich bei dir. |
-| AB2-4 | Ohne eine einzige Kalt-DM. |
-| AB2-5 | Sichere dir deinen Platz auf comtor punkt app. |
+| Szene | Zeile höchstens | ca. Silben |
+|---|---|---|
+| 1 Pain | 4,0 s | 16 |
+| 2 Turn | 1,0 s | 4 |
+| 3 Mechanismus | 3,4 s | 14 |
+| 4 Payoff | 1,1 s (6–7 Silben strecken um 0,5 s) | 5 |
+| 5 CTA | 2,8 s | 12 |
+
+| ID | Text | Abschnitte | Im Bild |
+|---|---|---|---|
+| AC1-1 | Was nimmst du für einen Post? Immer dieselbe Frage. | 2 | fünf DMs |
+| AC1-2 | Schluss damit. | 1 | |
+| AC1-3 | Auf comtor steht das Budget auf der Karte. Ein Klick. | 2 | Klick bei 2,9 s |
+| AC1-4 | Kein Verhandeln. Nur wischen. | 2 | |
+| AC1-5 | Hundert Plätze. Pro kostenlos. comtor punkt app. | 3 | Klick bei 3,0 s |
+| AC2-1 | Post ist online. Das Geld nicht. Seit siebenundvierzig Tagen. | 3 | Zähler erreicht 47 bei 3,7 s |
+| AC2-2 | Jetzt andersrum. | 1 | |
+| AC2-3 | Die Marke zahlt zuerst. Das Geld wird zurückgehalten. | 2 | |
+| AC2-4 | Erst bezahlt. Dann posten. | 2 | |
+| AC2-5 | Hundert Plätze. Pro kostenlos. comtor punkt app. | 3 | Klick bei 3,0 s |
+| AC4-1 | Noch keine Marke hat dir geschrieben? Seit dreißig Tagen? | 2 | Postfach, Tag 30 |
+| AC4-2 | Nicht warten. | 1 | |
+| AC4-3 | Auf comtor wählst du bezahlte Deals aus. Mit einem Klick. | 2 | Klicks bei 1,6 s und 3,3 s |
+| AC4-4 | Du wählst. Nicht umgekehrt. | 2 | |
+| AC4-5 | Hundert Plätze. Pro kostenlos. comtor punkt app. | 3 | Klick bei 3,0 s |
+| AB1-1 | Deine Anzeige? Weggewischt. Die nächste? Auch. | 4 | fünf Wischer |
+| AB1-2 | Creatorn hört man zu. | 1 | |
+| AB1-3 | Auf comtor melden sich Creator bei dir. | 1 | Push ab 2,7 s |
+| AB1-4 | U-G-C statt Werbung. | 1 | |
+| AB1-5 | Fünfzig Plätze. Pro kostenlos. comtor punkt app. | 3 | Klick bei 3,0 s |
+| AB2-1 | Siebenundvierzig D-M-s. Zwei Antworten. Das kann besser. | 3 | Gesendet-Liste |
+| AB2-2 | Dreh es um. | 1 | |
+| AB2-3 | Du postest eine Anfrage. Creator melden sich bei dir. | 2 | Klick bei 1,7 s, Pushes ab 2,3 s |
+| AB2-4 | Null Kaltakquise. | 1 | |
+| AB2-5 | Fünfzig Plätze. Pro kostenlos. comtor punkt app. | 3 | Klick bei 3,0 s |
+| AB3-1 | Bezahlt. Und gepostet hat niemand. Gesehen. Keine Antwort. | 4 | Chat mit „Gesehen“ |
+| AB3-2 | Nicht auf comtor. | 1 | |
+| AB3-3 | Dein Geld wird zurückgehalten, bis der Post online ist. | 1 | Freigeben-Klick bei 3,3 s |
+| AB3-4 | Du behältst die Kontrolle. | 1 | |
+| AB3-5 | Fünfzig Plätze. Pro kostenlos. comtor punkt app. | 3 | Klick bei 3,0 s |
 
 ## Captions (Primärtext für die Anzeigen)
 
