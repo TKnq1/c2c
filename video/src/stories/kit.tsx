@@ -62,9 +62,9 @@ export const StoryPaper: React.FC<{ photo: PhotoKey; zoom?: number; focus?: [num
 };
 
 // The mark and the name, centred at the top of the safe area.
-export const TopMark: React.FC<{ dark?: boolean }> = ({ dark }) => (
+export const TopMark: React.FC<{ dark?: boolean; icon?: boolean }> = ({ dark, icon = true }) => (
   <div style={{ position: "absolute", top: SAFE_TOP - 24, left: 0, right: 0, display: "flex", justifyContent: "center", alignItems: "center", gap: 16 }}>
-    <Img src={staticFile("logo.png")} style={{ width: 52, height: 52, filter: dark ? "invert(1)" : undefined, mixBlendMode: dark ? undefined : "multiply" }} />
+    {icon && <Img src={staticFile("logo.png")} style={{ width: 52, height: 52, filter: dark ? "invert(1)" : undefined, mixBlendMode: dark ? undefined : "multiply" }} />}
     <span style={{ fontSize: 42, fontWeight: 700, letterSpacing: -0.6, color: dark ? "#fff" : colors.ink }}>comtor</span>
   </div>
 );
@@ -151,14 +151,28 @@ export const AddressPill: React.FC<{ dark?: boolean; size?: number; style?: CSSP
 
 // "Beispiel" at the foot of the safe area, for the stories that show made-up brands and prices. `fade` first darkens
 // the bottom of the story so the line reads over a phone.
-export const StoryExample: React.FC<{ dark?: boolean; fade?: boolean | number }> = ({ dark, fade }) => (
-  <>
-    {fade && <div style={{ position: "absolute", left: 0, right: 0, bottom: 0, height: fade === true ? 700 : fade, background: fade === true ? "linear-gradient(to top, #0b0b0b 0%, rgba(11,11,11,0.97) 40%, rgba(11,11,11,0.7) 65%, rgba(11,11,11,0) 100%)" : "linear-gradient(to top, #0b0b0b 0%, rgba(11,11,11,0.96) 72%, rgba(11,11,11,0) 100%)" }} />}
-    <div style={{ position: "absolute", top: HEIGHT - SAFE_BOTTOM - 48, left: 0, right: 0, textAlign: "center", fontSize: 26, color: dark ? "#8f8f8f" : "#525252" }}>
-      Beispiel: Marken, Preise und Bewertungen sind erfunden.
-    </div>
-  </>
-);
+export const StoryExample: React.FC<{ dark?: boolean; fade?: boolean | number }> = ({ dark, fade }) => {
+  const tone = dark ? "11,11,11" : "255,255,255";
+  const gradient =
+    fade === true
+      ? `linear-gradient(to top, rgb(${tone}) 0%, rgba(${tone},0.97) 40%, rgba(${tone},0.7) 65%, rgba(${tone},0) 100%)`
+      : `linear-gradient(to top, rgb(${tone}) 0%, rgba(${tone},0.96) 72%, rgba(${tone},0) 100%)`;
+  return (
+    <>
+      {fade && <div style={{ position: "absolute", left: 0, right: 0, bottom: 0, height: fade === true ? 700 : fade, background: gradient }} />}
+      <div style={{ position: "absolute", top: HEIGHT - SAFE_BOTTOM - 48, left: 0, right: 0, textAlign: "center", fontSize: 26, color: dark ? "#8f8f8f" : "#525252" }}>
+        Beispiel: Marken, Preise und Bewertungen sind erfunden.
+      </div>
+    </>
+  );
+};
+
+// Lets what is inside fade away towards the foot of the story: opaque until `from` px above the bottom edge, gone just
+// above the "Beispiel" line.
+export const FadeOut: React.FC<{ from: number; children: ReactNode }> = ({ from, children }) => {
+  const mask = `linear-gradient(to bottom, #000 ${HEIGHT - from}px, transparent ${HEIGHT - SAFE_BOTTOM - 55}px)`;
+  return <div style={{ position: "absolute", inset: 0, WebkitMaskImage: mask, maskImage: mask }}>{children}</div>;
+};
 
 // The app on an iPhone, large and cut off by the bottom edge, under a headline in two tones. One piece of the app
 // (`callout`) is lifted out and tilted, centred on `at`.
@@ -175,16 +189,26 @@ export const StoryPhone: React.FC<{
   top?: number;
   fade?: boolean | number;
   example?: boolean;
-}> = ({ lines, screen, callout, at = [0, 0], rotate = 0, scale = 2.2, phoneTop = 660, phoneScale = 1.8, size = 84, top = 340, fade = true, example = true }) => (
-  <StoryNight>
-    <TopMark dark />
-    <Type dark lines={lines} size={size} top={top} lineHeight={1.04} />
+  light?: boolean;
+  photo?: PhotoKey;
+  icon?: boolean;
+}> = ({ lines, screen, callout, at = [0, 0], rotate = 0, scale = 2.2, phoneTop = 660, phoneScale = 1.8, size = 84, top = 340, fade = true, example = true, light, photo = "glasses", icon = true }) => {
+  const phone = (
     <IPhone left={(WIDTH - IPHONE_WIDTH * phoneScale) / 2} top={phoneTop} scale={phoneScale}>
       {screen}
     </IPhone>
-    {callout && (
-      <div style={{ position: "absolute", left: at[0], top: at[1], transform: `translate(-50%, -50%) rotate(${rotate}deg) scale(${scale})`, color: colors.ink }}>{callout}</div>
-    )}
-    {example && <StoryExample dark fade={fade} />}
-  </StoryNight>
-);
+  );
+  const body = (
+    <>
+      <TopMark dark={!light} icon={icon} />
+      <Type dark={!light} lines={lines} size={size} top={top} lineHeight={1.04} />
+      {/* On the light backdrop the phone itself fades out, so the colour behind it stays; on the dark one a layer fades it. */}
+      {light ? <FadeOut from={fade === true ? 700 : fade || 0}>{phone}</FadeOut> : phone}
+      {callout && (
+        <div style={{ position: "absolute", left: at[0], top: at[1], transform: `translate(-50%, -50%) rotate(${rotate}deg) scale(${scale})`, color: colors.ink }}>{callout}</div>
+      )}
+      {example && <StoryExample dark={!light} fade={light ? false : fade} />}
+    </>
+  );
+  return light ? <StoryPaper photo={photo} veil={0.5}>{body}</StoryPaper> : <StoryNight>{body}</StoryNight>;
+};
