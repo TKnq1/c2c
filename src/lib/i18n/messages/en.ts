@@ -24,6 +24,7 @@ export const en = {
     discover: "Discover",
     messages: "Messages",
     payments: "Payments",
+    deals: "Deals",
     settings: "Settings",
     matches: "Matches",
     notifications: "Notifications",

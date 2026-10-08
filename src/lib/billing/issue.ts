@@ -2,6 +2,7 @@ import type { InvoiceKind, Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { parseTerms } from "@/lib/deals/terms";
 import { parseTaxSnapshot } from "@/lib/deals/parties";
+import { splitVatInclusive } from "@/lib/tax/engine";
 import { bodyOf, buildBrandInvoice, buildCreatorCreditNote, documentIsConsistent, formatInvoiceNumber, invoiceSequenceKey, type DealDocumentInput, type InvoiceDraft } from "@/lib/billing/invoice";
 import { platformIssuer } from "@/lib/billing/issuer";
 
@@ -27,15 +28,20 @@ export async function issueDealInvoices(dealId: string, now = new Date()): Promi
   if (!platform) return { issued: [], skipped: "NO_ISSUER" };
 
   const terms = parseTerms(deal.terms);
+  // What the creator really got: if a side went Pro after the contract, the payout is higher than the one in the terms
+  // (open-deal-fees.ts). The creator's VAT share is carved out of it at the rate fixed in the snapshot.
+  const payoutCents = deal.interest.payoutCents ?? terms.payoutCents;
+  const creatorSplit = splitVatInclusive(payoutCents, snapshot.tax.creator.rateBp);
+  const tax = { ...snapshot.tax, creator: { ...snapshot.tax.creator, grossCents: payoutCents, ...creatorSplit } };
   const input: DealDocumentInput = {
     dealId,
     requestTitle: terms.requestTitle,
     contentFormats: terms.contentFormats,
     usage: terms.usage,
     amountCents: terms.amountCents,
-    payoutCents: terms.payoutCents,
+    payoutCents,
     usageFeeCents: terms.usage.type === "ORGANIC_ONLY" ? 0 : (terms.usage.feeCents ?? 0),
-    tax: snapshot.tax,
+    tax,
     platform,
     brand: snapshot.brand,
     creator: snapshot.creator,

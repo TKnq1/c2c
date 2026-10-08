@@ -11,6 +11,7 @@ import { hasErrors } from "@/lib/deals/issues";
 import { SELF_BILLING_VERSION, TRADER_CERT_VERSION, validateBusinessInput, type BusinessInput } from "@/lib/tax/business";
 import { normalizeVatId } from "@/lib/tax/vat-id";
 import { verifyStoredVatId } from "@/lib/tax/verify-profile";
+import { completePendingContracts } from "@/lib/deals/contract";
 
 function field(formData: FormData, name: string, max: number): string {
   const value = formData.get(name);
@@ -88,6 +89,8 @@ export async function saveBusinessProfileAction(_prev: BusinessActionState, form
   if (input.vatId && vatStatus !== "VALID" && (await takeToken("vies", userId, 10, HOUR))) {
     vatStatus = (await verifyStoredVatId(userId))?.status ?? vatStatus;
   }
+  // A contract both sides signed but that waited for these details can go on now.
+  await completePendingContracts(userId, locale).catch((err) => console.error("Completing pending contracts failed", err));
   revalidateBusiness();
   return { success: true, issues: serializeIssues(issues, locale), vatStatus: input.vatId ? (vatStatus as NonNullable<BusinessActionState>["vatStatus"]) : undefined };
 }
@@ -104,6 +107,14 @@ export async function checkVatIdAction(_prev: BusinessActionState): Promise<Busi
   }
   const result = await verifyStoredVatId(session.user.id);
   if (!result) return { error: say(locale, "Save a VAT ID first.", "Speichere zuerst eine USt-IdNr.") };
+  if (result.status === "VALID") await completePendingContracts(session.user.id, locale).catch(() => undefined);
   revalidateBusiness();
-  return { success: result.status === "VALID", vatStatus: result.status };
+  if (result.status === "VALID") return { success: true, vatStatus: result.status };
+  return {
+    error:
+      result.status === "INVALID"
+        ? say(locale, "VIES does not know this VAT ID. Check it for typos.", "VIES kennt diese USt-IdNr. nicht. Prüfe sie auf Tippfehler.")
+        : say(locale, "VIES can't be reached right now. Try again later.", "VIES ist gerade nicht erreichbar. Versuche es später erneut."),
+    vatStatus: result.status,
+  };
 }

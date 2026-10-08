@@ -8,6 +8,8 @@ import type { IconType } from "react-icons";
 import { FiBell, FiHeart } from "react-icons/fi";
 import {
   IoAdd,
+  IoBriefcase,
+  IoBriefcaseOutline,
   IoCard,
   IoCardOutline,
   IoChatbubble,
@@ -35,13 +37,14 @@ import type { Me } from "@/app/api/me/route";
 import { useNavigationBlocker } from "@/lib/navigation-blocker";
 import { isTextField, resetPageScroll } from "@/lib/keyboard";
 
-type NavId = "requests" | "feed" | "discover" | "messages" | "payments" | "settings" | "matches" | "notifications";
+type NavId = "requests" | "feed" | "discover" | "messages" | "deals" | "payments" | "settings" | "matches" | "notifications";
 
 const TAB_ICONS: Record<NavId, { outline: IconType; filled: IconType }> = {
   requests: { outline: IoHomeOutline, filled: IoHome },
   feed: { outline: IoHomeOutline, filled: IoHome },
   discover: { outline: IoSearchOutline, filled: IoSearch },
   messages: { outline: IoChatbubbleOutline, filled: IoChatbubble },
+  deals: { outline: IoBriefcaseOutline, filled: IoBriefcase },
   payments: { outline: IoCardOutline, filled: IoCard },
   settings: { outline: IoSettingsOutline, filled: IoSettings },
   matches: { outline: IoHeartOutline, filled: IoHeart },
@@ -60,7 +63,7 @@ function activeHrefFor(links: NavLink[], pathname: string) {
     .find((l) => pathname === l.href || pathname.startsWith(`${l.href}/`))?.href;
 }
 
-export type NavCounts = { unreadCount: number; unreadMessages: number; pendingPayments: number };
+export type NavCounts = { unreadCount: number; unreadMessages: number; pendingPayments: number; dealsToDo?: number };
 
 const ZERO_COUNTS: NavCounts = { unreadCount: 0, unreadMessages: 0, pendingPayments: 0 };
 
@@ -81,6 +84,7 @@ function pageTitleKey(pathname: string): MessageKey | null {
   if (pathname === "/dashboard/creator" || pathname === "/dev-swipe-demo") return "nav.feed";
   if (pathname === "/dashboard/creator/discover") return "nav.discover";
   if (pathname === "/dashboard/messages") return "nav.messages";
+  if (pathname === "/dashboard/deals") return "nav.deals";
   if (pathname === "/dashboard/creator/payments" || pathname === "/dashboard/startup/payments") return "nav.payments";
   if (pathname === "/dashboard/startup/new") return "nav.newRequest";
   if (/^\/dashboard\/startup\/requests\/[^/]+\/edit$/.test(pathname)) return "nav.editRequest";
@@ -204,7 +208,7 @@ export function Nav() {
 
   if (!showNav || !role) return null;
 
-  const { unreadCount, unreadMessages, pendingPayments } = counts;
+  const { unreadCount, unreadMessages, pendingPayments, dealsToDo = 0 } = counts;
   const base = role === "STARTUP" ? "/dashboard/startup" : "/dashboard/creator";
 
   const links: NavLink[] =
@@ -213,6 +217,7 @@ export function Nav() {
           { href: "/dashboard/startup", id: "requests", label: t("nav.requests"), badge: 0 },
           { href: "/dashboard/startup/discover", id: "discover", label: t("nav.discover"), badge: 0 },
           { href: "/dashboard/messages", id: "messages", label: t("nav.messages"), badge: unreadMessages },
+          { href: "/dashboard/deals", id: "deals", label: t("nav.deals"), badge: dealsToDo },
           { href: "/dashboard/startup/payments", id: "payments", label: t("nav.payments"), badge: pendingPayments },
           { href: "/dashboard/startup/settings", id: "settings", label: t("nav.settings"), badge: 0 },
         ]
@@ -220,6 +225,7 @@ export function Nav() {
           { href: "/dashboard/creator", id: "feed", label: t("nav.feed"), badge: 0 },
           { href: "/dashboard/creator/discover", id: "discover", label: t("nav.discover"), badge: 0 },
           { href: "/dashboard/messages", id: "messages", label: t("nav.messages"), badge: unreadMessages },
+          { href: "/dashboard/deals", id: "deals", label: t("nav.deals"), badge: dealsToDo },
           { href: "/dashboard/creator/payments", id: "payments", label: t("nav.payments"), badge: pendingPayments },
           { href: "/dashboard/creator/settings", id: "settings", label: t("nav.settings"), badge: 0 },
         ];

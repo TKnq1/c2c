@@ -24,6 +24,7 @@ export const pl: Catalog = {
     discover: "Odkrywaj",
     messages: "Wiadomości",
     payments: "Płatności",
+    deals: "Umowy",
     settings: "Ustawienia",
     matches: "Dopasowania",
     notifications: "Powiadomienia",

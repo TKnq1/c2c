@@ -88,3 +88,36 @@ export function parseBriefingForm(values: FormValues): BriefingInput {
     },
   };
 }
+
+const isoDay = (date: Date | null) => (date ? date.toISOString().slice(0, 10) : "");
+
+// The other way round: a stored briefing as the strings the form starts from.
+export function briefingToValues(input: BriefingInput): FormValues {
+  return {
+    targetMarket: input.targetMarket,
+    contentFormats: input.contentFormats.join(","),
+    talkingPoints: input.talkingPoints ?? "",
+    doNots: input.doNots ?? "",
+    requiredHashtags: input.requiredHashtags.join(" "),
+    requiredMentions: input.requiredMentions.join(" "),
+    disclosureLabels: input.disclosureLabels.join(","),
+    requirePaidPartnershipLabel: String(input.requirePaidPartnershipLabel),
+    draftRequired: String(input.draftRequired),
+    draftDueDaysBeforePost: String(input.draftDueDaysBeforePost),
+    brandReviewDays: String(input.brandReviewDays),
+    maxRevisionRounds: String(input.maxRevisionRounds),
+    postingWindowStart: isoDay(input.postingWindowStart),
+    postingWindowEnd: isoDay(input.postingWindowEnd),
+    minLiveHours: String(input.minLiveHours),
+    exclusivityEnabled: String(input.exclusivity.enabled),
+    exclusivityCategories: input.exclusivity.categories.join(","),
+    exclusivityCompetitors: input.exclusivity.competitors.join("\n"),
+    exclusivityDaysBefore: String(input.exclusivity.daysBefore),
+    exclusivityDaysAfter: String(input.exclusivity.daysAfter),
+    usageType: input.usage.type,
+    usageChannels: input.usage.channels.join(","),
+    usageDurationDays: input.usage.durationDays ? String(input.usage.durationDays) : "",
+    usageFeeEuros: input.usage.feeCents ? String(input.usage.feeCents / 100).replace(".", ",") : "",
+    usageTerritory: input.usage.territory,
+  };
+}

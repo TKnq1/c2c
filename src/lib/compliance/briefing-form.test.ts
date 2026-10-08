@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { eurosToCents, parseBriefingForm } from "@/lib/compliance/briefing-form";
+import { briefingToValues, eurosToCents, parseBriefingForm } from "@/lib/compliance/briefing-form";
 import { validateBriefing } from "@/lib/compliance/briefing";
 
 describe("eurosToCents", () => {
@@ -74,5 +74,37 @@ describe("parseBriefingForm", () => {
     expect(parseBriefingForm({ usageType: "ORGANIC_ONLY", usageDurationDays: "60", usageFeeEuros: "400" }).usage).toMatchObject({ durationDays: null, feeCents: null });
     const codes = validateBriefing(parseBriefingForm({ ...form, brandReviewDays: "soon" }), { budgetMaxCents: null, now: new Date("2026-10-08") }).map((i) => i.code);
     expect(codes).toContain("BRIEFING_WORKFLOW_RANGE");
+  });
+});
+
+describe("briefingToValues", () => {
+  it("round-trips: what the form shows parses back to the same briefing", () => {
+    const original = parseBriefingForm({
+      targetMarket: "AT",
+      contentFormats: "INSTAGRAM_REEL,INSTAGRAM_STORY",
+      talkingPoints: "Textur zeigen",
+      requiredHashtags: "glowco herbst",
+      requiredMentions: "glowco",
+      disclosureLabels: "Werbung",
+      requirePaidPartnershipLabel: "true",
+      draftRequired: "true",
+      draftDueDaysBeforePost: "7",
+      brandReviewDays: "4",
+      maxRevisionRounds: "1",
+      postingWindowStart: "2026-10-15",
+      postingWindowEnd: "2026-10-30",
+      minLiveHours: "720",
+      exclusivityEnabled: "true",
+      exclusivityCategories: "Cosmetics,Supplements",
+      exclusivityCompetitors: "Rival GmbH\nOther Co",
+      exclusivityDaysBefore: "7",
+      exclusivityDaysAfter: "30",
+      usageType: "PAID_ADS",
+      usageChannels: "TIKTOK_SPARK_ADS",
+      usageDurationDays: "60",
+      usageFeeEuros: "400,50",
+      usageTerritory: "EU",
+    });
+    expect(parseBriefingForm(briefingToValues(original))).toEqual(original);
   });
 });

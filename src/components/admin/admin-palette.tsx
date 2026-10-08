@@ -6,6 +6,7 @@ import type { IconType } from "react-icons";
 import {
   FiActivity,
   FiAlertTriangle,
+  FiBriefcase,
   FiBarChart2,
   FiBell,
   FiBookOpen,
@@ -53,6 +54,7 @@ const PAGES: { href: string; title: string; icon: IconType }[] = [
   { href: "/admin/email", title: "E-Mail-Vorschau", icon: FiSend },
   { href: "/admin/technik", title: "Technik", icon: FiActivity },
   { href: "/admin/moderation", title: "Moderation", icon: FiAlertTriangle },
+  { href: "/admin/deals", title: "Brand Deals", icon: FiBriefcase },
   { href: "/admin/fristen", title: "Fristen", icon: FiClock },
   { href: "/admin/log", title: "Entscheidungs-Log", icon: FiBookOpen },
   { href: "/admin/users", title: "Nutzer", icon: FiUsers },

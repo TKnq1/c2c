@@ -2,7 +2,7 @@
 
 import { createHash } from "node:crypto";
 import { revalidatePath } from "next/cache";
-import type { DisputeReason, Prisma } from "@prisma/client";
+import type { DisputeReason } from "@prisma/client";
 import type { Session } from "next-auth";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
@@ -11,10 +11,7 @@ import { DAY, HOUR, takeToken } from "@/lib/rate-limit";
 import { emailIsVerified, VERIFY_EMAIL_MESSAGE } from "@/lib/verified";
 import { runAfter } from "@/lib/run-after";
 import { sniffImage } from "@/lib/image-sniff";
-import { formatCents } from "@/lib/format";
 import { businessReadiness } from "@/lib/tax/business";
-import { computeDealTax } from "@/lib/tax/engine";
-import { platformIsSmallBusiness } from "@/lib/billing/issuer";
 import { validatePostDisclosure } from "@/lib/compliance/disclosure";
 import { validateUsageDelivery, usageWindow } from "@/lib/compliance/usage-rights";
 import { POST_FORMATS, isPostFormat, type PostFormat } from "@/lib/social/platforms";
@@ -25,9 +22,9 @@ import { errorIssue, hasErrors, type Issue } from "@/lib/deals/issues";
 import { cancelDeal, openDealDispute } from "@/lib/deals/payout";
 import { dealHref, notifyDealParty } from "@/lib/deals/notify";
 import { exclusivityIssuesFor } from "@/lib/deals/exclusivity";
-import { toInvoiceParty, toTaxParty, type TaxSnapshot } from "@/lib/deals/parties";
+import { completeContract } from "@/lib/deals/contract";
 import { postDeadline, reviewDueAt, revisionDueAt } from "@/lib/deals/deadlines";
-import { loadDeal, loadDealForParty, moveDeal, moveFailureMessage, recordDealEvent, type DealView } from "@/lib/deals/service";
+import { loadDealForParty, moveDeal, moveFailureMessage, recordDealEvent, type DealView } from "@/lib/deals/service";
 import { canCheckByLink, verifyDealPosts } from "@/lib/deals/verification";
 import type { DealTerms } from "@/lib/deals/terms";
 
@@ -82,66 +79,6 @@ function httpUrl(value: string): string | null {
 // ---------------------------------------------------------------------------------------------------------------------
 // Contract
 // ---------------------------------------------------------------------------------------------------------------------
-
-function prefixIssues(issues: Issue[], prefix: string): Issue[] {
-  return issues.map((i) => ({ ...i, field: `${prefix}.${i.field ?? ""}` }));
-}
-
-// Both sides have signed: fix the tax treatment and open the escrow step. Called after every signature, so whichever one
-// comes second (or a retry after a business detail was fixed) finishes the job.
-async function completeContract(dealId: string, actor: Role, actorUserId: string, locale: DealLocale): Promise<{ done: boolean; refusal?: DealActionState }> {
-  const view = await loadDeal(dealId);
-  if (!view) return { done: false };
-  if (view.deal.status !== "CONTRACT_PENDING") return { done: view.deal.status === "AWAITING_ESCROW" };
-  if (!view.deal.brandSignedAt || !view.deal.creatorSignedAt) return { done: false };
-
-  const [brandProfile, creatorProfile] = await Promise.all([
-    prisma.businessProfile.findUnique({ where: { userId: view.brandUserId } }),
-    prisma.businessProfile.findUnique({ where: { userId: view.creatorUserId } }),
-  ]);
-  const readiness = [...prefixIssues(businessReadiness(brandProfile, "STARTUP"), "brand"), ...prefixIssues(businessReadiness(creatorProfile, "CREATOR"), "creator")];
-  if (hasErrors(readiness) || !brandProfile || !creatorProfile) return { done: false, refusal: failure(readiness, locale, "/dashboard/business") };
-
-  const tax = computeDealTax({
-    amountCents: view.terms.amountCents,
-    payoutCents: view.terms.payoutCents,
-    brand: toTaxParty(brandProfile),
-    creator: toTaxParty(creatorProfile),
-    platform: { smallBusiness: platformIsSmallBusiness() },
-  });
-  if (!tax.ok) return { done: false, refusal: failure(tax.issues, locale, "/dashboard/business") };
-
-  const snapshot: TaxSnapshot = {
-    version: 1,
-    computedAt: new Date().toISOString(),
-    tax: tax.value,
-    brand: toInvoiceParty(brandProfile),
-    creator: toInvoiceParty(creatorProfile),
-    brandConsultationNumber: brandProfile.vatIdConsultationNumber,
-    creatorConsultationNumber: creatorProfile.vatIdConsultationNumber,
-  };
-  const moved = await moveDeal(dealId, "SIGN_CONTRACT", actor, {
-    actorUserId,
-    ctx: { otherPartySigned: true },
-    expectedFrom: "CONTRACT_PENDING",
-    event: "contract.completed",
-    data: {
-      taxSnapshot: snapshot as unknown as Prisma.InputJsonValue,
-      brandNetCents: tax.value.brand.netCents,
-      brandVatCents: tax.value.brand.vatCents,
-      brandTotalCents: tax.value.brand.totalCents,
-    },
-  });
-  if (!moved.ok) return { done: moved.reason === "CONFLICT" };
-
-  await notifyDealParty(
-    view.brandUserId,
-    "escrow_due",
-    { title: view.title, amount: formatCents(tax.value.brand.totalCents) },
-    dealHref(dealId),
-  );
-  return { done: true };
-}
 
 // Confirming the contract: the terms as frozen when the offer was accepted. The terms hash the person saw has to be the
 // one on file. Needs complete business details; with the second signature the deal moves to the escrow step.
@@ -410,6 +347,11 @@ export async function submitDealPostAction(dealId: string, _prev: DealActionStat
     return deal.status === "IN_PRODUCTION"
       ? { error: say(locale, "Submit a draft first: the brand has to approve it before you post.", "Reiche zuerst einen Entwurf ein: Die Marke muss ihn freigeben, bevor du postest.") }
       : wrongStage(locale);
+  }
+
+  // Every report can store a proof image and calls a platform: a person with a handful of formats never gets near this.
+  if (!(await takeToken("deal-post", session.user.id, 30, DAY))) {
+    return { error: say(locale, "You reported a lot of posts today. Try again tomorrow.", "Du hast heute sehr viele Posts gemeldet. Versuche es morgen erneut.") };
   }
 
   const formatCode = text(formData, "format", 40);

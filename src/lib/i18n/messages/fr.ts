@@ -24,6 +24,7 @@ export const fr: Catalog = {
     discover: "Découvrir",
     messages: "Messages",
     payments: "Paiements",
+    deals: "Deals",
     settings: "Réglages",
     matches: "Matchs",
     notifications: "Notifications",

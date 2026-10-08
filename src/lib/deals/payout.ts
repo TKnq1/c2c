@@ -37,7 +37,7 @@ export async function releaseDealPayout(dealId: string, trigger: "verified" | "a
       await notifyDealParty(
         view.creatorUserId,
         "payout_blocked",
-        { title: view.title, payout: formatCents(view.terms.payoutCents) },
+        { title: view.title, payout: formatCents(view.deal.interest.payoutCents ?? view.terms.payoutCents) },
         "/dashboard/creator/payments",
       );
     }
@@ -51,7 +51,7 @@ export async function releaseDealPayout(dealId: string, trigger: "verified" | "a
   });
   if (!moved.ok) return {};
 
-  await notifyDealParty(view.creatorUserId, "payout_released_creator", { title: view.title, payout: formatCents(view.terms.payoutCents) }, dealHref(dealId));
+  await notifyDealParty(view.creatorUserId, "payout_released_creator", { title: view.title, payout: formatCents(view.deal.interest.payoutCents ?? view.terms.payoutCents) }, dealHref(dealId));
   await notifyDealParty(view.brandUserId, "payout_released_brand", { title: view.title, creator: view.creatorName }, dealHref(dealId));
 
   try {

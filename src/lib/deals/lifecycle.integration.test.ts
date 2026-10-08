@@ -559,6 +559,89 @@ describe.skipIf(!DB)("brand deal lifecycle (needs a database)", () => {
     expect(interest).toMatchObject({ paymentStatus: null, amountCents: null, stripeCheckoutSessionId: null });
   });
 
+  it("will not let a party sign without complete business details, and holds an EU brand to a VIES-confirmed VAT ID", async () => {
+    const s = await seed();
+    as(s.creator);
+    await payments.acceptOfferAction(s.interest.id, s.amount);
+    const deal = await dealOf(s.interest.id);
+
+    // No business details at all.
+    await prisma.businessProfile.delete({ where: { userId: s.brand.id } });
+    as(s.brand);
+    const missing = await deals.signContractAction(deal.id, deal.termsHash);
+    expect(missing?.issues?.map((i) => i.code)).toContain("BUSINESS_PROFILE_INCOMPLETE");
+    expect(missing?.fixHref).toBe("/dashboard/business");
+
+    // A French brand whose VAT ID VIES has not confirmed.
+    const profile = {
+      userId: s.brand.id,
+      legalName: "Glow SARL",
+      businessType: "COMPANY",
+      country: "FR",
+      addressLine1: "1 rue de Test",
+      postalCode: "75001",
+      city: "Paris",
+      vatId: "FR12345678901",
+      vatIdStatus: "UNCHECKED" as const,
+      traderSelfCertifiedAt: new Date(),
+    };
+    await prisma.businessProfile.create({ data: profile });
+    const unverified = await deals.signContractAction(deal.id, deal.termsHash);
+    expect(unverified?.issues?.map((i) => i.code)).toContain("VAT_ID_NOT_VERIFIED");
+
+    // Once VIES has confirmed it: signed without VAT.
+    await prisma.businessProfile.update({ where: { userId: s.brand.id }, data: { vatIdStatus: "VALID", vatIdConsultationNumber: "WAPIAAAAtest" } });
+    expect((await deals.signContractAction(deal.id, deal.termsHash))?.success).toBe(true);
+    as(s.creator);
+    expect((await deals.signContractAction(deal.id, deal.termsHash))?.success).toBe(true);
+    const signed = await dealOf(s.interest.id);
+    expect(signed).toMatchObject({ status: "AWAITING_ESCROW", brandNetCents: 100_000, brandVatCents: 0, brandTotalCents: 100_000 });
+    expect(JSON.stringify(signed.taxSnapshot)).toContain("REVERSE_CHARGE_EU");
+
+    // The checkout then has a single line.
+    await fundViaWebhook(s, "cs_reverse_charge");
+    const lines = stripe.checkout.sessions.create.mock.calls.at(-1)![0].line_items as unknown[];
+    expect(lines).toHaveLength(1);
+  });
+
+  it("continues a contract that waited for business details once they are fixed", async () => {
+    const s = await seed();
+    as(s.creator);
+    await payments.acceptOfferAction(s.interest.id, s.amount);
+    const deal = await dealOf(s.interest.id);
+    // Both sign, then the creator's details become unusable before the second signature is processed.
+    as(s.creator);
+    await deals.signContractAction(deal.id, deal.termsHash);
+    await prisma.businessProfile.update({ where: { userId: s.creator.id }, data: { traderSelfCertifiedAt: null } });
+    await prisma.deal.update({ where: { id: deal.id }, data: { brandSignedAt: new Date(), brandSignedBy: s.brand.id } });
+    as(s.brand);
+    const stuck = await deals.signContractAction(deal.id, deal.termsHash);
+    expect(stuck?.issues?.length).toBeGreaterThan(0);
+    expect((await dealOf(s.interest.id)).status).toBe("CONTRACT_PENDING");
+
+    // The creator fixes the details: saving them lets the contract go on by itself.
+    await prisma.businessProfile.update({ where: { userId: s.creator.id }, data: { traderSelfCertifiedAt: new Date() } });
+    const { completePendingContracts } = await import("@/lib/deals/contract");
+    expect(await completePendingContracts(s.creator.id, "en")).toBe(1);
+    expect((await dealOf(s.interest.id)).status).toBe("AWAITING_ESCROW");
+  });
+
+  it("writes the credit note with the payout that was really made when a side went Pro after the contract", async () => {
+    const s = await seed();
+    const deal = await acceptAndSign(s);
+    await fundViaWebhook(s);
+    await goLive(s, deal.id);
+    // Pro fee (3 %) instead of 10 %: the creator gets 97 000 instead of 90 000.
+    await prisma.interest.update({ where: { id: s.interest.id }, data: { platformFeeCents: 3_000, payoutCents: 97_000 } });
+    const live = await dealOf(s.interest.id);
+    await handlers.runDealDeadlines(new Date(live.verificationEndsAt!.getTime() + HOUR));
+    expect((await dealOf(s.interest.id)).status).toBe("COMPLETED");
+    expect(stripe.transfers.create.mock.calls[0][0]).toMatchObject({ amount: 97_000 });
+    const note = await prisma.invoice.findFirstOrThrow({ where: { dealId: deal.id, kind: "CREATOR_CREDIT_NOTE" } });
+    expect(note.grossCents).toBe(97_000);
+    expect(note.netCents + note.vatCents).toBe(97_000);
+  });
+
   it("is idempotent when the funding webhook arrives twice", async () => {
     const s = await seed();
     await acceptAndSign(s);
