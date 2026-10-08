@@ -94,7 +94,7 @@ const SPECS: AdSpec[] = [
       "Deine Anzeige? Weggewischt. Die nächste? Auch.",
       "Creatorn hört man zu.",
       "Auf comtor melden sich Creator bei dir.",
-      "U-G-C statt Werbung.",
+      "Ju-Dschi-Si statt Werbung.",
       "Fünfzig Plätze. Pro kostenlos. comtor punkt app.",
     ],
   },

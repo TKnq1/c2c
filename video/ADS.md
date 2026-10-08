@@ -49,7 +49,7 @@ Nokar-Bild und -Profilbild sind noch Platzhalter (`nokar-hoodie.jpg`, `nokar-ava
 
 Stimme wie bei den langen Videos: „Damien – Iconic Commercial Power“, Speed 1,10, Stability 44, Similarity 100.
 Creator-Ads jung und energisch, Marken-Ads ruhig und sicher (eine Stimme für alle ist ok). Zahlen sind ausgeschrieben.
-Aussprache prüfen: „comtor“ (notfalls „Kom-tor“), „U-G-C“ und „D-M-s“ (stehen schon buchstabiert), „Kaltakquise“.
+Aussprache prüfen: „comtor“ (notfalls „Kom-tor“), „Ju-Dschi-Si“ (UGC, steht schon in Lautschrift; bei schiefer Betonung „Juh Dschih Ssih“ probieren), „D-M-s“ (steht schon buchstabiert), „Kaltakquise“.
 
 **Wie liefern:** entweder **eine Datei pro Ad** (`AC1.mp3` … `AB3.mp3`, die fünf Zeilen nacheinander mit etwa einer
 Sekunde Pause dazwischen) oder **eine Datei pro Zeile** (`AC1-1.mp3` … `AB3-5.mp3`). Beides in `voice/source/ads/`,
@@ -94,7 +94,7 @@ gezeichnetes Timing.
 | AB1-1 | Deine Anzeige? Weggewischt. Die nächste? Auch. | 4 | fünf Wischer |
 | AB1-2 | Creatorn hört man zu. | 1 | |
 | AB1-3 | Auf comtor melden sich Creator bei dir. | 1 | Push ab 2,7 s |
-| AB1-4 | U-G-C statt Werbung. | 1 | |
+| AB1-4 | Ju-Dschi-Si statt Werbung. | 1 | |
 | AB1-5 | Fünfzig Plätze. Pro kostenlos. comtor punkt app. | 3 | Klick bei 3,0 s |
 | AB2-1 | Siebenundvierzig D-M-s. Zwei Antworten. Das kann besser. | 3 | Gesendet-Liste |
 | AB2-2 | Dreh es um. | 1 | |
