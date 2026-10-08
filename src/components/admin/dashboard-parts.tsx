@@ -1,27 +1,37 @@
 import Link from "next/link";
+import { useId } from "react";
+import type { IconType } from "react-icons";
 import { FiArrowDownRight, FiArrowUpRight } from "react-icons/fi";
-import type { FunnelStep } from "@/lib/admin-dashboard";
+import { funnelBarWidth, type FunnelStep } from "@/lib/admin-dashboard";
 import type { TrendPoint } from "@/lib/admin-trends";
+import { ChartTable } from "@/components/admin/chart-table";
 import { TrendLine } from "@/components/admin/trend-line";
 
-// A white panel with a hairline, the dashboard's basic building block.
+// A soft card, the dashboard's basic building block. The title can carry an icon in a tinted circle.
 export function DashCard({
   title,
   right,
   children,
   className = "",
+  icon: Icon,
 }: {
   title?: string;
   right?: React.ReactNode;
   children: React.ReactNode;
   className?: string;
+  icon?: IconType;
 }) {
   return (
-    <section className={`min-w-0 rounded border border-ink/10 bg-paper p-[var(--pad,1.25rem)] ${className}`}>
+    <section className={`adm-card min-w-0 p-[var(--pad,1.25rem)] ${className}`}>
       {title && (
-        <h2 className="mb-3.5 flex items-center gap-2 text-footnote font-bold text-neutral-600 dark:text-neutral-400">
+        <h2 className="mb-3.5 flex items-center gap-2.5 font-display text-[1.0625rem] font-black">
+          {Icon && (
+            <span className="grid h-[34px] w-[34px] shrink-0 place-items-center rounded-full bg-(--accent-soft) text-(--accent-ink)">
+              <Icon className="h-[17px] w-[17px]" aria-hidden />
+            </span>
+          )}
           {title}
-          {right && <span className="ml-auto font-normal text-neutral-500">{right}</span>}
+          {right && <span className="ml-auto text-xs font-normal text-neutral-500">{right}</span>}
         </h2>
       )}
       {children}
@@ -41,7 +51,7 @@ export function Sparkline({ values, width = 84, height = 30 }: { values: number[
   return (
     <svg width={width} height={height} viewBox={`0 0 ${width} ${height}`} aria-hidden className="shrink-0">
       <polyline points={points.map((p) => p.join(",")).join(" ")} fill="none" stroke="currentColor" className="text-stone" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
-      <circle cx={last[0]} cy={last[1]} r={4} className="fill-accent stroke-paper" strokeWidth={2} />
+      <circle cx={last[0]} cy={last[1]} r={4} className="fill-accent" style={{ stroke: "var(--adm-card)" }} strokeWidth={2} />
     </svg>
   );
 }
@@ -80,8 +90,10 @@ export function KpiTile({
   series,
   previous,
   href,
+  icon: Icon,
 }: {
   label: string;
+  icon?: IconType;
   value: string;
   change?: number | null;
   changeLabel?: string;
@@ -100,9 +112,13 @@ export function KpiTile({
   const Arrow = up ? FiArrowUpRight : FiArrowDownRight;
   const body = (
     <>
-      <p className="text-footnote text-neutral-600 dark:text-neutral-400">{label}</p>
+      {/* In a narrow tile the name may take two lines; the room is kept so the figures of neighbouring tiles line up. */}
+      <p className="flex min-h-9 items-start gap-2 text-footnote font-bold text-neutral-700 @[13rem]:min-h-0 dark:text-neutral-300">
+        {Icon && <Icon className="mt-px h-[17px] w-[17px] shrink-0 text-(--accent-ink)" aria-hidden />}
+        {label}
+      </p>
       <div className="flex items-end justify-between gap-2">
-        <p className="font-display text-[1.875rem] leading-9 font-black tracking-tight">{value}</p>
+        <p className="font-display text-[1.625rem] leading-9 font-black tracking-tight @[11rem]:text-[2rem]">{value}</p>
         {trend && <Sparkline values={trend} />}
       </div>
       {change != null && (
@@ -115,13 +131,17 @@ export function KpiTile({
         </p>
       )}
       {delta && <Delta {...delta} />}
-      {series && <TrendLine points={series} previous={previous} label={label} />}
+      {series && (
+        <div className="mt-auto pt-2">
+          <TrendLine points={series} previous={previous} label={label} />
+        </div>
+      )}
       {hint && <p className="text-xs text-neutral-500">{hint}</p>}
     </>
   );
-  const box = "flex flex-col gap-1.5 rounded border border-ink/10 bg-paper p-[var(--pad,1.25rem)]";
+  const box = "adm-card @container flex h-full flex-col gap-1.5 p-[var(--pad,1.25rem)]";
   return href ? (
-    <Link href={href} className={`${box} transition hover:bg-fog`}>
+    <Link href={href} className={box}>
       {body}
     </Link>
   ) : (
@@ -131,6 +151,7 @@ export function KpiTile({
 
 // Progress toward a goal as a ring. Over 100 % the ring stays full and the number says how far.
 export function GoalRing({ label, value, goal, display, sub, note }: { label: string; value: number; goal: number; display: string; sub: string; note?: string }) {
+  const id = useId().replace(/:/g, "");
   const percent = goal > 0 ? Math.min(100, (value / goal) * 100) : 0;
   const r = 40;
   const c = 2 * Math.PI * r;
@@ -138,7 +159,13 @@ export function GoalRing({ label, value, goal, display, sub, note }: { label: st
     <div className="flex min-w-0 flex-col items-center gap-2 text-center">
       <div className="relative h-[104px] w-[104px]">
         <svg viewBox="0 0 104 104" width="104" height="104" role="img" aria-label={`${label}: ${display}`}>
-          <circle cx="52" cy="52" r={r} fill="none" strokeWidth="9" className="stroke-fog dark:stroke-ink/10" />
+          <defs>
+            <linearGradient id={`${id}-ring`} x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0" style={{ stopColor: "var(--accent-ink)" }} />
+              <stop offset="1" style={{ stopColor: "var(--accent)" }} />
+            </linearGradient>
+          </defs>
+          <circle cx="52" cy="52" r={r} fill="none" strokeWidth="9" className="stroke-ink/10" />
           <circle
             cx="52"
             cy="52"
@@ -146,7 +173,7 @@ export function GoalRing({ label, value, goal, display, sub, note }: { label: st
             fill="none"
             strokeWidth="9"
             strokeLinecap="round"
-            className="stroke-accent"
+            stroke={`url(#${id}-ring)`}
             strokeDasharray={`${(c * percent) / 100} ${c}`}
             transform="rotate(-90 52 52)"
           />
@@ -173,8 +200,8 @@ export function FunnelBars({ steps }: { steps: FunnelStep[] }) {
               {step.shareOfPrevious !== null && ` · ${step.shareOfPrevious} %`}
             </span>
           </div>
-          <div className="h-3.5 rounded-[3px] bg-fog">
-            <div className="h-full rounded-r-[4px] bg-accent" style={{ width: `${step.shareOfPrevious ?? 100}%`, minWidth: step.count > 0 ? 4 : 0 }} />
+          <div className="h-3.5 rounded-full bg-ink/10">
+            <div className="adm-bar h-full rounded-full" style={{ width: `${funnelBarWidth(step)}%`, minWidth: step.count > 0 ? 6 : 0 }} />
           </div>
         </div>
       ))}
@@ -186,7 +213,7 @@ export function FunnelBars({ steps }: { steps: FunnelStep[] }) {
 // A page's title with a short line under it, and optional controls on the right.
 export function PageHeader({ title, sub, right }: { title: string; sub?: React.ReactNode; right?: React.ReactNode }) {
   return (
-    <div className="flex flex-wrap items-end justify-between gap-3 pr-0 group-data-[panel=closed]/shell:lg:pr-28">
+    <div className="flex flex-wrap items-end justify-between gap-3 lg:pr-60">
       <div>
         <h1 className="font-display text-title-1 font-black">{title}</h1>
         {sub && <p className="mt-0.5 max-w-prose text-sm text-neutral-600 dark:text-neutral-400">{sub}</p>}
@@ -231,16 +258,7 @@ export function ColumnChart({ points, format }: { points: { label: string; value
           </span>
         ))}
       </div>
-      <table className="sr-only">
-        <tbody>
-          {points.map((p) => (
-            <tr key={p.label}>
-              <td>{p.label}</td>
-              <td>{format(p.value)}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+      <ChartTable rows={points.map((p) => [p.label, format(p.value)])} />
     </figure>
   );
 }
@@ -316,8 +334,8 @@ export function ShareBars({ items }: { items: { label: string; value: number; te
             <span className="font-bold">{item.label}</span>
             <span className="shrink-0 text-neutral-600 tabular-nums dark:text-neutral-400">{item.text ?? item.value.toLocaleString("de-DE")}</span>
           </div>
-          <div className="h-3 rounded-[3px] bg-fog">
-            <div className="h-full rounded-r-[4px] bg-accent" style={{ width: `${(item.value / max) * 100}%`, minWidth: item.value > 0 ? 4 : 0 }} />
+          <div className="h-3 rounded-full bg-ink/10">
+            <div className="adm-bar h-full rounded-full" style={{ width: `${(item.value / max) * 100}%`, minWidth: item.value > 0 ? 6 : 0 }} />
           </div>
         </div>
       ))}

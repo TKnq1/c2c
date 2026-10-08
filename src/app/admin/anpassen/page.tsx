@@ -11,7 +11,7 @@ export default async function AdminSettingsPage() {
   const prefs = await getAdminPrefs(session.user.id);
 
   return (
-    <div className="flex max-w-5xl flex-col gap-6">
+    <div className="mx-auto flex max-w-5xl flex-col gap-6">
       <div>
         <h1 className="font-display text-title-1 font-black">Anpassen</h1>
         <p className="mt-0.5 text-sm text-neutral-600 dark:text-neutral-400">Dein Dashboard, so wie du es willst.</p>
@@ -19,7 +19,7 @@ export default async function AdminSettingsPage() {
 
       <SettingsForm initial={prefs} />
 
-      <section id="verbindungen" className="scroll-mt-6 rounded border border-ink/10 bg-paper p-[var(--pad,1.25rem)]">
+      <section id="verbindungen" className="adm-card scroll-mt-6 p-[var(--pad,1.25rem)]">
         <h2 className="mb-1 text-footnote font-bold text-neutral-600 dark:text-neutral-400">Verbindungen</h2>
         <p className="mb-3 text-xs text-neutral-600 dark:text-neutral-400">
           Keys trägst du selbst in Vercel unter Settings → Environment Variables ein, nie im Chat und nie hier. Gezeigt wird nur, ob sie da sind.

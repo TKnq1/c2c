@@ -24,6 +24,13 @@ export function funnelSteps(steps: { label: string; count: number }[]): FunnelSt
   }));
 }
 
+// How wide a step's bar is, in percent of its track: the share of the step before. A step without a share (the first one, or
+// one after an empty step) gets the full track, but a step with nothing in it stays empty.
+export function funnelBarWidth(step: FunnelStep): number {
+  if (step.count === 0) return 0;
+  return Math.min(100, step.shareOfPrevious ?? 100);
+}
+
 export type DashboardData = Awaited<ReturnType<typeof loadDashboard>>;
 
 // Everything the "Heute" page shows, from the live data. The ad figures arrive with the marketing packages.
@@ -153,6 +160,16 @@ export async function loadDashboard(now = new Date()) {
   };
 }
 
+
+// What came in over the last 24 hours, for the line under the greeting on "Heute".
+export async function loadDaySummary(now = new Date()) {
+  const dayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+  const [newUsers, payments] = await Promise.all([
+    prisma.user.count({ where: { role: { in: ["STARTUP", "CREATOR"] }, deletedAt: null, createdAt: { gte: dayAgo } } }),
+    prisma.interest.count({ where: { paymentStatus: { in: ["HELD", "RELEASED", "REFUNDED"] }, paidAt: { gte: dayAgo } } }),
+  ]);
+  return { newUsers, payments };
+}
 
 // The few numbers the morning screen shows, plus how far the founding-brand goal still is.
 export async function loadMorningStats(goalBrands: number, now = new Date()) {

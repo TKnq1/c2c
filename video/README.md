@@ -39,3 +39,9 @@ then render.
 Two carousels to pin on the profile, one for creators and one for brands, 1080 x 1440 (3:4). The covers are short
 animations with sound; `npm run posts` renders every slide to `out/pinned/` (MP4 for animated slides, mastered to
 -14 LUFS, PNG for the others). Sources in `src/pinned/`, shared pieces of the app's UI in `src/posts/kit.tsx`.
+
+## Instagram: Stories
+
+13 stories, 1080 x 1920 (9:16): two short videos with sound and eleven images. `npm run stories` renders them to
+`out/stories/` (MP4 mastered to -14 LUFS, PNG for the stills). Sources in `src/stories/`, which stories to post when
+and the sticker texts in `STORIES.md`.

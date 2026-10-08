@@ -9,15 +9,14 @@ import { listOpenTasks, syncChecks } from "@/lib/admin-tasks";
 import { prisma } from "@/lib/prisma";
 import { AdminShell } from "@/components/admin/admin-shell";
 import { AdminPalette } from "@/components/admin/admin-palette";
-import { ClaudePanel } from "@/components/admin/claude-panel";
 import { MorningStart } from "@/components/admin/morning-start";
 import { RememberArea } from "@/components/remember-area";
 import { SetupWizard } from "@/components/admin/setup-wizard";
 import { adminConnections } from "@/lib/admin-connections";
 import { loadMorningStats } from "@/lib/admin-dashboard";
 import { formatCents } from "@/lib/format";
-import type { TaskView } from "@/components/admin/task-list";
 import type { Metadata } from "next";
+import "./admin.css";
 import { NO_INDEX } from "@/lib/seo";
 
 // The signed-in app: never in search, whatever links to it.
@@ -50,27 +49,18 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   const morning = morningNeeded ? await loadMorningStats(prefs.goalBrands) : null;
   const brandsLeft = morning?.brandsLeft ?? 0;
 
-  const taskViews: TaskView[] = tasks.map((t) => ({
-    id: t.id,
-    title: t.title,
-    reason: t.reason,
-    priority: t.priority,
-    source: t.source,
-    href: t.href,
-  }));
   const spacing = prefs.compact ? ".admin-shell{--pad:.875rem;--gap:.625rem}" : ".admin-shell{--pad:1.25rem;--gap:1rem}";
 
   return (
-    <div className="admin-shell flex flex-1 flex-col">
+    <div className="admin-shell adm-window flex flex-1 flex-col">
       <style dangerouslySetInnerHTML={{ __html: accentCss(prefs.accent) + spacing }} />
       {session.user.role !== "ADMIN" && <RememberArea area="admin" />}
       <AdminShell
         // The Offen badge counts what needs the admin, like the sentence on Heute: low tasks are left out.
         counts={{ attention: openReports + openDisputes, tasks: tasks.filter((t) => t.priority !== "LOW").length, notices: unreadNotices }}
         email={session.user.email ?? ""}
+        name={prefs.displayName}
         backToApp={session.user.role !== "ADMIN"}
-        panelOpen={prefs.panelOpen}
-        panel={<ClaudePanel tasks={taskViews} />}
         overlays={
           <>
             <AdminPalette />

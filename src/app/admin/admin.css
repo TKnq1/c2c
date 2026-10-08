@@ -1,0 +1,137 @@
+/* The look of the admin area: soft cards on a dark window (a light one in the light theme), the accent colour for data and
+   the active page, and a fine film grain on the cards. The grain is the one from the landing page and the e-mails (see
+   .lp-grain in components/landing/landing.css); here it lies under a card's content, never over it, and not on the window. */
+
+.admin-shell {
+  /* Square corners, like the rest of the app (see the radius note in globals.css); only circles stay round. */
+  --adm-r-card: 6px;
+  --adm-r-row: 4px;
+  --adm-r-panel: 10px;
+  --adm-r-pill: 6px;
+
+  --adm-window: #e9e8e4;
+  --adm-glow: #f6f5f2;
+  --adm-panel: #f2f1ed;
+  --adm-card: #ffffff;
+  --adm-row: #f1f0ec;
+  --adm-line: rgb(7 7 7 / 0.09);
+  --adm-shadow: 0 1px 1px rgb(7 7 7 / 0.03), 0 10px 28px -16px rgb(7 7 7 / 0.2);
+  /* Dark specks on the light theme. */
+  --adm-grain: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><filter id='n' x='0' y='0' width='100%25' height='100%25'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/><feColorMatrix type='matrix' values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.1 -0.04'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+
+  /* The accent as text (it has to read on the surface it sits on) and as a faint tint behind icons and chips. */
+  --accent-ink: var(--accent);
+  --accent-soft: color-mix(in srgb, var(--accent) 14%, transparent);
+  --adm-bar-from: color-mix(in srgb, var(--accent) 55%, white);
+}
+
+.dark .admin-shell {
+  --adm-window: #0d0d0e;
+  --adm-glow: #29292d;
+  --adm-panel: #0b0b0c;
+  --adm-card: #19191b;
+  --adm-row: #111113;
+  --adm-line: rgb(255 255 255 / 0.07);
+  --adm-shadow: none;
+  /* White specks on the dark theme. */
+  --adm-grain: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><filter id='n' x='0' y='0' width='100%25' height='100%25'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/><feColorMatrix type='matrix' values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 0.22 -0.088'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+
+  --accent-ink: color-mix(in srgb, var(--accent) 58%, white);
+  --accent-soft: color-mix(in srgb, var(--accent) 20%, transparent);
+  --adm-bar-from: color-mix(in srgb, var(--accent) 45%, black);
+}
+
+/* The window behind everything. */
+.adm-window {
+  background-color: var(--adm-window);
+  background-image: radial-gradient(900px 600px at 42% 10%, var(--adm-glow) 0%, transparent 72%);
+  background-repeat: no-repeat;
+}
+
+/* The large rounded frame that holds the page's main blocks (from the large breakpoint up; on a phone the cards use the whole width). */
+@media (min-width: 64rem) {
+  .adm-panel {
+    background-color: var(--adm-panel);
+    border: 1px solid var(--adm-line);
+    border-radius: var(--adm-r-panel);
+  }
+}
+
+/* A card: the dashboard's basic building block. */
+.adm-card {
+  position: relative;
+  background-color: var(--adm-card);
+  background-image: var(--adm-grain);
+  background-size: 200px 200px;
+  border: 1px solid var(--adm-line);
+  border-radius: var(--adm-r-card);
+  box-shadow: var(--adm-shadow);
+}
+
+a.adm-card,
+button.adm-card {
+  transition: border-color 150ms ease;
+}
+
+a.adm-card:hover,
+button.adm-card:hover {
+  border-color: color-mix(in srgb, var(--accent) 45%, var(--adm-line));
+}
+
+/* A row or field set into a card. */
+.adm-row {
+  background-color: var(--adm-row);
+  border-radius: var(--adm-r-row);
+}
+
+/* The headline card: the accent as a gradient, dark on the side where the words are. */
+.adm-hero {
+  position: relative;
+  overflow: hidden;
+  color: #fff;
+  /* A flat accent for a browser that does not know color-mix. */
+  background-color: var(--accent);
+  background-image:
+    var(--adm-grain),
+    linear-gradient(118deg, color-mix(in srgb, var(--accent) 36%, black) 0%, color-mix(in srgb, var(--accent) 66%, black) 46%, var(--accent) 100%);
+  background-size:
+    200px 200px,
+    auto;
+  border-radius: var(--adm-r-card);
+}
+
+/* A round control in the top bar: search, inbox, sign-out. */
+.adm-round,
+.adm-field {
+  background-color: var(--adm-card);
+  border: 1px solid var(--adm-line);
+  box-shadow: var(--adm-shadow);
+  transition: border-color 150ms ease;
+}
+
+.adm-round {
+  border-radius: 999px;
+}
+
+/* A wide field: the search, the line for a decision. */
+.adm-field {
+  border-radius: var(--adm-r-pill);
+}
+
+.adm-round:hover,
+.adm-field:hover {
+  border-color: color-mix(in srgb, var(--accent) 45%, var(--adm-line));
+}
+
+/* The account's initials on a soft accent gradient. */
+.adm-avatar {
+  color: var(--on-accent);
+  background-color: var(--accent);
+  background-image: linear-gradient(140deg, color-mix(in srgb, var(--accent) 60%, white), var(--accent) 60%, color-mix(in srgb, var(--accent) 45%, black));
+}
+
+/* A bar that fills a track: the accent, starting softer on the left. */
+.adm-bar {
+  background-color: var(--accent);
+  background-image: linear-gradient(90deg, var(--adm-bar-from), var(--accent));
+}

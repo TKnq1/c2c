@@ -1,18 +1,22 @@
 "use client";
 
-import { useState } from "react";
+import { useId, useState } from "react";
 import type { TrendPoint } from "@/lib/admin-trends";
+import { smoothPath } from "@/lib/smooth-path";
+import { ChartTable } from "@/components/admin/chart-table";
 
 const W = 300;
-const H = 52;
-const PAD_X = 4;
-const PAD_Y = 7;
+const H = 64;
+const PAD_X = 6;
+const PAD_Y = 9;
 
 const formatDay = (day: string) => new Date(`${day}T00:00:00Z`).toLocaleDateString("de-DE", { day: "numeric", month: "short", timeZone: "UTC" });
 
-// A thin line of the last days under a headline figure. The scale runs from the lowest to the highest point, so it shows
-// the shape, not the size (the exact values come on hover or touch). The last point is the figure shown above it.
+// A smooth line of the last days under a headline figure, with a soft area under it. The scale
+// runs from the lowest to the highest point, so it shows the shape, not the size (the exact values come on hover or touch).
+// The last point is the figure shown above it.
 export function TrendLine({ points, previous, label }: { points: TrendPoint[]; previous?: TrendPoint[]; label: string }) {
+  const id = useId().replace(/:/g, "");
   const [hover, setHover] = useState<number | null>(null);
   if (points.length < 2) return null;
 
@@ -27,6 +31,8 @@ export function TrendLine({ points, previous, label }: { points: TrendPoint[]; p
   const shown = hover ?? points.length - 1;
   const first = points[0];
   const last = points[points.length - 1];
+  const line = smoothPath(points.map((p, i) => [x(i), y(p.value)]));
+  const lineBefore = before ? smoothPath(before.map((p, i) => [x(i), y(p.value)])) : null;
 
   return (
     <figure className="mt-1">
@@ -42,17 +48,30 @@ export function TrendLine({ points, previous, label }: { points: TrendPoint[]; p
         }}
         onPointerLeave={() => setHover(null)}
       >
-        <line x1={PAD_X} x2={W - PAD_X} y1={H - 1} y2={H - 1} className="stroke-ink/10" />
-        {before && <polyline points={before.map((p, i) => `${x(i)},${y(p.value)}`).join(" ")} fill="none" className="stroke-ink/30" strokeWidth={1.5} strokeDasharray="3 3" strokeLinecap="round" strokeLinejoin="round" />}
-        <polyline points={points.map((p, i) => `${x(i)},${y(p.value)}`).join(" ")} fill="none" className="stroke-accent" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+        <defs>
+          <linearGradient id={`${id}-fill`} x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" style={{ stopColor: "var(--accent)", stopOpacity: 0.34 }} />
+            <stop offset="1" style={{ stopColor: "var(--accent)", stopOpacity: 0 }} />
+          </linearGradient>
+        </defs>
+        {lineBefore && <path d={lineBefore} fill="none" className="stroke-ink/30" strokeWidth={1.4} strokeDasharray="4 4" strokeLinecap="round" />}
+        <path d={`${line} L${x(points.length - 1)} ${H} L${x(0)} ${H} Z`} fill={`url(#${id}-fill)`} />
+        <path d={line} fill="none" className="stroke-accent" strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round" />
         {hover !== null && <line x1={x(shown)} x2={x(shown)} y1={2} y2={H - 1} className="stroke-ink/20" />}
-        <circle cx={x(shown)} cy={y(points[shown].value)} r={4} className="fill-accent stroke-paper" strokeWidth={2} />
+        <circle cx={x(shown)} cy={y(points[shown].value)} r={4} className="fill-accent" style={{ stroke: "var(--adm-card)" }} strokeWidth={2} />
       </svg>
-      <figcaption className="flex justify-between gap-2 text-[0.6875rem] text-neutral-500 tabular-nums">
+      <figcaption className="flex items-center justify-between gap-2 text-[0.6875rem] whitespace-nowrap text-neutral-500 tabular-nums">
         {hover === null ? (
           <>
             <span>{formatDay(first.day)}</span>
-            {before && <span className="inline-flex items-center gap-1.5"><svg width="16" height="4" aria-hidden><line x1="0" x2="16" y1="2" y2="2" className="stroke-ink/40" strokeWidth="1.5" strokeDasharray="3 3" /></svg>Zeitraum davor</span>}
+            {before && (
+              <span className="inline-flex items-center gap-1.5" title="Zeitraum davor">
+                <svg width="16" height="4" aria-hidden>
+                  <line x1="0" x2="16" y1="2" y2="2" className="stroke-ink/40" strokeWidth="1.5" strokeDasharray="3 3" />
+                </svg>
+                davor
+              </span>
+            )}
             <span>heute</span>
           </>
         ) : (
@@ -62,17 +81,7 @@ export function TrendLine({ points, previous, label }: { points: TrendPoint[]; p
           </span>
         )}
       </figcaption>
-      <table className="sr-only">
-        <caption>{label}</caption>
-        <tbody>
-          {points.map((p) => (
-            <tr key={p.day}>
-              <td>{formatDay(p.day)}</td>
-              <td>{p.value}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+      <ChartTable caption={label} rows={points.map((p) => [formatDay(p.day), String(p.value)])} />
     </figure>
   );
 }

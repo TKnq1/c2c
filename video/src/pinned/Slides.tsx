@@ -115,7 +115,7 @@ export const Brand5: React.FC = () => (
   />
 );
 
-const FeeCard: React.FC<{ title: string; rate: string; lines: string[] }> = ({ title, rate, lines }) => (
+export const FeeCard: React.FC<{ title: string; rate: string; lines: string[] }> = ({ title, rate, lines }) => (
   <div style={{ width: 380, borderRadius: 4, backgroundColor: "#1b1b1b", border: "1px solid rgba(255,255,255,0.08)", padding: "26px 28px", textAlign: "left" }}>
     <div style={{ fontSize: 26, color: GREY, fontWeight: 700 }}>{title}</div>
     <div style={{ fontSize: 88, fontWeight: 900, letterSpacing: "-0.03em", lineHeight: 1.05 }}>{rate}</div>

@@ -20,7 +20,7 @@ export default async function AdminTasksPage() {
   ]);
 
   return (
-    <div className="flex max-w-3xl flex-col gap-6">
+    <div className="mx-auto flex max-w-3xl flex-col gap-6">
       <div>
         <h1 className="font-display text-title-1 font-black">Offen</h1>
         <p className="mt-0.5 text-sm text-neutral-600 dark:text-neutral-400">

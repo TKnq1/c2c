@@ -781,7 +781,7 @@ model AdminPreference {
   userId              String    @id
   user                User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   displayName         String?
-  accent              String    @default("green")
+  accent              String    @default("blue")
   compact             Boolean   @default(false)
   hiddenTiles         String[]  @default([])
   tileOrder           String[]  @default([])
@@ -793,6 +793,7 @@ model AdminPreference {
   morningToHour       Int       @default(11)
   morningEveryTime    Boolean   @default(false)
   songVolume          Int       @default(55)
+  // No longer used: the Claude panel on the right of the admin pages is gone.
   panelOpen           Boolean   @default(false)
   // Which four figures stand at the top of Heute: one of the KPI_SETS in src/lib/admin-prefs.ts.
   kpiSet              String    @default("wachstum")

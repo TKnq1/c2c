@@ -56,7 +56,7 @@ export function SettingsForm({ initial }: { initial: AdminPrefs }) {
       else toast.success("Gespeichert");
     });
 
-  const card = "rounded border border-ink/10 bg-paper p-[var(--pad,1.25rem)]";
+  const card = "adm-card p-[var(--pad,1.25rem)]";
   const heading = "mb-3.5 text-footnote font-bold text-neutral-600 dark:text-neutral-400";
 
   return (

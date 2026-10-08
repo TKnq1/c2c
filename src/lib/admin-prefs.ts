@@ -44,7 +44,6 @@ export type AdminPrefs = {
   morningToHour: number;
   morningEveryTime: boolean;
   songVolume: number;
-  panelOpen: boolean;
   kpiSet: KpiSet;
   mailDaily: boolean;
   mailUrgent: boolean;
@@ -66,7 +65,6 @@ export const DEFAULT_PREFS: AdminPrefs = {
   morningToHour: 11,
   morningEveryTime: false,
   songVolume: 55,
-  panelOpen: false,
   kpiSet: "wachstum",
   mailDaily: true,
   mailUrgent: true,
