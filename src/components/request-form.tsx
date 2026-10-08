@@ -1,6 +1,8 @@
 "use client";
 
-import { startTransition, useActionState, useState } from "react";
+import { startTransition, useActionState, useEffect, useState } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { FiCheck, FiChevronRight } from "react-icons/fi";
 import { createRequestAction, updateRequestAction } from "@/lib/actions/requests";
 import { NICHES, PLATFORMS, PRODUCT_CATEGORIES, LANGUAGES } from "@/lib/constants";
@@ -48,6 +50,8 @@ type Props = {
   // Who the live preview shows as the brand.
   brand: { companyName: string; avatarUrl: string | null; rating: { average: number; count: number } };
   initial?: RequestFormInitial;
+  // Posting a new request needs a confirmed email address; the form says so before it's tried.
+  emailVerified: boolean;
 };
 
 type Sheet = "description" | "platform" | "content" | "budget" | "postBy" | "category" | "niche" | "followers" | "languages";
@@ -63,11 +67,24 @@ const cents = (value: string) => {
 // sheet to change it — and a live preview of the card creators will swipe.
 // Every value lives in state and goes up as a hidden input, since a
 // sheet's contents only exist while it's open.
-export function RequestForm({ requestId, brand, initial }: Props) {
+export function RequestForm({ requestId, brand, initial, emailVerified }: Props) {
   const { t, locale } = useI18n();
+  const router = useRouter();
   const action = requestId ? updateRequestAction.bind(null, requestId) : createRequestAction;
   const [state, formAction, pending] = useActionState(action, undefined);
   const [clientError, setClientError] = useState<string | null>(null);
+  const needsVerification = !requestId && !emailVerified;
+
+  // The link in the mail is usually opened in another tab or app: coming back re-reads whether the
+  // address is confirmed by now, keeping everything typed into the form.
+  useEffect(() => {
+    if (!needsVerification) return;
+    const onVisible = () => {
+      if (document.visibilityState === "visible") router.refresh();
+    };
+    document.addEventListener("visibilitychange", onVisible);
+    return () => document.removeEventListener("visibilitychange", onVisible);
+  }, [needsVerification, router]);
   const [sheet, setSheet] = useState<Sheet | null>(null);
   const close = () => setSheet(null);
 
@@ -138,7 +155,8 @@ export function RequestForm({ requestId, brand, initial }: Props) {
     startTransition(() => formAction(formData));
   }
 
-  const error = clientError ?? state?.error;
+  // The notice below already says it when the address isn't confirmed.
+  const error = clientError ?? (state?.code === "VERIFY_EMAIL" && needsVerification ? null : state?.error);
 
   return (
     <>
@@ -218,6 +236,14 @@ export function RequestForm({ requestId, brand, initial }: Props) {
         </aside>
 
         <div className="flex flex-col gap-3 md:col-start-1">
+          {needsVerification && (
+            <p className="rounded bg-fog px-4 py-3 text-sm text-ink">
+              {t("screens.requests.verifyFirst")}{" "}
+              <Link href="/dashboard/verify-email" className="font-medium underline">
+                {t("screens.requests.verifyLink")}
+              </Link>
+            </p>
+          )}
           {error && <p className="text-sm text-ink">{error}</p>}
           <button
             type="submit"

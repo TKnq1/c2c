@@ -72,6 +72,8 @@ export const screensIt: DeepString<typeof screens> = {
     caughtUpDefault: "Per ora non ci sono nuove richieste. Torna più tardi.", pass: "Passa", interested: "Interessato", undo: "Annulla l’ultimo passaggio", saveBrand: "Salva brand", unsaveBrand: "Rimuovi brand dai preferiti",
   },
   requests: {
+    verifyFirst: "Conferma la tua email per pubblicare una richiesta. Ti abbiamo inviato un link.",
+    verifyLink: "Inviami un nuovo link",
     new: "+ Nuova richiesta", interestedCreators: "Creator interessati", newThisWeek: "{count} nuovi questa settimana", waitingOffer: "In attesa di un’offerta",
     unreadMessages: "Messaggi non letti", replyHint: "Rispondi per far andare avanti le cose", caughtUp: "Sei in pari",
     postsToApprove: "Post da approvare", autoRelease: "Si rilascia da solo se aspetti", nothingToReview: "Niente da controllare",
@@ -399,6 +401,7 @@ export const screensIt: DeepString<typeof screens> = {
     confirmVerification: "Conferma verifica",
     emailVerified: "Email verificata.",
     linkInvalidVerify: "Questo link di verifica non è valido o è scaduto.",
+    verifyStep: "Ancora un passaggio: tocca il pulsante per confermare la tua email.",
     refreshing: "Aggiornamento",
     accountDeleted: "Account eliminato.",
     adding: "Aggiunta…",

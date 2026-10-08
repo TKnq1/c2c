@@ -14,7 +14,8 @@ import { DAY, takeToken } from "@/lib/rate-limit";
 import { VERIFY_EMAIL_MESSAGE, emailIsVerified } from "@/lib/verified";
 import { REQUEST_PHOTO_TYPES } from "@/lib/request-photo-types";
 
-export type ActionState = { error?: string } | undefined;
+// `code` lets the form tell a missing email confirmation (which it explains with a link) from other errors.
+export type ActionState = { error?: string; code?: "VERIFY_EMAIL" } | undefined;
 
 // The client resizes and re-encodes every photo before submitting (see
 // RequestPhotosInput), so a real upload lands far under this — it's a
@@ -121,17 +122,13 @@ export async function createRequestAction(_prevState: ActionState, formData: For
     return { error: "Not authorized." };
   }
 
-  if (!(await emailIsVerified(session.user.id))) return { error: VERIFY_EMAIL_MESSAGE };
+  if (!(await emailIsVerified(session.user.id))) return { error: VERIFY_EMAIL_MESSAGE, code: "VERIFY_EMAIL" };
 
   const parsed = createRequestSchema.safeParse(Object.fromEntries(formData));
   if (!parsed.success) {
     return { error: parsed.error.issues[0]?.message ?? "Please fill in all fields correctly." };
   }
 
-  // A request notifies every matching creator and stores up to five photos in the database.
-  if (!(await takeToken("create-request", session.user.id, 10, DAY))) {
-    return { error: "You've reached today's limit for new requests. Try again tomorrow." };
-  }
   const openRequests = await prisma.request.count({ where: { startup: { userId: session.user.id }, status: "OPEN" } });
   if (openRequests >= 50) return { error: "You have 50 open requests. Close some before posting new ones." };
 
@@ -142,6 +139,12 @@ export async function createRequestAction(_prevState: ActionState, formData: For
     const file = photos.files[(t as { index: number }).index];
     return { position, contentType: file.type, data: file.data };
   });
+
+  // A request notifies every matching creator and stores up to five photos in the database. Counted last,
+  // so an attempt that fails on the form itself doesn't use up the day's allowance.
+  if (!(await takeToken("create-request", session.user.id, 10, DAY))) {
+    return { error: "You've reached today's limit for new requests. Try again tomorrow." };
+  }
 
   const startup = await prisma.startupProfile.findUniqueOrThrow({ where: { userId: session.user.id } });
 
@@ -165,10 +168,6 @@ export async function duplicateRequestAction(requestId: string) {
   const session = await auth();
   if (!session || session.user.role !== "STARTUP") throw new Error("Not authorized.");
   if (!(await emailIsVerified(session.user.id))) redirect("/dashboard/verify-email");
-  // A copy goes live and notifies creators like a new request, so it counts against the same limits.
-  if (!(await takeToken("create-request", session.user.id, 10, DAY))) {
-    throw new Error("You've reached today's limit for new requests.");
-  }
   if ((await prisma.request.count({ where: { startup: { userId: session.user.id }, status: "OPEN" } })) >= 50) {
     throw new Error("You have 50 open requests. Close some before posting new ones.");
   }
@@ -179,6 +178,11 @@ export async function duplicateRequestAction(requestId: string) {
     include: { images: { orderBy: { position: "asc" } } },
   });
   if (!source || source.startupId !== startup.id) throw new Error("This request could not be found.");
+
+  // A copy goes live and notifies creators like a new request, so it counts against the same limits.
+  if (!(await takeToken("create-request", session.user.id, 10, DAY))) {
+    throw new Error("You've reached today's limit for new requests.");
+  }
 
   // A post-by date that's already gone would go live on the copy as-is —
   // leave it flexible instead; Edit is right after anyway.

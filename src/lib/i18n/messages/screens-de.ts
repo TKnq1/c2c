@@ -240,6 +240,8 @@ export const screensDe: DeepString<typeof screens> = {
     unsaveBrand: "Marke aus Favoriten entfernen",
   },
   requests: {
+    verifyFirst: "Bestätige deine E-Mail-Adresse, um eine Anfrage zu posten. Wir haben dir einen Link geschickt.",
+    verifyLink: "Neuen Link senden",
     new: "+ Neue Anfrage",
     interestedCreators: "Interessierte Creator",
     newThisWeek: "{count} neu diese Woche",
@@ -735,6 +737,7 @@ export const screensDe: DeepString<typeof screens> = {
     confirmVerification: "Bestätigung abschließen",
     emailVerified: "E-Mail bestätigt.",
     linkInvalidVerify: "Dieser Bestätigungslink ist ungültig oder abgelaufen.",
+    verifyStep: "Noch ein Schritt: Tippe auf den Button, um deine E-Mail zu bestätigen.",
     refreshing: "Wird aktualisiert",
     accountDeleted: "Konto gelöscht.",
     adding: "Wird hinzugefügt…",

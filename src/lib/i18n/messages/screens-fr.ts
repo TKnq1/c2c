@@ -177,6 +177,8 @@ export const screensFr: DeepString<typeof screens> = {
     unsaveBrand: "Retirer la marque des favoris",
   },
   requests: {
+    verifyFirst: "Confirme ton e-mail pour publier une demande. Nous t'avons envoyé un lien.",
+    verifyLink: "Recevoir un nouveau lien",
     new: "+ Nouvelle demande",
     interestedCreators: "Créateurs intéressés",
     newThisWeek: "{count} nouveaux cette semaine",
@@ -672,6 +674,7 @@ export const screensFr: DeepString<typeof screens> = {
     confirmVerification: "Confirmer",
     emailVerified: "E-mail vérifié.",
     linkInvalidVerify: "Ce lien de vérification est invalide ou a expiré.",
+    verifyStep: "Encore une étape : appuie sur le bouton pour confirmer ton e-mail.",
     refreshing: "Actualisation",
     accountDeleted: "Compte supprimé.",
     adding: "Ajout…",

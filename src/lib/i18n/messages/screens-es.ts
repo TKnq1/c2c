@@ -75,6 +75,8 @@ export const screensEs: DeepString<typeof screens> = {
     pass: "Pasar", interested: "Me interesa", undo: "Deshacer el último paso", saveBrand: "Guardar marca", unsaveBrand: "Quitar marca de favoritos",
   },
   requests: {
+    verifyFirst: "Confirma tu correo para publicar una solicitud. Te hemos enviado un enlace.",
+    verifyLink: "Enviarme un enlace nuevo",
     new: "+ Nueva solicitud", interestedCreators: "Creadores interesados", newThisWeek: "{count} nuevos esta semana", waitingOffer: "Esperando una oferta",
     unreadMessages: "Mensajes sin leer", replyHint: "Responde para que siga adelante", caughtUp: "Estás al día",
     postsToApprove: "Publicaciones por aprobar", autoRelease: "Se libera sola si esperas", nothingToReview: "Nada que revisar",
@@ -402,6 +404,7 @@ export const screensEs: DeepString<typeof screens> = {
     confirmVerification: "Confirmar verificación",
     emailVerified: "Correo verificado.",
     linkInvalidVerify: "Este enlace de verificación no es válido o ha caducado.",
+    verifyStep: "Un paso más: pulsa el botón para confirmar tu correo.",
     refreshing: "Actualizando",
     accountDeleted: "Cuenta eliminada.",
     adding: "Añadiendo…",

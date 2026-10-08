@@ -72,6 +72,8 @@ export const screensNl: DeepString<typeof screens> = {
     caughtUpDefault: "Nu geen nieuwe verzoeken om te bekijken. Kom later terug.", pass: "Overslaan", interested: "Geïnteresseerd", undo: "Laatste overslaan ongedaan maken", saveBrand: "Merk bewaren", unsaveBrand: "Merk uit favorieten halen",
   },
   requests: {
+    verifyFirst: "Bevestig je e-mailadres om een verzoek te plaatsen. We hebben je een link gestuurd.",
+    verifyLink: "Stuur me een nieuwe link",
     new: "+ Nieuw verzoek", interestedCreators: "Geïnteresseerde creators", newThisWeek: "{count} nieuw deze week", waitingOffer: "Wacht op een voorstel",
     unreadMessages: "Ongelezen berichten", replyHint: "Antwoord zodat het door kan", caughtUp: "Je bent bij",
     postsToApprove: "Posts om goed te keuren", autoRelease: "Wordt automatisch vrijgegeven als je wacht", nothingToReview: "Niets te controleren",
@@ -399,6 +401,7 @@ export const screensNl: DeepString<typeof screens> = {
     confirmVerification: "Bevestiging afronden",
     emailVerified: "E-mail bevestigd.",
     linkInvalidVerify: "Deze bevestigingslink is ongeldig of verlopen.",
+    verifyStep: "Nog één stap: tik op de knop om je e-mail te bevestigen.",
     refreshing: "Vernieuwen",
     accountDeleted: "Account verwijderd.",
     adding: "Toevoegen…",

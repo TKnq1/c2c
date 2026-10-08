@@ -242,6 +242,8 @@ export const screens = {
     unsaveBrand: "Remove brand from favorites",
   },
   requests: {
+    verifyFirst: "Confirm your email address to post a request. We sent you a link.",
+    verifyLink: "Send me a new link",
     new: "+ New request",
     interestedCreators: "Interested creators",
     newThisWeek: "{count} new this week",
@@ -739,6 +741,7 @@ export const screens = {
     confirmVerification: "Confirm verification",
     emailVerified: "Email verified.",
     linkInvalidVerify: "This verification link is invalid or has expired.",
+    verifyStep: "One more step: tap the button below to confirm your email.",
     refreshing: "Refreshing",
     accountDeleted: "Account deleted.",
     adding: "Adding…",

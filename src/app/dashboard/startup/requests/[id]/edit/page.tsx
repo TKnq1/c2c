@@ -2,6 +2,7 @@ import { notFound, redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { brandRating, legacyRequestPhotoUrl, requestPhotoUrl } from "@/lib/request-photos";
+import { emailIsVerified } from "@/lib/verified";
 import { RequestForm } from "@/components/request-form";
 import type { PhotoItem } from "@/components/request-photos-input";
 import { PageTitle } from "@/components/page-title";
@@ -13,7 +14,7 @@ export default async function EditRequestPage({ params }: { params: Promise<{ id
   if (!session || session.user.role !== "STARTUP") redirect("/login");
   const t = await getT();
 
-  const [startup, request] = await Promise.all([
+  const [startup, request, emailVerified] = await Promise.all([
     prisma.startupProfile.findUniqueOrThrow({
       where: { userId: session.user.id },
       select: { id: true, companyName: true, avatarUrl: true },
@@ -22,6 +23,7 @@ export default async function EditRequestPage({ params }: { params: Promise<{ id
       where: { id },
       include: { images: { select: { id: true }, orderBy: { position: "asc" } } },
     }),
+    emailIsVerified(session.user.id),
   ]);
   if (!request || request.startupId !== startup.id) notFound();
   const rating = await brandRating(startup.id);
@@ -40,6 +42,7 @@ export default async function EditRequestPage({ params }: { params: Promise<{ id
       <RequestForm
         requestId={request.id}
         brand={{ companyName: startup.companyName, avatarUrl: startup.avatarUrl, rating }}
+        emailVerified={emailVerified}
         initial={{
           title: request.title,
           description: request.description,
