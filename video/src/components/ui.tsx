@@ -215,7 +215,7 @@ const AVATAR_COLORS = ["#f43f5e", "#f59e0b", "#10b981", "#3b82f6", "#8b5cf6", "#
 export const Avatar: React.FC<{ name: string; size?: number; color?: string; image?: string; style?: CSSProperties }> = ({ name, size = 64, color, image, style }) => {
   const fallback = AVATAR_COLORS[name.charCodeAt(0) % AVATAR_COLORS.length];
   if (image) {
-    return <Img src={staticFile(image)} style={{ width: size, height: size, borderRadius: 999, flexShrink: 0, objectFit: "cover", display: "block", ...style }} />;
+    return <Img src={staticFile(image)} style={{ width: size, height: size, borderRadius: 999, flexShrink: 0, objectFit: "cover", display: "block", boxShadow: "0 0 0 2px rgba(7,7,7,0.1)", ...style }} />;
   }
   return (
     <div

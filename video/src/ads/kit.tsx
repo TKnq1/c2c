@@ -130,18 +130,10 @@ export const Sample: React.FC<{ dark?: boolean }> = ({ dark }) => (
 // ---------------------------------------------------------------------------------------------------------------
 // Black screens
 
-const GRAIN_FRAMES = 6;
-
-// Film grain over a black screen: six noise frames (scripts/make-grain.py), a new one every other frame.
-export const Grain: React.FC<{ strength?: number }> = ({ strength = 0.9 }) => {
-  const frame = useFrame();
-  const i = Math.floor(frame / 2) % GRAIN_FRAMES;
-  return (
-    <AbsoluteFill
-      style={{ backgroundImage: `url(${staticFile(`grain/g${i}.png`)})`, backgroundSize: "cover", mixBlendMode: "screen", opacity: strength, pointerEvents: "none" }}
-    />
-  );
-};
+// Film grain over a black screen, like the app's emails: fine, faint and standing still (scripts/make-grain.py).
+export const Grain: React.FC = () => (
+  <AbsoluteFill style={{ backgroundImage: `url(${staticFile("grain/dark.png")})`, backgroundSize: "cover", mixBlendMode: "screen", pointerEvents: "none" }} />
+);
 
 // The logo mark, huge and faint behind everything, drifting slowly. It replaces the small logo of the first round.
 export const BackdropLogo: React.FC<{ y?: number }> = ({ y = 880 }) => {
@@ -165,14 +157,14 @@ export const BackdropLogo: React.FC<{ y?: number }> = ({ y = 880 }) => {
   );
 };
 
-// A black scene as the ads use them: ink with a soft light in the middle, the logo behind, grain and a vignette on top.
+// A black scene as the ads use them, like the emails' band: ink with a soft light in the middle, the logo behind, still grain and a vignette on top.
 export const DarkStage: React.FC<{ children: ReactNode; logoY?: number }> = ({ children, logoY }) => (
   <Stage dark>
     <AbsoluteFill style={{ backgroundImage: "radial-gradient(ellipse 75% 45% at 50% 42%, rgba(255,255,255,0.07), rgba(255,255,255,0) 70%)" }} />
     <BackdropLogo y={logoY} />
     {children}
     <Grain />
-    <AbsoluteFill style={{ backgroundImage: "radial-gradient(ellipse 85% 70% at 50% 50%, rgba(0,0,0,0) 55%, rgba(0,0,0,0.65) 100%)", pointerEvents: "none" }} />
+    <AbsoluteFill style={{ backgroundImage: "radial-gradient(ellipse 85% 70% at 50% 50%, rgba(0,0,0,0) 55%, rgba(0,0,0,0.45) 100%)", pointerEvents: "none" }} />
   </Stage>
 );
 
