@@ -1,0 +1,31 @@
+import { Hook, HOOK_DURATION } from "./Hook";
+import { IntroBrand, IntroCover, IntroCreator, IntroGo, IntroIdea, IntroPays, IntroPrice } from "./Intro";
+import { INTRO_TITLE_DURATION, IntroTitle } from "./IntroTitle";
+import { Number90, NUMBER_DURATION } from "./Number";
+import { BrandApprove, BrandFees, BrandRequest, Cta, Deal, Founding, Myth, Pays, Poll, Question, Quiz } from "./Stills";
+
+// The stories, one composition each: short videos with sound (the hook, the number, the highlight's title), the rest still
+// images (one frame). Rendered by scripts/render-stories.mjs; what to post when is in STORIES.md.
+export const STORIES = [
+  { id: "StoryHook", component: Hook, duration: HOOK_DURATION },
+  { id: "StoryMyth", component: Myth, duration: 1 },
+  { id: "StoryDeal", component: Deal, duration: 1 },
+  { id: "StoryPays", component: Pays, duration: 1 },
+  { id: "StoryQuiz", component: Quiz, duration: 1 },
+  { id: "StoryNumber", component: Number90, duration: NUMBER_DURATION },
+  { id: "StoryPoll", component: Poll, duration: 1 },
+  { id: "StoryQuestion", component: Question, duration: 1 },
+  { id: "StoryFounding", component: Founding, duration: 1 },
+  { id: "StoryBrandRequest", component: BrandRequest, duration: 1 },
+  { id: "StoryBrandApprove", component: BrandApprove, duration: 1 },
+  { id: "StoryBrandFees", component: BrandFees, duration: 1 },
+  { id: "StoryCta", component: Cta, duration: 1 },
+  { id: "StoryIntroTitle", component: IntroTitle, duration: INTRO_TITLE_DURATION },
+  { id: "StoryIntroIdea", component: IntroIdea, duration: 1 },
+  { id: "StoryIntroCreator", component: IntroCreator, duration: 1 },
+  { id: "StoryIntroPays", component: IntroPays, duration: 1 },
+  { id: "StoryIntroBrand", component: IntroBrand, duration: 1 },
+  { id: "StoryIntroPrice", component: IntroPrice, duration: 1 },
+  { id: "StoryIntroGo", component: IntroGo, duration: 1 },
+  { id: "StoryIntroCover", component: IntroCover, duration: 1 },
+];
