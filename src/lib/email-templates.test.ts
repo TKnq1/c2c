@@ -11,6 +11,7 @@ import {
   welcomeEmail,
   foundingNoticeEmail,
   accountSuspendedEmail,
+  dealNoticeEmail,
 } from "@/lib/email-templates";
 
 describe("verificationEmail", () => {
@@ -259,6 +260,7 @@ describe("German emails", () => {
       waitlistConfirmationEmail(url, "de"),
       marketingWelcomeEmail(url, "CREATOR", "Hallo", "Mia", 24, undefined, undefined, "de"),
       marketingWelcomeEmail(url, "STARTUP", "Hallo", "Glow", 1, undefined, undefined, "de"),
+      dealNoticeEmail({ subject: "Erinnerung", text: "Dein Entwurf ist fällig.", url, actionNeeded: true }, "de"),
     ];
     for (const email of emails) {
       // None of the English sentences is left in the German mail.
@@ -298,5 +300,44 @@ describe("German emails", () => {
     expect(mail.subject).toBe("Dein comtor-Konto wurde gesperrt");
     expect(mail.text).toContain("Grund: Gefälschte Follower-Zahlen.");
     expect(mail.html).toContain("mailto:info@comtor.app?subject=Gesperrtes%20Konto");
+  });
+});
+
+describe("dealNoticeEmail", () => {
+  const url = "https://www.comtor.app/dashboard/deals/d1";
+  const base = { subject: "Reminder: your draft for “Autumn launch” is due", text: "Your draft for “Autumn launch” was due 8 Oct 2026.", url };
+
+  it("carries the subject, the notice text and the link in both parts", () => {
+    const email = dealNoticeEmail({ ...base, actionNeeded: true }, "en");
+    expect(email.subject).toBe(base.subject);
+    expect(email.html).toContain(base.text);
+    expect(email.text).toContain(base.text);
+    expect(email.html.split(`href="${url}"`)).toHaveLength(3);
+    expect(email.text).toContain(url);
+  });
+
+  it("says whether the deal needs the person or only has news", () => {
+    expect(dealNoticeEmail({ ...base, actionNeeded: true }, "en").text).toContain("Your deal needs you.");
+    expect(dealNoticeEmail({ ...base, actionNeeded: false }, "en").text).toContain("News on your deal.");
+    expect(dealNoticeEmail({ ...base, actionNeeded: true }, "de").text).toContain("Dein Deal braucht dich.");
+    expect(dealNoticeEmail({ ...base, actionNeeded: false }, "de").text).toContain("Neuigkeiten zu deinem Deal.");
+  });
+
+  it("tells the person why the mail cannot be switched off", () => {
+    expect(dealNoticeEmail({ ...base, actionNeeded: false }, "en").text).toContain("cannot be switched off");
+    expect(dealNoticeEmail({ ...base, actionNeeded: false }, "de").text).toContain("lassen sich nicht abschalten");
+  });
+
+  it("escapes what a brand typed into a title", () => {
+    const email = dealNoticeEmail({ ...base, text: 'Deal “<script>alert(1)</script> & Co” was cancelled.', actionNeeded: false }, "en");
+    expect(email.html).not.toContain("<script>alert(1)");
+    expect(email.html).toContain("&lt;script&gt;alert(1)&lt;/script&gt; &amp; Co");
+  });
+
+  it("keeps the inbox preview short", () => {
+    const email = dealNoticeEmail({ ...base, text: "x".repeat(300), actionNeeded: false }, "en");
+    // The hidden line an inbox shows after the subject: the text cut at 107 characters, then the filler that keeps the body out.
+    const preview = email.html.match(/mso-hide:all;">([^<]*)<\/div>/)?.[1].split("&#847;")[0];
+    expect(preview).toBe(`${"x".repeat(107)}…`);
   });
 });

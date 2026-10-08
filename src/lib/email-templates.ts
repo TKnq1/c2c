@@ -428,6 +428,25 @@ export function accountSuspendedEmail(reason: string, locale: Locale = DEFAULT_L
   });
 }
 
+// A deal notice as an e-mail: the ones with a deadline, a cancellation, a dispute or money behind them (see NOTICE_SUBJECT in
+// src/lib/deals/notices.ts). The text is the notice the person also sees in the app; the heading says whether it asks
+// something of them.
+export function dealNoticeEmail(args: { subject: string; text: string; url: string; actionNeeded: boolean }, locale: Locale = DEFAULT_LOCALE): Email {
+  return render({
+    locale,
+    subject: args.subject,
+    preview: args.text.length > 110 ? `${args.text.slice(0, 107)}…` : args.text,
+    heading: args.actionNeeded ? pick(locale, "Your deal needs you.", "Dein Deal braucht dich.") : pick(locale, "News on your deal.", "Neuigkeiten zu deinem Deal."),
+    body: args.text,
+    action: { label: pick(locale, "Open in comtor", "In comtor öffnen"), url: args.url },
+    note: pick(
+      locale,
+      "You get this e-mail because a deadline, a cancellation or money is involved. These messages cannot be switched off.",
+      "Du bekommst diese E-Mail, weil dabei eine Frist, ein Abbruch oder Geld im Spiel ist. Diese Hinweise lassen sich nicht abschalten.",
+    ),
+  });
+}
+
 // What /admin/email sends to check that mail gets out and looks right.
 export function testEmail(url: string, locale: Locale = DEFAULT_LOCALE): Email {
   return render({

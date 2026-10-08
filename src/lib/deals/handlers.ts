@@ -1,7 +1,9 @@
 import { prisma } from "@/lib/prisma";
-import { issueDealInvoices } from "@/lib/billing/issue";
+import { issueAndAnnounce } from "@/lib/billing/announce";
+import { alertAdmins, dayKey } from "@/lib/deals/alerts";
 import { planDealActions, type DealSnapshot, type PlannedAction } from "@/lib/deals/deadlines";
 import { DEAL_POLICY, type ReminderKey } from "@/lib/deals/policy";
+import { onEscrowFunded } from "@/lib/deals/escrow";
 import { dealHref, notifyDealParty } from "@/lib/deals/notify";
 import type { NoticeKey } from "@/lib/deals/notices";
 import { claimReminder, loadDeal, moveDeal, type DealView } from "@/lib/deals/service";
@@ -153,7 +155,33 @@ export type RunSummary = {
   results: Record<string, number>;
   failures: { dealId: string; error: string }[];
   invoicesIssued: number;
+  healed: number;
 };
+
+// A deal that waits for the payment while the money is already held: the webhook was cut off between the payment and the
+// deal (it moves both, but not in one transaction). Stripe retries the webhook, but not forever, so the daily job closes the gap.
+async function healFundedDeals(now: Date): Promise<number> {
+  const stuck = await prisma.deal.findMany({
+    where: { status: "AWAITING_ESCROW", interest: { paymentStatus: "HELD" } },
+    select: { id: true },
+    take: 50,
+  });
+  let healed = 0;
+  for (const { id } of stuck) {
+    try {
+      await onEscrowFunded(id, now);
+      healed += 1;
+    } catch (err) {
+      console.error("Healing a funded deal failed", { dealId: id, err });
+      alertAdmins({
+        key: `deal-heal-failed-${id}-${dayKey(now)}`,
+        title: "Bezahlter Deal hängt in „Warten auf Zahlung“",
+        lines: [`Der Deal ${id} ist bezahlt (das Geld liegt im Treuhandkonto), steht aber noch auf „Warten auf Zahlung“: ${err instanceof Error ? err.message : String(err)}`, "Der tägliche Lauf versucht es morgen erneut."],
+      });
+    }
+  }
+  return healed;
+}
 
 // Completed deals whose invoices could not be written (the tax details were missing) are caught up here.
 async function issueMissingInvoices(): Promise<number> {
@@ -168,9 +196,14 @@ async function issueMissingInvoices(): Promise<number> {
   let issued = 0;
   for (const { id } of missing) {
     try {
-      issued += (await issueDealInvoices(id)).issued.length;
+      issued += (await issueAndAnnounce(id)).issued.length;
     } catch (err) {
       console.error("Issuing a missing invoice failed", { dealId: id, err });
+      alertAdmins({
+        key: `deal-invoice-failed-${id}-${dayKey()}`,
+        title: "Rechnung konnte nicht erstellt werden",
+        lines: [`Beim Nachholen der Rechnungen für den Deal ${id} ist ein Fehler aufgetreten: ${err instanceof Error ? err.message : String(err)}`, "Der tägliche Lauf versucht es morgen erneut."],
+      });
     }
   }
   return issued;
@@ -179,7 +212,7 @@ async function issueMissingInvoices(): Promise<number> {
 export async function runDealDeadlines(now = new Date()): Promise<RunSummary> {
   const snapshots = await loadSnapshots();
   const actions = planDealActions(snapshots, now);
-  const summary: RunSummary = { planned: actions.length, results: {}, failures: [], invoicesIssued: 0 };
+  const summary: RunSummary = { planned: actions.length, results: {}, failures: [], invoicesIssued: 0, healed: 0 };
 
   for (const action of actions) {
     try {
@@ -188,8 +221,14 @@ export async function runDealDeadlines(now = new Date()): Promise<RunSummary> {
     } catch (err) {
       console.error("Deal action failed", { action, err });
       summary.failures.push({ dealId: action.dealId, error: err instanceof Error ? err.message : String(err) });
+      alertAdmins({
+        key: `deal-action-failed-${action.dealId}-${action.kind}-${dayKey(now)}`,
+        title: "Fehler im täglichen Deal-Lauf",
+        lines: [`Aktion ${action.kind} für den Deal ${action.dealId} ist fehlgeschlagen: ${err instanceof Error ? err.message : String(err)}`, "Der Lauf versucht es morgen erneut."],
+      });
     }
   }
+  summary.healed = await healFundedDeals(now);
   summary.invoicesIssued = await issueMissingInvoices();
   return summary;
 }

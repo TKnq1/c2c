@@ -115,3 +115,59 @@ export async function seedOffer(prisma: PrismaClient, created: string[], options
   await prisma.offerEvent.create({ data: { interestId: interest.id, role: "STARTUP", amountCents: amount, outcome: "PENDING" } });
   return { brand: { id: brandUser.id, role: "STARTUP" as const }, creator: { id: creatorUser.id, role: "CREATOR" as const }, interest, request, amount };
 }
+
+export type DealTarget = "AWAITING_ESCROW" | "IN_PRODUCTION" | "VERIFYING" | "PAYOUT_PENDING" | "COMPLETED" | "DISPUTED";
+
+// A deal taken to `target` through the lib functions the app itself uses, without the screens: the offer accepted, the contract
+// signed (so the tax snapshot exists), the escrow funded as far as the target needs, then the later states written down the
+// way prisma/seed-deals.ts does. For the tests of what happens around the money. The app modules are loaded here, not at the
+// top: the test sets DATABASE_URL first.
+export async function dealAt(prisma: PrismaClient, created: string[], target: DealTarget, options: SeedOptions & { chargeId?: string } = {}) {
+  const [{ createDealInTx }, { completeContract }, { onEscrowFunded }] = await Promise.all([
+    import("@/lib/deals/create"),
+    import("@/lib/deals/contract"),
+    import("@/lib/deals/escrow"),
+  ]);
+  const s = await seedOffer(prisma, created, options);
+  const now = new Date();
+  const interest = await prisma.interest.update({ where: { id: s.interest.id }, data: { paymentStatus: "ACCEPTED", acceptedAt: now, offerBriefingVersion: 1 } });
+  const request = await prisma.request.findUniqueOrThrow({ where: { id: s.request.id }, include: { startup: true, briefing: true } });
+  const creator = await prisma.creatorProfile.findUniqueOrThrow({ where: { id: interest.creatorId } });
+  const created_ = await prisma.$transaction((tx) =>
+    createDealInTx(tx, {
+      id: interest.id,
+      creatorId: interest.creatorId,
+      amountCents: interest.amountCents,
+      payoutCents: interest.payoutCents,
+      platformFeeCents: interest.platformFeeCents,
+      request,
+      creator: { displayName: creator.displayName },
+    }),
+  );
+  const dealId = created_.id;
+  const signed = new Date(now.getTime() - 20 * HOUR);
+  await prisma.deal.update({ where: { id: dealId }, data: { creatorSignedAt: signed, creatorSignedBy: s.creator.id, brandSignedAt: signed, brandSignedBy: s.brand.id } });
+  const completed = await completeContract(dealId, "STARTUP", s.brand.id, "en");
+  if (!completed.done) throw new Error(`The contract did not complete: ${JSON.stringify(completed.refusal)}`);
+
+  const chargeId = options.chargeId ?? `ch_${Date.now()}${++counter}`;
+  const touch = (data: Record<string, unknown>) => prisma.deal.update({ where: { id: dealId }, data: { statusChangedAt: now, ...data } });
+  if (target !== "AWAITING_ESCROW") {
+    await prisma.interest.update({ where: { id: s.interest.id }, data: { paymentStatus: "HELD", paidAt: new Date(now.getTime() - 18 * HOUR), stripeChargeId: chargeId } });
+    await onEscrowFunded(dealId, new Date(now.getTime() - 18 * HOUR));
+  }
+  const firstLive = new Date(now.getTime() - 3 * DAY);
+  const live = { firstLiveAt: firstLive, verificationEndsAt: new Date(now.getTime() - HOUR), usageStartsAt: firstLive };
+  if (target === "VERIFYING") await touch({ status: "VERIFYING", firstLiveAt: new Date(now.getTime() - 3 * HOUR), verificationEndsAt: new Date(now.getTime() + 21 * HOUR) });
+  if (target === "PAYOUT_PENDING") await touch({ status: "PAYOUT_PENDING", ...live, payoutEligibleAt: live.verificationEndsAt, statusChangedAt: new Date(now.getTime() - 2 * HOUR) });
+  if (target === "COMPLETED") {
+    await prisma.interest.update({ where: { id: s.interest.id }, data: { paymentStatus: "RELEASED", releasedAt: now, stripeTransferId: `tr_${chargeId}` } });
+    await touch({ status: "COMPLETED", ...live, payoutEligibleAt: live.verificationEndsAt, completedAt: now });
+  }
+  if (target === "DISPUTED") {
+    await touch({ status: "DISPUTED", statusBeforeDispute: "VERIFYING", ...live });
+    await prisma.interest.update({ where: { id: s.interest.id }, data: { disputedAt: now } });
+    await prisma.dealDispute.create({ data: { dealId, reason: "CONTENT_MISMATCH", details: "Test dispute.", openedByRole: "STARTUP", openedByUserId: s.brand.id } });
+  }
+  return { ...s, dealId, chargeId };
+}

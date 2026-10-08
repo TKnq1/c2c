@@ -6,9 +6,12 @@ import { splitVatInclusive } from "@/lib/tax/engine";
 import { bodyOf, buildBrandInvoice, buildCreatorCreditNote, documentIsConsistent, formatInvoiceNumber, invoiceSequenceKey, type DealDocumentInput, type InvoiceDraft } from "@/lib/billing/invoice";
 import { platformIssuer } from "@/lib/billing/issuer";
 
-export type IssueResult = { issued: InvoiceKind[]; skipped: "NO_ISSUER" | "NO_SNAPSHOT" | "NOT_COMPLETED" | null };
+// A document that was written by this call.
+export type IssuedDocument = { id: string; kind: InvoiceKind; number: string; recipientUserId: string };
 
-function berlinYear(now: Date): number {
+export type IssueResult = { issued: InvoiceKind[]; documents: IssuedDocument[]; skipped: "NO_ISSUER" | "NO_SNAPSHOT" | "NOT_COMPLETED" | null };
+
+export function berlinYear(now: Date): number {
   return Number(new Intl.DateTimeFormat("en-US", { timeZone: "Europe/Berlin", year: "numeric" }).format(now));
 }
 
@@ -20,12 +23,12 @@ export async function issueDealInvoices(dealId: string, now = new Date()): Promi
     where: { id: dealId },
     include: { interest: { include: { request: { include: { startup: true } }, creator: true } }, invoices: { select: { kind: true } } },
   });
-  if (!deal || deal.status !== "COMPLETED") return { issued: [], skipped: "NOT_COMPLETED" };
+  if (!deal || deal.status !== "COMPLETED") return { issued: [], documents: [], skipped: "NOT_COMPLETED" };
 
   const snapshot = parseTaxSnapshot(deal.taxSnapshot);
-  if (!snapshot) return { issued: [], skipped: "NO_SNAPSHOT" };
+  if (!snapshot) return { issued: [], documents: [], skipped: "NO_SNAPSHOT" };
   const platform = platformIssuer();
-  if (!platform) return { issued: [], skipped: "NO_ISSUER" };
+  if (!platform) return { issued: [], documents: [], skipped: "NO_ISSUER" };
 
   const terms = parseTerms(deal.terms);
   // What the creator really got: if a side went Pro after the contract, the payout is higher than the one in the terms
@@ -56,6 +59,7 @@ export async function issueDealInvoices(dealId: string, now = new Date()): Promi
   const year = berlinYear(now);
 
   const issued: InvoiceKind[] = [];
+  const documents: IssuedDocument[] = [];
   for (const { draft, recipientUserId } of wanted) {
     if (have.has(draft.kind)) continue;
     if (!documentIsConsistent(draft)) throw new Error(`Invoice for deal ${dealId} does not add up (${draft.kind}).`);
@@ -87,7 +91,8 @@ export async function issueDealInvoices(dealId: string, now = new Date()): Promi
       });
     });
     issued.push(created.kind);
+    documents.push({ id: created.id, kind: created.kind, number: created.number, recipientUserId });
   }
-  return { issued, skipped: null };
+  return { issued, documents, skipped: null };
 }
 

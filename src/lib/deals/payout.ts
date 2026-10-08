@@ -5,8 +5,9 @@ import { notify } from "@/lib/notifications";
 import { notifyUrgent } from "@/lib/admin-digest";
 import { formatNoticeBody } from "@/lib/admin-notice-format";
 import { formatCents } from "@/lib/format";
-import { issueDealInvoices } from "@/lib/billing/issue";
-import { refundHeldPayment, releaseHeldPayment, type MoneyMoveResult } from "@/lib/payment-release";
+import { issueAndAnnounce } from "@/lib/billing/announce";
+import { closeReconciliationReports, reconcileRelease, refundHeldPayment, releaseHeldPayment, type MoneyMoveResult } from "@/lib/payment-release";
+import { alertAdmins, dayKey } from "@/lib/deals/alerts";
 import { DAY_MS, DEAL_POLICY, type CancelReason } from "@/lib/deals/policy";
 import { cancelReasonText } from "@/lib/deals/notices";
 import { dealHref, notifyDealParty } from "@/lib/deals/notify";
@@ -23,6 +24,28 @@ async function notifyAdmins(message: string, href: string) {
   await Promise.all(admins.map((a) => notify(a.id, message, href, "payments")));
 }
 
+// A transfer call that got no clear answer leaves the payment as "released" without a transfer id. That is not "the money moved":
+// Stripe has to say so, or the deal would complete and tell the creator they were paid. After this long without a trace of the
+// transfer (the call's idempotency window of 24 hours is long over) paying again is safe.
+const UNRECORDED_RETRY_AFTER_MS = 36 * 60 * 60 * 1000;
+
+type ReleaseState = "MOVED" | "PAY" | "WAIT";
+
+async function releaseState(interest: { id: string; paymentStatus: string | null; stripeTransferId: string | null; releasedAt: Date | null }): Promise<ReleaseState> {
+  if (interest.paymentStatus !== "RELEASED") return "PAY";
+  if (interest.stripeTransferId) return "MOVED";
+  const found = await reconcileRelease(interest.id);
+  if (found === "RECORDED") return "MOVED";
+  if (found === "NOT_FOUND" && interest.releasedAt && Date.now() - interest.releasedAt.getTime() > UNRECORDED_RETRY_AFTER_MS) {
+    const reverted = await prisma.interest.updateMany({
+      where: { id: interest.id, paymentStatus: "RELEASED", stripeTransferId: null },
+      data: { paymentStatus: "HELD", releasedAt: null },
+    });
+    return reverted.count === 1 ? "PAY" : "WAIT";
+  }
+  return "WAIT";
+}
+
 // The payout, once the deal is in PAYOUT_PENDING. Called after the hold window, by the daily retry, and after an admin
 // settled a dispute for the creator. The deal only completes once Stripe has really moved the money.
 export async function releaseDealPayout(dealId: string, trigger: "verified" | "admin" = "verified"): Promise<MoneyMoveResult> {
@@ -30,8 +53,19 @@ export async function releaseDealPayout(dealId: string, trigger: "verified" | "a
   if (!view || view.deal.status !== "PAYOUT_PENDING") return { error: "This deal isn't waiting for its payout." };
 
   // A previous run may have moved the money and been cut off before it completed the deal: then only the rest is left.
-  const alreadyReleased = view.deal.interest.paymentStatus === "RELEASED";
-  const result: MoneyMoveResult = alreadyReleased ? {} : await releaseHeldPayment(view.deal.interestId, trigger, { notifyParties: false });
+  const state = await releaseState(view.deal.interest);
+  if (state === "WAIT") {
+    alertAdmins({
+      key: `deal-payout-unrecorded-${dealId}-${dayKey()}`,
+      title: "Auszahlung ohne Stripe-Bestätigung",
+      lines: [
+        `„${view.title}“ (${view.brandName} / ${view.creatorName}): Die Überweisung an den Creator ist ohne klare Antwort abgebrochen, und in Stripe ist keine zu finden.`,
+        "Der Deal bleibt auf „Auszahlung fällig“, bis Stripe die Überweisung bestätigt oder sicher ist, dass es keine gibt. Prüfe sie in Stripe.",
+      ],
+    });
+    return { error: "The payout has to be checked in Stripe first." };
+  }
+  const result: MoneyMoveResult = state === "MOVED" ? {} : await releaseHeldPayment(view.deal.interestId, trigger, { notifyParties: false });
   if (result.error) {
     if (/payouts/i.test(result.error) && (await claimReminder(dealId, "payout_blocked"))) {
       await notifyDealParty(
@@ -40,10 +74,18 @@ export async function releaseDealPayout(dealId: string, trigger: "verified" | "a
         { title: view.title, payout: formatCents(view.deal.interest.payoutCents ?? view.terms.payoutCents) },
         "/dashboard/creator/payments",
       );
+    } else if (/Releasing the payment failed/.test(result.error)) {
+      // Stripe turned the transfer down: not something the creator can fix, and the daily job will only ask again.
+      alertAdmins({
+        key: `deal-payout-failed-${dealId}-${dayKey()}`,
+        title: "Auszahlung fehlgeschlagen",
+        lines: [`„${view.title}“ (${view.brandName} / ${view.creatorName}): Stripe hat die Überweisung abgelehnt.`, "Der tägliche Lauf versucht es morgen erneut. Bleibt es dabei, schau in Stripe nach dem Grund."],
+      });
     }
     return result;
   }
 
+  await closeReconciliationReports(view.deal.interestId);
   const now = new Date();
   const moved = await moveDeal(dealId, "PAYOUT_RELEASED", trigger === "admin" ? "ADMIN" : "SYSTEM", {
     expectedFrom: "PAYOUT_PENDING",
@@ -55,7 +97,7 @@ export async function releaseDealPayout(dealId: string, trigger: "verified" | "a
   await notifyDealParty(view.brandUserId, "payout_released_brand", { title: view.title, creator: view.creatorName }, dealHref(dealId));
 
   try {
-    const issued = await issueDealInvoices(dealId, now);
+    const issued = await issueAndAnnounce(dealId, now);
     if (issued.skipped === "NO_ISSUER") {
       notifyUrgent({
         key: `invoice-data-${dealId}`,
@@ -66,6 +108,11 @@ export async function releaseDealPayout(dealId: string, trigger: "verified" | "a
     }
   } catch (err) {
     console.error("Issuing the invoices failed", { dealId, err });
+    alertAdmins({
+      key: `deal-invoice-failed-${dealId}-${dayKey(now)}`,
+      title: "Rechnung konnte nicht erstellt werden",
+      lines: [`Für den Deal „${view.title}“ ist beim Erstellen der Rechnungen ein Fehler aufgetreten: ${err instanceof Error ? err.message : String(err)}`, "Der tägliche Lauf holt sie nach."],
+    });
   }
   return {};
 }
@@ -93,10 +140,15 @@ export async function cancelDeal(dealId: string, reason: CancelReason, actor: Ac
   if (!view) return { ok: false, error: "NOT_FOUND" };
   const { interest } = view.deal;
 
+  // A refund that went through and was cut off before the deal was ended leaves the payment refunded with its refund id: then
+  // only the rest is left, and the deal must not stay open with the money back at the brand.
+  const refundedBefore = interest.paymentStatus === "REFUNDED" && interest.stripeRefundId !== null;
   if (interest.paymentStatus === "HELD") {
     const trigger = actor === "CREATOR" ? "creator" : actor === "SYSTEM" ? "deadline" : actor === "ADMIN" ? "admin" : "brand";
     const refund = await refundHeldPayment(interest.id, trigger, { notifyParties: false });
     if (refund.error) return { ok: false, error: refund.error };
+  } else if (refundedBefore) {
+    // Nothing to do on Stripe's side.
   } else if (interest.paymentStatus === "ACCEPTED") {
     const closed = await closeOpenCheckout(interest.stripeCheckoutSessionId);
     if (!closed.ok) return { ok: false, error: "A payment for this deal is still going through. Try again in a few minutes." };
@@ -115,7 +167,7 @@ export async function cancelDeal(dealId: string, reason: CancelReason, actor: Ac
   });
   if (!moved.ok) return { ok: false, error: "The deal changed in the meantime." };
 
-  const funded = interest.paymentStatus === "HELD";
+  const funded = interest.paymentStatus === "HELD" || refundedBefore;
   await notifyCancellation(view, reason, funded, actor);
   return { ok: true };
 }
@@ -146,6 +198,7 @@ const DISPUTE_REASON_TEXT: Record<DisputeReason, { de: string; en: string }> = {
   CONTENT_MISMATCH: { de: "Inhalt entspricht nicht dem Briefing", en: "content does not match the briefing" },
   USAGE_RIGHTS_MISSING: { de: "Nutzungsrechte nicht übergeben", en: "usage rights not handed over" },
   OTHER: { de: "Sonstiges", en: "other" },
+  CHARGEBACK: { de: "Rückbuchung durch die Bank", en: "chargeback by the bank" },
 };
 
 export function disputeReasonText(reason: DisputeReason, locale: "de" | "en"): string {
@@ -158,7 +211,7 @@ export type DisputeOpenResult = { ok: true; disputeId: string } | { ok: false; e
 // removed post makes it necessary.
 export async function openDealDispute(
   dealId: string,
-  input: { reason: DisputeReason; details: string | null; actor: "STARTUP" | "CREATOR" | "SYSTEM"; actorUserId?: string },
+  input: { reason: DisputeReason; details: string | null; actor: "STARTUP" | "CREATOR" | "SYSTEM"; actorUserId?: string; stripeDisputeId?: string },
 ): Promise<DisputeOpenResult> {
   const view = await loadDeal(dealId);
   if (!view) return { ok: false, error: "NOT_FOUND" };
@@ -177,6 +230,7 @@ export async function openDealDispute(
       details: input.details?.slice(0, 1000) ?? null,
       openedByRole: input.actor === "SYSTEM" ? null : input.actor,
       openedByUserId: input.actorUserId ?? null,
+      stripeDisputeId: input.stripeDisputeId ?? null,
     },
   });
   // The legacy release paths look at this: nothing pays out or refunds around an open dispute.
@@ -224,7 +278,10 @@ export async function resolveDealDispute(
     prisma.dealDispute.update({ where: { id: disputeId }, data: { status, resolution: note.slice(0, 1000), resolvedByAdminId: adminId, resolvedAt: new Date() } });
 
   if (resolution === "REFUND") {
-    const refund = await refundHeldPayment(interestId, "admin", { notifyParties: false });
+    // A refund that went through before something else failed (the admin pressed the button twice, the request was cut off)
+    // is not made again: the rest of the decision is carried out.
+    const alreadyRefunded = view.deal.interest.paymentStatus === "REFUNDED" && view.deal.interest.stripeRefundId !== null;
+    const refund: MoneyMoveResult = alreadyRefunded ? {} : await refundHeldPayment(interestId, "admin", { notifyParties: false });
     if (refund.error) return refund;
     await moveDeal(dealId, "RESOLVE_REFUND", "ADMIN", { actorUserId: adminId, data: { cancelledAt: new Date(), cancelReason: "DISPUTE_REFUND" }, event: "dispute.refunded" });
     await settle("RESOLVED_REFUND");

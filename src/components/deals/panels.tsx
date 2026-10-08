@@ -468,7 +468,8 @@ export function InvoicesPanel({ ctx }: { ctx: PanelContext }) {
           <Link key={invoice.id} href={`/dashboard/invoices/${invoice.id}`} className="flex items-center gap-3 text-sm hover:underline">
             <IoDocumentTextOutline className="h-5 w-5 shrink-0" aria-hidden />
             <span className="min-w-0 flex-1 truncate">
-              {u(`invoices.kind.${invoice.kind}`)} {invoice.number}
+              {u(invoice.cancelsInvoiceId ? `invoices.storno.${invoice.kind}` : `invoices.kind.${invoice.kind}`)} {invoice.number}
+              {invoice.status === "CANCELLED" ? ` · ${u("invoices.cancelled")}` : ""}
             </span>
             <span className="tabular-nums">{formatCents(invoice.grossCents)}</span>
             <span className="text-xs text-neutral-500 dark:text-neutral-400">{date(invoice.issuedAt, locale).split(",")[0]}</span>

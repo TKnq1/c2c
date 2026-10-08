@@ -59,7 +59,7 @@ export default async function InvoicePage(props: PageProps<"/dashboard/invoices/
       <article className="flex flex-col gap-6 rounded bg-fog p-5 print:bg-transparent print:p-0 sm:p-8">
         <header className="flex flex-wrap items-start justify-between gap-4">
           <div>
-            <h1 className="font-display text-title-1 font-bold">{u(`invoices.kind.${invoice.kind}`)}</h1>
+            <h1 className="font-display text-title-1 font-bold">{u(invoice.cancelsInvoiceId ? `invoices.storno.${invoice.kind}` : `invoices.kind.${invoice.kind}`)}</h1>
             <p className="text-sm tabular-nums">
               {u("invoices.number")} {invoice.number}
             </p>

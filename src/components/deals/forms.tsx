@@ -327,7 +327,8 @@ export function DeliverUsageForm({ dealId, channels }: { dealId: string; channel
 // Disputes
 // ---------------------------------------------------------------------------------------------------------------------
 
-const REASONS: DisputeReason[] = ["MISSED_DEADLINE", "DRAFT_REJECTED", "POST_REMOVED", "DISCLOSURE_MISSING", "CONTENT_MISMATCH", "USAGE_RIGHTS_MISSING", "OTHER"];
+// A chargeback is never opened by a person: only the system does that, when Stripe tells it about one.
+const REASONS: Exclude<DisputeReason, "CHARGEBACK">[] = ["MISSED_DEADLINE", "DRAFT_REJECTED", "POST_REMOVED", "DISCLOSURE_MISSING", "CONTENT_MISMATCH", "USAGE_RIGHTS_MISSING", "OTHER"];
 
 export function OpenDisputeButton({ dealId }: { dealId: string }) {
   const u = useDealText();

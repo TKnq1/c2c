@@ -164,6 +164,16 @@ export function bodyOf(draft: Pick<InvoiceDraft, "lines" | "notes">): InvoiceBod
   return { items: draft.lines, notes: draft.notes };
 }
 
+// The same items with every amount reversed: the body of a cancellation document. Written as 0 - n so that a zero stays +0.
+export function negateBody(body: InvoiceBody): InvoiceBody {
+  return { items: body.items.map((item) => ({ ...item, unitNetCents: 0 - item.unitNetCents, netCents: 0 - item.netCents })), notes: body.notes };
+}
+
+// Net plus VAT is gross and the items add up to net, whatever the sign: what a cancellation document has to keep too.
+export function amountsAddUp(amounts: { netCents: number; vatCents: number; grossCents: number }, body: InvoiceBody): boolean {
+  return amounts.netCents + amounts.vatCents === amounts.grossCents && body.items.reduce((sum, item) => sum + item.netCents, 0) === amounts.netCents;
+}
+
 export function parseBody(json: unknown): InvoiceBody {
   const body = json as Partial<InvoiceBody> | null;
   return { items: Array.isArray(body?.items) ? body.items : [], notes: Array.isArray(body?.notes) ? body.notes : [] };

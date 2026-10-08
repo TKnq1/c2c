@@ -21,7 +21,9 @@ export type DealAction =
   | "RESOLVE_RELEASE"
   | "RESOLVE_REFUND"
   | "RESOLVE_RESUME"
-  | "CANCEL";
+  | "CANCEL"
+  // The money was taken back outside the app (a refund made in Stripe, a lost chargeback): the deal ends wherever it stood.
+  | "FORCE_CANCEL";
 
 type Rule = { to: DealStatus | "SIGNING" | "RESUME"; actors: Actor[] };
 
@@ -92,8 +94,9 @@ const TRANSITIONS: Record<DealStatus, Partial<Record<DealAction, Rule>>> = {
   COMPLETED: {},
   DISPUTED: {
     RESOLVE_RELEASE: { to: "PAYOUT_PENDING", actors: ["ADMIN"] },
-    RESOLVE_REFUND: { to: "CANCELLED", actors: ["ADMIN"] },
-    RESOLVE_RESUME: { to: "RESUME", actors: ["ADMIN"] },
+    // The system settles a chargeback when the card network has decided (a lost one is a refund, a won one carries on).
+    RESOLVE_REFUND: { to: "CANCELLED", actors: ["ADMIN", "SYSTEM"] },
+    RESOLVE_RESUME: { to: "RESUME", actors: ["ADMIN", "SYSTEM"] },
   },
   CANCELLED: {},
 };
@@ -110,6 +113,11 @@ export type TransitionContext = {
 };
 
 export const TERMINAL_STATUSES: readonly DealStatus[] = ["COMPLETED", "CANCELLED"];
+
+// A deal that is not finished can always be ended by the system or an admin when its money is gone.
+for (const status of Object.keys(TRANSITIONS) as DealStatus[]) {
+  if (!TERMINAL_STATUSES.includes(status)) TRANSITIONS[status].FORCE_CANCEL = { to: "CANCELLED", actors: ["SYSTEM", "ADMIN"] };
+}
 
 export function isTerminal(status: DealStatus): boolean {
   return TERMINAL_STATUSES.includes(status);

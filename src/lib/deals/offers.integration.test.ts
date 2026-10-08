@@ -9,6 +9,7 @@ vi.mock("@/lib/auth", () => ({ auth: vi.fn() }));
 vi.mock("next/cache", () => ({ revalidatePath: vi.fn() }));
 vi.mock("@/lib/i18n/server", () => ({ getLocale: async () => "en", getT: async () => (key: string) => key, getMessages: async () => ({}) }));
 vi.mock("@/lib/admin-digest", () => ({ notifyUrgent: vi.fn() }));
+vi.mock("@/lib/email", () => ({ sendEmail: vi.fn(async () => ({ ok: true, id: "mail_test" })) }));
 vi.mock("@/lib/stripe", () => ({ stripe: { checkout: { sessions: { create: vi.fn() } }, webhooks: { constructEvent: vi.fn() } } }));
 
 type Db = typeof import("@/lib/prisma").prisma;

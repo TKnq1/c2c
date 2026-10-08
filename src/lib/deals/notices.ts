@@ -172,9 +172,84 @@ export const NOTICE_TEXT = {
     en: "{who} confirmed the offer for “{title}” again under the updated briefing. Take a look at the briefing and accept if it suits you.",
     de: "{who} hat das Angebot für „{title}“ unter dem aktualisierten Briefing erneut bestätigt. Sieh dir das Briefing an und nimm das Angebot an, wenn es passt.",
   },
+  chargeback_lost: {
+    en: "The payment for “{title}” was reversed by the brand's bank (a chargeback). The deal is cancelled and nothing is paid out.",
+    de: "Die Zahlung für „{title}“ wurde von der Bank der Marke zurückgebucht (Rückbuchung). Der Deal ist abgebrochen, es wird nichts ausgezahlt.",
+  },
+  refunded_outside: {
+    en: "The payment for “{title}” was refunded to the brand outside comtor. The deal is cancelled.",
+    de: "Die Zahlung für „{title}“ wurde außerhalb von comtor an die Marke erstattet. Der Deal ist abgebrochen.",
+  },
+  invoice_issued_brand: {
+    en: "Your invoice {number} for “{title}” is ready. You find it under Deals, Invoices.",
+    de: "Deine Rechnung {number} für „{title}“ liegt bereit. Du findest sie unter Deals, Rechnungen.",
+  },
+  invoice_issued_creator: {
+    en: "Your credit note {number} for “{title}” is ready. You find it under Deals, Invoices.",
+    de: "Deine Gutschrift {number} für „{title}“ liegt bereit. Du findest sie unter Deals, Rechnungen.",
+  },
+  invoice_corrected: {
+    en: "The document {old} for “{title}” was corrected: it is cancelled and replaced by {new}.",
+    de: "Der Beleg {old} für „{title}“ wurde korrigiert: Er ist storniert und durch {new} ersetzt.",
+  },
 } as const satisfies Record<string, Text>;
 
 export type NoticeKey = keyof typeof NOTICE_TEXT;
+
+// What a notice is sent as an e-mail for, and under which subject. These are the ones with a deadline, a cancellation, a
+// dispute or money behind them: they are also not switched off by the "payments" notification setting, because missing one
+// can cost a deal (an automatic cancellation with a refund). The rest stays in the app.
+export const NOTICE_SUBJECT: Partial<Record<NoticeKey, Text>> = {
+  reminder_draft_due: { en: "Reminder: your draft for “{title}” is due", de: "Erinnerung: Dein Entwurf für „{title}“ ist fällig" },
+  reminder_review_due: { en: "Reminder: review the draft for “{title}”", de: "Erinnerung: Prüfe den Entwurf für „{title}“" },
+  reminder_revision_due: { en: "Reminder: the changes for “{title}” are due", de: "Erinnerung: Die Änderungen für „{title}“ sind fällig" },
+  reminder_post_due: { en: "Reminder: your post for “{title}” is due", de: "Erinnerung: Dein Post für „{title}“ ist fällig" },
+  reminder_scheduled_missed: { en: "Your scheduled post for “{title}” is missing", de: "Dein geplanter Post für „{title}“ fehlt" },
+  escrow_due: { en: "Payment due: “{title}”", de: "Zahlung fällig: „{title}“" },
+  contract_sign: { en: "Confirm the contract for “{title}”", de: "Bestätige den Vertrag für „{title}“" },
+  draft_auto_approved_creator: { en: "Your draft for “{title}” counts as approved", de: "Dein Entwurf für „{title}“ gilt als freigegeben" },
+  draft_auto_approved_brand: { en: "A draft for “{title}” was approved automatically", de: "Ein Entwurf für „{title}“ wurde automatisch freigegeben" },
+  post_removed_creator: { en: "Your post for “{title}” is no longer online", de: "Dein Post für „{title}“ ist nicht mehr online" },
+  post_removed_brand: { en: "The post for “{title}” is no longer online", de: "Der Post für „{title}“ ist nicht mehr online" },
+  payout_blocked: { en: "Set up payouts to receive your money for “{title}”", de: "Richte die Auszahlung ein, um dein Geld für „{title}“ zu erhalten" },
+  usage_delivery_needed: { en: "Hand over the ad usage rights for “{title}”", de: "Übergib die Ads-Nutzungsrechte für „{title}“" },
+  usage_expiring: { en: "The ad usage rights for “{title}” end soon", de: "Die Ads-Nutzungsrechte für „{title}“ enden bald" },
+  deal_cancelled_refund_brand: { en: "Deal cancelled and refunded: “{title}”", de: "Deal abgebrochen und erstattet: „{title}“" },
+  deal_cancelled_creator: { en: "Deal cancelled: “{title}”", de: "Deal abgebrochen: „{title}“" },
+  deal_cancelled_brand: { en: "Deal cancelled: “{title}”", de: "Deal abgebrochen: „{title}“" },
+  deal_cancelled_by_brand: { en: "Deal cancelled: “{title}”", de: "Deal abgebrochen: „{title}“" },
+  dispute_opened: { en: "Deal frozen: “{title}”", de: "Deal eingefroren: „{title}“" },
+  dispute_released: { en: "Dispute decided: payout for “{title}”", de: "Streitfall entschieden: Auszahlung für „{title}“" },
+  dispute_refunded: { en: "Dispute decided: refund for “{title}”", de: "Streitfall entschieden: Erstattung für „{title}“" },
+  dispute_resumed: { en: "Dispute resolved: “{title}” continues", de: "Streitfall geklärt: „{title}“ läuft weiter" },
+  payout_released_creator: { en: "Your payout for “{title}” is on its way", de: "Deine Auszahlung für „{title}“ ist unterwegs" },
+  payout_released_brand: { en: "Payout released: “{title}”", de: "Auszahlung freigegeben: „{title}“" },
+  chargeback_lost: { en: "Payment reversed: “{title}”", de: "Zahlung zurückgebucht: „{title}“" },
+  refunded_outside: { en: "Payment refunded: “{title}”", de: "Zahlung erstattet: „{title}“" },
+};
+
+export const EMAIL_NOTICES: ReadonlySet<NoticeKey> = new Set(Object.keys(NOTICE_SUBJECT) as NoticeKey[]);
+
+// Of those, the ones that ask the person to do something (the e-mail's heading says so); the rest is news.
+export const ACTION_NOTICES: ReadonlySet<NoticeKey> = new Set<NoticeKey>([
+  "reminder_draft_due",
+  "reminder_review_due",
+  "reminder_revision_due",
+  "reminder_post_due",
+  "reminder_scheduled_missed",
+  "escrow_due",
+  "contract_sign",
+  "post_removed_creator",
+  "payout_blocked",
+  "usage_delivery_needed",
+  "usage_expiring",
+]);
+
+export function noticeSubject(key: NoticeKey, locale: Locale | string, params: NoticeParams): string | null {
+  const text = NOTICE_SUBJECT[key];
+  if (!text) return null;
+  return fill(text[dealLocale(locale)], plainParams(params, dealLocale(locale)));
+}
 
 export const CANCEL_REASON_TEXT: Record<CancelReason, Text> = {
   CONTRACT_EXPIRED: { en: "the contract was not confirmed in time", de: "der Vertrag wurde nicht rechtzeitig bestätigt" },
@@ -185,6 +260,8 @@ export const CANCEL_REASON_TEXT: Record<CancelReason, Text> = {
   CANCELLED_BY_BRAND: { en: "cancelled by the brand", de: "von der Marke abgebrochen" },
   CANCELLED_BY_CREATOR: { en: "the creator withdrew", de: "der Creator ist zurückgetreten" },
   DISPUTE_REFUND: { en: "a dispute was decided in favour of the brand", de: "ein Streitfall wurde zugunsten der Marke entschieden" },
+  REFUNDED_IN_STRIPE: { en: "the payment was refunded outside comtor", de: "die Zahlung wurde außerhalb von comtor erstattet" },
+  CHARGEBACK_LOST: { en: "the bank reversed the payment", de: "die Bank hat die Zahlung zurückgebucht" },
 };
 
 export function cancelReasonText(reason: CancelReason, locale: DealLocale): string {
@@ -194,12 +271,13 @@ export function cancelReasonText(reason: CancelReason, locale: DealLocale): stri
 export type NoticeParams = Record<string, string | number | Date>;
 
 // Dates in the params are written out in the reader's language, so a caller does not have to know it.
+function plainParams(params: NoticeParams, language: DealLocale) {
+  return Object.fromEntries(Object.entries(params).map(([name, value]) => [name, value instanceof Date ? formatDealDate(value, language) : value]));
+}
+
 export function noticeText(key: NoticeKey, locale: Locale | string, params: NoticeParams): string {
   const language = dealLocale(locale);
-  const plain = Object.fromEntries(
-    Object.entries(params).map(([name, value]) => [name, value instanceof Date ? formatDealDate(value, language) : value]),
-  );
-  return fill(NOTICE_TEXT[key][language], plain);
+  return fill(NOTICE_TEXT[key][language], plainParams(params, language));
 }
 
 // A date and time in Berlin, in the reader's language: deadlines are the same moment for everyone.

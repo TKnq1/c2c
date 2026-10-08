@@ -73,6 +73,22 @@ describe("transition", () => {
     expect(transition("PAYOUT_PENDING", "OPEN_DISPUTE", "STARTUP").ok).toBe(true);
   });
 
+  it("lets the system or an admin, but no party, end an unfinished deal whose money is gone", () => {
+    for (const status of ["CONTRACT_PENDING", "AWAITING_ESCROW", "IN_PRODUCTION", "DRAFT_SUBMITTED", "POST_SUBMITTED", "VERIFYING", "PAYOUT_PENDING", "DISPUTED"] as const) {
+      expect(transition(status, "FORCE_CANCEL", "SYSTEM")).toEqual({ ok: true, to: "CANCELLED" });
+      expect(transition(status, "FORCE_CANCEL", "ADMIN")).toEqual({ ok: true, to: "CANCELLED" });
+      expect(transition(status, "FORCE_CANCEL", "STARTUP").ok).toBe(false);
+      expect(transition(status, "FORCE_CANCEL", "CREATOR").ok).toBe(false);
+    }
+    for (const status of ["COMPLETED", "CANCELLED"] as const) expect(transition(status, "FORCE_CANCEL", "SYSTEM").ok).toBe(false);
+  });
+
+  it("lets the system settle a chargeback, but only an admin release the money", () => {
+    expect(transition("DISPUTED", "RESOLVE_REFUND", "SYSTEM")).toEqual({ ok: true, to: "CANCELLED" });
+    expect(transition("DISPUTED", "RESOLVE_RESUME", "SYSTEM", { resumeTo: "VERIFYING" })).toEqual({ ok: true, to: "VERIFYING" });
+    expect(transition("DISPUTED", "RESOLVE_RELEASE", "SYSTEM").ok).toBe(false);
+  });
+
   it("lists every action only for the actors the table names", () => {
     expect(allowedActions("DRAFT_SUBMITTED", "STARTUP").sort()).toEqual(["APPROVE_DRAFT", "OPEN_DISPUTE", "REQUEST_CHANGES"]);
     expect(allowedActions("DRAFT_SUBMITTED", "CREATOR")).toEqual(["OPEN_DISPUTE"]);

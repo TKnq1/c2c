@@ -110,7 +110,10 @@ export async function loadDealPage(dealId: string) {
       },
       events: { orderBy: { createdAt: "desc" }, take: 60 },
       disputes: { orderBy: { openedAt: "desc" } },
-      invoices: { orderBy: { issuedAt: "asc" }, select: { id: true, number: true, kind: true, grossCents: true, issuedAt: true, recipientUserId: true } },
+      invoices: {
+        orderBy: [{ issuedAt: "asc" }, { revision: "asc" }],
+        select: { id: true, number: true, kind: true, status: true, grossCents: true, issuedAt: true, recipientUserId: true, cancelsInvoiceId: true },
+      },
     },
   });
 }

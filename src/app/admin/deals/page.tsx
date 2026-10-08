@@ -5,11 +5,13 @@ import { formatCents } from "@/lib/format";
 import { ConfirmActionButton } from "@/components/confirm-action-button";
 import { LocalDate } from "@/components/local-date";
 import { DealDisputeResolver } from "@/components/admin/deal-dispute-resolver";
+import { InvoiceCorrector } from "@/components/admin/invoice-corrector";
+import { firstParams } from "@/components/admin/list-controls";
 import { issueDealInvoicesAction, recheckVatIdAction } from "@/lib/actions/deal-admin";
 import { disputeReasonText } from "@/lib/deals/payout";
 import { parseTerms } from "@/lib/deals/terms";
 import { POST_FORMATS, isPostFormat } from "@/lib/social/platforms";
-import { platformIssuer } from "@/lib/billing/issuer";
+import { platformIssuer, type InvoiceParty } from "@/lib/billing/issuer";
 
 const STATUS_DE: Record<string, string> = {
   CONTRACT_PENDING: "Vertrag offen",
@@ -39,10 +41,14 @@ const dealParties = {
   },
 } as const;
 
-export default async function AdminDealsPage() {
-  await requireAdminSession();
+const KIND_DE = { BRAND_INVOICE: "Rechnung", CREATOR_CREDIT_NOTE: "Gutschrift" } as const;
 
-  const [disputes, stuck, withoutInvoices, recent, vatProblems, counts] = await Promise.all([
+export default async function AdminDealsPage(props: PageProps<"/admin/deals">) {
+  await requireAdminSession();
+  const params = firstParams(await props.searchParams);
+  const invoiceQuery = params.rechnung?.trim().slice(0, 40) ?? "";
+
+  const [disputes, stuck, withoutInvoices, recent, vatProblems, counts, invoices] = await Promise.all([
     prisma.dealDispute.findMany({
       where: { status: "OPEN" },
       orderBy: { openedAt: "asc" },
@@ -71,6 +77,12 @@ export default async function AdminDealsPage() {
       select: { userId: true, legalName: true, vatId: true, vatIdStatus: true, vatIdCheckedAt: true, country: true },
     }),
     prisma.deal.groupBy({ by: ["status"], _count: true }),
+    prisma.invoice.findMany({
+      where: invoiceQuery ? { number: { contains: invoiceQuery, mode: "insensitive" } } : {},
+      orderBy: { issuedAt: "desc" },
+      take: 30,
+      select: { id: true, number: true, kind: true, status: true, grossCents: true, issuedAt: true, issuer: true, recipient: true, cancelsInvoiceId: true, cancelledAt: true },
+    }),
   ]);
   const issuerReady = platformIssuer() !== null;
   const active = counts.filter((c) => !["COMPLETED", "CANCELLED"].includes(c.status)).reduce((sum, c) => sum + c._count, 0);
@@ -256,6 +268,62 @@ export default async function AdminDealsPage() {
                 </ConfirmActionButton>
               </li>
             ))}
+          </ul>
+        )}
+      </section>
+
+      <section className="flex flex-col gap-3">
+        <div>
+          <h2 className="font-semibold">Belege</h2>
+          <p className="mt-1 text-sm text-neutral-500 dark:text-neutral-400">
+            Die letzten 30 Rechnungen und Gutschriften. Eine falsche Anschrift, ein falscher Name oder eine falsche USt-IdNr. wird mit einem Storno und einem neuen Beleg
+            korrigiert; ausgestellte Belege werden nie geändert.
+          </p>
+        </div>
+        <form className="flex flex-wrap items-center gap-2" action="/admin/deals">
+          <input
+            name="rechnung"
+            defaultValue={invoiceQuery}
+            placeholder="Nummer suchen, z. B. RE-2026"
+            className="min-w-0 flex-1 rounded border border-neutral-300 bg-transparent px-3 py-2 text-sm outline-none focus:border-neutral-500 dark:border-neutral-700"
+          />
+          <button type="submit" className="rounded-full border border-ink px-4 py-1.5 text-sm font-medium transition hover:bg-fog">
+            Suchen
+          </button>
+        </form>
+        {invoices.length === 0 ? (
+          <p className="rounded bg-fog px-4 py-3 text-sm text-neutral-500 dark:text-neutral-400">Keine Belege gefunden.</p>
+        ) : (
+          <ul className="flex flex-col gap-2">
+            {invoices.map((invoice) => {
+              // The details that can be wrong are the other side's: the brand on an invoice, the creator on a credit note.
+              const party = (invoice.kind === "BRAND_INVOICE" ? invoice.recipient : invoice.issuer) as unknown as InvoiceParty;
+              const correctable = invoice.status === "ISSUED" && !invoice.cancelledAt && !invoice.cancelsInvoiceId;
+              return (
+                <li key={invoice.id} className="flex flex-col gap-2 rounded bg-fog px-4 py-3 text-sm">
+                  <div className="flex flex-wrap items-baseline justify-between gap-2">
+                    <span className="min-w-0">
+                      <Link href={`/dashboard/invoices/${invoice.id}`} className="font-medium hover:underline">
+                        {invoice.cancelsInvoiceId ? "Storno" : KIND_DE[invoice.kind]} {invoice.number}
+                      </Link>{" "}
+                      · {party.name}
+                    </span>
+                    <span className="shrink-0 text-footnote text-neutral-500 dark:text-neutral-400">
+                      {formatCents(invoice.grossCents)} · <LocalDate ms={invoice.issuedAt.getTime()} />
+                      {invoice.status === "CANCELLED" ? " · storniert" : ""}
+                    </span>
+                  </div>
+                  {correctable && (
+                    <InvoiceCorrector
+                      invoiceId={invoice.id}
+                      number={invoice.number}
+                      partyLabel={invoice.kind === "BRAND_INVOICE" ? "der Marke" : "des Creators"}
+                      details={{ name: party.name, addressLines: party.addressLines, vatId: party.vatId, taxNumber: party.taxNumber }}
+                    />
+                  )}
+                </li>
+              );
+            })}
           </ul>
         )}
       </section>

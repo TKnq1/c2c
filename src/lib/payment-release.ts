@@ -46,6 +46,42 @@ function revalidatePaymentPaths(requestId: string) {
   revalidatePath("/admin", "layout");
 }
 
+export type ReconcileResult = "RECORDED" | "NOT_FOUND" | "UNKNOWN";
+
+const RECONCILIATION_REASON = "Automated: Payout needs reconciliation";
+
+// The report "Payout needs reconciliation" asks a person to look in Stripe. Once the transfer is known (found, or paid again
+// and confirmed) the question is answered, so the report closes itself instead of waiting for someone to tick it off.
+export async function closeReconciliationReports(interestId: string): Promise<void> {
+  await prisma.report.updateMany({ where: { status: "OPEN", reason: RECONCILIATION_REASON, details: { contains: interestId } }, data: { status: "RESOLVED" } });
+}
+
+// A transfer call that got no clear answer leaves the payment marked as released without a transfer id (see below). This asks
+// Stripe whether the transfer exists after all: the transfers to the creator's account around that time, the one made out of
+// this charge. Found: its id is written down and the payment is settled. Not found: the caller decides (not before the
+// idempotency window of the call is over). Stripe not answering: unknown.
+export async function reconcileRelease(interestId: string): Promise<ReconcileResult> {
+  const interest = await prisma.interest.findUnique({ where: { id: interestId }, include: { creator: true } });
+  if (!interest || interest.paymentStatus !== "RELEASED") return "UNKNOWN";
+  if (interest.stripeTransferId) return "RECORDED";
+  if (!interest.stripeChargeId || !interest.creator.stripeAccountId) return "UNKNOWN";
+  try {
+    const since = Math.floor(((interest.releasedAt ?? new Date()).getTime() - 2 * 60 * 60 * 1000) / 1000);
+    for await (const transfer of stripe.transfers.list({ destination: interest.creator.stripeAccountId, created: { gte: since }, limit: 100 })) {
+      const source = typeof transfer.source_transaction === "string" ? transfer.source_transaction : transfer.source_transaction?.id;
+      if (source === interest.stripeChargeId) {
+        await prisma.interest.update({ where: { id: interestId }, data: { stripeTransferId: transfer.id } });
+        await closeReconciliationReports(interestId);
+        return "RECORDED";
+      }
+    }
+    return "NOT_FOUND";
+  } catch (err) {
+    console.error("Looking for the transfer failed", { interestId, err });
+    return "UNKNOWN";
+  }
+}
+
 export async function releaseHeldPayment(
   interestId: string,
   trigger: ReleaseTrigger,

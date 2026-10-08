@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { RELEASE_REVIEW_MS } from "@/lib/constants";
 import { readSnapshots, type SentrySnapshot, type StripeSnapshot } from "@/lib/admin-external";
 import { dealsToReprice } from "@/lib/open-deal-fees";
+import { dealChecks } from "@/lib/deals/admin-checks";
 
 const HOUR = 60 * 60 * 1000;
 const DAY = 24 * HOUR;
@@ -123,7 +124,7 @@ export function setupChecks(f: SetupFacts, now: Date): CheckResult[] {
 // The fixed checks: things in the data that wait on the admin. Each returns nothing when there is nothing to do.
 export async function computeChecks(now = new Date()): Promise<CheckResult[]> {
   const releaseSoonBefore = new Date(now.getTime() - (RELEASE_REVIEW_MS - DAY));
-  const [reports, disputes, releaseSoon, foundingUnnotified, foundingCreatorsUnnotified, reconciliations, reprice, snapshots, mailFailures24h, activeFixedCosts, settings] = await Promise.all([
+  const [reports, disputes, releaseSoon, foundingUnnotified, foundingCreatorsUnnotified, reconciliations, reprice, snapshots, mailFailures24h, activeFixedCosts, settings, dealResults] = await Promise.all([
     prisma.report.aggregate({ where: { status: "OPEN" }, _count: true, _min: { createdAt: true } }),
     prisma.interest.count({ where: { paymentStatus: "HELD", disputedAt: { not: null } } }),
     prisma.interest.count({ where: { paymentStatus: "HELD", disputedAt: null, proofSubmittedAt: { lte: releaseSoonBefore } } }),
@@ -142,6 +143,7 @@ export async function computeChecks(now = new Date()): Promise<CheckResult[]> {
     prisma.mailLog.count({ where: { ok: false, createdAt: { gte: new Date(now.getTime() - DAY) } } }),
     prisma.fixedCost.count({ where: { active: true } }),
     prisma.adminSettings.findUnique({ where: { id: 1 }, select: { cashBalanceAt: true } }),
+    dealChecks(now),
   ]);
 
   const checks: CheckResult[] = [];
@@ -211,6 +213,7 @@ export async function computeChecks(now = new Date()): Promise<CheckResult[]> {
       href: "/admin/payments",
     });
   }
+  checks.push(...dealResults);
   checks.push(
     ...setupChecks(
       { sentry: snapshots.sentry?.data ?? null, stripe: snapshots.stripe?.data ?? null, mailFailures24h, activeFixedCosts, balanceAt: settings?.cashBalanceAt ?? null },

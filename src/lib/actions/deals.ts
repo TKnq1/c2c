@@ -535,6 +535,7 @@ export async function confirmUsageAction(dealId: string): Promise<DealActionStat
 // Disputes
 // ---------------------------------------------------------------------------------------------------------------------
 
+// (A chargeback is opened by the system, never by a person.)
 const DISPUTE_REASONS: DisputeReason[] = ["MISSED_DEADLINE", "DRAFT_REJECTED", "POST_REMOVED", "DISCLOSURE_MISSING", "CONTENT_MISMATCH", "USAGE_RIGHTS_MISSING", "OTHER"];
 
 export async function openDisputeAction(dealId: string, _prev: DealActionState, formData: FormData): Promise<DealActionState> {

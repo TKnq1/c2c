@@ -51,7 +51,10 @@ export type CancelReason =
   | "POST_DEADLINE_MISSED"
   | "CANCELLED_BY_BRAND"
   | "CANCELLED_BY_CREATOR"
-  | "DISPUTE_REFUND";
+  | "DISPUTE_REFUND"
+  // The money was taken back outside the app.
+  | "REFUNDED_IN_STRIPE"
+  | "CHARGEBACK_LOST";
 
 export const HOUR_MS = 60 * 60 * 1000;
 export const DAY_MS = 24 * HOUR_MS;

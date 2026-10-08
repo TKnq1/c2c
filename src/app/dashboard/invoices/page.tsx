@@ -23,7 +23,7 @@ export default async function InvoicesPage() {
   const invoices = await prisma.invoice.findMany({
     where: { recipientUserId: session.user.id },
     orderBy: { issuedAt: "desc" },
-    select: { id: true, number: true, kind: true, status: true, grossCents: true, issuedAt: true, dealId: true },
+    select: { id: true, number: true, kind: true, status: true, grossCents: true, issuedAt: true, dealId: true, cancelsInvoiceId: true },
   });
 
   return (
@@ -42,7 +42,7 @@ export default async function InvoicesPage() {
               <IoDocumentTextOutline className="h-6 w-6 shrink-0" aria-hidden />
               <div className="min-w-0 flex-1">
                 <p className="truncate font-medium">
-                  {u(`invoices.kind.${invoice.kind}`)} {invoice.number}
+                  {u(invoice.cancelsInvoiceId ? `invoices.storno.${invoice.kind}` : `invoices.kind.${invoice.kind}`)} {invoice.number}
                 </p>
                 <p className="text-xs text-neutral-500 dark:text-neutral-400">
                   {formatDealDate(invoice.issuedAt, locale).split(",")[0]}

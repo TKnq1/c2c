@@ -1089,6 +1089,8 @@ enum DisputeReason {
   CONTENT_MISMATCH
   USAGE_RIGHTS_MISSING
   OTHER
+  // The brand's bank took the payment back (a Stripe dispute); only the system opens one with this reason.
+  CHARGEBACK
 }
 
 enum DisputeStatus {
@@ -1403,6 +1405,8 @@ model DealDispute {
   // Null: opened by the system (missed deadline, removed post, ...).
   openedByRole      Role?
   openedByUserId    String?
+  // Stripe's id of the chargeback this dispute stands for (dp_...), so a repeated or closing event finds it again.
+  stripeDisputeId   String?       @unique
   status            DisputeStatus @default(OPEN)
   resolution        String?
   resolvedByAdminId String?
@@ -1479,8 +1483,18 @@ model Invoice {
   issuer             Json
   recipient          Json
   lines              Json
+  // 0: the document as it was first issued. A correction is two documents (src/lib/billing/correct.ts): a cancellation, which
+  // repeats the original with every amount negated and points at it (cancelsInvoiceId), and a new document that replaces
+  // it. Each gets the next revision of its deal and kind; all of them take their number from the same gapless series.
+  revision           Int           @default(0)
+  cancelsInvoiceId   String?       @unique
+  cancels            Invoice?      @relation("InvoiceCancellation", fields: [cancelsInvoiceId], references: [id], onDelete: Restrict)
+  cancelledBy        Invoice?      @relation("InvoiceCancellation")
+  // Set on the original when it was cancelled, with the reason that was written down.
+  cancelledAt        DateTime?
+  cancelReason       String?
 
-  @@unique([dealId, kind])
+  @@unique([dealId, kind, revision])
   @@index([recipientUserId, issuedAt])
 }
 
