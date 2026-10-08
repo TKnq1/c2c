@@ -8,10 +8,10 @@ konvertiert. Code: `src/ads/` (Remotion, Folder „Ads“ im Studio). Format 108
 | Beat | Szene | Länge | Ziel | Prinzip |
 |---|---|---|---|---|
 | 1 | Pain | 0–4,5 s | Daumen stoppen, Schmerz konkret machen | Pattern Interrupt ab Frame 0, Wiedererkennung, konkrete Details statt Abstraktion |
-| 2 | Turn | 4,5–5,5 s | Wendung: schwarzer, körniger Screen, eine Zeile, das Logo groß und blass im Hintergrund | Spannungsauflösung, Marke im emotionalen Peak |
+| 2 | Turn | 4,5–5,5 s | Wendung: schwarzer Screen mit stillem, feinem Grain (wie die E-Mails), eine Zeile, das Logo groß und blass im Hintergrund | Spannungsauflösung, Marke im emotionalen Peak |
 | 3 | Mechanismus | 5,5–10 s | Der Teil von comtor, der genau diesen Schmerz löst | Glaubwürdigkeit durch echte UI statt Behauptung |
 | 4 | Payoff | 10–11,5 s | Das Versprechen in einer Zeile | Merkbarkeit, ein Gedanke |
-| 5 | Offer + CTA | 11,5–15 s | Founding-Plätze, comtor.app (schwarz mit Grain, Logo im Hintergrund) | Echte Knappheit (100 / 50 Plätze), eine einzige Handlung |
+| 5 | Offer + CTA | 11,5–15 s | „100 Plätze“ zählen hoch, das Raster füllt sich, „10 € im Monat“ wird zu „0 €“, der Cursor klickt comtor.app und sichert Platz 1 (alles in der Reels-Safe-Zone) | Echte Knappheit (100 / 50 Plätze), Preisanker, eine einzige Handlung |
 
 Stil: weiß und schwarz wie die App, riesige Lato-Black-Typo (jede Zeile ein Gedanke, die zweite grau), Wörter
 kommen aus einer Unschärfe in den Fokus, UI schwebt auf weichen Schatten, langsamer Push-in. Farbe nur über

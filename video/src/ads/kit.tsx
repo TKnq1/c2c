@@ -1,10 +1,10 @@
 import type { CSSProperties, ReactNode } from "react";
 import { IoCheckmark } from "react-icons/io5";
-import { AbsoluteFill, Img, staticFile } from "remotion";
+import { AbsoluteFill, Easing, Img, staticFile } from "remotion";
 import { ease, mix, path, popIn, ramp } from "../anim";
-import { Sfx } from "../audio";
+import { Sfx, SfxRepeat } from "../audio";
 import { SlotGrid } from "../components/founding";
-import { Cursor, pressAt, UrlPill } from "../components/shared-scenes";
+import { Cursor, pressAt } from "../components/shared-scenes";
 import { type HeadlinePart, Stage } from "../components/ui";
 import { useFrame } from "../frame";
 import { colors, GUTTER } from "../theme";
@@ -286,37 +286,112 @@ export function payoffScene(parts: HeadlinePart[], sub?: string): React.FC {
 
 export type Audience = "creator" | "brand";
 
-const OFFER: Record<Audience, { slots: number; line: string; cell: number }> = {
-  creator: { slots: 100, line: "Die ersten 100 Creator bekommen Pro kostenlos.", cell: 30 },
-  brand: { slots: 50, line: "Die ersten 50 Marken bekommen Pro kostenlos.", cell: 44 },
+const OFFER: Record<Audience, { slots: number; who: string; cell: number; gap: number }> = {
+  creator: { slots: 100, who: "Founding Creator", cell: 34, gap: 7 },
+  brand: { slots: 50, who: "Founding Brands", cell: 54, gap: 10 },
 };
 
-// Offer and call to action in one: black, the logo, one line to act on, the URL, the founding places.
+// The call to action, built around one click: the offer (places counting up, the grid filling, Pro struck from 10 € to
+// 0 €) and then the cursor claiming the first place with the comtor.app button. Everything sits above the Reels buttons.
+const CTA_COUNT = [14, 36] as const;
+const CTA_GRID = 20;
+const CTA_WAVE = 46;
+const CTA_PRICE = 50;
+const CTA_STRIKE = 62;
+const CTA_ZERO = 70;
+const CTA_CLICK = 90;
+const CTA_BUTTON = { w: 640, h: 128 };
+
 export function ctaScene(audience: Audience, parts: HeadlinePart[]): React.FC {
-  const { slots, line, cell } = OFFER[audience];
+  const { slots, who, cell, gap } = OFFER[audience];
+  const rows = Math.ceil(slots / 10);
+  const gridTop = 740;
+  const gridHeight = rows * cell + (rows - 1) * gap;
+  const priceTop = gridTop + gridHeight + 60;
+  const buttonCy = priceTop + 250;
   const Cta: React.FC = () => {
     const frame = useFrame();
-    const gridAt = 30;
+    const count = Math.round(slots * ramp(frame, CTA_COUNT[0], CTA_COUNT[1], Easing.out(Easing.cubic)));
+    const route = useClicks(frame, {
+      from: [920, buttonCy + 230],
+      start: 58,
+      clicks: [{ at: CTA_CLICK, target: [540, buttonCy], arrive: 83 }],
+      away: [800, buttonCy + 190],
+      gone: CTA_CLICK + 24,
+    });
+    const claimed = route.done[0];
     const wave = (i: number) => {
       const offset = (i % 10) + Math.floor(i / 10);
-      return Math.max(0, 1 - Math.abs(frame - 56 - offset * 1.4) / 5);
+      return Math.max(0, 1 - Math.abs(frame - CTA_WAVE - offset * 1.4) / 5);
     };
+    // The first place is the viewer's: it lights up with the click and stays.
+    const mine = ramp(frame, CTA_CLICK + 1, CTA_CLICK + 6);
+    const strike = ramp(frame, CTA_STRIKE, CTA_STRIKE + 8);
+    const zero = ease(frame, CTA_ZERO, { damping: 11, stiffness: 170 });
+    const idle = claimed ? 0 : 0.5 + 0.5 * Math.sin(frame / 7);
     return (
-      <DarkStage logoY={620}>
-        <div style={{ position: "absolute", top: 380, left: GUTTER, right: GUTTER, display: "flex", flexDirection: "column", alignItems: "center", gap: 64 }}>
-          <Reveal parts={parts} size={118} dark start={4} />
-          <UrlPill style={popIn(ease(frame, 22, { stiffness: 120 }), 0.85)} />
+      <DarkStage logoY={820}>
+        <div style={{ position: "absolute", top: 210, left: GUTTER, right: GUTTER, display: "flex", justifyContent: "center" }}>
+          <Reveal parts={parts} size={108} dark start={2} />
         </div>
-        <div style={{ position: "absolute", top: 1180, left: GUTTER, right: GUTTER, display: "flex", flexDirection: "column", alignItems: "center", gap: 34 }}>
-          <SlotGrid slots={slots} cell={cell} gap={8} appear={(i) => ramp(frame, gridAt + i * (24 / slots), gridAt + i * (24 / slots) + 8)} glow={wave} />
-          <div style={{ fontSize: 38, fontWeight: 700, textAlign: "center", ...focusIn(ease(frame, 40), 38) }}>{line}</div>
-          <div style={{ fontSize: 30, color: colors.stone, ...focusIn(ease(frame, 48), 30) }}>Jetzt im Web · Bald für iOS & Android</div>
+        <div style={{ position: "absolute", top: 480, left: 0, right: 0, display: "flex", flexDirection: "column", alignItems: "center", gap: 12 }}>
+          <div style={{ fontSize: 150, fontWeight: 900, lineHeight: 0.95, letterSpacing: -6, whiteSpace: "nowrap", fontVariantNumeric: "tabular-nums", ...focusIn(ease(frame, CTA_COUNT[0] - 6), 150) }}>
+            {count} Plätze
+          </div>
+          <div style={{ fontSize: 46, fontWeight: 700, color: colors.stone, ...focusIn(ease(frame, CTA_COUNT[1] - 6), 46) }}>für {who}</div>
         </div>
-        <Sfx name="pop" at={22} volume={0.45} />
-        <Sfx name="swipe" at={56} volume={0.25} />
+        <div style={{ position: "absolute", top: gridTop, left: 0, right: 0, display: "flex", justifyContent: "center" }}>
+          <SlotGrid slots={slots} cell={cell} gap={gap} appear={(i) => ramp(frame, CTA_GRID + i * (24 / slots), CTA_GRID + i * (24 / slots) + 8)} glow={(i) => (i === 0 ? Math.max(mine, wave(i)) : wave(i))} />
+        </div>
+        <div style={{ position: "absolute", top: priceTop, left: GUTTER, right: GUTTER, display: "flex", flexDirection: "column", alignItems: "center", gap: 10 }}>
+          <div style={{ display: "flex", alignItems: "baseline", gap: 26, fontSize: 56, fontWeight: 900, ...focusIn(ease(frame, CTA_PRICE), 56) }}>
+            <span style={{ position: "relative", color: strike > 0.5 ? colors.graphite : colors.paper }}>
+              10 € im Monat
+              <span style={{ position: "absolute", left: -6, right: -6, top: "54%", height: 5, backgroundColor: colors.graphite, transformOrigin: "left", transform: `scaleX(${strike})` }} />
+            </span>
+            <span style={{ display: "inline-block", transform: `scale(${zero})`, opacity: Math.min(1, zero * 2) }}>0 €</span>
+          </div>
+          <div style={{ fontSize: 34, color: colors.stone, ...focusIn(ease(frame, CTA_PRICE + 8), 34) }}>Pro, solange dein Konto besteht. Kein Abo.</div>
+        </div>
+        <div
+          style={{
+            position: "absolute",
+            left: 540 - CTA_BUTTON.w / 2,
+            top: buttonCy - CTA_BUTTON.h / 2,
+            width: CTA_BUTTON.w,
+            height: CTA_BUTTON.h,
+            borderRadius: 999,
+            backgroundColor: colors.paper,
+            color: colors.ink,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: 18,
+            fontSize: 54,
+            fontWeight: 900,
+            boxShadow: `0 0 0 ${idle * 14}px rgba(255,255,255,0.14)`,
+            transform: `scale(${(1 - route.press[0] * 0.07) * mix(ease(frame, 10, { stiffness: 120 }), 0.85, 1)})`,
+            opacity: Math.min(1, ease(frame, 10) * 2),
+          }}
+        >
+          {claimed ? (
+            <>
+              <IoCheckmark size={64} /> Platz gesichert
+            </>
+          ) : (
+            "comtor.app"
+          )}
+        </div>
+        <ClickCursor route={route} dark />
+        <Sfx name="pop" at={10} volume={0.45} />
+        <SfxRepeat name="tick" from={CTA_COUNT[0]} to={CTA_COUNT[1]} every={2} volume={0.16} />
+        <Sfx name="swipe" at={CTA_WAVE} volume={0.25} />
+        <Sfx name="strike" at={CTA_STRIKE} volume={0.5} />
+        <Sfx name="pop" at={CTA_ZERO} volume={0.45} />
+        <Sfx name="click" at={CTA_CLICK} volume={0.7} />
+        <Sfx name="success" at={CTA_CLICK + 2} volume={0.6} />
       </DarkStage>
     );
   };
   return Cta;
 }
-
