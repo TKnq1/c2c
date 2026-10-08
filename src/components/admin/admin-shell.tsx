@@ -120,7 +120,7 @@ const COUNT = "ml-auto min-w-5 rounded-full bg-ink px-1.5 text-center text-xs fo
 function TopControls({ counts, email, name, wide }: { counts: { notices: number }; email: string; name: string | null; wide: boolean }) {
   const search = () => window.dispatchEvent(new Event(OPEN_ADMIN_PALETTE));
   return (
-    <div className="absolute top-6 right-8 z-20 hidden items-center gap-2.5 lg:flex">
+    <div className="absolute top-0 right-0 z-20 hidden items-center gap-2.5 lg:flex">
       {wide && (
         <button
           type="button"
@@ -128,7 +128,7 @@ function TopControls({ counts, email, name, wide }: { counts: { notices: number 
           className="adm-field hidden h-12 w-[17.5rem] grid-cols-[auto_1fr_auto] items-center gap-3 px-5 text-left text-sm text-graphite xl:grid"
         >
           <FiSearch className="h-[18px] w-[18px]" aria-hidden />
-          <span className="truncate">Suchen oder Befehl eingeben</span>
+          <span className="truncate">Suchen oder Befehl…</span>
           <kbd className="rounded-md border border-ink/15 px-1.5 py-0.5 text-[0.6875rem] font-bold">⌘K</kbd>
         </button>
       )}
@@ -327,9 +327,12 @@ export function AdminShell({
             </div>
           )}
         </nav>
-        <main className="relative min-w-0 px-4 py-6 lg:pr-8 lg:pl-2">
-          <TopControls counts={counts} email={email} name={name} wide={pathname === "/admin"} />
-          {children}
+        <main className="min-w-0 px-4 py-6 lg:pr-8 lg:pl-2">
+          {/* The page stands in the middle with a widest measure, so a wide window leaves its sides free; the top controls sit on this frame's edge. */}
+          <div className="relative mx-auto w-full max-w-[80rem]">
+            <TopControls counts={counts} email={email} name={name} wide={pathname === "/admin"} />
+            {children}
+          </div>
         </main>
       </div>
       {overlays}

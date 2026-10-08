@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { formatDay, formatValue, niceMax, type DailyPoint } from "@/lib/admin-chart";
+import { ChartTable } from "@/components/admin/chart-table";
 
 export type { DailyPoint };
 
@@ -80,23 +81,7 @@ export function DailyBarChart({
         </div>
       </div>
 
-      <table className="sr-only">
-        <caption>{title}</caption>
-        <thead>
-          <tr>
-            <th scope="col">Tag</th>
-            <th scope="col">Wert</th>
-          </tr>
-        </thead>
-        <tbody>
-          {points.map((p) => (
-            <tr key={p.day}>
-              <td>{formatDay(p.day)}</td>
-              <td>{formatValue(p.value, unit)}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+      <ChartTable caption={title} head={["Tag", "Wert"]} rows={points.map((p) => [formatDay(p.day), formatValue(p.value, unit)])} />
     </figure>
   );
 }
