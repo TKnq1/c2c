@@ -12,7 +12,11 @@
     "posts": "node scripts/render-posts.mjs",
     "audio": "tsx scripts/grid.ts && python3 scripts/make-audio.py",
     "typecheck": "tsc --noEmit",
-    "voice": "python3 scripts/make-voiceover.py && npm run audio"
+    "voice": "python3 scripts/make-voiceover.py && npm run audio",
+    "ads": "tsx scripts/render-ads.ts",
+    "ads:video": "npm run ads -- --video",
+    "ads:audio": "tsx scripts/grid.ts && python3 scripts/make-audio.py --ads",
+    "ads:voice": "python3 scripts/make-ad-voiceover.py && npm run ads:audio"
   },
   "dependencies": {
     "@remotion/bundler": "^4.0.533",

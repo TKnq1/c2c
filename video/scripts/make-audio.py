@@ -3,6 +3,7 @@
 
     video/public/music/creator-bed.mp3   music for the creator video (120 BPM)
     video/public/music/brand-bed.mp3     music for the brand video (120 BPM)
+    video/public/music/ads/<ID>.mp3      music for each 15 s ad (src/ads), with --ads only these
     video/public/sfx/*.wav               UI sounds (pop, click, swipe, coin, ...)
 
 Everything is synthesised from code (oscillators and filtered noise, no samples, nothing third-party), so it
@@ -16,6 +17,7 @@ frames, and every scene starts on a beat. `npm run audio` writes the grid and th
 """
 import json
 import subprocess
+import sys
 import tempfile
 import wave
 import zlib
@@ -385,6 +387,92 @@ def make_bed(spec):
 
 
 # ---------------------------------------------------------------------------------------------------------------
+# The ads: 15 s, five beats each (src/ads/index.tsx). Quieter and cleaner than the long videos: tension under the
+# pain, a hit on the turn, the groove only under the product, one long chord under the call to action.
+
+AD_CHORDS = {
+    "creator": [FMAJ7, CMAJ7, G6, AM7],  # IV - I - V - vi
+    "brand": [CMAJ7, G6, AM7, FMAJ7],  # I - V - vi - IV
+}
+
+
+def make_ad_bed(grid, audience):
+    at = [int(round(b)) for b in grid["scenes"].values()]
+    turn, mech, payoff, cta, end = at[1], at[2], at[3], at[4], int(round(grid["end"]))
+    chords = AD_CHORDS[audience]
+    length = int(beat_t(end + 2) * SR)
+    music = np.zeros((length, 2))
+    drums = np.zeros((length, 2))
+    fx = np.zeros((length, 2))
+    kicks = []
+
+    # Pain: a dark pad, a single muted note ticking on the eighths, a soft pulse every two beats.
+    notes, root = AM7
+    for k, note in enumerate(notes):
+        place(music, 0, pad_note(note - 12 if k == 0 else note, beat_t(turn) + 0.3, 700), pan=(k - 1.5) / 2.5, gain=0.15)
+    for step in range(0, turn * 2):
+        place(music, beat_t(step / 2), pluck(69 if step % 4 else 72, 0.25, 0.5), pan=0.3 if step % 2 else -0.3, gain=0.05 + 0.05 * step / (turn * 2))
+    for beat in range(0, turn, 2):
+        place(music, beat_t(beat), bass(root, BEAT * 1.6), gain=0.28)
+    place(fx, beat_t(turn - 2), riser(beat_t(2)), gain=0.45)
+
+    # Turn: the hit, then the first chord of the groove swelling in.
+    place(fx, beat_t(turn), impact(), gain=0.8)
+    place(fx, beat_t(turn), crash(0.3), pan=0.2)
+    for k, note in enumerate(chords[0][0]):
+        place(music, beat_t(turn), pad_note(note, beat_t(mech - turn) + 0.2, 900), pan=(k - 1.5) / 2.5, gain=0.13)
+
+    # Product and payoff: the groove.
+    for beat in range(mech, cta):
+        rel = beat - mech
+        chord_notes, chord_root = chords[(rel // 4) % len(chords)]
+        place(drums, beat_t(beat), kick(0.9))
+        kicks.append(beat_t(beat))
+        if rel % 2 == 1:
+            place(drums, beat_t(beat), clap(0.4), pan=-0.05)
+        place(drums, beat_t(beat + 0.5), hat(open_=rel % 2 == 1, gain=0.18), pan=0.25)
+        place(music, beat_t(beat + 0.5), bass(chord_root, BEAT * 0.45), gain=0.45)
+        if rel % 4 == 0:
+            for k, note in enumerate(chord_notes):
+                place(music, beat_t(beat), pad_note(note, beat_t(4) + 0.2, 1500), pan=(k - 1.5) / 2.5, gain=0.12)
+        for half in (0, 0.5):
+            step = int(rel * 2 + half * 2)
+            if step % 8 in (0, 3, 5, 6):
+                place(music, beat_t(beat + half), pluck(chord_notes[ARP[step % len(ARP)]] + 12, 0.5, 1.3), pan=0.4 if step % 2 else -0.4, gain=0.12)
+    place(fx, beat_t(mech), crash(0.35), pan=-0.2)
+    place(fx, beat_t(payoff), crash(0.3), pan=0.2)
+    for k, step in enumerate(np.arange(cta - 1, cta, 0.25)):
+        place(drums, beat_t(step), clap(0.15 + 0.07 * k))
+
+    # Call to action: one last hit, a long Cmaj9, a soft pulse so it doesn't stall.
+    place(drums, beat_t(cta), kick(1.0))
+    kicks.append(beat_t(cta))
+    place(fx, beat_t(cta), crash(0.4))
+    notes, root = FINAL
+    tail = beat_t(end - cta + 2)
+    for k, note in enumerate(notes):
+        place(music, beat_t(cta), pad_note(note, tail, 2000), pan=(k - 2) / 3, gain=0.13)
+        place(music, beat_t(cta) + k * 0.09, pluck(note + 12, 1.6, 0.7), pan=(k - 2) / 3, gain=0.12)
+    place(music, beat_t(cta), bass(root, tail), gain=0.4)
+    for beat in range(cta + 1, int(end)):
+        place(drums, beat_t(beat + 0.5), hat(gain=0.1), pan=0.25)
+
+    t = np.arange(length) / SR
+    duck = np.ones(length)
+    for start in kicks:
+        i = int(start * SR)
+        seg = t[i : i + int(0.4 * SR)] - start
+        duck[i : i + len(seg)] = np.minimum(duck[i : i + len(seg)], 1 - 0.5 * np.exp(-seg / 0.11))
+    music *= duck[:, None]
+
+    mix = reverb(music, wet=0.3) + reverb(drums, seconds=1.0, decay=0.25, wet=0.08) + reverb(fx, seconds=3.0, decay=0.9, wet=0.35)
+    mix = np.tanh(mix / np.max(np.abs(mix)) * 1.6) / np.tanh(1.6)
+    fade = int(1.0 * SR)
+    mix[-fade:] *= np.linspace(1, 0, fade)[:, None] ** 1.5
+    return mix
+
+
+# ---------------------------------------------------------------------------------------------------------------
 # Sound effects (mono)
 
 
@@ -523,6 +611,11 @@ def seed(name):
 
 
 def main():
+    for ad_id, grid in GRID.get("ads", {}).items():
+        seed(f"ad-{ad_id}")
+        write_mp3(ROOT / "music" / "ads" / f"{ad_id}.mp3", make_ad_bed(grid, "creator" if ad_id.startswith("AC") else "brand"), peak=0.8)
+    if "--ads" in sys.argv:
+        return
     for spec in (CREATOR, BRAND):
         seed(spec["file"])
         write_mp3(ROOT / "music" / spec["file"], make_bed(resolve(spec)), peak=0.8)
