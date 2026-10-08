@@ -151,9 +151,9 @@ export const AddressPill: React.FC<{ dark?: boolean; size?: number; style?: CSSP
 
 // "Beispiel" at the foot of the safe area, for the stories that show made-up brands and prices. `fade` first darkens
 // the bottom of the story so the line reads over a phone.
-export const StoryExample: React.FC<{ dark?: boolean; fade?: boolean }> = ({ dark, fade }) => (
+export const StoryExample: React.FC<{ dark?: boolean; fade?: boolean | number }> = ({ dark, fade }) => (
   <>
-    {fade && <div style={{ position: "absolute", left: 0, right: 0, bottom: 0, height: 700, background: "linear-gradient(to top, #0b0b0b 0%, rgba(11,11,11,0.97) 40%, rgba(11,11,11,0.7) 65%, rgba(11,11,11,0) 100%)" }} />}
+    {fade && <div style={{ position: "absolute", left: 0, right: 0, bottom: 0, height: fade === true ? 700 : fade, background: fade === true ? "linear-gradient(to top, #0b0b0b 0%, rgba(11,11,11,0.97) 40%, rgba(11,11,11,0.7) 65%, rgba(11,11,11,0) 100%)" : "linear-gradient(to top, #0b0b0b 0%, rgba(11,11,11,0.96) 72%, rgba(11,11,11,0) 100%)" }} />}
     <div style={{ position: "absolute", top: HEIGHT - SAFE_BOTTOM - 48, left: 0, right: 0, textAlign: "center", fontSize: 26, color: dark ? "#8f8f8f" : "#525252" }}>
       Beispiel: Marken, Preise und Bewertungen sind erfunden.
     </div>
@@ -162,9 +162,6 @@ export const StoryExample: React.FC<{ dark?: boolean; fade?: boolean }> = ({ dar
 
 // The app on an iPhone, large and cut off by the bottom edge, under a headline in two tones. One piece of the app
 // (`callout`) is lifted out and tilted, centred on `at`.
-const PHONE_SCALE = 1.8;
-const PHONE_LEFT = (WIDTH - IPHONE_WIDTH * PHONE_SCALE) / 2;
-
 export const StoryPhone: React.FC<{
   lines: { text: string; soft?: boolean }[];
   screen: ReactNode;
@@ -173,17 +170,21 @@ export const StoryPhone: React.FC<{
   rotate?: number;
   scale?: number;
   phoneTop?: number;
+  phoneScale?: number;
+  size?: number;
+  top?: number;
+  fade?: boolean | number;
   example?: boolean;
-}> = ({ lines, screen, callout, at = [0, 0], rotate = 0, scale = 2.2, phoneTop = 660, example = true }) => (
+}> = ({ lines, screen, callout, at = [0, 0], rotate = 0, scale = 2.2, phoneTop = 660, phoneScale = 1.8, size = 84, top = 340, fade = true, example = true }) => (
   <StoryNight>
     <TopMark dark />
-    <Type dark lines={lines} size={84} top={340} lineHeight={1.04} />
-    <IPhone left={PHONE_LEFT} top={phoneTop} scale={PHONE_SCALE}>
+    <Type dark lines={lines} size={size} top={top} lineHeight={1.04} />
+    <IPhone left={(WIDTH - IPHONE_WIDTH * phoneScale) / 2} top={phoneTop} scale={phoneScale}>
       {screen}
     </IPhone>
     {callout && (
       <div style={{ position: "absolute", left: at[0], top: at[1], transform: `translate(-50%, -50%) rotate(${rotate}deg) scale(${scale})`, color: colors.ink }}>{callout}</div>
     )}
-    {example && <StoryExample dark fade />}
+    {example && <StoryExample dark fade={fade} />}
   </StoryNight>
 );

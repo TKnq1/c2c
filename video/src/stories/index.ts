@@ -1,4 +1,5 @@
 import { Hook, HOOK_DURATION } from "./Hook";
+import { IntroCreator } from "./Intro";
 import { Number90, NUMBER_DURATION } from "./Number";
 import { BrandApprove, BrandFees, BrandRequest, Cta, Deal, Founding, Myth, Pays, Poll, Question, Quiz } from "./Stills";
 
@@ -18,4 +19,5 @@ export const STORIES = [
   { id: "StoryBrandApprove", component: BrandApprove, duration: 1 },
   { id: "StoryBrandFees", component: BrandFees, duration: 1 },
   { id: "StoryCta", component: Cta, duration: 1 },
+  { id: "StoryIntroCreator", component: IntroCreator, duration: 1 },
 ];

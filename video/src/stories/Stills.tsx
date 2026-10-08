@@ -11,7 +11,7 @@ import { AddressPill, Eyebrow, StoryExample, StoryNight, StoryPaper, StoryPhone,
 // The still stories: one frame each, rendered to PNG by scripts/render-stories.mjs. The ones with a sticker (poll,
 // quiz, question) leave the middle free for it, since Instagram's stickers are added in the app.
 
-const ODD_BLOOM: FeedDeal = {
+export const ODD_BLOOM: FeedDeal = {
   photo: "serum",
   budget: "250 €",
   company: "Odd Bloom",
