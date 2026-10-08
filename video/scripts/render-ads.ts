@@ -3,6 +3,7 @@
 //   npm run ads                              one contact sheet per ad with the keyframe of each beat: out/ads/<ID>.png
 //   npm run ads:video                        the videos too: out/ads/<ID>.mp4 (mastered like the long videos)
 //   npm run ads -- --only=AC1,AB2            just these ads
+//   npm run ads -- --only=AC1 --probe=2:80,86,92   stills of scene 3 (index 2) at those frames (as drawn): out/ads/probe/
 //
 // Pass --browser-executable=<path> to use a local Chromium instead of Remotion's download (the preinstalled one is
 // picked up by itself).
@@ -20,6 +21,7 @@ const PREINSTALLED = "/opt/pw-browsers/chromium_headless_shell-1194/chrome-linux
 const browserExecutable = arg("browser-executable") ?? (existsSync(PREINSTALLED) ? PREINSTALLED : null);
 const only = arg("only")?.split(",");
 const video = process.argv.includes("--video");
+const probe = arg("probe");
 const outDir = "out/ads";
 const BEATS = ["Pain", "Turn", "Mechanismus", "Payoff", "Offer + CTA"];
 mkdirSync(`${outDir}/frames`, { recursive: true });
@@ -32,6 +34,16 @@ async function main() {
     const composition = compositions.find((c) => c.id === ad.id);
     if (!composition) throw new Error(`No composition ${ad.id}`);
     const starts = sceneStarts(ad.scenes);
+    if (probe) {
+      const [index, frames] = probe.split(":");
+      mkdirSync(`${outDir}/probe`, { recursive: true });
+      for (const local of frames.split(",").map(Number)) {
+        const scene = ad.scenes[Number(index)];
+        const frame = Math.round(starts[Number(index)] + local / scene.speed);
+        await renderStill({ composition, serveUrl, frame, output: `${outDir}/probe/${ad.id}-${index}-${local}.png`, browserExecutable });
+      }
+      continue;
+    }
     const stills = ad.scenes.map((scene, i) => ({ id: scene.id, frame: Math.min(ad.duration - 1, Math.round(starts[i] + scene.keyframe / scene.speed)) }));
     for (const { id, frame } of stills) {
       await renderStill({ composition, serveUrl, frame, output: `${outDir}/frames/${id}.png`, browserExecutable });

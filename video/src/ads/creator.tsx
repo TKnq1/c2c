@@ -1,27 +1,34 @@
-import { IoChatbubblesOutline, IoClose, IoHeart, IoLockClosed, IoRefresh } from "react-icons/io5";
-import { ease, euro, mix, path, pop, ramp } from "../anim";
+import { IoClose, IoHeart, IoLockClosed, IoRefresh, IoChatbubblesOutline } from "react-icons/io5";
+import { ease, mix, pop, ramp } from "../anim";
 import { Sfx, SfxRepeat } from "../audio";
-import { Cursor, pressAt } from "../components/shared-scenes";
-import { type Deal, DealCard, KIEZ_GOODS, ODD_BLOOM, Stage, Toast } from "../components/ui";
+import { type Deal, DealCard, Stage, Toast, Avatar } from "../components/ui";
 import { useFrame } from "../frame";
 import { colors, GUTTER } from "../theme";
-import { Card, Check, floatIn, focusIn, hover, Sample, Title } from "./kit";
-import { Line, Message, StatusStep, Tag } from "./parts";
-
-const LUMO_AUDIO: Deal = {
-  company: "Lumo Audio",
-  title: "Kopfhörer im Alltag",
-  photo: "headphones",
-  budget: "320 €",
-  platform: "Instagram",
-  deliverables: "1 Reel",
-  productIncluded: true,
-  rating: ["4,7", 18],
-};
+import { NOKAR_HOODIE, RAW_HOODIE, RAW_PANTS, VINTAGE_DROP, VS_AVATAR } from "./brands";
+import { Card, Check, ClickCursor, floatIn, focusIn, hover, Sample, Title, useClicks } from "./kit";
+import { Line, Message, Pressable, StatusStep, Tag } from "./parts";
 
 const CARD_W = 560;
 const CARD_H = 784;
 const CARD_LEFT = (1080 - CARD_W) / 2;
+const CARD_TOP = 560;
+
+// Swipe buttons under the deck: centres on the frame, the cursor's targets.
+const BTN_Y = 1450;
+const PASS_X = 450;
+const LIKE_X = 630;
+const BTN = 120;
+
+const SwipeButtons: React.FC<{ passPress?: number; likePress?: number; like?: boolean }> = ({ passPress = 0, likePress = 0, like = false }) => (
+  <>
+    <Pressable cx={PASS_X} cy={BTN_Y} w={BTN} h={BTN} press={passPress} style={{ borderRadius: 999, backgroundColor: colors.paper, color: colors.ink, boxShadow: "0 20px 40px rgba(7,7,7,0.15)" }}>
+      <IoClose size={56} />
+    </Pressable>
+    <Pressable cx={LIKE_X} cy={BTN_Y} w={BTN} h={BTN} press={likePress} style={{ borderRadius: 999, backgroundColor: like ? colors.ink : colors.ink, color: colors.paper, boxShadow: "0 20px 40px rgba(7,7,7,0.25)" }}>
+      <IoHeart size={52} />
+    </Pressable>
+  </>
+);
 
 // ---------------------------------------------------------------------------------------------------------------
 // AC1 · Rate DMs
@@ -51,22 +58,27 @@ export const AC1Pain: React.FC = () => {
   );
 };
 
-const SWIPE_AT = 84;
+// The cursor points at the budget on the card, then clicks "Interessiert"; the card swipes off to the right.
+const AC1_LIKE = 86;
 
 export const AC1Mech: React.FC = () => {
   const frame = useFrame();
   const ring = pop(frame, 34);
-  const out = ease(frame, SWIPE_AT, { stiffness: 60 });
-  const cursorX = path(frame, [60, 76, SWIPE_AT + 14], [900, 620, 1000]);
-  const cursorY = path(frame, [60, 76, SWIPE_AT + 14], [1500, 1150, 1100]);
+  const route = useClicks(frame, {
+    from: [900, 1180],
+    start: 26,
+    clicks: [{ at: AC1_LIKE, target: [LIKE_X, BTN_Y], arrive: 80, via: [[52, 392, 630]] }],
+    away: [900, 1620],
+  });
+  const out = ease(frame, AC1_LIKE + 1, { stiffness: 60 });
   const s = CARD_W / 600;
   return (
     <Stage>
       <Title parts={["Das Budget steht", { mark: "auf der Karte." }]} />
-      <div style={{ position: "absolute", top: 660, left: CARD_LEFT, ...floatIn(frame, 6) }}>
-        <DealCard deal={KIEZ_GOODS} width={CARD_W} height={CARD_H} style={{ position: "absolute", transform: `scale(${mix(out, 0.94, 1)}) translateY(${mix(out, 24, 0)}px)` }} />
-        <div style={{ position: "relative", transform: `translate(${out * 900}px, ${hover(frame) - out * 60}px) rotate(${out * 16}deg)`, transformOrigin: "50% 120%" }}>
-          <DealCard deal={ODD_BLOOM} width={CARD_W} height={CARD_H} />
+      <div style={{ position: "absolute", top: CARD_TOP, left: CARD_LEFT, width: CARD_W, height: CARD_H, ...floatIn(frame, 6) }}>
+        <DealCard deal={RAW_PANTS} width={CARD_W} height={CARD_H} style={{ position: "absolute", transform: `scale(${mix(out, 0.94, 1)}) translateY(${mix(out, 24, 0)}px)` }} />
+        <div style={{ position: "absolute", inset: 0, transform: `translate(${out * 900}px, ${hover(frame) - out * 60}px) rotate(${out * 16}deg)`, transformOrigin: "50% 120%" }}>
+          <DealCard deal={RAW_HOODIE} width={CARD_W} height={CARD_H} />
           <div
             style={{
               position: "absolute",
@@ -77,22 +89,24 @@ export const AC1Mech: React.FC = () => {
               borderRadius: 999,
               border: `5px solid ${colors.paper}`,
               boxShadow: `0 0 0 ${6 + 6 * Math.sin(frame / 5)}px rgba(255,255,255,0.35)`,
-              opacity: ring * (1 - ramp(frame, SWIPE_AT - 6, SWIPE_AT)),
+              opacity: ring * (1 - ramp(frame, AC1_LIKE - 22, AC1_LIKE - 16)),
               transform: `scale(${mix(ring, 1.4, 1)})`,
             }}
           />
         </div>
       </div>
-      <Cursor x={cursorX} y={cursorY} pressed={frame > 76 && frame < SWIPE_AT + 10 ? 1 : 0} opacity={ramp(frame, 58, 64) * (1 - ramp(frame, SWIPE_AT + 10, SWIPE_AT + 16))} />
-      <div style={{ position: "absolute", top: 1500, left: 0, right: 0, display: "flex", justifyContent: "center", ...focusIn(ease(frame, SWIPE_AT + 10), 30) }}>
+      <SwipeButtons likePress={route.press[0]} />
+      <div style={{ position: "absolute", top: 1520, left: 0, right: 0, display: "flex", justifyContent: "center", ...focusIn(ease(frame, AC1_LIKE + 8), 30) }}>
         <Toast>
-          <IoHeart size={30} /> Interesse an Odd Bloom gesendet
+          <IoHeart size={30} /> Interesse an Raw Supplies gesendet
         </Toast>
       </div>
+      <ClickCursor route={route} />
       <Sample />
       <Sfx name="pop" at={34} volume={0.4} />
-      <Sfx name="swipe" at={SWIPE_AT} volume={0.6} />
-      <Sfx name="like" at={SWIPE_AT + 10} volume={0.5} />
+      <Sfx name="click" at={AC1_LIKE} volume={0.7} />
+      <Sfx name="swipe" at={AC1_LIKE + 2} volume={0.6} />
+      <Sfx name="like" at={AC1_LIKE + 10} volume={0.5} />
     </Stage>
   );
 };
@@ -142,13 +156,17 @@ export const AC2Mech: React.FC = () => {
     <Stage>
       <Title parts={["Die Marke", { mark: "zahlt zuerst." }]} sub="Das Geld wird zurückgehalten, bis dein Post online ist." />
       <Card style={{ position: "absolute", top: 760, left: GUTTER + 20, right: GUTTER + 20, padding: 56, display: "flex", flexDirection: "column", gap: 40, ...floatIn(frame, 4) }}>
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-          <span style={{ fontSize: 34, color: colors.graphite }}>Odd Bloom · TikTok</span>
-          <span style={{ display: "flex", alignItems: "center", gap: 14, fontSize: 64, fontWeight: 900 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 22 }}>
+          <Avatar name="vintagesteals.de" image={VS_AVATAR} size={84} />
+          <div>
+            <div style={{ fontSize: 34, fontWeight: 700 }}>vintagesteals.de</div>
+            <div style={{ fontSize: 26, color: colors.graphite }}>Instagram · 1 Reel</div>
+          </div>
+          <span style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: 14, fontSize: 64, fontWeight: 900 }}>
             <span style={{ display: "flex", transform: `scale(${lock}) rotate(${(1 - lock) * -30}deg)`, opacity: Math.min(1, lock * 2) }}>
               <IoLockClosed size={50} />
             </span>
-            250 €
+            400 €
           </span>
         </div>
         <div>
@@ -163,62 +181,6 @@ export const AC2Mech: React.FC = () => {
       <Sfx name="lock" at={44} volume={0.75} />
       <Sfx name="pop" at={84} volume={0.4} />
       <Sfx name="success" at={104} volume={0.6} />
-    </Stage>
-  );
-};
-
-// ---------------------------------------------------------------------------------------------------------------
-// AC3 · Paid in product
-
-const BOX_LAND = 12;
-
-export const AC3Pain: React.FC = () => {
-  const frame = useFrame();
-  const fall = ease(frame, 0, { damping: 18, stiffness: 160 });
-  const squash = Math.max(0, 1 - Math.abs(frame - BOX_LAND) / 5) * 0.06;
-  return (
-    <Stage>
-      <Title parts={["„Wir zahlen dich", { mark: "mit dem Produkt.“" }]} sub="Und dein Konto bleibt leer." start={-6} />
-      <div style={{ position: "absolute", top: 700, left: 0, right: 0, display: "flex", justifyContent: "center" }}>
-        <div style={{ transform: `translateY(${(1 - fall) * -900}px) scale(${1 + squash}, ${1 - squash})`, transformOrigin: "bottom" }}>
-          <div style={{ width: 380, height: 300, borderRadius: 18, backgroundColor: "#e9e4dc", boxShadow: "0 50px 90px rgba(7,7,7,0.18)", position: "relative" }}>
-            <div style={{ position: "absolute", left: "50%", top: 0, bottom: 0, width: 70, transform: "translateX(-50%)", backgroundColor: "#d8d0c3" }} />
-            <div style={{ position: "absolute", left: 40, bottom: 36, fontSize: 24, fontWeight: 700, color: "#9a8f80" }}>GRATIS-PRODUKT</div>
-          </div>
-        </div>
-      </div>
-      <Card style={{ position: "absolute", top: 1110, left: GUTTER + 60, right: GUTTER + 60, padding: "44px 56px", ...floatIn(frame, 40, 80) }}>
-        <div style={{ fontSize: 32, color: colors.graphite }}>Kontostand</div>
-        <div style={{ fontSize: 150, fontWeight: 900, letterSpacing: -6, lineHeight: 1 }}>0,00 €</div>
-      </Card>
-      <Sfx name="hit" at={BOX_LAND} volume={0.45} />
-      <Sfx name="pop-low" at={40} volume={0.4} />
-    </Stage>
-  );
-};
-
-export const AC3Mech: React.FC = () => {
-  const frame = useFrame();
-  const callout = (at: number) => ({ ...floatIn(frame, at, 40) });
-  return (
-    <Stage>
-      <Title parts={["Geld.", { mark: "Und das Produkt." }]} />
-      <div style={{ position: "absolute", top: 560, left: CARD_LEFT, transform: `translateY(${hover(frame)}px)`, ...floatIn(frame, 4) }}>
-        <DealCard deal={KIEZ_GOODS} width={CARD_W} height={CARD_H} />
-      </div>
-      <Card style={{ position: "absolute", top: 640, left: GUTTER - 20, padding: "26px 36px", display: "flex", alignItems: "center", gap: 18, ...callout(36) }}>
-        <Check p={pop(frame, 40)} size={48} />
-        <span style={{ fontSize: 44, fontWeight: 900 }}>400 €</span>
-        <span style={{ fontSize: 30, color: colors.graphite }}>Budget</span>
-      </Card>
-      <div style={{ position: "absolute", top: 1180, left: 0, right: 0, display: "flex", justifyContent: "center", fontSize: 90, fontWeight: 900, ...focusIn(ease(frame, 58), 90) }}>+</div>
-      <Card style={{ position: "absolute", top: 1300, right: GUTTER - 20, padding: "26px 36px", display: "flex", alignItems: "center", gap: 18, ...callout(66) }}>
-        <Check p={pop(frame, 70)} size={48} />
-        <span style={{ fontSize: 40, fontWeight: 900 }}>Produkt inklusive</span>
-      </Card>
-      <Sample />
-      <Sfx name="coin" at={40} volume={0.35} />
-      <Sfx name="pop" at={70} volume={0.45} />
     </Stage>
   );
 };
@@ -255,34 +217,39 @@ export const AC4Pain: React.FC = () => {
   );
 };
 
-const STACK = [LUMO_AUDIO, ODD_BLOOM, KIEZ_GOODS];
-const SWIPES = [
-  { at: 26, dir: -1 },
-  { at: 66, dir: 1 },
-];
+// Three brands in the deck; the cursor shows interest in the first two, one click each.
+const STACK: Deal[] = [VINTAGE_DROP, RAW_HOODIE, NOKAR_HOODIE];
+const LIKES = [48, 100];
 
 export const AC4Mech: React.FC = () => {
   const frame = useFrame();
-  const passPress = pressAt(frame, SWIPES[0].at - 2);
-  const likePress = pressAt(frame, SWIPES[1].at - 2);
+  const route = useClicks(frame, {
+    from: [900, 1200],
+    start: 20,
+    clicks: [
+      { at: LIKES[0], target: [LIKE_X, BTN_Y], arrive: 42 },
+      { at: LIKES[1], target: [LIKE_X, BTN_Y], arrive: 94, via: [[70, 800, 1560]] },
+    ],
+    away: [900, 1620],
+  });
+  const toast = frame < LIKES[1] + 1 ? "Interesse an vintagesteals.de gesendet" : "Interesse an Raw Supplies gesendet";
   return (
     <Stage>
       <Title parts={["Bezahlte Deals.", { mark: "Du wählst." }]} />
-      <div style={{ position: "absolute", top: 560, left: CARD_LEFT, width: CARD_W, height: CARD_H, ...floatIn(frame, 4) }}>
+      <div style={{ position: "absolute", top: CARD_TOP, left: CARD_LEFT, width: CARD_W, height: CARD_H, ...floatIn(frame, 4) }}>
         {[...STACK].reverse().map((deal, ri) => {
           const i = STACK.length - 1 - ri;
-          const swipe = SWIPES[i];
-          const out = swipe ? ease(frame, swipe.at, { stiffness: 60 }) : 0;
+          const out = LIKES[i] === undefined ? 0 : ease(frame, LIKES[i] + 1, { stiffness: 60 });
           // Cards behind move up a place each time the one in front leaves.
-          const ahead = SWIPES.slice(0, i).reduce((n, s) => n + ease(frame, s.at, { stiffness: 80 }), 0);
+          const ahead = LIKES.slice(0, i).reduce((n, at) => n + ease(frame, at + 1, { stiffness: 80 }), 0);
           const depth = i - ahead;
           return (
             <div
-              key={deal.company}
+              key={`${deal.company}-${i}`}
               style={{
                 position: "absolute",
                 inset: 0,
-                transform: `translate(${(swipe?.dir ?? 0) * out * 900}px, ${depth * 26 - out * 60}px) rotate(${(swipe?.dir ?? 0) * out * 16}deg) scale(${1 - depth * 0.05})`,
+                transform: `translate(${out * 900}px, ${depth * 26 - out * 60}px) rotate(${out * 16}deg) scale(${1 - depth * 0.05})`,
                 transformOrigin: "50% 120%",
                 opacity: depth > 1.5 ? 0 : 1,
               }}
@@ -292,99 +259,25 @@ export const AC4Mech: React.FC = () => {
           );
         })}
       </div>
-      <div style={{ position: "absolute", top: 1420, left: 0, right: 0, display: "flex", justifyContent: "center", gap: 60, ...floatIn(frame, 12, 40) }}>
-        {[
-          { icon: <IoClose size={56} />, press: passPress, filled: false },
-          { icon: <IoHeart size={52} />, press: likePress, filled: true },
-        ].map(({ icon, press, filled }, i) => (
-          <div
-            key={i}
-            style={{
-              width: 120,
-              height: 120,
-              borderRadius: 999,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              backgroundColor: filled ? colors.ink : colors.paper,
-              color: filled ? colors.paper : colors.ink,
-              boxShadow: "0 20px 40px rgba(7,7,7,0.15)",
-              transform: `scale(${1 - press * 0.12})`,
-            }}
-          >
-            {icon}
-          </div>
-        ))}
+      <div style={{ position: "absolute", inset: 0, ...floatIn(frame, 12, 40) }}>
+        <SwipeButtons passPress={0} likePress={Math.max(...route.press)} />
       </div>
-      <div style={{ position: "absolute", top: 1580, left: 0, right: 0, display: "flex", justifyContent: "center", ...focusIn(ease(frame, SWIPES[1].at + 10), 30) }}>
+      <div style={{ position: "absolute", top: 1520, left: 0, right: 0, display: "flex", justifyContent: "center", ...focusIn(ease(frame, LIKES[0] + 8), 30) }}>
         <Toast>
-          <IoHeart size={30} /> Interesse an Odd Bloom gesendet
+          <IoHeart size={30} /> {toast}
         </Toast>
       </div>
+      <ClickCursor route={route} />
       <Sample />
-      <Sfx name="swipe" at={SWIPES[0].at} volume={0.5} />
-      <Sfx name="swipe" at={SWIPES[1].at} volume={0.6} />
-      <Sfx name="like" at={SWIPES[1].at + 10} volume={0.5} />
-    </Stage>
-  );
-};
-
-// ---------------------------------------------------------------------------------------------------------------
-// AC5 · What's left of a deal
-
-const CUTS = [
-  { label: "Vermittlung", at: 30 },
-  { label: "Plattform", at: 46 },
-  { label: "Versteckte Gebühren", at: 62 },
-];
-
-export const AC5Pain: React.FC = () => {
-  const frame = useFrame();
-  const wobble = Math.sin(frame / 3) * 6 * ramp(frame, 84, 92);
-  return (
-    <Stage>
-      <Title parts={["250 € Deal.", { mark: "Was bleibt davon?" }]} start={-6} />
-      <Card style={{ position: "absolute", top: 660, left: GUTTER + 20, right: GUTTER + 20, padding: 56, display: "flex", flexDirection: "column", gap: 34, ...floatIn(frame, 2) }}>
-        <Line label="Deal" value="250,00 €" style={{ fontSize: 44 }} />
-        {CUTS.map((cut) => (
-          <Line key={cut.label} label={cut.label} value="− ? €" muted style={floatIn(frame, cut.at, 40)} />
-        ))}
-        <div style={{ height: 3, backgroundColor: colors.ink, transformOrigin: "left", transform: `scaleX(${ramp(frame, 74, 84)})` }} />
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", ...floatIn(frame, 80, 30) }}>
-          <span style={{ fontSize: 42, fontWeight: 700 }}>Für dich</span>
-          <span style={{ fontSize: 150, fontWeight: 900, display: "inline-block", transform: `rotate(${wobble}deg)` }}>?</span>
-        </div>
-      </Card>
-      {CUTS.map((cut) => (
-        <Sfx key={cut.label} name="pop-low" at={cut.at} volume={0.35} />
+      {LIKES.map((at) => (
+        <Sfx key={at} name="click" at={at} volume={0.7} />
       ))}
-      <Sfx name="hit" at={84} volume={0.3} />
-    </Stage>
-  );
-};
-
-const PAYOUT_AT = 78;
-
-export const AC5Mech: React.FC = () => {
-  const frame = useFrame();
-  const amount = 225 * ramp(frame, 48, PAYOUT_AT);
-  const bump = 1 + 0.06 * Math.max(0, 1 - Math.abs(frame - PAYOUT_AT - 3) / 6);
-  return (
-    <Stage>
-      <Title parts={["Du behältst", { mark: "90 %." }]} size={120} />
-      <Card style={{ position: "absolute", top: 700, left: GUTTER + 20, right: GUTTER + 20, padding: 56, display: "flex", flexDirection: "column", gap: 34, ...floatIn(frame, 4) }}>
-        <Line label="Odd Bloom hat gezahlt" value="250,00 €" style={floatIn(frame, 16, 30)} />
-        <Line label="comtor-Gebühr (10 %)" value="−25,00 €" muted style={floatIn(frame, 26, 30)} />
-        <div style={{ height: 3, backgroundColor: colors.ink, transformOrigin: "left", transform: `scaleX(${ramp(frame, 36, 46)})` }} />
-        <div style={{ display: "flex", flexDirection: "column", ...floatIn(frame, 42, 30) }}>
-          <span style={{ fontSize: 40, fontWeight: 700 }}>Du bekommst</span>
-          <span style={{ fontSize: 150, fontWeight: 900, letterSpacing: -5, lineHeight: 1.05, transform: `scale(${bump})`, transformOrigin: "left", fontVariantNumeric: "tabular-nums" }}>{euro(amount)}</span>
-        </div>
-      </Card>
-      <Sample />
-      <SfxRepeat name="tick" from={48} to={PAYOUT_AT} every={3} volume={0.16} />
-      <Sfx name="success" at={PAYOUT_AT} volume={0.7} />
-      <Sfx name="coin" at={PAYOUT_AT} volume={0.3} />
+      {LIKES.map((at) => (
+        <Sfx key={`s${at}`} name="swipe" at={at + 2} volume={0.55} />
+      ))}
+      {LIKES.map((at) => (
+        <Sfx key={`l${at}`} name="like" at={at + 10} volume={0.45} />
+      ))}
     </Stage>
   );
 };

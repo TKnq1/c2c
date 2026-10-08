@@ -119,3 +119,32 @@ export const Tag: React.FC<{ children: ReactNode; dark?: boolean; style?: CSSPro
     {children}
   </span>
 );
+
+// A button at a fixed place (centre `cx`, `cy` on the frame), so the cursor can be sent to exactly that point.
+export const Pressable: React.FC<{ cx: number; cy: number; w: number; h: number; press?: number; children: ReactNode; style?: CSSProperties }> = ({
+  cx,
+  cy,
+  w,
+  h,
+  press = 0,
+  children,
+  style,
+}) => (
+  <div
+    style={{
+      position: "absolute",
+      left: cx - w / 2,
+      top: cy - h / 2,
+      width: w,
+      height: h,
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      transform: `scale(${1 - press * 0.08})`,
+      filter: press > 0 ? `brightness(${1 - press * 0.12})` : undefined,
+      ...style,
+    }}
+  >
+    {children}
+  </div>
+);

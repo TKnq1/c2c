@@ -4,13 +4,13 @@ import { wipe } from "@remotion/transitions/wipe";
 import type { HeadlinePart } from "../components/ui";
 import { BEAT, fitToVoice, type Scene, SceneSeries, seriesDuration, type VideoProps } from "../series";
 import VOICE from "../voice/ads.json";
-import { AB1_PAIN_BLUR, AB1Mech, AB1Pain, AB2Mech, AB2Pain, AB3Mech, AB3Pain, AB4Mech, AB4Pain, AB5Mech, AB5Pain } from "./brand";
-import { AC1Mech, AC1Pain, AC2Mech, AC2Pain, AC3Mech, AC3Pain, AC4Mech, AC4Pain, AC5Mech, AC5Pain } from "./creator";
+import { AB1_PAIN_BLUR, AB1Mech, AB1Pain, AB2Mech, AB2Pain, AB3Mech, AB3Pain } from "./brand";
+import { AC1Mech, AC1Pain, AC2Mech, AC2Pain, AC4Mech, AC4Pain } from "./creator";
 import { type Audience, ctaScene, payoffScene, turnScene } from "./kit";
 
 // The 15 s ads (ADS.md). Every ad has the same five beats; only the painpoint, its mechanism and the copy change:
 //   1 pain    hook in the first frame, then the problem made concrete
-//   2 turn    black, one short line and the logo
+//   2 turn    black with grain, one short line, the logo huge and faint behind it
 //   3 mech    the part of comtor that removes exactly this pain
 //   4 payoff  the promise in one line
 //   5 cta     offer (founding places) and comtor.app
@@ -64,23 +64,6 @@ const SPECS: AdSpec[] = [
     ],
   },
   {
-    id: "AC3",
-    audience: "creator",
-    painpoint: "Produkt statt Geld",
-    pain: AC3Pain,
-    turn: ["Ein Produkt zahlt", { mark: "keine Miete." }],
-    mech: AC3Mech,
-    payoff: [["Echte Deals.", { mark: "Echtes Geld." }]],
-    cta: ["Lass dich", { mark: "bezahlen." }],
-    vo: [
-      "Wir schicken dir das Produkt als Bezahlung?",
-      "Ein Produkt zahlt keine Miete.",
-      "Auf comtor bekommst du Geld – und das Produkt oft dazu.",
-      "Echte Deals. Echtes Geld.",
-      "Die ersten hundert Creator bekommen Pro kostenlos. Auf comtor punkt app.",
-    ],
-  },
-  {
     id: "AC4",
     audience: "creator",
     painpoint: "Warten auf Anfragen",
@@ -95,23 +78,6 @@ const SPECS: AdSpec[] = [
       "Auf comtor wischst du durch bezahlte Deals.",
       "Du wählst. Nicht umgekehrt.",
       "Jetzt auf comtor punkt app.",
-    ],
-  },
-  {
-    id: "AC5",
-    audience: "creator",
-    painpoint: "Unklar, was übrig bleibt",
-    pain: AC5Pain,
-    turn: ["Klare", { mark: "Zahlen." }],
-    mech: AC5Mech,
-    payoff: [["Mit Pro:", { mark: "97 %." }], "242,50 € statt 225,00 €"],
-    cta: ["Behalte", { mark: "mehr." }],
-    vo: [
-      "Zweihundertfünfzig Euro Deal. Was bleibt davon?",
-      "Klare Zahlen.",
-      "Auf comtor behältst du neunzig Prozent.",
-      "Mit Pro sogar siebenundneunzig.",
-      "Die ersten hundert Creator bekommen Pro kostenlos. Auf comtor punkt app.",
     ],
   },
   {
@@ -166,40 +132,6 @@ const SPECS: AdSpec[] = [
       "Jetzt auf comtor punkt app.",
     ],
   },
-  {
-    id: "AB4",
-    audience: "brand",
-    painpoint: "Retainer und Grundgebühren",
-    pain: AB4Pain,
-    turn: ["Geht auch", { mark: "ohne." }],
-    mech: AB4Mech,
-    payoff: [["Zahl nur", { mark: "pro Deal." }], "Keine Grundgebühr. Keine Laufzeit."],
-    cta: ["Sichere dir", { mark: "deinen Platz." }],
-    vo: [
-      "Monatliche Retainer – für ein paar Posts?",
-      "Geht auch ohne.",
-      "Auf comtor gibt's keine Grundgebühr. Du zahlst nur pro Deal.",
-      "Mit Pro nur drei Prozent.",
-      "Die ersten fünfzig Marken bekommen Pro kostenlos. comtor punkt app.",
-    ],
-  },
-  {
-    id: "AB5",
-    audience: "brand",
-    painpoint: "Kein Content-Team",
-    pain: AB5Pain,
-    turn: ["Brauchst du", { mark: "nicht." }],
-    mech: AB5Mech,
-    payoff: [["Creator machen", { mark: "den Content." }]],
-    cta: ["Content,", { mark: "ohne Team." }],
-    vo: [
-      "Kein Content-Team?",
-      "Brauchst du nicht.",
-      "Anfrage in einer Minute.",
-      "Creator machen den Content für dich.",
-      "Sichere dir deinen Platz auf comtor punkt app.",
-    ],
-  },
 ];
 
 // Drawn lengths: 10 + 3 + 9 + 4 + 8 beats, minus four one-beat transitions = 30 beats = 15 s.
@@ -208,7 +140,7 @@ function scenesOf(spec: AdSpec): Scene[] {
   return [
     { id: `${spec.id}-1`, component: spec.pain, duration: 10 * BEAT, keyframe: 110, blur: spec.painBlur },
     { id: `${spec.id}-2`, component: turnScene(spec.turn), duration: 3 * BEAT, keyframe: 26, enter: wipe({ direction: "from-left" }), whoosh: false },
-    { id: `${spec.id}-3`, component: spec.mech, duration: 9 * BEAT, keyframe: 112, enter: slide({ direction: "from-bottom" }) },
+    { id: `${spec.id}-3`, component: spec.mech, duration: 9 * BEAT, keyframe: 124, enter: slide({ direction: "from-bottom" }) },
     { id: `${spec.id}-4`, component: payoffScene(payoff, payoffSub), duration: 4 * BEAT, keyframe: 42, enter: fade(), whoosh: false },
     { id: `${spec.id}-5`, component: ctaScene(spec.audience, spec.cta), duration: 8 * BEAT, keyframe: 100, enter: wipe({ direction: "from-right" }), whoosh: false },
   ];
