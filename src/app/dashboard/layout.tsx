@@ -2,13 +2,14 @@ import { Suspense } from "react";
 import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import type { NavCounts } from "@/components/nav";
+import type { NavCounts } from "@/lib/nav-links";
 import { UnreadTitleBadge } from "@/components/unread-title-badge";
 import { WelcomeOverlay } from "@/components/welcome-overlay";
 import { EmailVerificationGate } from "@/components/email-verification-gate";
 import { InstallPrompt } from "@/components/install-prompt";
 import { PullToRefresh } from "@/components/pull-to-refresh";
 import { RememberArea } from "@/components/remember-area";
+import { ScrollToHash } from "@/components/scroll-to-hash";
 import { hasAdminAccess } from "@/lib/admin-access";
 import { getUnreadCount } from "@/lib/notifications";
 import { getUnreadMessageCount } from "@/lib/messages";
@@ -73,6 +74,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
         <UnreadTitleBadge countsPromise={countsPromise} />
       </Suspense>
       <PullToRefresh />
+      <ScrollToHash />
       {/* An admin with a brand or creator account: the installed dashboard opens in the area used last. */}
       {hasAdminAccess(session.user) && <RememberArea area="app" />}
       {/* On phones <main> runs the full height of the screen, under the

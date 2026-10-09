@@ -13,6 +13,8 @@ import { sniffImage, type ImageType } from "@/lib/image-sniff";
 import { DAY, takeToken } from "@/lib/rate-limit";
 import { VERIFY_EMAIL_MESSAGE, emailIsVerified } from "@/lib/verified";
 import { REQUEST_PHOTO_TYPES } from "@/lib/request-photo-types";
+import { dealsEnabled } from "@/lib/deals/flag";
+import { applyDefaultTemplateToNewRequest, copyBriefingToNewRequest } from "@/lib/deals/briefing-templates";
 
 // `code` lets the form tell a missing email confirmation (which it explains with a link) from other errors.
 export type ActionState = { error?: string; code?: "VERIFY_EMAIL" } | undefined;
@@ -196,8 +198,12 @@ export async function createRequestAction(_prevState: ActionState, formData: For
 
   const request = await prisma.request.create({
     data: { ...requestFields(parsed.data), startupId: startup.id, images: { create: photos.images } },
-    select: { niche: true, languages: true, minFollowers: true, title: true },
+    select: { id: true, niche: true, languages: true, minFollowers: true, title: true },
   });
+
+  // The brand's default briefing template (if it has one) is the new request's briefing from the start, so creators see the
+  // campaign rules the brand actually wants. Never fails the request.
+  if (dealsEnabled()) await applyDefaultTemplateToNewRequest(request.id, session.user.id);
 
   // Let creators whose niche, language and follower count already qualify know right
   // away, instead of relying on them to check back on their own.
@@ -255,6 +261,11 @@ export async function duplicateRequestAction(requestId: string) {
       },
     },
   });
+
+  // The copy starts with the original's briefing, or with the default template when the original has none.
+  if (dealsEnabled() && !(await copyBriefingToNewRequest(session.user.id, source.id, duplicate.id))) {
+    await applyDefaultTemplateToNewRequest(duplicate.id, session.user.id);
+  }
 
   await notifyMatchingCreators(duplicate, startup, session.user.id);
 
@@ -348,7 +359,11 @@ export async function updateRequestAction(
     throw err;
   }
 
-  if (posting) await notifyMatchingCreators(parsed.data, startup, session.user.id);
+  if (posting) {
+    // A draft that goes live is a new request: it gets the default briefing template unless it already has a briefing.
+    if (dealsEnabled()) await applyDefaultTemplateToNewRequest(requestId, session.user.id);
+    await notifyMatchingCreators(parsed.data, startup, session.user.id);
+  }
 
   revalidatePath(`/dashboard/startup/requests/${requestId}`);
   revalidatePath("/dashboard/startup");

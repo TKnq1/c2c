@@ -68,6 +68,45 @@ describe("sendEmail", () => {
     expect(JSON.stringify(logMail.mock.calls)).not.toContain("someone@example.com");
   });
 
+  it("hands attachments to Resend as buffers, and none when there are none", async () => {
+    vi.stubEnv("RESEND_API_KEY", "re_key");
+    send.mockResolvedValue({ data: { id: "abc123" }, error: null });
+    const { sendEmail } = await load();
+
+    await sendEmail({ ...email, attachments: [{ filename: "RE-2026-000001.pdf", content: new Uint8Array([37, 80, 68, 70]) }] });
+    const attached = send.mock.calls[0][0].attachments;
+    expect(attached).toHaveLength(1);
+    expect(attached[0].filename).toBe("RE-2026-000001.pdf");
+    expect(Buffer.isBuffer(attached[0].content)).toBe(true);
+    expect(attached[0].content.toString()).toBe("%PDF");
+
+    await sendEmail(email);
+    expect(send.mock.calls[1][0]).not.toHaveProperty("attachments");
+    await sendEmail({ ...email, attachments: [] });
+    expect(send.mock.calls[2][0]).not.toHaveProperty("attachments");
+  });
+
+  it("sends nothing and logs nothing in a dry run, even with a key", async () => {
+    vi.stubEnv("RESEND_API_KEY", "re_key");
+    vi.stubEnv("EMAIL_DRY_RUN", "1");
+    const { sendEmail } = await load();
+
+    expect(await sendEmail(email)).toEqual({ ok: true, id: "dry-run" });
+    expect(send).not.toHaveBeenCalled();
+    expect(logMail).not.toHaveBeenCalled();
+  });
+
+  it("ignores the dry-run switch on the live site", async () => {
+    vi.stubEnv("RESEND_API_KEY", "re_key");
+    vi.stubEnv("EMAIL_DRY_RUN", "1");
+    vi.stubEnv("VERCEL_ENV", "production");
+    send.mockResolvedValue({ data: { id: "abc123" }, error: null });
+    const { sendEmail } = await load();
+
+    expect(await sendEmail(email)).toEqual({ ok: true, id: "abc123" });
+    expect(send).toHaveBeenCalledTimes(1);
+  });
+
   it("doesn't throw without an API key", async () => {
     vi.stubEnv("RESEND_API_KEY", "");
     const { sendEmail } = await load();

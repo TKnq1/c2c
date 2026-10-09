@@ -98,6 +98,8 @@ model User {
   blocksReceived          Block[]                  @relation("BlocksReceived")
   pushSubscriptions       PushSubscription[]
   onboardingEvents        OnboardingEvent[]
+  businessProfile         BusinessProfile?
+  briefingTemplates       BriefingTemplate[]
 }
 
 // What happened at each step of the onboarding wizard, so /admin/onboarding
@@ -530,9 +532,11 @@ model Request {
   closedByAdmin   Boolean        @default(false)
   createdAt       DateTime       @default(now())
 
-  images    RequestImage[]
-  interests Interest[]
-  passes    RequestPass[]
+  images        RequestImage[]
+  interests     Interest[]
+  passes        RequestPass[]
+  briefing      CampaignBriefing?
+  briefingDraft BriefingDraft?
 
   @@index([startupId, createdAt])
   @@index([niche])
@@ -596,20 +600,24 @@ model Interest {
   // own — they hadn't. Drives how each side's UI describes/labels the row.
   initiatedBy Role           @default(CREATOR)
 
-  amountCents      Int?
-  platformFeeCents Int?
-  payoutCents      Int?
-  paymentStatus    PaymentStatus?
+  amountCents          Int?
+  platformFeeCents     Int?
+  payoutCents          Int?
+  paymentStatus        PaymentStatus?
   // Who made the current pending proposal (paymentStatus "OFFERED") — the
   // other role is the one who can accept/decline/counter it. Cleared
   // whenever an offer resolves (accepted, declined, or withdrawn).
-  offerRole        Role?
-  offeredAt        DateTime?
-  acceptedAt       DateTime?
-  paidAt           DateTime?
-  releasedAt       DateTime?
-  refundedAt       DateTime?
-  proofUrl         String?
+  offerRole            Role?
+  offeredAt            DateTime?
+  // The version of the request's campaign briefing (CampaignBriefing.version, 0 = no briefing, the defaults) the proposer
+  // made this offer under. Accepting is refused when the briefing has changed since: the contract is a copy of the
+  // briefing at that moment, and nobody should accept terms they have not seen. Null = an offer from before deals.
+  offerBriefingVersion Int?
+  acceptedAt           DateTime?
+  paidAt               DateTime?
+  releasedAt           DateTime?
+  refundedAt           DateTime?
+  proofUrl             String?
   // The approval step between "posted" and "paid out" — paymentStatus stays
   // HELD throughout. The creator submits the link to their post
   // (proofSubmittedAt); the brand then approves it, which releases the
@@ -617,9 +625,9 @@ model Interest {
   // until an admin releases or refunds it from /admin. No answer within
   // RELEASE_REVIEW_DAYS and it's released automatically (see
   // api/cron/release-payments).
-  proofSubmittedAt DateTime?
-  disputedAt       DateTime?
-  disputeReason    String?
+  proofSubmittedAt     DateTime?
+  disputedAt           DateTime?
+  disputeReason        String?
 
   // Stripe identifiers for the real money movement behind this interest —
   // separate charges & transfers pattern (see src/lib/actions/payments.ts):
@@ -646,6 +654,9 @@ model Interest {
   reviews     Review[]
   messages    Message[]
   offerEvents OfferEvent[]
+  // The brand deal behind an accepted offer (briefing terms, drafts, posts, verification, payout gate).
+  // Interests from before deals existed have none and keep the old approve/auto-release flow.
+  deal        Deal?
 
   @@unique([requestId, creatorId])
   @@index([creatorId, paymentStatus])
@@ -994,4 +1005,507 @@ model PageView {
 
   @@unique([day, page, source, campaign])
   @@index([day])
+}
+
+// ---------------------------------------------------------------------------------------------------------------------
+// Brand deals: the campaign workflow that sits on top of an accepted offer (Interest). The money (escrow, transfer,
+// refund) stays on the Interest row; the Deal decides *when* it may move: only after the post is verified live and the
+// hold window has run out (see src/lib/deals/status.ts and payment-release.ts).
+// ---------------------------------------------------------------------------------------------------------------------
+
+enum DealStatus {
+  // Terms are frozen, both sides still have to confirm them.
+  CONTRACT_PENDING
+  // Both confirmed; the brand has to fund the escrow (Stripe Checkout, net price + VAT).
+  AWAITING_ESCROW
+  // Escrow funded; the creator produces the content.
+  IN_PRODUCTION
+  DRAFT_SUBMITTED
+  CHANGES_REQUESTED
+  DRAFT_APPROVED
+  POST_SCHEDULED
+  // The creator handed in the live link / proof; waiting for the first verification.
+  POST_SUBMITTED
+  // Verified live; the hold window (minLiveHours) is running.
+  VERIFYING
+  // The post disappeared during the window; the creator has a grace period to publish it again.
+  REPOST_REQUIRED
+  // Window over, post still live: the payout is released (or retried).
+  PAYOUT_PENDING
+  COMPLETED
+  // Frozen for an admin decision (see DealDispute).
+  DISPUTED
+  CANCELLED
+}
+
+enum DealDraftKind {
+  SCRIPT
+  VIDEO_PREVIEW
+  IMAGE
+  OTHER
+}
+
+enum DealDraftStatus {
+  SUBMITTED
+  APPROVED
+  CHANGES_REQUESTED
+  REJECTED
+}
+
+enum UsageRightsType {
+  // Posting on the creator's own channel only.
+  ORGANIC_ONLY
+  // The brand may repost it on its own channels (no paid promotion), for a limited time.
+  CROSS_POST
+  // Paid use: Meta Partnership Ads, TikTok Spark Ads, whitelisting. Needs a duration and a fee.
+  PAID_ADS
+}
+
+enum PostVerificationStatus {
+  PENDING
+  VERIFIED
+  REMOVED
+  // The platform could not be asked (no token, outage). Counted as "not yet known", never as "gone".
+  UNREACHABLE
+  REJECTED
+}
+
+enum PostVerificationSource {
+  MANUAL
+  OEMBED
+  API
+  WEBHOOK
+  PROOF
+}
+
+enum DealProofKind {
+  SCREENSHOT
+  ANALYTICS
+}
+
+enum DisputeReason {
+  MISSED_DEADLINE
+  DRAFT_REJECTED
+  POST_REMOVED
+  DISCLOSURE_MISSING
+  CONTENT_MISMATCH
+  USAGE_RIGHTS_MISSING
+  OTHER
+  // The brand's bank took the payment back (a Stripe dispute); only the system opens one with this reason.
+  CHARGEBACK
+}
+
+enum DisputeStatus {
+  OPEN
+  RESOLVED_RELEASE
+  RESOLVED_REFUND
+  RESOLVED_RESUME
+}
+
+enum TaxTreatment {
+  // German VAT charged.
+  DOMESTIC_VAT
+  // Business in another EU state with a valid VAT ID: the recipient accounts for the VAT (Art. 196 VAT Directive).
+  REVERSE_CHARGE_EU
+  // Supplier outside the EU, German recipient accounts for the VAT (§ 13b UStG).
+  REVERSE_CHARGE_13B
+  // Service not taxable in Germany (recipient outside the EU).
+  OUT_OF_SCOPE
+  // Small-business exemption (§ 19 UStG or the EU SME scheme): no VAT shown.
+  SMALL_BUSINESS_EXEMPT
+}
+
+enum InvoiceKind {
+  // Platform to brand.
+  BRAND_INVOICE
+  // Self-billing credit note: the platform bills on the creator's behalf (§ 14 Abs. 2 UStG).
+  CREATOR_CREDIT_NOTE
+}
+
+enum InvoiceStatus {
+  ISSUED
+  CANCELLED
+}
+
+enum VatIdStatus {
+  UNCHECKED
+  VALID
+  INVALID
+  // VIES or the member state's service was down: try again later, the status is not a verdict.
+  UNAVAILABLE
+}
+
+// What a brand wrote down for a request beyond title and budget: the rules of the campaign. Editable until a deal
+// exists; the deal takes a frozen copy (Deal.terms).
+model CampaignBriefing {
+  id        String  @id @default(cuid())
+  requestId String  @unique
+  request   Request @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  // Goes up by one whenever a save changes the rules (a save that changes nothing leaves it). Offers are made under a
+  // version, see Interest.offerBriefingVersion.
+  version   Int     @default(1)
+
+  // Where the ad is shown to people: decides which disclosure labels count (DE, AT, CH, FR, ...).
+  targetMarket     String   @default("DE")
+  // PostFormat codes (src/lib/social/platforms.ts), e.g. INSTAGRAM_REEL, TIKTOK_VIDEO.
+  contentFormats   String[] @default([])
+  talkingPoints    String?
+  doNots           String?
+  requiredHashtags String[] @default([])
+  requiredMentions String[] @default([])
+
+  // Advertising disclosure (UWG § 5a Abs. 4, MStV § 8, DDG § 6): the wording the creator must use, and whether the
+  // platform's own paid-partnership label is required on top.
+  disclosureLabels            String[] @default([])
+  requirePaidPartnershipLabel Boolean  @default(true)
+
+  // Workflow
+  draftRequired          Boolean   @default(true)
+  draftDueDaysBeforePost Int       @default(5)
+  brandReviewDays        Int       @default(3)
+  maxRevisionRounds      Int       @default(2)
+  postingWindowStart     DateTime? @db.Date
+  postingWindowEnd       DateTime? @db.Date
+  // The post has to stay live this long after it was first verified; the payout waits for it.
+  minLiveHours           Int       @default(24)
+
+  // Exclusivity: no competing brand N days before / after publication.
+  exclusivityEnabled     Boolean  @default(false)
+  exclusivityCategories  String[] @default([])
+  exclusivityCompetitors String[] @default([])
+  exclusivityDaysBefore  Int      @default(0)
+  exclusivityDaysAfter   Int      @default(0)
+
+  // Usage rights beyond the creator's own channel.
+  usageType         UsageRightsType @default(ORGANIC_ONLY)
+  // UsageChannel codes (src/lib/compliance/usage-rights.ts)
+  usageChannels     String[]        @default([])
+  usageDurationDays Int?
+  // The part of the price that pays for the usage rights (it is inside the offer amount, shown as its own invoice line).
+  usageFeeCents     Int?
+  usageTerritory    String          @default("EU")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// A brand's saved briefing: a starting point for the briefing of a request. A copy, not a link: changing a template
+// later changes no request and no deal.
+model BriefingTemplate {
+  id         String    @id @default(cuid())
+  userId     String
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name       String
+  // The briefing builder's field values (src/lib/compliance/briefing-form.ts) without the posting window, which belongs
+  // to a request. Read back with parseBriefingForm, so a field added later falls back to its default.
+  values     Json
+  // The one the brand's new requests start from (at most one per brand, kept in code).
+  isDefault  Boolean   @default(false)
+  lastUsedAt DateTime?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  @@unique([userId, name])
+  @@index([userId, updatedAt])
+}
+
+// A briefing the brand started and has not finished (it still has errors). It is not active: the request keeps the
+// briefing it had, or the defaults, until a save without errors replaces it.
+model BriefingDraft {
+  id        String   @id @default(cuid())
+  requestId String   @unique
+  request   Request  @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  values    Json
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Deal {
+  id                  String      @id @default(cuid())
+  interestId          String      @unique
+  interest            Interest    @relation(fields: [interestId], references: [id], onDelete: Cascade)
+  // Denormalised so exclusivity and listings do not have to join through the request.
+  startupId           String
+  creatorId           String
+  status              DealStatus  @default(CONTRACT_PENDING)
+  // Where the deal was before a dispute froze it, for "resume".
+  statusBeforeDispute DealStatus?
+  statusChangedAt     DateTime    @default(now())
+
+  // The frozen terms (DealTerms, src/lib/deals/terms.ts) and their SHA-256: what both sides confirmed.
+  terms           Json
+  termsHash       String
+  brandSignedAt   DateTime?
+  brandSignedBy   String?
+  creatorSignedAt DateTime?
+  creatorSignedBy String?
+
+  // Deadlines (computed when the escrow is funded, see src/lib/deals/deadlines.ts)
+  fundedAt         DateTime?
+  draftDueAt       DateTime?
+  draftReviewDueAt DateTime?
+  revisionDueAt    DateTime?
+  revisionRound    Int       @default(0)
+  postWindowStart  DateTime?
+  postWindowEnd    DateTime?
+  scheduledFor     DateTime?
+  // End of the grace period of whatever is overdue (post date, revision) or of a removed post.
+  graceUntil       DateTime?
+  // Reminders already sent, so the daily job does not repeat them: "draft_due", "post_due", ...
+  remindersSent    String[]  @default([])
+
+  // Verification and payout gate
+  firstLiveAt        DateTime?
+  verificationEndsAt DateTime?
+  payoutEligibleAt   DateTime?
+  completedAt        DateTime?
+  cancelledAt        DateTime?
+  cancelReason       String?
+
+  // Usage rights actually handed over (Spark Ads code, partnership-ad permission) and when they lapse.
+  usageDeliveredAt      DateTime?
+  usageConfirmedAt      DateTime?
+  usageStartsAt         DateTime?
+  usageExpiresAt        DateTime?
+  sparkAdsCode          String?
+  sparkAdsCodeExpiresAt DateTime?
+  usageExpiryNoticeAt   DateTime?
+
+  // Tax, fixed when the escrow is created (src/lib/tax/engine.ts). What the brand pays is brandTotalCents; the
+  // creator's payout stays Interest.payoutCents, VAT included where the creator charges it.
+  taxSnapshot     Json?
+  brandNetCents   Int?
+  brandVatCents   Int?
+  brandTotalCents Int?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  drafts   DealDraft[]
+  posts    DealPost[]
+  events   DealEvent[]
+  disputes DealDispute[]
+  invoices Invoice[]
+
+  @@index([status, statusChangedAt])
+  @@index([creatorId, status])
+  @@index([startupId, status])
+}
+
+model DealDraft {
+  id                  String          @id @default(cuid())
+  dealId              String
+  deal                Deal            @relation(fields: [dealId], references: [id], onDelete: Cascade)
+  version             Int
+  kind                DealDraftKind
+  // A link to the script / preview (Google Drive, Frame.io, unlisted YouTube, ...).
+  url                 String?
+  notes               String?
+  // The caption the creator plans to use: checked against the disclosure rules before the brand even sees it.
+  caption             String?
+  disclosureConfirmed Boolean         @default(false)
+  status              DealDraftStatus @default(SUBMITTED)
+  feedback            String?
+  autoApproved        Boolean         @default(false)
+  submittedAt         DateTime        @default(now())
+  reviewedAt          DateTime?
+
+  @@unique([dealId, version])
+}
+
+model DealPost {
+  id                   String                 @id @default(cuid())
+  dealId               String
+  deal                 Deal                   @relation(fields: [dealId], references: [id], onDelete: Cascade)
+  // PostFormat code (src/lib/social/platforms.ts)
+  format               String
+  url                  String?
+  externalId           String?
+  status               PostVerificationStatus @default(PENDING)
+  source               PostVerificationSource @default(MANUAL)
+  caption              String?
+  // Which wording the creator used ("Werbung", "Anzeige", ...), whether the platform's label is switched on, and
+  // whether the content itself (spoken / on screen) says it is an ad.
+  disclosureLabel      String?
+  paidPartnershipLabel Boolean                @default(false)
+  disclosureInContent  Boolean                @default(false)
+  hashtagsFound        String[]               @default([])
+  scheduledFor         DateTime?
+  publishedAt          DateTime?
+  submittedAt          DateTime               @default(now())
+  lastCheckedAt        DateTime?
+  verifiedAt           DateTime?
+  removedAt            DateTime?
+  // Failed checks in a row; one failure is a hiccup, removalConfirmFailures of them are a removal.
+  checkFailures        Int                    @default(0)
+  // Brand confirmation for formats that cannot be checked by link (Stories).
+  brandConfirmedAt     DateTime?
+  note                 String?
+
+  proofs  DealProof[]
+  metrics DealPostMetric[]
+
+  @@index([dealId])
+  @@index([status, lastCheckedAt])
+  @@index([externalId])
+}
+
+// A screenshot / analytics image as bytes (there is no object storage yet, same as RequestImage), served by
+// /api/deals/[id]/proofs/[proofId] to the two participants and admins only.
+model DealProof {
+  id          String        @id @default(cuid())
+  postId      String
+  post        DealPost      @relation(fields: [postId], references: [id], onDelete: Cascade)
+  kind        DealProofKind @default(SCREENSHOT)
+  contentType String
+  sha256      String
+  // Emptied (zero bytes) when the retention period after the end of the deal is over; the row and the hash stay as the record that
+  // there was one (src/lib/deals/retention.ts).
+  data        Bytes
+  createdAt   DateTime      @default(now())
+  purgedAt    DateTime?
+
+  @@index([postId])
+}
+
+model DealPostMetric {
+  id         String   @id @default(cuid())
+  postId     String
+  post       DealPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  capturedAt DateTime @default(now())
+  views      Int?
+  likes      Int?
+  comments   Int?
+  shares     Int?
+  source     String
+  // The provider's event id, so a webhook retry does not store the same reading twice.
+  eventId    String?  @unique
+
+  @@index([postId, capturedAt])
+}
+
+// The trail of a deal: every status change and every automatic action, with who did it.
+model DealEvent {
+  id          String      @id @default(cuid())
+  dealId      String
+  deal        Deal        @relation(fields: [dealId], references: [id], onDelete: Cascade)
+  kind        String
+  fromStatus  DealStatus?
+  toStatus    DealStatus?
+  // Null: the system (webhook, daily job).
+  actorRole   Role?
+  actorUserId String?
+  data        Json?
+  createdAt   DateTime    @default(now())
+
+  @@index([dealId, createdAt])
+}
+
+model DealDispute {
+  id                String        @id @default(cuid())
+  dealId            String
+  deal              Deal          @relation(fields: [dealId], references: [id], onDelete: Cascade)
+  reason            DisputeReason
+  details           String?
+  // Null: opened by the system (missed deadline, removed post, ...).
+  openedByRole      Role?
+  openedByUserId    String?
+  // Stripe's id of the chargeback this dispute stands for (dp_...), so a repeated or closing event finds it again.
+  stripeDisputeId   String?       @unique
+  status            DisputeStatus @default(OPEN)
+  resolution        String?
+  resolvedByAdminId String?
+  openedAt          DateTime      @default(now())
+  resolvedAt        DateTime?
+
+  @@index([dealId])
+  @@index([status, openedAt])
+}
+
+// Trader data for brands and creators: who is behind the account, taxed how, and what they confirmed (DSA Art. 30 /
+// P2B Regulation transparency, VAT invoicing). One row per user.
+model BusinessProfile {
+  id     String @id @default(cuid())
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  legalName      String
+  // COMPANY, SOLE_PROPRIETOR or FREELANCER (src/lib/tax/business.ts). Private persons cannot use deals.
+  businessType   String
+  country        String
+  addressLine1   String
+  addressLine2   String?
+  postalCode     String
+  city           String
+  phone          String?
+  registerNumber String?
+
+  taxNumber               String?
+  vatId                   String?
+  vatIdStatus             VatIdStatus @default(UNCHECKED)
+  vatIdCheckedAt          DateTime?
+  // The VIES consultation number (requestIdentifier): proof of the check for the tax authorities.
+  vatIdConsultationNumber String?
+  vatIdRegisteredName     String?
+  vatIdRegisteredAddress  String?
+  // § 19 UStG (DE) or the small-business scheme of the member state: no VAT is charged.
+  smallBusinessExempt     Boolean     @default(false)
+
+  // "I act exclusively for my trade, business or profession" (DSA Art. 30(1)(g)).
+  traderSelfCertifiedAt DateTime?
+  traderCertVersion     String?
+  // Agreement that the platform issues credit notes in the creator's name (§ 14 Abs. 2 UStG). Creators only.
+  selfBillingAcceptedAt DateTime?
+  selfBillingVersion    String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([vatId])
+}
+
+model Invoice {
+  id                 String        @id @default(cuid())
+  number             String        @unique
+  kind               InvoiceKind
+  status             InvoiceStatus @default(ISSUED)
+  dealId             String
+  deal               Deal          @relation(fields: [dealId], references: [id], onDelete: Restrict)
+  // Who receives the document (the brand for an invoice, the creator for a credit note). No relation on purpose:
+  // an invoice outlives the account (§ 147 AO), see account-deletion.ts.
+  recipientUserId    String
+  currency           String        @default("EUR")
+  issuedAt           DateTime      @default(now())
+  servicePeriodStart DateTime?
+  servicePeriodEnd   DateTime?
+  netCents           Int
+  vatCents           Int
+  grossCents         Int
+  vatRateBp          Int
+  taxTreatment       TaxTreatment
+  legalNote          String?
+  // Issuer, recipient and lines exactly as printed: later profile changes never rewrite an issued invoice.
+  issuer             Json
+  recipient          Json
+  lines              Json
+  // 0: the document as it was first issued. A correction is two documents (src/lib/billing/correct.ts): a cancellation, which
+  // repeats the original with every amount negated and points at it (cancelsInvoiceId), and a new document that replaces
+  // it. Each gets the next revision of its deal and kind; all of them take their number from the same gapless series.
+  revision           Int           @default(0)
+  cancelsInvoiceId   String?       @unique
+  cancels            Invoice?      @relation("InvoiceCancellation", fields: [cancelsInvoiceId], references: [id], onDelete: Restrict)
+  cancelledBy        Invoice?      @relation("InvoiceCancellation")
+  // Set on the original when it was cancelled, with the reason that was written down.
+  cancelledAt        DateTime?
+  cancelReason       String?
+
+  @@unique([dealId, kind, revision])
+  @@index([recipientUserId, issuedAt])
+}
+
+// Gapless numbering per kind and year ("RE-2026-000001"): the counter is incremented in the same transaction that
+// writes the invoice, so a rolled-back invoice gives its number back.
+model InvoiceSequence {
+  key        String @id
+  lastNumber Int    @default(0)
 }

@@ -428,6 +428,68 @@ export function accountSuspendedEmail(reason: string, locale: Locale = DEFAULT_L
   });
 }
 
+// A deal notice as an e-mail: the ones with a deadline, a cancellation, a dispute or money behind them (see NOTICE_SUBJECT in
+// src/lib/deals/notices.ts). The text is the notice the person also sees in the app; the heading says whether it asks
+// something of them.
+export function dealNoticeEmail(args: { subject: string; text: string; url: string; actionNeeded: boolean }, locale: Locale = DEFAULT_LOCALE): Email {
+  return render({
+    locale,
+    subject: args.subject,
+    preview: args.text.length > 110 ? `${args.text.slice(0, 107)}…` : args.text,
+    heading: args.actionNeeded ? pick(locale, "Your deal needs you.", "Dein Deal braucht dich.") : pick(locale, "News on your deal.", "Neuigkeiten zu deinem Deal."),
+    body: args.text,
+    action: { label: pick(locale, "Open in comtor", "In comtor öffnen"), url: args.url },
+    note: pick(
+      locale,
+      "You get this e-mail because a deadline, a cancellation or money is involved. These messages cannot be switched off.",
+      "Du bekommst diese E-Mail, weil dabei eine Frist, ein Abbruch oder Geld im Spiel ist. Diese Hinweise lassen sich nicht abschalten.",
+    ),
+  });
+}
+
+// The documents of a deal as an e-mail, with the PDFs attached: a new invoice, a new credit note, or a correction (the cancelled
+// document and its replacement). The PDFs are German like the documents; the mail is in the language of the account.
+export function dealDocumentEmail(
+  args: { kind: "invoice" | "credit" | "corrected"; title: string; number: string; replaces?: string; url: string },
+  locale: Locale = DEFAULT_LOCALE,
+): Email {
+  const { title, number, url } = args;
+  const copy = {
+    invoice: {
+      subject: pick(locale, `Your invoice ${number}`, `Deine Rechnung ${number}`),
+      heading: pick(locale, "Your invoice is ready.", "Deine Rechnung ist da."),
+      body: pick(locale, `The invoice ${number} for “${title}” is attached as a PDF. You also find it under Deals, Invoices.`, `Die Rechnung ${number} für „${title}“ hängt als PDF an. Du findest sie auch unter Deals, Rechnungen.`),
+    },
+    credit: {
+      subject: pick(locale, `Your credit note ${number}`, `Deine Gutschrift ${number}`),
+      heading: pick(locale, "Your credit note is ready.", "Deine Gutschrift ist da."),
+      body: pick(locale, `The credit note ${number} for “${title}” is attached as a PDF. You also find it under Deals, Invoices.`, `Die Gutschrift ${number} für „${title}“ hängt als PDF an. Du findest sie auch unter Deals, Rechnungen.`),
+    },
+    corrected: {
+      subject: pick(locale, `Document corrected: ${args.replaces ?? ""} replaced by ${number}`, `Beleg korrigiert: ${args.replaces ?? ""} ersetzt durch ${number}`),
+      heading: pick(locale, "A document was corrected.", "Ein Beleg wurde korrigiert."),
+      body: pick(
+        locale,
+        `The document ${args.replaces ?? ""} for “${title}” was cancelled and replaced by ${number}. The cancellation and the new document are attached as PDFs.`,
+        `Der Beleg ${args.replaces ?? ""} für „${title}“ wurde storniert und durch ${number} ersetzt. Die Stornierung und der neue Beleg hängen als PDF an.`,
+      ),
+    },
+  }[args.kind];
+  return render({
+    locale,
+    subject: copy.subject,
+    preview: copy.body.length > 110 ? `${copy.body.slice(0, 107)}…` : copy.body,
+    heading: copy.heading,
+    body: copy.body,
+    action: { label: pick(locale, "Open the document", "Beleg öffnen"), url },
+    note: pick(
+      locale,
+      "You get this e-mail because a document was issued for one of your deals. Keep it for your accounts.",
+      "Du bekommst diese E-Mail, weil für einen deiner Deals ein Beleg ausgestellt wurde. Bewahre ihn für deine Buchhaltung auf.",
+    ),
+  });
+}
+
 // What /admin/email sends to check that mail gets out and looks right.
 export function testEmail(url: string, locale: Locale = DEFAULT_LOCALE): Email {
   return render({

@@ -23,8 +23,12 @@ import { formatCents } from "@/lib/format";
 import { DEPOSITS_ENABLED, RELEASE_REVIEW_DAYS, RELEASE_REVIEW_MS } from "@/lib/constants";
 import { feeRatePercent } from "@/lib/payment-math";
 import { PageTitle } from "@/components/page-title";
+import { DealsTabs } from "@/components/deals/deals-tabs";
 import { ProFeeBar } from "@/components/pro-fee-bar";
-import { getT } from "@/lib/i18n/server";
+import { getLocale, getT } from "@/lib/i18n/server";
+import { OpenDealLink } from "@/components/deals/open-deal-link";
+import { dealLocale } from "@/lib/deals/copy";
+import { uiText } from "@/lib/deals/ui-copy";
 
 const primaryButton =
   "rounded-full bg-ink px-4 py-2.5 text-sm font-medium text-paper transition hover:bg-graphite disabled:opacity-50";
@@ -36,6 +40,8 @@ export default async function StartupPaymentsPage(props: PageProps<"/dashboard/s
   const session = await auth();
   if (!session || session.user.role !== "STARTUP") redirect("/login");
   const t = await getT();
+  const locale = dealLocale(await getLocale());
+  const u = uiText(locale);
 
   // Set by Stripe Checkout's return URLs — see createCheckoutSessionAction.
   const searchParams = await props.searchParams;
@@ -55,7 +61,7 @@ export default async function StartupPaymentsPage(props: PageProps<"/dashboard/s
       where: { request: { startup: { userId: session.user.id } } },
       // Both sides' reviews: the brand's own prefills its review form, the
       // creators' make up the rating in the summary.
-      include: { request: true, creator: true, reviews: true },
+      include: { request: true, creator: true, reviews: true, deal: { select: { id: true } } },
     }),
   ]);
   const byDesc = <T,>(key: (i: T) => Date | null) => (a: T, b: T) => (key(b)?.getTime() ?? 0) - (key(a)?.getTime() ?? 0);
@@ -116,6 +122,7 @@ export default async function StartupPaymentsPage(props: PageProps<"/dashboard/s
   return (
     <div className="page-wide flex flex-col gap-8">
       <PageTitle>{t("nav.payments")}</PageTitle>
+      <DealsTabs current="payments" userId={session.user.id} role="STARTUP" locale={locale} />
       <CheckoutReturn status={checkout} waiting={confirmingId !== null} />
       <PaymentStats
         stats={[
@@ -278,9 +285,12 @@ export default async function StartupPaymentsPage(props: PageProps<"/dashboard/s
                     })
               }
             >
-              {i.id !== confirmingId && (
-                <CompletePaymentButton interestId={i.id} label={t("screens.payments.copy.payAmount", { amount: formatCents(i.amountCents!) })} />
-              )}
+              {i.id !== confirmingId &&
+                (i.deal ? (
+                  <OpenDealLink dealId={i.deal.id} label={u("deals.open")} />
+                ) : (
+                  <CompletePaymentButton interestId={i.id} label={t("screens.payments.copy.payAmount", { amount: formatCents(i.amountCents!) })} />
+                ))}
               {DEPOSITS_ENABLED && i.depositStatus === null && (
                 <div className="mt-3">
                   <RequestDepositButton interestId={i.id} />
@@ -358,12 +368,14 @@ export default async function StartupPaymentsPage(props: PageProps<"/dashboard/s
                 detail={
                   <>
                     {stage === "HELD" &&
-                      t("screens.payments.copy.heldUntil", {
-                        name: creator,
-                        days: RELEASE_REVIEW_DAYS,
-                        payout: formatCents(p.payoutCents!),
-                        fee: feePercentOf(p),
-                      })}
+                      (p.deal
+                        ? u("deals.heldInDeal")
+                        : t("screens.payments.copy.heldUntil", {
+                            name: creator,
+                            days: RELEASE_REVIEW_DAYS,
+                            payout: formatCents(p.payoutCents!),
+                            fee: feePercentOf(p),
+                          }))}
                     {stage === "DISPUTED" &&
                       t("screens.payments.copy.youReported", { reason: p.disputeReason ?? "" })}
                     {stage === "RELEASED" &&
@@ -408,7 +420,8 @@ export default async function StartupPaymentsPage(props: PageProps<"/dashboard/s
                   </>
                 }
               >
-                {stage === "HELD" && (
+                {p.deal && <OpenDealLink dealId={p.deal.id} label={u("deals.open")} />}
+                {stage === "HELD" && !p.deal && (
                   <div className="mt-3 flex flex-wrap items-center justify-between gap-x-3 gap-y-2 no-print">
                     {DEPOSITS_ENABLED && p.depositStatus === null && <RequestDepositButton interestId={p.id} />}
                     <ConfirmActionButton

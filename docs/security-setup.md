@@ -16,6 +16,10 @@ What the code can't do on its own: settings in Vercel, Neon, Stripe and GitHub t
 
 ## Stripe
 - Webhook endpoints: `/api/webhooks/stripe` and `/api/webhooks/stripe-account`, each with its own signing secret.
+- Events `/api/webhooks/stripe` has to be subscribed to (Developers, Webhooks, the endpoint, Events): `checkout.session.completed`,
+  `checkout.session.async_payment_succeeded`, `checkout.session.async_payment_failed`, `customer.subscription.updated`,
+  `customer.subscription.deleted`, and for brand deals `charge.refunded`, `charge.dispute.created`, `charge.dispute.closed`. Without
+  the last three, a refund made in the Dashboard or a chargeback never reaches the app (`src/lib/deals/stripe-events.ts`).
 - Use restricted API keys where possible; keep live and test keys apart (Preview = test).
 
 ## GitHub

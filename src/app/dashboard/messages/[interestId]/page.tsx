@@ -32,6 +32,7 @@ export default async function MessageThreadPage({ params }: { params: Promise<{ 
       messages: { orderBy: { createdAt: "asc" } },
       offerEvents: { orderBy: { createdAt: "asc" } },
       reviews: true,
+      deal: { select: { id: true } },
     },
   });
   if (!interest) notFound();
@@ -91,6 +92,7 @@ export default async function MessageThreadPage({ params }: { params: Promise<{ 
           disputed: interest.disputedAt !== null,
           payoutsReady: interest.creator.stripeOnboarded,
           isCounter: interest.offerEvents.length > 1,
+          dealId: interest.deal?.id ?? null,
         }
       : null;
   // Only brands open the negotiation, and only while nothing's on the table

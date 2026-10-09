@@ -1,10 +1,12 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import { dealsEnabled } from "@/lib/deals/flag";
 import { useRouter } from "next/navigation";
 import type { IconType } from "react-icons";
 import {
   IoAddCircleOutline,
+  IoBriefcaseOutline,
   IoCardOutline,
   IoChatbubbleOutline,
   IoDocumentTextOutline,
@@ -34,6 +36,7 @@ const PAGES: Record<Role, { key: string; titleKey: MessageKey; href: string; ico
     { key: "p-new", titleKey: "nav.newRequest", href: "/dashboard/startup/new", icon: IoAddCircleOutline },
     { key: "p-discover", titleKey: "screens.search.discoverCreators", href: "/dashboard/startup/discover", icon: IoSearchOutline },
     { key: "p-messages", titleKey: "nav.messages", href: "/dashboard/messages", icon: IoChatbubbleOutline },
+    { key: "p-deals", titleKey: "nav.deals", href: "/dashboard/deals", icon: IoBriefcaseOutline },
     { key: "p-payments", titleKey: "nav.payments", href: "/dashboard/startup/payments", icon: IoCardOutline },
     { key: "p-notifications", titleKey: "nav.notifications", href: "/dashboard/notifications", icon: IoNotificationsOutline },
     { key: "p-settings", titleKey: "nav.settings", href: "/dashboard/startup/settings", icon: IoSettingsOutline },
@@ -43,6 +46,7 @@ const PAGES: Record<Role, { key: string; titleKey: MessageKey; href: string; ico
     { key: "p-discover", titleKey: "screens.search.discoverBrands", href: "/dashboard/creator/discover", icon: IoSearchOutline },
     { key: "p-matches", titleKey: "nav.yourMatches", href: "/dashboard/creator/matches", icon: IoHeartOutline },
     { key: "p-messages", titleKey: "nav.messages", href: "/dashboard/messages", icon: IoChatbubbleOutline },
+    { key: "p-deals", titleKey: "nav.deals", href: "/dashboard/deals", icon: IoBriefcaseOutline },
     { key: "p-payments", titleKey: "nav.payments", href: "/dashboard/creator/payments", icon: IoCardOutline },
     { key: "p-notifications", titleKey: "nav.notifications", href: "/dashboard/notifications", icon: IoNotificationsOutline },
     { key: "p-settings", titleKey: "nav.settings", href: "/dashboard/creator/settings", icon: IoSettingsOutline },
@@ -109,6 +113,7 @@ export function CommandPalette({ role }: { role: Role }) {
   const groups = useMemo<Group[]>(() => {
     const q = query.trim().toLowerCase();
     const pages = PAGES[role]
+      .filter((p) => p.key !== "p-deals" || dealsEnabled())
       .map((p) => ({ key: p.key, title: t(p.titleKey), href: p.href, icon: p.icon }))
       .filter((p) => !q || p.title.toLowerCase().includes(q));
     // Short queries don't search; stale results from a longer one don't show.

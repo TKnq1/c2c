@@ -16,8 +16,14 @@ import { RELEASE_REVIEW_DAYS, RELEASE_REVIEW_MS } from "@/lib/constants";
 // who clicked needs to actually read.
 export type MoneyMoveResult = { error?: string };
 
-export type ReleaseTrigger = "approved" | "auto" | "admin";
-export type RefundTrigger = "brand" | "admin";
+// "verified" is the brand-deal path: the post was verified live and stayed live for the whole hold window, so the deal
+// reached PAYOUT_PENDING (see src/lib/deals). The legacy triggers refuse deals, so they cannot pay out around the hold.
+export type ReleaseTrigger = "approved" | "auto" | "admin" | "verified";
+// "deadline" and "creator" are the brand-deal paths: a missed deadline, and a creator who withdraws.
+export type RefundTrigger = "brand" | "admin" | "deadline" | "creator";
+
+// Brand deals tell the two sides themselves, in their language (src/lib/deals/notices.ts).
+export type MoneyMoveOptions = { notifyParties?: boolean };
 
 // Stripe answered and said no, so nothing was created. Anything else (a dropped connection, a timeout, a
 // 5xx) leaves open whether the call went through before the answer was lost.
@@ -40,7 +46,47 @@ function revalidatePaymentPaths(requestId: string) {
   revalidatePath("/admin", "layout");
 }
 
-export async function releaseHeldPayment(interestId: string, trigger: ReleaseTrigger): Promise<MoneyMoveResult> {
+export type ReconcileResult = "RECORDED" | "NOT_FOUND" | "UNKNOWN";
+
+const RECONCILIATION_REASON = "Automated: Payout needs reconciliation";
+
+// The report "Payout needs reconciliation" asks a person to look in Stripe. Once the transfer is known (found, or paid again
+// and confirmed) the question is answered, so the report closes itself instead of waiting for someone to tick it off.
+export async function closeReconciliationReports(interestId: string): Promise<void> {
+  await prisma.report.updateMany({ where: { status: "OPEN", reason: RECONCILIATION_REASON, details: { contains: interestId } }, data: { status: "RESOLVED" } });
+}
+
+// A transfer call that got no clear answer leaves the payment marked as released without a transfer id (see below). This asks
+// Stripe whether the transfer exists after all: the transfers to the creator's account around that time, the one made out of
+// this charge. Found: its id is written down and the payment is settled. Not found: the caller decides (not before the
+// idempotency window of the call is over). Stripe not answering: unknown.
+export async function reconcileRelease(interestId: string): Promise<ReconcileResult> {
+  const interest = await prisma.interest.findUnique({ where: { id: interestId }, include: { creator: true } });
+  if (!interest || interest.paymentStatus !== "RELEASED") return "UNKNOWN";
+  if (interest.stripeTransferId) return "RECORDED";
+  if (!interest.stripeChargeId || !interest.creator.stripeAccountId) return "UNKNOWN";
+  try {
+    const since = Math.floor(((interest.releasedAt ?? new Date()).getTime() - 2 * 60 * 60 * 1000) / 1000);
+    for await (const transfer of stripe.transfers.list({ destination: interest.creator.stripeAccountId, created: { gte: since }, limit: 100 })) {
+      const source = typeof transfer.source_transaction === "string" ? transfer.source_transaction : transfer.source_transaction?.id;
+      if (source === interest.stripeChargeId) {
+        await prisma.interest.update({ where: { id: interestId }, data: { stripeTransferId: transfer.id } });
+        await closeReconciliationReports(interestId);
+        return "RECORDED";
+      }
+    }
+    return "NOT_FOUND";
+  } catch (err) {
+    console.error("Looking for the transfer failed", { interestId, err });
+    return "UNKNOWN";
+  }
+}
+
+export async function releaseHeldPayment(
+  interestId: string,
+  trigger: ReleaseTrigger,
+  options: MoneyMoveOptions = {},
+): Promise<MoneyMoveResult> {
   const interest = await prisma.interest.findUnique({
     where: { id: interestId },
     include: { creator: true, request: { include: { startup: true } } },
@@ -62,9 +108,11 @@ export async function releaseHeldPayment(interestId: string, trigger: ReleaseTri
   const claimWhere: Prisma.InterestWhereInput =
     trigger === "admin"
       ? { paymentStatus: "HELD" }
-      : trigger === "approved"
-        ? { paymentStatus: "HELD", disputedAt: null, proofSubmittedAt: { not: null } }
-        : { paymentStatus: "HELD", disputedAt: null, proofSubmittedAt: { lte: new Date(Date.now() - RELEASE_REVIEW_MS) } };
+      : trigger === "verified"
+        ? { paymentStatus: "HELD", disputedAt: null, deal: { is: { status: "PAYOUT_PENDING" } } }
+        : trigger === "approved"
+          ? { paymentStatus: "HELD", disputedAt: null, proofSubmittedAt: { not: null }, deal: { is: null } }
+          : { paymentStatus: "HELD", disputedAt: null, proofSubmittedAt: { lte: new Date(Date.now() - RELEASE_REVIEW_MS) }, deal: { is: null } };
   // payoutCents is part of the claim: if the deal was moved to the Pro fee since it was read above (see
   // open-deal-fees.ts), the transfer below would send the old amount, so the claim fails and a retry reads the new one.
   const claimed = await prisma.interest.updateMany({
@@ -121,10 +169,15 @@ export async function releaseHeldPayment(interestId: string, trigger: ReleaseTri
   const title = interest.request.title;
   const brand = interest.request.startup.companyName;
   const payout = formatCents(interest.payoutCents!);
+  if (options.notifyParties === false) {
+    revalidatePaymentPaths(interest.requestId);
+    return {};
+  }
   const creatorMessage = {
     approved: `${brand} approved your post for "${title}". ${payout} is on its way to you.`,
     auto: `Your ${payout} for "${title}" was released. ${brand} didn't report a problem within ${RELEASE_REVIEW_DAYS} days.`,
     admin: `We reviewed the problem reported on "${title}" and released your ${payout}`,
+    verified: `Your post for "${title}" stayed live. ${payout} is on its way to you.`,
   }[trigger];
   await notify(creator.userId, creatorMessage, "/dashboard/creator/payments", "payments");
   // The brand clicked Approve themselves — no need to tell them about it.
@@ -133,7 +186,9 @@ export async function releaseHeldPayment(interestId: string, trigger: ReleaseTri
       interest.request.startup.userId,
       trigger === "auto"
         ? `Your ${formatCents(interest.amountCents!)} for "${title}" was released to ${creator.displayName}. No problem was reported within ${RELEASE_REVIEW_DAYS} days.`
-        : `We reviewed the problem you reported on "${title}" and released the payment to ${creator.displayName}`,
+        : trigger === "verified"
+          ? `The post for "${title}" stayed live. Your ${formatCents(interest.amountCents!)} was released to ${creator.displayName}.`
+          : `We reviewed the problem you reported on "${title}" and released the payment to ${creator.displayName}`,
       "/dashboard/startup/payments",
       "payments",
     );
@@ -143,7 +198,11 @@ export async function releaseHeldPayment(interestId: string, trigger: ReleaseTri
   return {};
 }
 
-export async function refundHeldPayment(interestId: string, trigger: RefundTrigger): Promise<MoneyMoveResult> {
+export async function refundHeldPayment(
+  interestId: string,
+  trigger: RefundTrigger,
+  options: MoneyMoveOptions = {},
+): Promise<MoneyMoveResult> {
   const interest = await prisma.interest.findUnique({
     where: { id: interestId },
     include: { creator: true, request: { include: { startup: true } } },
@@ -158,8 +217,14 @@ export async function refundHeldPayment(interestId: string, trigger: RefundTrigg
   // Same atomic-claim-before-Stripe-call pattern as releaseHeldPayment —
   // here it guards against a double refund, and against a brand cancelling
   // in the same moment the creator submits their post.
+  // The brand-deal paths never refund around a dispute: while one is open only an admin decides.
   const claimed = await prisma.interest.updateMany({
-    where: { id: interestId, paymentStatus: "HELD", ...(trigger === "brand" ? { proofSubmittedAt: null } : {}) },
+    where: {
+      id: interestId,
+      paymentStatus: "HELD",
+      ...(trigger === "brand" ? { proofSubmittedAt: null } : {}),
+      ...(trigger === "deadline" || trigger === "creator" ? { disputedAt: null } : {}),
+    },
     data: { paymentStatus: "REFUNDED", refundedAt: new Date() },
   });
   if (claimed.count === 0) return { error: "This payment can't be refunded right now. Refresh the page." };
@@ -194,6 +259,10 @@ export async function refundHeldPayment(interestId: string, trigger: RefundTrigg
 
   await prisma.interest.update({ where: { id: interestId }, data: { stripeRefundId: refund.id } });
 
+  if (options.notifyParties === false) {
+    revalidatePaymentPaths(interest.requestId);
+    return {};
+  }
   const title = interest.request.title;
   const brand = interest.request.startup.companyName;
   await notify(
