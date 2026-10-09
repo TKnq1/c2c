@@ -46,7 +46,7 @@ export async function loadMarket(now = new Date()) {
   const [weekRequests, weekInterests, firstInterests, conversations, started, bothWrote, offered, paid, released, refunded, disputed, openByNiche, creatorNiches, unanswered, openTotal, unansweredTotal] =
     await Promise.all([
       prisma.request.findMany({
-        where: { createdAt: { gte: buckets[0].from } },
+        where: { createdAt: { gte: buckets[0].from }, status: { not: "DRAFT" } },
         select: { createdAt: true, interests: { select: { id: true }, take: 1 } },
       }),
       prisma.interest.findMany({ where: { createdAt: { gte: buckets[0].from } }, select: { createdAt: true } }),

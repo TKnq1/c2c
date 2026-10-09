@@ -86,8 +86,8 @@ export async function loadDashboard(now = new Date()) {
     prisma.creatorProfile.count({ where: { isPro: true, stripeSubscriptionId: { not: null } } }),
     prisma.startupProfile.count({ where: { foundingNumber: { not: null } } }),
     prisma.creatorProfile.count({ where: { foundingNumber: { not: null } } }),
-    prisma.request.count({ where: { createdAt: { gte: since } } }),
-    prisma.request.count({ where: { createdAt: { gte: since }, interests: { some: {} } } }),
+    prisma.request.count({ where: { createdAt: { gte: since }, status: { not: "DRAFT" } } }),
+    prisma.request.count({ where: { createdAt: { gte: since }, status: { not: "DRAFT" }, interests: { some: {} } } }),
     prisma.user.count({ where: cohort }),
     prisma.user.count({
       where: {

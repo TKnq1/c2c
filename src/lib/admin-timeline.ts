@@ -98,7 +98,7 @@ export async function loadTimeline(userId: string): Promise<TimelineEvent[]> {
     request: { select: { title: true, startup: { select: { companyName: true } } } },
   } as const;
   const [requests, interests] = await Promise.all([
-    brand ? prisma.request.findMany({ where: { startupId: brand.id }, select: { title: true, createdAt: true }, orderBy: { createdAt: "desc" }, take: 20 }) : [],
+    brand ? prisma.request.findMany({ where: { startupId: brand.id, status: { not: "DRAFT" } }, select: { title: true, createdAt: true }, orderBy: { createdAt: "desc" }, take: 20 }) : [],
     brand
       ? prisma.interest.findMany({ where: { request: { startupId: brand.id } }, select: interestSelect, orderBy: { createdAt: "desc" }, take: 30 })
       : creator

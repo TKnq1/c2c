@@ -46,7 +46,7 @@ export async function loadAnomalies(now = new Date()): Promise<Anomaly[]> {
   const people = { role: { in: ["STARTUP", "CREATOR"] as ("STARTUP" | "CREATOR")[] }, deletedAt: null };
   const [users, requests, events] = await Promise.all([
     prisma.user.findMany({ where: { ...people, createdAt: { gte: since } }, select: { createdAt: true } }),
-    prisma.request.findMany({ where: { createdAt: { gte: since } }, select: { createdAt: true } }),
+    prisma.request.findMany({ where: { createdAt: { gte: since }, status: { not: "DRAFT" } }, select: { createdAt: true } }),
     activityEvents(daysBefore(now, 14)),
   ]);
   // Drop today (it is not over), so the last entry is yesterday.

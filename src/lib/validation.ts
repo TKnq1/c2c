@@ -183,36 +183,65 @@ const postByField = z
     return date;
   });
 
+const requestTitle = z.string().trim().max(120, "Keep the title under 120 characters.");
+const requestDescription = z.string().trim().max(2000, "Keep the description under 2000 characters.");
+const requestDeliverables = z.string().trim().max(80, "Keep what should be posted under 80 characters.");
+const requestPlatform = z.enum([...PLATFORMS], { error: "Choose where it gets posted." });
+// An empty field is no amount.
+const optionalEuros = z
+  .string()
+  .trim()
+  .pipe(z.union([z.literal("").transform(() => null), euros]));
+const productIncludedField = z
+  .string()
+  .optional()
+  .transform((val) => val === "true");
+
 export const createRequestSchema = z
   .object({
-    title: z.string().trim().min(1, "Give the request a title.").max(120, "Keep the title under 120 characters."),
-    description: z.string().trim().min(1, "Describe what you're looking for.").max(2000, "Keep the description under 2000 characters."),
+    title: requestTitle.min(1, "Give the request a title."),
+    description: requestDescription.min(1, "Describe what you're looking for."),
     niche: nicheEnum,
     languages: languagesField,
     minFollowers: z.coerce.number().int().min(0),
     productCategory: productCategoryEnum,
-    platform: z.enum([...PLATFORMS], { error: "Choose where it gets posted." }),
-    deliverables: z
-      .string()
-      .trim()
-      .min(1, "Say what should be posted, e.g. 1 Reel + 2 Stories.")
-      .max(80, "Keep what should be posted under 80 characters."),
+    platform: requestPlatform,
+    deliverables: requestDeliverables.min(1, "Say what should be posted, e.g. 1 Reel + 2 Stories."),
     budgetMin: euros,
     // Empty means a fixed price: the same as budgetMin.
-    budgetMax: z
-      .string()
-      .trim()
-      .pipe(z.union([z.literal("").transform(() => null), euros])),
+    budgetMax: optionalEuros,
     postBy: postByField,
-    productIncluded: z
-      .string()
-      .optional()
-      .transform((val) => val === "true"),
+    productIncluded: productIncludedField,
   })
   .refine((d) => d.budgetMax === null || d.budgetMax >= d.budgetMin, {
     error: "The top of the budget range can't be below the bottom.",
     path: ["budgetMax"],
   });
+
+// A draft is saved however far along it is: only what is filled in has to be valid. Everything the form
+// always sends (niche, languages, platform, ...) is still checked, and what a request needs to go live
+// is checked again by createRequestSchema when the draft is posted.
+export const draftRequestSchema = z
+  .object({
+    title: requestTitle,
+    description: requestDescription,
+    niche: nicheEnum,
+    languages: languagesField,
+    minFollowers: z.coerce.number().int().min(0),
+    productCategory: productCategoryEnum,
+    platform: requestPlatform,
+    deliverables: requestDeliverables,
+    budgetMin: optionalEuros,
+    budgetMax: optionalEuros,
+    postBy: postByField,
+    productIncluded: productIncludedField,
+  })
+  .refine((d) => d.budgetMin === null || d.budgetMax === null || d.budgetMax >= d.budgetMin, {
+    error: "The top of the budget range can't be below the bottom.",
+    path: ["budgetMax"],
+  })
+  // A top without a bottom isn't a budget.
+  .transform((d) => (d.budgetMin === null ? { ...d, budgetMax: null } : d));
 
 export const updateCreatorProfileSchema = z.object({
   displayName: z.string().min(1).max(120),
