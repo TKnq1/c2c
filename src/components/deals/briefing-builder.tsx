@@ -12,6 +12,7 @@ import { PRODUCT_CATEGORIES } from "@/lib/constants";
 import { issueMessage, dealLocale } from "@/lib/deals/copy";
 import type { FieldIssue } from "@/lib/deals/action-state";
 import { POST_FORMATS, POST_FORMAT_CODES } from "@/lib/social/platforms";
+import { IoCheckmark } from "react-icons/io5";
 import { toast } from "@/lib/toast";
 import { BriefingTemplatePanel, type CopyOption, type TemplateOption } from "@/components/deals/briefing-template-panel";
 import { DealForm } from "@/components/deals/deal-form";
@@ -24,13 +25,26 @@ function csv(value: string | undefined): string[] {
   return (value ?? "").split(",").map((s) => s.trim()).filter(Boolean);
 }
 
-function Check({ checked, onChange, label, hint }: { checked: boolean; onChange: (checked: boolean) => void; label: string; hint?: string }) {
+// A choice as a button, like the chips in the onboarding: filled when it is on, with a check mark so it does not rest on colour alone.
+// It stays a real checkbox underneath (keyboard, screen readers, focus ring). `tile` is the full-width form for a setting with a hint
+// or a long label; without it the choice is a pill that sits in a row with its neighbours.
+function Check({ checked, onChange, label, hint, tile = false }: { checked: boolean; onChange: (checked: boolean) => void; label: string; hint?: string; tile?: boolean }) {
   return (
-    <label className="flex items-start gap-2 text-sm">
-      <input type="checkbox" checked={checked} onChange={(e) => onChange(e.target.checked)} className="mt-0.5" />
-      <span>
+    <label
+      className={`relative flex cursor-pointer select-none items-start gap-2.5 border text-sm font-medium transition focus-within:ring-2 focus-within:ring-ink/30 ${
+        tile ? "w-full rounded px-4 py-3" : "w-fit rounded-full px-4 py-2"
+      } ${checked ? "border-ink bg-ink text-paper" : "border-neutral-300 hover:border-ink dark:border-neutral-700"}`}
+    >
+      <input type="checkbox" checked={checked} onChange={(e) => onChange(e.target.checked)} className="peer sr-only" />
+      <span
+        aria-hidden
+        className={`mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full border ${checked ? "border-paper bg-paper text-ink" : "border-neutral-400 dark:border-neutral-600"}`}
+      >
+        {checked && <IoCheckmark className="h-3 w-3" />}
+      </span>
+      <span className="min-w-0">
         {label}
-        {hint && <span className="block text-xs text-neutral-500 dark:text-neutral-400">{hint}</span>}
+        {hint && <span className={`mt-0.5 block text-xs font-normal ${checked ? "text-paper/70" : "text-neutral-500 dark:text-neutral-400"}`}>{hint}</span>}
       </span>
     </label>
   );
@@ -287,7 +301,7 @@ export function BriefingBuilder({
               <div className="flex flex-col gap-1">
                 <span className="text-sm font-medium">{u("briefing.formats")}</span>
                 <span className="text-xs text-neutral-500 dark:text-neutral-400">{u("briefing.formatsHint")}</span>
-                <div className="mt-1 grid gap-1.5 sm:grid-cols-2">
+                <div className="mt-1 flex flex-wrap gap-2">
                   {POST_FORMAT_CODES.map((f) => (
                     <Check key={f} checked={csv(values.contentFormats).includes(f)} onChange={(on) => toggle("contentFormats", f, on)} label={POST_FORMATS[f].label} />
                   ))}
@@ -318,7 +332,7 @@ export function BriefingBuilder({
               <div className="flex flex-col gap-1">
                 <span className="text-sm font-medium">{u("briefing.labels")}</span>
                 <span className="text-xs text-neutral-500 dark:text-neutral-400">{u("briefing.labelsHint")}</span>
-                <div className="mt-1 flex flex-wrap gap-x-4 gap-y-1.5">
+                <div className="mt-1 flex flex-wrap gap-2">
                   {MARKET_RULES[market].accepted.map((label) => (
                     <Check key={label} checked={csv(values.disclosureLabels).includes(label)} onChange={(on) => toggle("disclosureLabels", label, on)} label={label} />
                   ))}
@@ -330,12 +344,13 @@ export function BriefingBuilder({
                 onChange={(on) => setFlag("requirePaidPartnershipLabel", on)}
                 label={u("briefing.partnership")}
                 hint={u("briefing.partnershipHint")}
+                tile
               />
               <FieldNote issues={issues} field="requirePaidPartnershipLabel" />
             </Group>
 
             <Group title={u("briefing.section.workflow")}>
-              <Check checked={flag("draftRequired")} onChange={(on) => setFlag("draftRequired", on)} label={u("briefing.draftRequired")} />
+              <Check checked={flag("draftRequired")} onChange={(on) => setFlag("draftRequired", on)} label={u("briefing.draftRequired")} tile />
               {flag("draftRequired") && (
                 <div className="grid gap-3 sm:grid-cols-3">
                   <Field label={u("briefing.draftLead")} name="draftDueDaysBeforePost" issues={issues}>
@@ -373,14 +388,14 @@ export function BriefingBuilder({
           <div id="briefing-step-rights" role="tabpanel" aria-labelledby="briefing-tab-rights" hidden={step !== "rights"} className="flex flex-col gap-4">
             <p className="px-1 text-sm text-neutral-600 dark:text-neutral-400">{u("briefing.rightsIntro")}</p>
             <Group title={u("briefing.section.exclusivity")}>
-              <Check checked={flag("exclusivityEnabled")} onChange={(on) => setFlag("exclusivityEnabled", on)} label={u("briefing.exclusivity")} hint={u("briefing.exclusivityHint")} />
+              <Check checked={flag("exclusivityEnabled")} onChange={(on) => setFlag("exclusivityEnabled", on)} label={u("briefing.exclusivity")} hint={u("briefing.exclusivityHint")} tile />
               <FieldNote issues={issues} field="exclusivityEnabled" />
               {flag("exclusivityEnabled") && (
                 <>
                   <div className="flex flex-col gap-1">
                     <span className="text-sm font-medium">{u("briefing.categories")}</span>
                     <span className="text-xs text-neutral-500 dark:text-neutral-400">{u("briefing.categoriesHint")}</span>
-                    <div className="mt-1 grid gap-1.5 sm:grid-cols-2">
+                    <div className="mt-1 flex flex-wrap gap-2">
                       {PRODUCT_CATEGORIES.map((c) => (
                         <Check key={c} checked={csv(values.exclusivityCategories).includes(c)} onChange={(on) => toggle("exclusivityCategories", c, on)} label={c} />
                       ))}
@@ -414,9 +429,9 @@ export function BriefingBuilder({
                 <>
                   <div className="flex flex-col gap-1">
                     <span className="text-sm font-medium">{u("briefing.channels")}</span>
-                    <div className="mt-1 flex flex-col gap-1.5">
+                    <div className="mt-1 flex flex-col gap-2">
                       {usageChannels.map((c) => (
-                        <Check key={c} checked={csv(values.usageChannels).includes(c)} onChange={(on) => toggle("usageChannels", c, on)} label={u(`briefing.channel.${c}`)} />
+                        <Check key={c} checked={csv(values.usageChannels).includes(c)} onChange={(on) => toggle("usageChannels", c, on)} label={u(`briefing.channel.${c}`)} tile />
                       ))}
                     </div>
                     <FieldNote issues={issues} field="usageChannels" />
