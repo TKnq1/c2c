@@ -1,6 +1,6 @@
 import type { Catalog } from "@/lib/i18n/messages/types";
-import { founding } from "@/lib/i18n/messages/founding-en";
-import { landing } from "@/lib/i18n/messages/landing-en";
+import { foundingIt as founding } from "@/lib/i18n/messages/founding-it";
+import { landingIt as landing } from "@/lib/i18n/messages/landing-it";
 import { screensIt as screens } from "@/lib/i18n/messages/screens-it";
 
 export const it: Catalog = {
@@ -252,7 +252,6 @@ export const it: Catalog = {
       heardOther: "Altrove",
     },
   },
-  // Not translated yet: the English landing page text.
   landing,
   founding,
   screens,

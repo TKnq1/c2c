@@ -1,8 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { parseLocale } from "@/lib/i18n/locales";
-import { landing } from "@/lib/i18n/messages/landing-en";
-import { landingDe } from "@/lib/i18n/messages/landing-de";
-import { createT } from "@/lib/i18n/catalogs";
+import { APP_LOCALES, parseLocale } from "@/lib/i18n/locales";
+import { CATALOGS, createT } from "@/lib/i18n/catalogs";
 
 describe("parseLocale", () => {
   it("keeps a supported language and falls back otherwise", () => {
@@ -25,23 +23,31 @@ describe("createT", () => {
   });
 });
 
-describe("landing page text", () => {
-  it("is German by default and English for the languages that are not translated yet", () => {
+describe("landing, founding and FAQ text", () => {
+  it("is written out in every language", () => {
     expect(createT("de")("landing.hero.creatorTitleA")).toBe("Wisch bezahlte");
     expect(createT("en")("landing.hero.creatorTitleA")).toBe("Swipe right on");
-    expect(createT("fr")("landing.hero.creatorTitleA")).toBe("Swipe right on");
+    for (const locale of APP_LOCALES.map((l) => l.id).filter((id) => id !== "en")) {
+      expect(createT(locale)("landing.hero.creatorTitleA"), locale).not.toBe("Swipe right on");
+      expect(createT(locale)("founding.title"), locale).not.toBe(createT("en")("founding.title"));
+    }
   });
 
-  it("keeps every placeholder of the English text in the German one", () => {
+  it("keeps every key and placeholder of the English text in every language", () => {
     const flatten = (value: object, prefix = ""): Record<string, string> =>
       Object.entries(value).reduce<Record<string, string>>((all, [key, item]) => {
         const path = prefix ? `${prefix}.${key}` : key;
         return typeof item === "string" ? { ...all, [path]: item } : { ...all, ...flatten(item, path) };
       }, {});
     const placeholders = (text: string) => (text.match(/\{\w+\}/g) ?? []).sort().join(",");
-    const english = flatten(landing);
-    const german = flatten(landingDe);
-    expect(Object.keys(german).sort()).toEqual(Object.keys(english).sort());
-    for (const [key, text] of Object.entries(english)) expect(placeholders(german[key])).toBe(placeholders(text));
+    const english = flatten(CATALOGS.en);
+    for (const { id } of APP_LOCALES) {
+      const other = flatten(CATALOGS[id]);
+      expect(Object.keys(other).sort(), id).toEqual(Object.keys(english).sort());
+      for (const [key, text] of Object.entries(english)) {
+        if (!/^(landing|founding|faq)\./.test(key)) continue;
+        expect(placeholders(other[key]), `${id} ${key}`).toBe(placeholders(text));
+      }
+    }
   });
 });

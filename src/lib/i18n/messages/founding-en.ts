@@ -1,6 +1,6 @@
 // The founding places: the first brands and the first creators get Pro for as long as their account exists
 // (src/lib/founding.ts).
-// English and German are written out; the other languages show the English text until translated.
+// All 8 languages are written out (founding-{locale}.ts).
 export const founding = {
   // Before sign-up, under the password field.
   teaser: "The first {total} brands get Pro for free, for as long as their account exists. {left} places left.",
