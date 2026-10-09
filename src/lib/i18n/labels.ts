@@ -44,13 +44,93 @@ const ERROR_KEYS: Record<string, MessageKey> = {
   "Incorrect code. Please try again.": "screens.errors.badCode",
   "This email is already registered.": "screens.errors.emailTaken",
   "Please fill in all fields correctly.": "screens.errors.fillFields",
-  "Please accept the terms and the privacy policy.": "screens.errors.acceptTerms",
+  "Please accept the terms and the privacy policy, and confirm that you are at least 18.": "extras.errors.consent",
   "Not authorized.": "screens.errors.notAuthorized",
+  // The server actions in src/lib/actions/*.ts (texts in messages/extras-*.ts).
+  "This interest could not be found.": "extras.errors.interestNotFound",
+  "There's already an offer or payment in progress for this creator.": "extras.errors.offerInProgress",
+  "You've sent a lot of offers today. Try again tomorrow.": "extras.errors.offerLimit",
+  "This offer could not be found.": "extras.errors.offerNotFound",
+  "This offer isn't awaiting your response.": "extras.errors.offerNotAwaiting",
+  "The offer changed in the meantime. Please look at the new offer.": "extras.errors.offerChanged",
+  "This offer isn't ready for payment.": "extras.errors.offerNotReady",
+  "This payment is already going through. It'll show as held in escrow shortly.": "extras.errors.paymentProcessing",
+  "This payment changed in the meantime. Reload the page.": "extras.errors.paymentChanged",
+  "This payment could not be found.": "extras.errors.paymentNotFound",
+  "A problem was reported on this collab. We're looking into it, so the link can't change right now.": "extras.errors.postLocked",
+  "Set up payouts first. The money needs somewhere to go once it's approved.": "extras.errors.payoutsFirst",
+  "There's no submitted post to approve on this payment.": "extras.errors.noSubmittedPost",
+  "You reported a problem on this payment. We'll settle it from here.": "extras.errors.youReported",
+  "You already reported a problem. We're looking into it.": "extras.errors.alreadyReported",
+  "This payment can't be put on hold anymore. It may have just been released, so refresh the page.": "extras.errors.cannotHold",
+  "This payment isn't held anymore.": "extras.errors.notHeld",
+  "This payment can't be released right now. Refresh the page.": "extras.errors.cannotRelease",
+  "Releasing the payment failed. Please try again.": "extras.errors.releaseFailed",
+  "Releasing the payment didn't finish. We'll check it and complete it manually.": "extras.errors.releasePending",
+  "This payment can't be refunded right now. Refresh the page.": "extras.errors.cannotRefund",
+  "Refunding the payment failed. Please try again.": "extras.errors.refundFailed",
+  "Refunding the payment didn't finish. We'll check it and complete it manually.": "extras.errors.refundPending",
+  "Invalid selection": "extras.errors.invalidSelection",
+  "Add the link to each of your profiles.": "extras.errors.addProfileLinks",
+  "Pick a valid post-by date.": "extras.errors.pickPostBy",
+  "The post-by date can't be in the past.": "extras.errors.postByPast",
+  "Pick a post-by date within the next year.": "extras.errors.postByTooFar",
+  "Choose where it gets posted.": "extras.errors.choosePlatform",
+  "The top of the budget range can't be below the bottom.": "extras.errors.budgetRange",
+  "Invalid device token": "extras.errors.invalidDeviceToken",
+  "This link doesn't work anymore. Leave your email on comtor.app again to get a new one.": "extras.errors.waitlistLinkGone",
+  "Incorrect password.": "extras.errors.incorrectPassword",
+  "Two-factor authentication is already enabled.": "extras.errors.twoFactorOn",
+  "Start enrollment again.": "extras.errors.enrollAgain",
+  "That code didn't match. Check your app and try again.": "extras.errors.codeMismatch",
+  "Pro isn't available in the app.": "extras.errors.proNotInApp",
+  "You're already on Pro.": "extras.errors.alreadyPro",
+  "Pro can't be withdrawn right now.": "extras.errors.cannotWithdrawPro",
+  "The 14 days to withdraw have passed. You can still cancel Pro.": "extras.errors.withdrawWindowPassed",
+  "No payment to refund.": "extras.errors.noPaymentToRefund",
+  "The withdrawal didn't go through. Try again, or write to info@comtor.app.": "extras.errors.withdrawalFailed",
+  "This payment isn't under review anymore.": "extras.errors.notUnderReview",
+  "Too many attempts. Try again in 15 minutes.": "extras.errors.tooManyAttempts15",
+  "A payment is still in progress. Finish or cancel it first, then you can delete your account.": "extras.errors.deletePaymentOpen",
+  "We couldn't cancel your Pro subscription. Try again, or cancel it under Settings first.": "extras.errors.cancelProFailed",
+  "Please choose a niche.": "extras.errors.chooseNiche",
+  "Please choose one of the options.": "extras.errors.chooseOption",
+  "Choose a niche first.": "extras.errors.chooseNicheFirst",
+  "Please try again in a moment.": "extras.errors.tryAgainMoment",
+  "Account created, but automatic login failed. Please log in manually.": "extras.errors.autoLoginFailed",
+  "Please enter a valid email address.": "extras.errors.validEmail",
+  "This reset link is invalid or has expired.": "extras.errors.resetInvalid",
+  "This verification link is invalid or has expired.": "extras.errors.verifyInvalid",
+  "One of the photos is too large. Try a smaller one.": "extras.errors.photoTooLarge",
+  "Photos have to be JPEG, PNG or WebP images.": "extras.errors.photoFormat",
+  "Something went wrong with the photos. Try adding them again.": "extras.errors.photoGeneric",
+  "Something went wrong with the photos. Reload the page and try again.": "extras.errors.photoReload",
+  "You've saved a lot of drafts today. Try again tomorrow.": "extras.errors.draftsToday",
+  "This request could not be found.": "extras.errors.requestNotFound",
+  "This request changed in the meantime. Reload the page and try again.": "extras.errors.requestChanged",
+  "Deposits aren't available yet.": "extras.errors.depositsUnavailable",
+  "A deposit has already been requested for this collab.": "extras.errors.depositRequested",
+  "This collab could not be found.": "extras.errors.collabNotFound",
+  "You can only review a completed collab.": "extras.errors.reviewCompletedOnly",
+  "Message can't be empty.": "extras.errors.messageEmpty",
+  "Message is too long.": "extras.errors.messageTooLong",
+  "You're sending messages too fast. Wait a moment.": "extras.errors.messageTooFast",
+  "This conversation could not be found.": "extras.errors.conversationNotFound",
+  "You can't message this person.": "extras.errors.cannotMessage",
+  "You can't report yourself.": "extras.errors.reportSelf",
+  "Choose a reason.": "extras.errors.chooseReason",
+  "You've sent a lot of reports today.": "extras.errors.reportsToday",
+  "This account no longer exists.": "extras.errors.accountGone",
+  "Couldn't reach the server. Check your connection and try again.": "extras.errors.network",
+  "Something went wrong. Refresh the page and try again.": "extras.errors.generic",
   // The landing page's waitlist form (see joinWaitlistAction).
   "Enter a valid email address.": "landing.waitlist.errorInvalid",
   "Too many attempts. Try again later.": "landing.waitlist.errorTooMany",
   "That didn't work. Try again in a moment.": "landing.waitlist.errorFailed",
 };
+
+// The English messages that have a translation. Tests check each one still exists in the server code.
+export const TRANSLATED_ERROR_MESSAGES = Object.keys(ERROR_KEYS);
 
 export function nicheLabel(t: TFunction, niche: string): string {
   const key = NICHE_KEYS[niche as (typeof NICHES)[number]];
@@ -74,10 +154,32 @@ export function presetLabel(t: TFunction, preset: string): string {
 
 export function localizeError(message: string, t: TFunction): string {
   const key = ERROR_KEYS[message];
-  return key ? t(key) : localizeNotification(message, t);
+  if (key) return t(key);
+  for (const entry of ERROR_PATTERNS) {
+    const match = message.match(entry.pattern);
+    if (match) return entry.text(match, t);
+  }
+  return localizeNotification(message, t);
 }
 
 type NoticePattern = { pattern: RegExp; text: (m: RegExpMatchArray, t: TFunction) => string };
+
+// Server messages with a name, a count or a label in them.
+const ERROR_PATTERNS: NoticePattern[] = [
+  { pattern: /^(.+) hasn't finished setting up payouts yet, so it can't be released\.$/, text: (m, t) => t("extras.errors.creatorPayoutsNotReady", { name: m[1] }) },
+  { pattern: /^(.+) already submitted their post\. Report a problem instead, and we'll look into it\.$/, text: (m, t) => t("extras.errors.alreadySubmitted", { name: m[1] }) },
+  { pattern: /^(.+) must be under 500 KB\.$/, text: (m, t) => t("extras.errors.imageTooBig", { label: imageLabel(m[1], t) }) },
+  { pattern: /^(.+) must be a JPEG, PNG or WebP image\.$/, text: (m, t) => t("extras.errors.imageFormat", { label: imageLabel(m[1], t) }) },
+  { pattern: /^Add at most (\d+) photos\.$/, text: (m, t) => t("extras.errors.maxPhotos", { count: m[1] }) },
+  { pattern: /^You have (\d+) drafts\. Post or delete some before saving new ones\.$/, text: (m, t) => t("extras.errors.maxDrafts", { count: m[1] }) },
+];
+
+function imageLabel(label: string, t: TFunction): string {
+  if (label === "Photo") return t("screens.settings.photo");
+  if (label === "Logo") return t("screens.settings.logo");
+  return label;
+}
+
 
 const NOTICES: NoticePattern[] = [
   { pattern: /^(\d+) new requests match your profile$/, text: (m, t) => t("screens.notifications.digestRequests", { count: m[1] }) },

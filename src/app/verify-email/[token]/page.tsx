@@ -7,11 +7,13 @@ import { VerifyContinueLink } from "@/components/verify-continue-link";
 import { LogoBackdrop } from "@/components/logo-backdrop";
 import { ImprintLink } from "@/components/imprint-link";
 import type { Metadata } from "next";
-import { NO_INDEX, metadataFor } from "@/lib/seo";
+import { NO_INDEX } from "@/lib/seo";
 import { getT } from "@/lib/i18n/server";
 
-export const generateMetadata = (): Promise<Metadata> =>
-  metadataFor({ title: "Verify your email", robots: NO_INDEX }, { title: "E-Mail bestätigen", robots: NO_INDEX });
+export const generateMetadata = async (): Promise<Metadata> => ({
+  title: (await getT())("extras.meta.verifyEmail"),
+  robots: NO_INDEX,
+});
 
 export default async function VerifyEmailTokenPage({ params }: { params: Promise<{ token: string }> }) {
   const t = await getT();

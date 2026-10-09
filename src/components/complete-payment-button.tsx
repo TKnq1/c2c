@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { createCheckoutSessionAction } from "@/lib/actions/payments";
 import { useI18n } from "@/components/i18n-provider";
+import { localizeError } from "@/lib/i18n/labels";
 
 const DEFAULT_BUTTON_CLASS =
   "rounded-full bg-ink text-paper px-4 py-2.5 text-sm font-medium hover:bg-graphite transition disabled:opacity-50 sm:self-start";
@@ -41,7 +42,7 @@ export function CompletePaymentButton({
       <button type="button" onClick={handleClick} disabled={pending} className={className}>
         {pending ? t("screens.settings.redirecting") : label}
       </button>
-      {error && <p className="text-sm text-ink">{error}</p>}
+      {error && <p className="text-sm text-ink">{localizeError(error, t)}</p>}
     </div>
   );
 }

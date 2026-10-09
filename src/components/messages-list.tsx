@@ -80,7 +80,7 @@ export function MessagesList({ conversations, compact = false }: { conversations
             }`}
           >
             <IoFilterOutline className="h-4 w-4" />
-            Filter
+            {t("screens.discover.filter")}
             {activeFilterCount > 0 && (
               <span className="flex h-4 min-w-4 items-center justify-center rounded-full bg-paper px-1 text-[10px] font-semibold text-ink">
                 {activeFilterCount}

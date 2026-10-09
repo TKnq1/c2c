@@ -1,4 +1,5 @@
 import type { Catalog } from "@/lib/i18n/messages/types";
+import { extrasPt as extras } from "@/lib/i18n/messages/extras-pt";
 import { faqPt as faq } from "@/lib/i18n/messages/faq-pt";
 import { foundingPt as founding } from "@/lib/i18n/messages/founding-pt";
 import { landingPt as landing } from "@/lib/i18n/messages/landing-pt";
@@ -253,6 +254,7 @@ export const pt: Catalog = {
       heardOther: "Outro sítio",
     },
   },
+  extras,
   faq,
   landing,
   founding,

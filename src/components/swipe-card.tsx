@@ -8,6 +8,7 @@ import { Dialog } from "@/components/dialog";
 import { PhotoStrip, RequestCardFace, RequestFacts, type CardRequest } from "@/components/request-card-face";
 import { playSound, prepareSounds } from "@/lib/sounds";
 import { haptic } from "@/lib/haptics";
+import { useI18n } from "@/components/i18n-provider";
 
 export type SwipeRequest = CardRequest & {
   id: string;
@@ -66,6 +67,7 @@ export const SwipeCard = forwardRef<SwipeCardHandle, {
   // See RequestCardFace.
   lazyPhotos?: boolean;
 }>(function SwipeCard({ request, stackIndex, onSwipe, restoredFrom, onTap, lazyPhotos }, ref) {
+  const { t } = useI18n();
   const isTop = stackIndex === 0;
   const [drag, setDrag] = useState(() =>
     restoredFrom
@@ -388,7 +390,7 @@ export const SwipeCard = forwardRef<SwipeCardHandle, {
               className="flex flex-1 items-center justify-center gap-1.5 rounded-full border border-neutral-300 px-4 py-2.5 text-sm font-medium transition hover:border-neutral-400 dark:border-neutral-700"
             >
               <FiX className="h-4 w-4" />
-              Pass
+              {t("landing.deck.pass")}
             </button>
             <button
               type="button"
@@ -399,7 +401,7 @@ export const SwipeCard = forwardRef<SwipeCardHandle, {
               className="flex flex-1 items-center justify-center gap-1.5 rounded-full bg-ink px-4 py-2.5 text-sm font-medium text-paper transition hover:bg-graphite"
             >
               <FiHeart className="h-4 w-4" />
-              Interested
+              {t("extras.misc.interested")}
             </button>
           </div>
         </Dialog>

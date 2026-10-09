@@ -88,7 +88,7 @@ export function BrandRequestList({
                     {r.productIncluded && (
                       <span className="inline-flex items-center gap-1">
                         <IoGiftOutline className="h-3 w-3 shrink-0" aria-hidden />
-                        Product included
+                        {t("extras.misc.productIncluded")}
                       </span>
                     )}
                     <span className="inline-flex items-center gap-1">

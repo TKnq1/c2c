@@ -1,3 +1,4 @@
+import { extras } from "@/lib/i18n/messages/extras-en";
 import { faq } from "@/lib/i18n/messages/faq-en";
 import { founding } from "@/lib/i18n/messages/founding-en";
 import { landing } from "@/lib/i18n/messages/landing-en";
@@ -254,6 +255,7 @@ export const en = {
       heardOther: "Somewhere else",
     },
   },
+  extras,
   faq,
   landing,
   founding,

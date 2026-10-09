@@ -5,6 +5,7 @@ import { StarRatingInput } from "@/components/star-rating-input";
 import { TextareaWithCounter } from "@/components/textarea-with-counter";
 import { useToastFormAction } from "@/lib/use-toast-form-action";
 import { useI18n } from "@/components/i18n-provider";
+import { localizeError } from "@/lib/i18n/labels";
 
 type Props = {
   interestId: string;
@@ -40,7 +41,7 @@ export function ReviewForm({ interestId, initial }: Props) {
         defaultValue={initial?.comment ?? ""}
         className="resize-none rounded border border-neutral-300 bg-background px-3 py-2 text-base outline-none focus:border-neutral-500 md:text-sm dark:border-neutral-700"
       />
-      {state?.error && <p className="text-sm text-ink">{state.error}</p>}
+      {state?.error && <p className="text-sm text-ink">{localizeError(state.error, t)}</p>}
       <button
         type="submit"
         disabled={pending}

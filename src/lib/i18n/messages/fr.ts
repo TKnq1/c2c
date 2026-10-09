@@ -1,4 +1,5 @@
 import type { Catalog } from "@/lib/i18n/messages/types";
+import { extrasFr as extras } from "@/lib/i18n/messages/extras-fr";
 import { faqFr as faq } from "@/lib/i18n/messages/faq-fr";
 import { foundingFr as founding } from "@/lib/i18n/messages/founding-fr";
 import { landingFr as landing } from "@/lib/i18n/messages/landing-fr";
@@ -253,6 +254,7 @@ export const fr: Catalog = {
       heardOther: "Ailleurs",
     },
   },
+  extras,
   faq,
   landing,
   founding,

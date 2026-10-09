@@ -14,6 +14,7 @@ import { RequestPhotosInput, type PhotoItem } from "@/components/request-photos-
 import { RequestCardFace, postByDate, type CardRequest } from "@/components/request-card-face";
 import { useI18n } from "@/components/i18n-provider";
 import { categoryLabel, contentLanguageLabel, nicheLabel, presetLabel } from "@/lib/i18n/labels";
+import { localizeError } from "@/lib/i18n/labels";
 
 // One-tap starting points for "Content", per platform — the field stays
 // free text for anything else.
@@ -258,7 +259,7 @@ export function RequestForm({ requestId, brand, initial, emailVerified, status }
               </Link>
             </p>
           )}
-          {error && <p className="text-sm text-ink">{error}</p>}
+          {error && <p className="text-sm text-ink">{localizeError(error, t)}</p>}
           <div className="flex flex-col gap-3 md:flex-row md:items-center">
             <button
               type="submit"
