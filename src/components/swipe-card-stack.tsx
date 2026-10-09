@@ -245,7 +245,7 @@ export function SwipeCardStack({
               type="button"
               onClick={() => topCardRef.current?.triggerExit("right")}
               aria-label={t("screens.feed.interested")}
-              className="flex h-14 w-14 shrink-0 items-center justify-center justify-self-center rounded-full bg-ink text-paper transition hover:bg-graphite max-md:pointer-events-auto max-md:shadow-lg"
+              className="flex h-14 w-14 shrink-0 items-center justify-center justify-self-center rounded-full bg-accent text-on-accent transition hover:brightness-110 max-md:pointer-events-auto max-md:shadow-lg"
             >
               <FiHeart className="h-6 w-6" />
             </button>

@@ -51,6 +51,10 @@
      with the tab icons' own 6px puts them 20px off the bottom edge, just
      clear of the indicator (which ends 13px up). 8px where there's no
      inset. */
+  /* comtor's accent: sparing, for the places that say "this is alive": the current tab, the heart, progress, unread counts, the
+     moment a briefing is done. Everything else stays black and white. The admin sets its own on .admin-shell. */
+  --accent: #5b5bf0;
+  --on-accent: #ffffff;
   --bar-bottom: max(calc(var(--safe-bottom) - 20px), 8px);
   /* The phone tab bar floats as a pill, clear of the screen's bottom edge and of the home indicator. --tabbar-space is how far up from
      the edge its top reaches plus a small margin: what page content and the bars and toasts above it have to stay clear of. */

@@ -28,17 +28,17 @@ export function BriefingProgress({ done, total, percent, milestones }: { done: n
             strokeLinecap="round"
             strokeDasharray={CIRCUMFERENCE}
             strokeDashoffset={CIRCUMFERENCE * (1 - percent / 100)}
-            className="stroke-ink transition-[stroke-dashoffset] duration-500 ease-out motion-reduce:transition-none"
+            className="stroke-accent transition-[stroke-dashoffset] duration-500 ease-out motion-reduce:transition-none"
           />
         </svg>
-        <span className="absolute inset-0 flex items-center justify-center text-sm font-bold tabular-nums">{ready ? "✓" : `${percent}%`}</span>
+        <span className="absolute inset-0 flex items-center justify-center text-sm font-bold tabular-nums"><span className={ready ? "text-accent" : undefined}>{ready ? "✓" : `${percent}%`}</span></span>
       </div>
       <div className="min-w-0 flex-1">
         <p className="font-medium">{ready ? u("briefing.progress.ready") : u("briefing.progress.title", { done, total })}</p>
         <ul className="mt-1.5 flex flex-wrap gap-x-3 gap-y-1 text-xs">
           {MILESTONES.map((m) => (
             <li key={m} className={`flex items-center gap-1 transition-colors ${milestones[m] ? "font-medium text-ink" : "text-neutral-500 dark:text-neutral-400"}`}>
-              <span aria-hidden>{milestones[m] ? "✓" : "○"}</span>
+              <span aria-hidden className={milestones[m] ? "text-accent" : undefined}>{milestones[m] ? "✓" : "○"}</span>
               {u(`briefing.progress.${m}`)}
             </li>
           ))}

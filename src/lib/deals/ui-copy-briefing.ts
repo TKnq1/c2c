@@ -32,6 +32,7 @@ export const BRIEFING_WORDS = {
   "briefing.market.PT": { en: "Portugal", de: "Portugal" },
   "briefing.market.PL": { en: "Poland", de: "Polen" },
   "briefing.market.OTHER": { en: "Other (English)", de: "Sonstige (Englisch)" },
+  "briefing.formats.pick": { en: "What should {platform} deliver?", de: "Was soll auf {platform} geliefert werden?" },
   "briefing.formats": { en: "Content to deliver", de: "Zu liefernder Content" },
   "briefing.formatsHint": { en: "Each booked format has to be delivered and verified before the payout.", de: "Jedes gebuchte Format muss geliefert und verifiziert sein, bevor ausgezahlt wird." },
   "briefing.hashtags": { en: "Required hashtags", de: "Pflicht-Hashtags" },

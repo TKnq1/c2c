@@ -45,7 +45,7 @@ export function BriefingDone({ requestId, values, hasTemplates, onEdit }: { requ
   return (
     <div className="flex flex-col gap-4" role="status">
       <div className="flex flex-col items-center gap-3 py-6 text-center">
-        <span className="animate-pop-in flex h-20 w-20 items-center justify-center rounded-full bg-ink text-4xl text-paper" aria-hidden>
+        <span className="animate-pop-in flex h-20 w-20 items-center justify-center rounded-full bg-accent text-4xl text-on-accent" aria-hidden>
           ✓
         </span>
         <h2 className="font-display text-title-2 font-bold">{u("briefing.done.title")}</h2>

@@ -329,7 +329,7 @@ export function Nav() {
                 aria-current={isActive ? "page" : undefined}
                 aria-label={l.badge > 0 ? t("nav.badgeNew", { label: l.label, count: l.badge }) : l.label}
                 className={`flex h-12 flex-1 items-center justify-center rounded-full transition ${
-                  isActive ? "bg-ink/10 text-ink" : "text-neutral-400 dark:text-neutral-500"
+                  isActive ? "bg-accent/10 text-accent" : "text-neutral-400 dark:text-neutral-500"
                 }`}
               >
                 {/* Two stacked icons cross-fading, not a conditional swap —
@@ -348,7 +348,7 @@ export function Nav() {
                     }`}
                   />
                   {l.badge > 0 && (
-                    <span className="absolute -top-1.5 -right-2 flex h-4 min-w-4 items-center justify-center rounded-full border border-background bg-ink px-0.5 text-[9px] font-semibold text-paper">
+                    <span className="absolute -top-1.5 -right-2 flex h-4 min-w-4 items-center justify-center rounded-full border border-background bg-accent px-0.5 text-[9px] font-semibold text-on-accent">
                       {l.badge > 9 ? "9+" : l.badge}
                     </span>
                   )}
@@ -494,14 +494,14 @@ function SidebarLink({
       <span className="relative flex h-6 w-6 shrink-0 items-center justify-center">
         <Icon className="h-6 w-6" aria-hidden />
         {link.badge > 0 && (
-          <span className="absolute -right-2 -top-1.5 flex h-4 min-w-4 items-center justify-center rounded-full border border-background bg-ink px-0.5 text-[9px] font-semibold text-paper lg:hidden">
+          <span className="absolute -right-2 -top-1.5 flex h-4 min-w-4 items-center justify-center rounded-full border border-background bg-accent px-0.5 text-[9px] font-semibold text-on-accent lg:hidden">
             {badge}
           </span>
         )}
       </span>
       <span className="hidden flex-1 lg:inline">{link.label}</span>
       {link.badge > 0 && (
-        <span className="hidden h-5 min-w-5 items-center justify-center rounded-full bg-ink px-1.5 text-[11px] font-semibold text-paper lg:flex">
+        <span className="hidden h-5 min-w-5 items-center justify-center rounded-full bg-accent px-1.5 text-[11px] font-semibold text-on-accent lg:flex">
           {badge}
         </span>
       )}
@@ -554,7 +554,7 @@ function NotificationsLink({
     >
       <FiBell className="h-5 w-5 md:h-4 md:w-4" />
       {unreadCount > 0 && (
-        <span className="absolute -top-1.5 -right-1.5 flex h-4 min-w-4 items-center justify-center rounded-full border border-background bg-ink px-0.5 text-[10px] font-medium text-paper">
+        <span className="absolute -top-1.5 -right-1.5 flex h-4 min-w-4 items-center justify-center rounded-full border border-background bg-accent px-0.5 text-[10px] font-medium text-on-accent">
           {unreadCount > 9 ? "9+" : unreadCount}
         </span>
       )}
