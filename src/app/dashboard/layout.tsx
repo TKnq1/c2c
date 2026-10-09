@@ -2,7 +2,7 @@ import { Suspense } from "react";
 import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import type { NavCounts } from "@/components/nav";
+import type { NavCounts } from "@/lib/nav-links";
 import { UnreadTitleBadge } from "@/components/unread-title-badge";
 import { WelcomeOverlay } from "@/components/welcome-overlay";
 import { EmailVerificationGate } from "@/components/email-verification-gate";

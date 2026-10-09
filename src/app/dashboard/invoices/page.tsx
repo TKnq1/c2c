@@ -1,12 +1,13 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
-import { IoChevronBack, IoDocumentTextOutline } from "react-icons/io5";
+import { IoDocumentTextOutline } from "react-icons/io5";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { getLocale } from "@/lib/i18n/server";
 import { EmptyState } from "@/components/empty-state";
 import { PageTitle } from "@/components/page-title";
 import { cardClass } from "@/components/deals/ui";
+import { DealsTabs } from "@/components/deals/deals-tabs";
 import { dealLocale } from "@/lib/deals/copy";
 import { formatDealDate } from "@/lib/deals/notices";
 import { uiText } from "@/lib/deals/ui-copy";
@@ -28,11 +29,8 @@ export default async function InvoicesPage() {
 
   return (
     <div className="mx-auto flex w-full max-w-2xl flex-col gap-4 pb-8">
-      <Link href="/dashboard/deals" className="inline-flex w-fit items-center gap-1 text-sm text-neutral-500 hover:text-ink dark:text-neutral-400">
-        <IoChevronBack className="h-4 w-4" aria-hidden />
-        {u("deal.back")}
-      </Link>
       <PageTitle description={u("invoices.listDescription")}>{u("invoices.listTitle")}</PageTitle>
+      <DealsTabs current="invoices" userId={session.user.id} role={session.user.role} locale={locale} />
       {invoices.length === 0 ? (
         <EmptyState icon={IoDocumentTextOutline} title={u("invoices.empty")} description={u("invoices.none")} />
       ) : (

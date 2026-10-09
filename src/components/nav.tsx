@@ -20,6 +20,8 @@ import {
   IoHomeOutline,
   IoNotifications,
   IoNotificationsOutline,
+  IoPerson,
+  IoPersonOutline,
   IoSearch,
   IoSearchOutline,
   IoSettings,
@@ -37,8 +39,7 @@ import type { Me } from "@/app/api/me/route";
 import { useNavigationBlocker } from "@/lib/navigation-blocker";
 import { isTextField, resetPageScroll } from "@/lib/keyboard";
 import { dealsEnabled } from "@/lib/deals/flag";
-
-type NavId = "requests" | "feed" | "discover" | "messages" | "deals" | "payments" | "settings" | "matches" | "notifications";
+import { activeHrefFor, appLinks, discoverHrefOf, tabLinks, type NavCounts, type NavId, type NavLink } from "@/lib/nav-links";
 
 const TAB_ICONS: Record<NavId, { outline: IconType; filled: IconType }> = {
   requests: { outline: IoHomeOutline, filled: IoHome },
@@ -48,23 +49,10 @@ const TAB_ICONS: Record<NavId, { outline: IconType; filled: IconType }> = {
   deals: { outline: IoBriefcaseOutline, filled: IoBriefcase },
   payments: { outline: IoCardOutline, filled: IoCard },
   settings: { outline: IoSettingsOutline, filled: IoSettings },
+  account: { outline: IoPersonOutline, filled: IoPerson },
   matches: { outline: IoHeartOutline, filled: IoHeart },
   notifications: { outline: IoNotificationsOutline, filled: IoNotifications },
 };
-
-type NavLink = { href: string; id: NavId; label: string; badge: number };
-
-// Longest href wins so e.g. /dashboard/startup/discover/xyz matches
-// "Discover" rather than falling through to the more general "Requests"
-// (/dashboard/startup), which still needs to catch routes like
-// /dashboard/startup/requests/[id] and /dashboard/startup/new.
-function activeHrefFor(links: NavLink[], pathname: string) {
-  return [...links]
-    .sort((a, b) => b.href.length - a.href.length)
-    .find((l) => pathname === l.href || pathname.startsWith(`${l.href}/`))?.href;
-}
-
-export type NavCounts = { unreadCount: number; unreadMessages: number; pendingPayments: number; dealsToDo?: number; dealsVisible?: boolean };
 
 const ZERO_COUNTS: NavCounts = { unreadCount: 0, unreadMessages: 0, pendingPayments: 0 };
 
@@ -209,31 +197,20 @@ export function Nav() {
 
   if (!showNav || !role) return null;
 
-  const { unreadCount, unreadMessages, pendingPayments, dealsToDo = 0, dealsVisible = false } = counts;
+  const { unreadCount, dealsVisible = false } = counts;
   // The tab is there where brand deals are switched on, or for someone who has deals (they must stay reachable).
   const showDeals = dealsEnabled() || dealsVisible;
   const base = role === "STARTUP" ? "/dashboard/startup" : "/dashboard/creator";
+  const label = (id: NavId) => t(`nav.${id}` as MessageKey);
 
-  const links: NavLink[] =
-    role === "STARTUP"
-      ? [
-          { href: "/dashboard/startup", id: "requests", label: t("nav.requests"), badge: 0 },
-          { href: "/dashboard/startup/discover", id: "discover", label: t("nav.discover"), badge: 0 },
-          { href: "/dashboard/messages", id: "messages", label: t("nav.messages"), badge: unreadMessages },
-          ...(showDeals ? [{ href: "/dashboard/deals", id: "deals" as const, label: t("nav.deals"), badge: dealsToDo }] : []),
-          { href: "/dashboard/startup/payments", id: "payments", label: t("nav.payments"), badge: pendingPayments },
-          { href: "/dashboard/startup/settings", id: "settings", label: t("nav.settings"), badge: 0 },
-        ]
-      : [
-          { href: "/dashboard/creator", id: "feed", label: t("nav.feed"), badge: 0 },
-          { href: "/dashboard/creator/discover", id: "discover", label: t("nav.discover"), badge: 0 },
-          { href: "/dashboard/messages", id: "messages", label: t("nav.messages"), badge: unreadMessages },
-          ...(showDeals ? [{ href: "/dashboard/deals", id: "deals" as const, label: t("nav.deals"), badge: dealsToDo }] : []),
-          { href: "/dashboard/creator/payments", id: "payments", label: t("nav.payments"), badge: pendingPayments },
-          { href: "/dashboard/creator/settings", id: "settings", label: t("nav.settings"), badge: 0 },
-        ];
+  // The sidebar lists everything; the phone's tab bar is shorter where brand deals are on (see tabLinks).
+  const links = appLinks(role, showDeals, counts, label);
+  const tabs = tabLinks(role, showDeals, counts, label);
+  // Discover has no tab then: the magnifier in the phone header leads there.
+  const discoverInHeader = !tabs.some((l) => l.id === "discover");
 
-  const activeHref = activeHrefFor(links, pathname);
+  const activeTabHref = activeHrefFor(tabs, pathname);
+  const discoverHref = discoverHrefOf(role);
 
   // Hidden on mobile while a chat thread is open — that view already fights
   // for vertical space, and the nav isn't reachable from there anyway (the
@@ -286,6 +263,7 @@ export function Nav() {
 
           <div className="flex items-center gap-4">
             {showMatchesLink && <MatchesLink onNavigate={onNavigate} />}
+            {discoverInHeader && !pathname.startsWith(discoverHref) && <DiscoverLink href={discoverHref} onNavigate={onNavigate} />}
             <NotificationsLink unreadCount={unreadCount} onNavigate={onNavigate} />
           </div>
         </div>
@@ -312,19 +290,19 @@ export function Nav() {
         }`}
       >
         <div className="flex items-stretch">
-          {links.map((l) => {
+          {tabs.map((l) => {
             const icons = TAB_ICONS[l.id];
-            const isActive = l.href === activeHref;
+            const isActive = l.href === activeTabHref;
             const Outline = icons.outline;
             const Filled = icons.filled;
             return (
               <Link
                 key={l.href}
-                href={l.href}
+                href={l.target ?? l.href}
                 onNavigate={onNavigate}
                 prefetch={false}
                 aria-current={isActive ? "page" : undefined}
-                aria-label={l.label}
+                aria-label={l.badge > 0 ? t("nav.badgeNew", { label: l.label, count: l.badge }) : l.label}
                 className={`flex flex-1 items-center justify-center pt-3 pb-1.5 transition ${
                   isActive ? "text-ink" : "text-neutral-400 dark:text-neutral-500"
                 }`}
@@ -474,7 +452,7 @@ function SidebarLink({
 
   return (
     <Link
-      href={link.href}
+      href={link.target ?? link.href}
       onNavigate={onNavigate}
       // Every one of these sits on screen on every dashboard page, so
       // viewport-triggered prefetch would fire a full server render for each
@@ -503,6 +481,16 @@ function SidebarLink({
         </span>
       )}
       <SidebarTooltip label={link.label} />
+    </Link>
+  );
+}
+
+// Where Discover has no tab of its own (see tabLinks): a magnifier in the phone header.
+function DiscoverLink({ href, onNavigate }: { href: string; onNavigate: (e: { preventDefault: () => void }) => void }) {
+  const { t } = useI18n();
+  return (
+    <Link href={href} onNavigate={onNavigate} prefetch={false} className="flex items-center text-graphite hover:text-ink transition" aria-label={t("nav.discover")}>
+      <IoSearchOutline className="h-5 w-5" />
     </Link>
   );
 }

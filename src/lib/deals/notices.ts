@@ -21,16 +21,16 @@ export const NOTICE_TEXT = {
     de: "{who} hat den Vertrag für „{title}“ bestätigt. Deine Bestätigung fehlt noch.",
   },
   escrow_due: {
-    en: "The contract for “{title}” is confirmed. Pay {amount} into escrow so the work can start.",
-    de: "Der Vertrag für „{title}“ steht. Zahle {amount} ins Treuhandkonto ein, damit die Arbeit beginnt.",
+    en: "The contract for “{title}” is confirmed. Pay {amount} so the work can start. The money is held safely until the post is verified.",
+    de: "Der Vertrag für „{title}“ steht. Zahle {amount} ein, damit die Arbeit beginnt. Das Geld wird sicher hinterlegt.",
   },
   escrow_funded_draft: {
-    en: "{brand} funded the escrow for “{title}” ({amount}). Your draft is due {date}.",
-    de: "{brand} hat das Treuhandkonto für „{title}“ gefüllt ({amount}). Dein Entwurf ist fällig am {date}.",
+    en: "{brand} paid {amount} for “{title}”, held safely. Your draft is due {date}.",
+    de: "{brand} hat {amount} für „{title}“ eingezahlt, sicher hinterlegt. Dein Entwurf ist fällig am {date}.",
   },
   escrow_funded_direct: {
-    en: "{brand} funded the escrow for “{title}” ({amount}). Post by {date}.",
-    de: "{brand} hat das Treuhandkonto für „{title}“ gefüllt ({amount}). Poste bis {date}.",
+    en: "{brand} paid {amount} for “{title}”, held safely. Post by {date}.",
+    de: "{brand} hat {amount} für „{title}“ eingezahlt, sicher hinterlegt. Poste bis {date}.",
   },
   draft_submitted: {
     en: "{creator} submitted draft {version} for “{title}”. Review it by {date}, otherwise it counts as approved.",
@@ -253,7 +253,7 @@ export function noticeSubject(key: NoticeKey, locale: Locale | string, params: N
 
 export const CANCEL_REASON_TEXT: Record<CancelReason, Text> = {
   CONTRACT_EXPIRED: { en: "the contract was not confirmed in time", de: "der Vertrag wurde nicht rechtzeitig bestätigt" },
-  ESCROW_EXPIRED: { en: "the escrow was not funded in time", de: "das Treuhandkonto wurde nicht rechtzeitig gefüllt" },
+  ESCROW_EXPIRED: { en: "the payment did not arrive in time", de: "die Zahlung ist nicht rechtzeitig eingegangen" },
   DRAFT_DEADLINE_MISSED: { en: "the draft deadline was missed", de: "die Frist für den Entwurf wurde verpasst" },
   REVISION_DEADLINE_MISSED: { en: "the requested changes were not delivered in time", de: "die gewünschten Änderungen kamen nicht rechtzeitig" },
   POST_DEADLINE_MISSED: { en: "the posting deadline was missed", de: "die Posting-Frist wurde verpasst" },

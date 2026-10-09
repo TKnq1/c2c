@@ -20,6 +20,7 @@ import { withdrawOfferAction } from "@/lib/actions/payments";
 import { formatCents, isWithinLastWeek } from "@/lib/format";
 import { DEPOSITS_ENABLED, RELEASE_REVIEW_DAYS, RELEASE_REVIEW_MS } from "@/lib/constants";
 import { PageTitle } from "@/components/page-title";
+import { DealsTabs } from "@/components/deals/deals-tabs";
 import { ProFeeBar } from "@/components/pro-fee-bar";
 import { getLocale, getT } from "@/lib/i18n/server";
 import { OpenDealLink } from "@/components/deals/open-deal-link";
@@ -36,7 +37,8 @@ export default async function CreatorPaymentsPage() {
   const session = await auth();
   if (!session || session.user.role !== "CREATOR") redirect("/login");
   const t = await getT();
-  const u = uiText(dealLocale(await getLocale()));
+  const locale = dealLocale(await getLocale());
+  const u = uiText(locale);
 
   // One round-trip instead of two — filtered through the creator relation
   // rather than creator.id, so this doesn't have to wait on the fetch below
@@ -84,6 +86,7 @@ export default async function CreatorPaymentsPage() {
   return (
     <div className="page-wide flex flex-col gap-8">
       <PageTitle>{t("nav.payments")}</PageTitle>
+      <DealsTabs current="payments" userId={session.user.id} role="CREATOR" locale={locale} />
       <PaymentStats
         stats={[
           { label: t("screens.payments.earned"), value: formatCents(earnedCents), hint: t("screens.payments.paidOut") },

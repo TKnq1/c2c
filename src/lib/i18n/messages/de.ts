@@ -26,6 +26,7 @@ export const de: Catalog = {
     payments: "Zahlungen",
     deals: "Deals",
     settings: "Einstellungen",
+    account: "Konto",
     matches: "Matches",
     notifications: "Mitteilungen",
     notificationsNew: "Mitteilungen ({count} neu)",

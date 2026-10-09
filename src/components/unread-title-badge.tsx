@@ -1,7 +1,7 @@
 "use client";
 
 import { use, useEffect } from "react";
-import type { NavCounts } from "@/components/nav";
+import type { NavCounts } from "@/lib/nav-links";
 
 // Prefixes the browser tab's title with the unread count (e.g. "(3) Requests
 // · comtor") so new activity is noticeable even on a background tab. Next.js

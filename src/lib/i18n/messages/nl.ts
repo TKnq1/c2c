@@ -26,6 +26,7 @@ export const nl: Catalog = {
     payments: "Betalingen",
     deals: "Deals",
     settings: "Instellingen",
+    account: "Account",
     matches: "Matches",
     notifications: "Meldingen",
     notificationsNew: "Meldingen ({count} nieuw)",

@@ -26,6 +26,7 @@ export const pt: Catalog = {
     payments: "Pagamentos",
     deals: "Acordos",
     settings: "Definições",
+    account: "Conta",
     matches: "Correspondências",
     notifications: "Notificações",
     notificationsNew: "Notificações ({count} novas)",

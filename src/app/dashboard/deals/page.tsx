@@ -1,12 +1,13 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
-import { IoBriefcaseOutline, IoDocumentTextOutline } from "react-icons/io5";
+import { IoBriefcaseOutline } from "react-icons/io5";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { Avatar } from "@/components/avatar";
 import { EmptyState } from "@/components/empty-state";
 import { PageTitle } from "@/components/page-title";
 import { Badge, Section, cardClass } from "@/components/deals/ui";
+import { DealsTabs } from "@/components/deals/deals-tabs";
 import { dealLocale } from "@/lib/deals/copy";
 import { getLocale } from "@/lib/i18n/server";
 import { nextStep } from "@/lib/deals/next-step";
@@ -44,6 +45,7 @@ export default async function DealsPage(props: PageProps<"/dashboard/deals">) {
   return (
     <div className="mx-auto flex w-full max-w-2xl flex-col gap-6 pb-8">
       <PageTitle description={u("deals.description")}>{u("deals.title")}</PageTitle>
+      <DealsTabs current="active" userId={session.user.id} role={role} locale={locale} />
 
       {needsBusiness && (
         <div className={`${cardClass} flex flex-col gap-2 text-sm`}>
@@ -72,10 +74,6 @@ export default async function DealsPage(props: PageProps<"/dashboard/deals">) {
       )}
 
       <div className="flex flex-wrap gap-4 px-1 text-sm">
-        <Link href="/dashboard/invoices" className="inline-flex items-center gap-1.5 underline">
-          <IoDocumentTextOutline className="h-4 w-4" aria-hidden />
-          {u("deals.invoices")}
-        </Link>
         <Link href="/dashboard/business" className="underline">
           {u("deals.businessLink")}
         </Link>

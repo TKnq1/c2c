@@ -26,6 +26,7 @@ export const en = {
     payments: "Payments",
     deals: "Deals",
     settings: "Settings",
+    account: "Account",
     matches: "Matches",
     notifications: "Notifications",
     notificationsNew: "Notifications ({count} new)",

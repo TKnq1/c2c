@@ -4,7 +4,7 @@ import { getUnreadCount } from "@/lib/notifications";
 import { getUnreadMessageCount } from "@/lib/messages";
 import { getBrandPendingPaymentActionCount, getPendingPaymentActionCount } from "@/lib/payments";
 import { canUseDeals, getDealActionCount } from "@/lib/deals/queries";
-import type { NavCounts } from "@/components/nav";
+import type { NavCounts } from "@/lib/nav-links";
 
 // Fetched client-side by Nav (see nav.tsx) instead of passed down as a
 // server prop from dashboard/layout.tsx — that layout sits inside
