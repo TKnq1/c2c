@@ -58,7 +58,9 @@ chat are replaced by a link to the deal.
 | Notices by e-mail | `deals/notices.ts` (`NOTICE_SUBJECT`), `deals/notify.ts`, template `dealNoticeEmail` in `email-templates.ts` |
 | Tax advisor exports | `/api/admin/export/invoices` (`lib/export-invoices.ts`), linked on `/admin/geld` |
 | Retention | `src/lib/deals/retention.ts`, `DEAL_POLICY.proofRetentionDays` |
-| Screens | `/dashboard/deals`, `/dashboard/deals/[id]`, `/dashboard/startup/requests/[id]/briefing`, `/dashboard/business` |
+| Screens | `/dashboard/deals` (tabs Deals, Payments, Invoices), `/dashboard/deals/[id]`, `/dashboard/startup/requests/[id]/briefing`, `/dashboard/startup/templates`, `/dashboard/business` |
+| Navigation | `src/lib/nav-links.ts` (which tabs, which badge, which tab is current), `components/nav.tsx`, `components/deals/deals-tabs.tsx` |
+| Deal page layout | `src/lib/deals/page-plan.ts` (what comes first for a state, what folds), `components/deals/panels.tsx`, `ui.tsx` (`Folded`) |
 | Words (German, English) | `src/lib/deals/copy.ts` (findings), `notices.ts` (notifications), `ui-copy*.ts` (screens) |
 
 ## Rules the code enforces
@@ -133,6 +135,34 @@ from it) and applied to up to 25 requests at once. The posting window is never p
 An incomplete form can be kept as a draft (`BriefingDraft`, one per request, errors allowed); a valid save replaces it. The builder
 starts from the draft, else the saved briefing, else the default template, else the German defaults. Duplicating a request copies
 its briefing.
+
+## The screens
+
+With `BRAND_DEALS_ENABLED` off nothing below shows; for a person who already has deals the Deals tab stays reachable (see `flag.ts`).
+
+- **Navigation.** On the phone the tab bar has four entries where deals are on: home (Feed / Requests), Messages, Deals, Account.
+  Discover is a magnifier in the header; Payments and Invoices are tabs on the Deals pages. One badge per tab: Messages counts
+  unread, Deals everything that waits for the person (deals and payments), and then opens `?filter=mine`.
+- **Deal page.** `planPanels` puts the part the deal is in right under the "next step" card (with a button to its form), folds the
+  parts behind the deal to one-line summaries and keeps everything open in a dispute or after a cancellation. The stepper is one
+  line with a bar on phones. Report-a-problem and cancel live in a menu in the header. The contract shows a short form (rows with
+  `core` in `contract-rows.ts`) and "All terms"; open for whoever still has to confirm. Links with a section (`#drafts`) open
+  folded parts (`ScrollToHash`).
+- **Lists and home.** `/dashboard/deals?filter=mine|active|done` with chips and counts; a brand with six or more deals sees them
+  grouped by campaign. A card on both home screens says how many deals wait.
+- **Briefing builder.** Three steps (`briefing-steps.ts` maps every field to a step), findings next to the fields, a bar that says
+  how many errors there are and goes to the first one, an automatic draft after two seconds, templates and "take over from an
+  earlier request" (they fill the form; nothing is saved until the briefing is), "save as template", and a card with a button when
+  the brand's own open offers were made under an older version (`countStaleOffers`, `refreshOpenOffersAction`). The form starts in
+  the market of the brand's business country (`marketForCountry`).
+- **Templates.** `/dashboard/startup/templates`: default, rename, delete, apply to several requests with a result for each.
+- **Creator forms.** A checklist for the draft and the post (`post-checklist.ts`, the checks the server runs), a pasted link picks
+  the format (`detectFormat`), the proof screenshot has a preview. **Business details**: a button asks VIES for name and address
+  (`lookupVatIdAction`, `vies-address.ts`; nothing is saved until the form is).
+- The deal screens say "sicher hinterlegt" / "held safely" where they used to say Treuhandkonto / escrow. The contract text
+  itself is unchanged and goes to the lawyer as it is.
+
+The list of what is built and what is not is `docs/ux-backlog.md`.
 
 ## Money that moves in Stripe without the app asking
 
@@ -209,7 +239,8 @@ Pro. A party can also press "Check now" on the deal page.
 ## Tests
 
 `npm test` runs the unit tests (status table, deadline planner, advertising rules, exclusivity, usage rights, URL parser, VAT IDs,
-VIES mapping, tax engine, invoices, corrections, PDF layout, exports, notices). The integration suites run against a real Postgres with
+VIES mapping and address reading, tax engine, invoices, corrections, PDF layout, exports, notices, navigation, the deal page plan,
+the briefing steps, the post checklist). The integration suites run against a real Postgres with
 Stripe, the session, the platforms and the mail sender faked; they are skipped without `DEAL_TEST_DATABASE_URL`:
 
 ```bash

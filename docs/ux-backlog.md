@@ -1,81 +1,90 @@
-# UX-Backlog: Brand Deals (Stand 8.10.2026)
+# UX-Backlog: Brand Deals (Stand 9.10.2026, abends)
 
-Ideen, um den Deal-Ablauf auf dem Handy leichter zu machen. Noch nichts davon gebaut, außer dem eingeklappten Vertrag
-und dem umbrechenden Titel auf der Deal-Seite. Aufwand: S = unter 1 Std., M = ein paar Stunden, L = ein Tag oder mehr.
-Reihenfolge innerhalb einer Gruppe = meine Empfehlung.
+Ideen, um den Deal-Ablauf auf dem Handy leichter zu machen, und was davon gebaut ist. Aufwand: S = unter 1 Std., M = ein paar
+Stunden, L = ein Tag oder mehr. **✓** = gebaut und im Browser geprüft (390 px und 1280 px, Demo-Seed mit allen 13 Deal-Zuständen),
+**teils** = ein Teil fehlt (steht dabei), **offen** = nicht gebaut.
 
-## A. Navigation (Handy-Tab-Leiste hat heute 6 Einträge)
+Alles hängt am Schalter `BRAND_DEALS_ENABLED`: ohne ihn bleibt die Oberfläche wie vor den Deals.
 
-1. **Tab-Leiste auf 4 Einträge** (M)
-   - Creator: Feed · Nachrichten · Deals · Konto
-   - Marke: Anfragen · Nachrichten · Deals · Konto
-   - Zahlungen wandern als Reiter in „Deals“ (Aktiv | Zahlungen | Rechnungen), Einstellungen unter „Konto“.
-   - Die Glocke bleibt oben im Kopf, dort ist sie schon.
-2. **Entdecken in den Feed holen** (M, vorher prüfen, was Entdecken heute kann): Lupe im Kopf des Feeds statt eigener Tab.
-3. **Ein Badge statt drei** (S): Deals zeigt nur „du bist dran“, Nachrichten nur Ungelesenes. Kein Badge auf Zahlungen mehr.
-4. **Alte Zahlungsseite für Deals abbauen** (L): Für Deal-Collabs ist „Deals“ der einzige Ort für den Geldstatus.
+## A. Navigation
+
+1. **Tab-Leiste auf 4 Einträge** ✓
+   - Handy-Leiste: Anfragen bzw. Feed · Nachrichten · Deals · Konto. Entdecken sitzt als Lupe im Kopf, Zahlungen und Rechnungen sind
+     Reiter in „Deals“ (Deals | Zahlungen | Rechnungen, `DealsTabs`). Ohne Deals bleibt die Leiste unverändert (5 Einträge).
+   - Die Regeln stehen in `src/lib/nav-links.ts` (rein, getestet); die Desktop-Seitenleiste behält alle Einträge.
+2. **Entdecken in den Feed holen** offen: bewusst nur die Lupe im Kopf; ob Entdecken ganz in den Feed wandert, erst nach dem Test mit
+   echten Nutzern.
+3. **Ein Badge statt drei** ✓: Nachrichten zeigt Ungelesenes, Deals alles, was auf dich wartet (Deals und Zahlungen zusammen) und
+   öffnet dann direkt `?filter=mine`; „Zahlungen“ trägt kein eigenes Badge mehr, wo es „Deals“ gibt.
+4. **Alte Zahlungsseite für Deals abbauen** offen: sie bleibt für Anfragen ohne Deal; bei Deal-Collabs verweist sie mit einem Satz auf die Deal-Seite.
 
 ## B. Deal-Seite
 
-5. **Hauptaktion als Button in der Karte „Nächster Schritt“** (S–M): „Entwurf einreichen“, „Entwurf freigeben“, „Post melden“
-   springt zum Formular oder öffnet es als Sheet. Heute muss man das Formular suchen.
-6. **Abschnitte nach Phase sortieren** (M): Der fällige Abschnitt steht direkt unter der Karte, erledigte klappen zu einer
-   Zeile zusammen („Escrow: 238 € hinterlegt ✓“, „Entwurf freigegeben ✓“).
-7. **Stepper kompakt** (S): Auf dem Handy „Schritt 4 von 9: Entwurf“ mit Fortschrittsbalken statt scrollender Chips.
-8. **Verlauf und Randaktionen einklappen** (S): „Verlauf“ zugeklappt, „Problem melden“ und „Deal abbrechen“ in ein „⋯“-Menü.
-9. **Vertrag als Kurzfassung** (M): 5 Kernpunkte oben (Preis, Post bis, Formate, Kennzeichnung, Nutzungsrechte), „Alle
-   Bedingungen“ darunter.
-10. **Posts vor Entwürfen, sobald der Entwurf freigegeben ist** (S).
+5. **Hauptaktion in der Karte „Nächster Schritt“** ✓: ein Knopf springt zum fälligen Formular (Zahlung, Entwurf, Prüfung, Post, Beleg).
+6. **Abschnitte nach Phase sortieren** ✓ (`src/lib/deals/page-plan.ts`): der Abschnitt, in dem der Deal gerade steht, folgt direkt
+   auf die Karte; was hinter dem Deal liegt (Zahlung, Entwurf, Post) schrumpft zu einer Zeile („Sicher hinterlegt: 238 €“).
+   Bei Streit und Abbruch bleibt alles offen.
+7. **Stepper kompakt** ✓: auf dem Handy „Schritt 4 von 9: Entwurf“ mit Balken, ab md alle Stufen.
+8. **Verlauf und Randaktionen einklappen** ✓: „Verlauf“ zu, „Problem melden“ und „Deal abbrechen“ im „⋯“-Menü im Kopf.
+9. **Vertrag als Kurzfassung** ✓: Preis, Zahlung bzw. Auszahlung, Formate, Kennzeichnung, Posting-Fenster, Nutzungsrechte oben;
+   „Alle Bedingungen“ (Steuer, Gebühr, Hashtags, Ablauf, Exklusivität, Hinweise) darunter, offen für wen noch bestätigen muss.
+10. **Posts vor Entwürfen, sobald der Entwurf freigegeben ist** ✓ (folgt aus 6).
 
 ## C. Briefing-Builder (Marke)
 
-11. **Feste Speichern-Leiste unten mit Fehlerzahl** (M): „2 Fehler“ springt zum ersten Fehler. Heute stehen Fehlerliste und
-    Button am Ende einer dreibildschirmlangen Seite.
-12. **Vorlagen** (M): „Reel + Story“, „Nur TikTok“, „UGC ohne Posting“ füllen das Briefing vor.
-    *Backend steht (Stand 9.10.):* Vorlagen speichern, umbenennen, löschen, als Standard setzen, auf mehrere Anfragen anwenden,
-    unvollständige Entwürfe. Es fehlt nur die Oberfläche.
-13. **Drei Schritte statt sechs Abschnitte** (M): Inhalt → Kennzeichnung und Fristen → Rechte. Exklusivität und Nutzungsrechte
-    standardmäßig zu („Brauche ich nicht“).
-14. **Briefing aus früherer Anfrage kopieren und Standardwerte merken** (M).
-    *Backend steht:* Kopie aus einer Anfrage, Standardvorlage für neue Anfragen, Anfrage duplizieren kopiert das Briefing.
-15. **Bessere Vorbelegung** (S): Markt aus dem Land der Marke, Kennzeichnung „Werbung“ und Paid-Partnership-Schalter schon an.
+11. **Feste Speichern-Leiste mit Fehlerzahl** ✓: auf dem Handy über der Tab-Leiste fest, ab md am unteren Fensterrand; „2 Fehler“
+    springt zum ersten Fehler (auch in einen anderen Schritt). Die Meldungen stehen an den Feldern.
+12. **Vorlagen** ✓: wählen, aus dem Formular speichern (auf Wunsch als Standard für neue Anfragen), umbenennen, löschen, Standard
+    setzen, auf mehrere Anfragen anwenden (`/dashboard/startup/templates`, mit Ergebnis je Anfrage). *Offen:* mitgelieferte
+    Beispielvorlagen („Reel + Story“, „Nur TikTok“, „UGC ohne Posting“): bisher legt die Marke ihre eigenen an.
+13. **Drei Schritte statt sechs Abschnitte** ✓: Inhalt → Kennzeichnung und Fristen → Rechte. Exklusivität und Nutzungsrechte sind
+    aus, bis man sie einschaltet. Fehlerzahl je Schritt auf dem Reiter.
+14. **Briefing aus früherer Anfrage kopieren und Standardwerte merken** ✓: Auswahl „Von einer früheren Anfrage übernehmen“ füllt das
+    Formular (ohne Termine), gespeichert wird erst mit dem Briefing. Ein unfertiger Entwurf wird nach zwei Sekunden automatisch
+    gesichert und beim nächsten Öffnen mit „Entwurf verwerfen“ angeboten.
+15. **Bessere Vorbelegung** ✓: Markt und Kennzeichnungen aus dem Land der Geschäftsdaten (nur Länder mit eigenen Regeln, sonst
+    Deutschland); „Werbung“ und „Anzeige“ sowie der Partnerschafts-Schalter standen schon an.
+    - Neu dazu: Hinweis mit Knopf „Angebote neu bestätigen“, wenn eigene offene Angebote unter einem älteren Briefing gemacht wurden.
 
 ## D. Geschäftsdaten und Vertrag
 
-16. **Adresse aus der USt-IdNr. vorbefüllen** (M): VIES liefert Name und Adresse.
-17. **Geschäftsdaten schon im Onboarding erfragen** (M) oder aus dem Profil vorbefüllen (Name, Land), damit der erste Deal
-    nicht an einem langen Formular hängt.
+16. **Adresse aus der USt-IdNr. vorbefüllen** ✓: Knopf „Name und Adresse aus der USt-IdNr. übernehmen“ fragt VIES und füllt Name,
+    Adresse und Land (nichts wird gespeichert). Deutschland gibt bei VIES oft keine Adresse heraus: dann sagt das Formular es.
+    *Nicht geprüft:* gegen den echten VIES-Dienst (hier nicht erreichbar), nur die Auswertung der Antwort ist getestet.
+17. **Geschäftsdaten schon im Onboarding erfragen** teils: der rechtliche Name startet mit dem Namen des Kontos; ein Schritt im
+    Onboarding selbst ist nicht gebaut.
 
 ## E. Creator: Entwurf und Post
 
-18. **Link einfügen, Format wird erkannt** (M): TikTok, Reel, Story, YouTube aus der URL; Caption bei TikTok und YouTube
-    automatisch aus oEmbed und API holen statt einfügen lassen.
-19. **Checkliste statt Freitext-Hinweisen** (S–M): Haken für „Werbung“ am Anfang, Pflicht-Hashtags, Erwähnungen, mit
-    Kopieren-Knopf für Hashtags und Caption-Vorlage.
-20. **Beleg-Upload** (S): Großer Knopf „Screenshot wählen“ mit Vorschau statt des nativen „Choose File“.
-21. **Entwurf als Datei** (L): Heute nur Link (Drive, Frame.io); Direkt-Upload wäre einfacher.
+18. **Link einfügen, Format wird erkannt** teils ✓: ein eingefügter Link wählt das Format (unter den gebuchten) und sagt „Erkannt:“;
+    passt er zu keinem, steht ein Hinweis. *Offen:* Caption bei TikTok und YouTube automatisch aus oEmbed und API holen (braucht
+    die Schlüssel `YOUTUBE_API_KEY` / `META_OEMBED_TOKEN` und einen Test mit echten Links).
+19. **Checkliste statt Freitext-Hinweisen** ✓: Haken für Kennzeichnung vorn, Pflicht-Hashtags, Pflicht-Erwähnungen, Kennzeichnung im
+    Inhalt und Partnerschafts-Label, mit Kopieren-Knopf für Hashtags und Erwähnungen und „Caption-Vorlage einfügen“; im Entwurf und
+    im Post-Formular.
+20. **Beleg-Upload** ✓: großer Knopf „Screenshot wählen“, Vorschau, Entfernen.
+21. **Entwurf als Datei** offen (L): braucht eine Entscheidung für den Speicher (Anbieter, Kosten, Löschfristen).
 
 ## F. Benachrichtigungen
 
-22. **Erinnerungen mit Direktlink zum Formular** (S–M): Push oder Mail „Entwurf fällig in 24 Std.“ öffnet den Abschnitt
-    (`#drafts`, `#post`). *Backend steht:* Hinweise führen zu `#contract`, `#escrow`, `#drafts`, `#posts`, `#usage`, `#dispute`;
-    Fristen und Abbrüche gehen zusätzlich per E-Mail raus.
-23. **Stündlicher Cron** (S, braucht Vercel Pro): Haltefrist und Erinnerungen werden sonst bis zu einen Tag später ausgewertet.
+22. **Erinnerungen mit Direktlink zum Formular** ✓ (Backend, 9.10.): Hinweise führen zu `#contract`, `#escrow`, `#drafts`, `#posts`,
+    `#usage`, `#dispute`. Abschnitte, die zugeklappt sind, öffnen sich beim Anspringen (`ScrollToHash`).
+23. **Stündlicher Cron** offen (S, braucht Vercel Pro): Haltefrist und Erinnerungen werden sonst bis zu einen Tag später ausgewertet.
 
 ## G. Listen und Sprache
 
-24. **Deals-Liste mit Filtern** (S): „Wartet auf mich · Aktiv · Abgeschlossen“, bei vielen Deals nach Kampagne gruppiert.
-    *Backend steht:* `/dashboard/deals?filter=mine|active|done` filtert; Filterleiste und Gruppierung fehlen noch.
-25. **Karte auf der Startseite** (S): „3 Deals warten auf dich“ mit Direktlink.
-26. **Weniger Fachwörter im Hauptfluss** (S): „Escrow“ → „sicher hinterlegt“, Steuerzeilen unter „Details“.
+24. **Deals-Liste mit Filtern** ✓: Chips „Alle · Wartet auf mich · Aktiv · Abgeschlossen“ mit Zahlen (`?filter=`); ab 6 Deals sind
+    die Deals einer Marke nach Kampagne gruppiert (Überschrift nur, wo eine Kampagne mehrere Deals hat).
+25. **Karte auf der Startseite** ✓: „3 Deals warten auf dich“ mit Direktlink, bei Marke und Creator.
+26. **Weniger Fachwörter im Hauptfluss** ✓ (auf den Deal-Seiten und in den Hinweisen): „Treuhandkonto“ / „Escrow“ heißt
+    „sicher hinterlegt“ bzw. „held safely“, der Abschnitt „Zahlung“. Steuerzeilen liegen unter „Alle Bedingungen“. *Offen:* die
+    alte Zahlungsseite und die Admin-Bereiche sagen noch „Treuhand“; der Vertragstext (`contract.ts`) bleibt wegen der
+    rechtlichen Prüfung unverändert.
 
 ## Offen aus der Prüfung
 
-- Admin-Bereich mobil, Dunkelmodus, Tablet und echtes Gerät wurden nicht geprüft (nur Playwright-Emulation, 390 px).
-- Auf dem Handy gab es keinen horizontalen Überlauf (gemessen auf Deals-Liste, Deal-Seite, Briefing, Geschäftsdaten,
-  Entwurf- und Post-Formular).
-
-## Vorschlag für morgen
-
-Erst **1 + 3** (Navigation), dann **5 + 6 + 7 + 8** (Deal-Seite), dann **11 + 15** (Briefing). Das sind etwa ein Tag Arbeit
-und trifft die meisten Handy-Probleme.
+- Admin-Bereich mobil, Dunkelmodus, Tablet und echtes Gerät wurden nicht geprüft (nur Playwright-Emulation, 390 px, Chromium).
+- Die feste Speichern-Leiste und das ⋯-Menü sind nur in Chromium getestet, nicht in Safari/iOS (Tastatur, Safe-Area).
+- Auf dem Handy gab es keinen horizontalen Überlauf (gemessen auf Deals-Liste, Deal-Seite in allen 13 Zuständen, Briefing,
+  Geschäftsdaten, Entwurf- und Post-Formular).
+- Die neuen Texte (Checkliste, Vorlagen, Filter, Hinweise) gibt es auf Deutsch und Englisch; `nav.account` in allen acht Sprachen.
