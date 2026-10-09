@@ -17,6 +17,17 @@ export type CopyOption = { requestId: string; title: string; values: FormValues 
 
 export const TEMPLATES_HREF = "/dashboard/startup/templates";
 
+// Keeps what is in the form as a template (the dates are left out on the server), and on request makes it the one new requests start with.
+export async function saveValuesAsTemplate(values: FormValues, name: string, makeDefault: boolean): Promise<{ ok: true } | { ok: false; error?: string; issues: FieldIssue[] }> {
+  const fd = new FormData();
+  for (const [key, value] of Object.entries(values)) fd.set(key, value ?? "");
+  fd.set("name", name);
+  const result = await saveBriefingTemplateAction(undefined, fd).catch(() => undefined);
+  if (!result?.success || !result.templateId) return { ok: false, error: result?.error, issues: result?.issues ?? [] };
+  if (makeDefault) await setDefaultBriefingTemplateAction(result.templateId).catch(() => undefined);
+  return { ok: true };
+}
+
 // Above the builder: fill the form from one of the brand's templates or from an earlier request, or keep what is in the form as
 // a new template. Filling only changes the form; nothing is saved until the briefing is.
 export function BriefingTemplatePanel({
@@ -112,16 +123,12 @@ function SaveTemplateDialog({ open, values, onClose }: { open: boolean; values: 
     startTransition(async () => {
       setProblem(null);
       setIssues([]);
-      const fd = new FormData();
-      for (const [key, value] of Object.entries(values)) fd.set(key, value ?? "");
-      fd.set("name", name);
-      const result = await saveBriefingTemplateAction(undefined, fd).catch(() => undefined);
-      if (!result?.success || !result.templateId) {
-        setProblem(result?.error ?? u("form.somethingWrong"));
-        setIssues(result?.issues ?? []);
+      const result = await saveValuesAsTemplate(values, name, makeDefault);
+      if (!result.ok) {
+        setProblem(result.error ?? u("form.somethingWrong"));
+        setIssues(result.issues);
         return;
       }
-      if (makeDefault) await setDefaultBriefingTemplateAction(result.templateId).catch(() => undefined);
       toast.success(u("briefing.template.saved", { name: name.trim() }));
       setName("");
       setMakeDefault(false);

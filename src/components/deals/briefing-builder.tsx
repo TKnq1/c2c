@@ -5,6 +5,7 @@ import { saveBriefingAction } from "@/lib/actions/briefing";
 import { discardBriefingDraftAction, saveBriefingDraftAction } from "@/lib/actions/briefing-templates";
 import { validateBriefing, MIN_LIVE_HOURS_OPTIONS } from "@/lib/compliance/briefing";
 import { parseBriefingForm, type FormValues } from "@/lib/compliance/briefing-form";
+import { briefingProgress } from "@/lib/compliance/briefing-progress";
 import { BRIEFING_STEPS, countByStep, firstError, type BriefingStep } from "@/lib/compliance/briefing-steps";
 import { MARKETS, MARKET_RULES, isMarket, type Market } from "@/lib/compliance/disclosure";
 import { USAGE_CHANNEL_CODES, USAGE_CHANNELS } from "@/lib/compliance/usage-rights";
@@ -13,6 +14,8 @@ import { issueMessage, dealLocale } from "@/lib/deals/copy";
 import type { FieldIssue } from "@/lib/deals/action-state";
 import { POST_FORMATS, POST_FORMAT_CODES } from "@/lib/social/platforms";
 import { toast } from "@/lib/toast";
+import { BriefingDone } from "@/components/deals/briefing-done";
+import { BriefingProgress } from "@/components/deals/briefing-progress";
 import { BriefingTemplatePanel, type CopyOption, type TemplateOption } from "@/components/deals/briefing-template-panel";
 import { DealForm } from "@/components/deals/deal-form";
 import { ReconfirmOffers } from "@/components/deals/reconfirm-offers";
@@ -108,6 +111,9 @@ export function BriefingBuilder({
   const [values, setValues] = useState<FormValues>(initialValues);
   const [step, setStep] = useState<BriefingStep>("content");
   const [draftState, setDraftState] = useState<DraftState>("idle");
+  // A briefing that is not written yet starts on the quick start: four answers, the rest already filled in. One that exists opens in full.
+  const [quick, setQuick] = useState(source !== "briefing");
+  const [saved, setSaved] = useState(false);
 
   // What the saved briefing (or the starting point) looks like: a change against it is unsaved, and only that is kept as a draft.
   const baseline = useRef(JSON.stringify(initialValues));
@@ -132,6 +138,7 @@ export function BriefingBuilder({
   const errors = findings.filter((i) => i.severity === "error");
   const warnings = findings.filter((i) => i.severity === "warning");
   const errorsByStep = countByStep(findings);
+  const progress = briefingProgress(values, errors.length);
   const issues: FieldIssue[] = useMemo(() => findings.map((i) => ({ code: i.code, severity: i.severity, field: i.field, message: issueMessage(i, language) })), [findings, language]);
 
   const changeMarket = (next: string) => {
@@ -139,6 +146,19 @@ export function BriefingBuilder({
     const kept = csv(values.disclosureLabels).filter((l) => accepted.includes(l));
     setValues((v) => ({ ...v, targetMarket: next, disclosureLabels: (kept.length > 0 ? kept : accepted.slice(0, 2)).join(",") }));
   };
+
+  // What the quick start leaves as it is, in one line.
+  const prefilled = [
+    u(`briefing.market.${market}`),
+    csv(values.disclosureLabels).join(" / "),
+    flag("draftRequired")
+      ? u("briefing.quick.draft", { lead: values.draftDueDaysBeforePost ?? "", review: values.brandReviewDays ?? "", rounds: values.maxRevisionRounds ?? "" })
+      : u("briefing.quick.noDraft"),
+    u(`briefing.live.${values.minLiveHours ?? "24"}` as Parameters<typeof u>[0]),
+    usageType === "ORGANIC_ONLY" ? u("briefing.quick.noUsage") : u("briefing.quick.usage"),
+  ]
+    .filter(Boolean)
+    .join(" · ");
 
   const usageChannels = USAGE_CHANNEL_CODES.filter((c) => USAGE_CHANNELS[c].type === usageType);
 
@@ -172,6 +192,7 @@ export function BriefingBuilder({
   const jumpToError = () => {
     const first = firstError(findings);
     if (!first) return;
+    setQuick(false);
     setStep(first.step);
     // After the step is on screen.
     requestAnimationFrame(() =>
@@ -229,10 +250,17 @@ export function BriefingBuilder({
         baseline.current = JSON.stringify(latest.current);
         lastDraft.current = baseline.current;
         setDraftState("idle");
+        setSaved(true);
+        window.scrollTo({ top: 0 });
+        document.getElementById("main-content")?.scrollTo({ top: 0, behavior: "smooth" });
       }}
     >
-      {(state, pending) => (
+      {(state, pending) =>
+        saved ? (
+          <BriefingDone requestId={requestId} values={latest.current} hasTemplates={templates.length > 0} onEdit={() => setSaved(false)} />
+        ) : (
         <>
+          <BriefingProgress {...progress} />
           {source === "draft" && (
             <div className={`${cardClass} flex flex-col gap-3 text-sm`}>
               <p>{u("briefing.draft.banner")}</p>
@@ -254,6 +282,43 @@ export function BriefingBuilder({
 
           <BriefingTemplatePanel values={values} templates={templates} copyable={copyable} startOpen={source === "defaults" || source === "template"} onFill={fill} />
 
+          {quick && (
+            <div className={`${cardClass} flex flex-col gap-4`}>
+              <div>
+                <h2 className="font-medium">{u("briefing.quick.title")}</h2>
+                <p className="text-sm text-neutral-600 dark:text-neutral-400">{u("briefing.quick.intro")}</p>
+              </div>
+              <div className="flex flex-col gap-1">
+                <span className="text-sm font-medium">{u("briefing.formats")}</span>
+                <div className="mt-1 grid grid-cols-2 gap-2">
+                  {POST_FORMAT_CODES.map((f) => (
+                    <Check key={f} checked={csv(values.contentFormats).includes(f)} onChange={(on) => toggle("contentFormats", f, on)} label={POST_FORMATS[f].label} />
+                  ))}
+                </div>
+                <FieldNote issues={issues} field="contentFormats" />
+              </div>
+              <Field label={u("briefing.talkingPoints")} name="talkingPoints" issues={issues}>
+                <textarea rows={3} maxLength={2000} value={values.talkingPoints ?? ""} onChange={(e) => set("talkingPoints", e.target.value)} className={inputClass} />
+              </Field>
+              <Field label={u("briefing.hashtags")} hint={u("briefing.hashtagsHint")} name="requiredHashtags" issues={issues}>
+                <input value={values.requiredHashtags ?? ""} onChange={(e) => set("requiredHashtags", e.target.value)} className={inputClass} />
+              </Field>
+              <Field label={u("briefing.quick.postBy")} hint={u("briefing.windowHint")} name="postingWindowEnd" issues={issues}>
+                <input type="date" value={values.postingWindowEnd ?? ""} onChange={(e) => set("postingWindowEnd", e.target.value)} className={inputClass} />
+              </Field>
+              <p className="text-xs text-neutral-500 dark:text-neutral-400">{u("briefing.quick.prefilled", { summary: prefilled })}</p>
+              <button type="button" onClick={() => setQuick(false)} className={`${secondaryButton} w-fit`}>
+                {u("briefing.quick.all")}
+              </button>
+            </div>
+          )}
+
+          <div hidden={quick} className="flex flex-col gap-4">
+          {!quick && (
+            <button type="button" onClick={() => setQuick(true)} className="w-fit text-sm text-neutral-500 underline transition hover:text-ink dark:text-neutral-400">
+              {u("briefing.quick.back")}
+            </button>
+          )}
           <div role="tablist" aria-label={u("briefing.steps")} className="grid grid-cols-[1fr_1.7fr_1fr] gap-1 rounded bg-fog p-1">
             {BRIEFING_STEPS.map((id, i) => (
               <button
@@ -451,6 +516,8 @@ export function BriefingBuilder({
             {stepNav}
           </div>
 
+          </div>
+
           {/* On a phone it is fixed above the tab bar (a sticky bar would sit at the mercy of <main>'s padding), from md up it sticks to
               the foot of the window: the save button and the errors stay in reach however far the form is scrolled. */}
           <div aria-hidden className="h-20 md:hidden" />
@@ -478,7 +545,8 @@ export function BriefingBuilder({
             </div>
           </div>
         </>
-      )}
+        )
+      }
     </DealForm>
   );
 }
