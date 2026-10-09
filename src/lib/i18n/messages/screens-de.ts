@@ -799,7 +799,7 @@ export const screensDe: DeepString<typeof screens> = {
     brand: "Marke",
   },
   marketing: {
-    checkbox: "Schickt mir ab und zu Neuigkeiten zu comtor. Ich bestätige das zuerst per E-Mail.",
+    checkbox: "Schickt mir ab und zu Neuigkeiten zu comtor. Jederzeit stoppbar.",
     settingsTitle: "Produkt-News",
     settingsOff: "Freiwillig. Wir schreiben erst, nachdem du den Link bestätigt hast.",
     settingsPending: "Öffne die Mail und drück den Button. Das ist das Ja.",

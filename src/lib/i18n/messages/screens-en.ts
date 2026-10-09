@@ -803,7 +803,7 @@ export const screens = {
     brand: "Brand",
   },
   marketing: {
-    checkbox: "Send me occasional news about comtor. I'll confirm it by email first.",
+    checkbox: "Send me occasional news about comtor. You can stop it any time.",
     settingsTitle: "Product news",
     settingsOff: "Optional. We only email you after you confirm the link.",
     settingsPending: "Open the email we sent and press the button. That is the yes.",

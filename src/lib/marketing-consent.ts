@@ -1,4 +1,3 @@
-import { after } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { sendEmail } from "@/lib/email";
 import { marketingConsentEmail } from "@/lib/email-templates";
@@ -17,8 +16,8 @@ export function marketingResendBlocked(sentAt: Date | null, now = Date.now()) {
   return sentAt !== null && now - sentAt.getTime() < MARKETING_RESEND_AFTER_MS;
 }
 
-// The checkbox, or the settings button. Does not record consent: that is
-// the button on the page the link opens.
+// The settings button. Does not record consent: that is the button on the
+// page the link opens.
 export async function requestMarketingConsent(userId: string): Promise<MarketingConsentResult> {
   const user = await prisma.user.findUnique({
     where: { id: userId },
@@ -48,8 +47,10 @@ export async function requestMarketingConsent(userId: string): Promise<Marketing
   return "sent";
 }
 
-export function queueMarketingConsent(userId: string) {
-  after(() => requestMarketingConsent(userId).catch((err) => console.error("Marketing confirmation email failed:", err)));
+// The account form's checkbox is the consent itself, so nothing is mailed to confirm it: the address was just given by the person
+// who is signing up, and ticking the box is the explicit, unprompted "yes". The moment is stored, as it is for the confirmed link.
+export function marketingConsentFromCheckbox(checked: boolean): { marketingConsentAt?: Date } {
+  return checked ? { marketingConsentAt: new Date() } : {};
 }
 
 export async function confirmMarketingConsent(token: string): Promise<"ok" | "invalid"> {
