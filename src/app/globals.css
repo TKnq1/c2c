@@ -52,6 +52,11 @@
      clear of the indicator (which ends 13px up). 8px where there's no
      inset. */
   --bar-bottom: max(calc(var(--safe-bottom) - 20px), 8px);
+  /* The phone tab bar floats as a pill, clear of the screen's bottom edge and of the home indicator. --tabbar-space is how far up from
+     the edge its top reaches plus a small margin: what page content and the bars and toasts above it have to stay clear of. */
+  --pill-bottom: max(calc(var(--safe-bottom) - 6px), 12px);
+  --pill-h: 3.625rem;
+  --tabbar-space: calc(var(--pill-bottom) + var(--pill-h) + 0.75rem);
   /* The header's height on phones, where it floats over the page (see
      Nav): 38px logo + 2 × 12px padding + 1px border, under the notch. */
   --header-h: calc(var(--safe-top) + 63px);
@@ -339,7 +344,7 @@ html:has(body.dashboard-shell) {
   /* The card runs from just under the header to just above the tab bar. The notices above it keep their place relative to it. */
   main:has(> .feed-fill) {
     padding-top: calc(var(--header-h) + 0.5rem);
-    padding-bottom: calc(var(--bar-bottom) + 3.5rem);
+    padding-bottom: var(--tabbar-space);
   }
   main:has(> .feed-fill) > .dashboard-banners {
     margin-top: -0.5rem;

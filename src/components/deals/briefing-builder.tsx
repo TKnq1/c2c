@@ -442,7 +442,7 @@ export function BriefingBuilder({
           {/* On a phone it is fixed above the tab bar (a sticky bar would sit at the mercy of <main>'s padding), from md up it sticks to
               the foot of the window: the save button and the errors stay in reach however far the form is scrolled. */}
           <div aria-hidden className="h-20 md:hidden" />
-          <div className="max-md:fixed max-md:inset-x-6 max-md:bottom-[calc(var(--bar-bottom)+3.5rem)] max-md:z-30 md:sticky md:bottom-4 md:z-10" aria-live="polite">
+          <div className="max-md:fixed max-md:inset-x-6 max-md:bottom-[calc(var(--tabbar-space)-0.25rem)] max-md:z-30 md:sticky md:bottom-4 md:z-10" aria-live="polite">
             <div className="flex items-center gap-3 rounded border border-ink/10 bg-background/95 p-3 shadow-lg backdrop-blur">
               <div className="min-w-0 flex-1 text-sm">
                 {errors.length > 0 ? (

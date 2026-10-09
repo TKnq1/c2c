@@ -12,8 +12,8 @@ describe("the tab bar", () => {
   });
 
   it("holds four tabs where brand deals are on", () => {
-    expect(ids(tabLinks("CREATOR", true, counts(), label))).toEqual(["feed", "messages", "deals", "account"]);
-    expect(ids(tabLinks("STARTUP", true, counts(), label))).toEqual(["requests", "messages", "deals", "account"]);
+    expect(ids(tabLinks("CREATOR", true, counts(), label))).toEqual(["feed", "discover", "messages", "deals", "account"]);
+    expect(ids(tabLinks("STARTUP", true, counts(), label))).toEqual(["requests", "discover", "messages", "deals", "account"]);
   });
 
   it("keeps the payments badge where there is no Deals tab to carry it", () => {
@@ -25,6 +25,7 @@ describe("the tab bar", () => {
     const tabs = tabLinks("CREATOR", true, counts({ unreadMessages: 3, pendingPayments: 1, dealsToDo: 2 }), label);
     expect(tabs.map((l) => [l.id, l.badge])).toEqual([
       ["feed", 0],
+      ["discover", 0],
       ["messages", 3],
       ["deals", 3],
       ["account", 0],

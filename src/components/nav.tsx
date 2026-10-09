@@ -39,6 +39,7 @@ import type { Me } from "@/app/api/me/route";
 import { useNavigationBlocker } from "@/lib/navigation-blocker";
 import { isTextField, resetPageScroll } from "@/lib/keyboard";
 import { dealsEnabled } from "@/lib/deals/flag";
+import { haptic } from "@/lib/haptics";
 import { activeHrefFor, appLinks, discoverHrefOf, tabLinks, type NavCounts, type NavId, type NavLink } from "@/lib/nav-links";
 
 const TAB_ICONS: Record<NavId, { outline: IconType; filled: IconType }> = {
@@ -189,6 +190,24 @@ export function Nav() {
     };
   }, [showNav, pathname, countsVersion]);
 
+  // A light tick whenever a tap on a link leads to another page of the app: tab bar, lists, cards, back links alike. Listened for on the
+  // document, in the capture phase, so every link counts without each one asking for it, and it still runs inside the tap (which is
+  // when iOS plays it). Links that stay on the page, open elsewhere or go to another site are no page change.
+  useEffect(() => {
+    if (!showNav) return;
+    const onClick = (e: MouseEvent) => {
+      if (e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+      const link = (e.target as Element | null)?.closest?.("a[href]") as HTMLAnchorElement | null;
+      if (!link || (link.target && link.target !== "_self") || link.hasAttribute("download")) return;
+      const url = new URL(link.href, window.location.href);
+      if (url.origin !== window.location.origin) return;
+      if (url.pathname === window.location.pathname && url.search === window.location.search) return;
+      haptic();
+    };
+    document.addEventListener("click", onClick, true);
+    return () => document.removeEventListener("click", onClick, true);
+  }, [showNav]);
+
   const onNavigate = (e: { preventDefault: () => void }) => {
     if (isBlocked && !window.confirm(t("nav.leaveUnsaved"))) {
       e.preventDefault();
@@ -285,15 +304,17 @@ export function Nav() {
       />
 
       {/* Bottom tab bar — mobile only. Every destination is one tap away,
-          app-style, instead of behind a hamburger drawer. Frosted like the
-          header: the page scrolls on underneath it. */}
+          app-style, instead of behind a hamburger drawer. A long pill that
+          floats above the screen's bottom edge (--pill-bottom), frosted like
+          the header: the page scrolls on underneath it. The current tab sits
+          on a soft pill of its own. */}
       <nav
         aria-label={t("nav.main")}
-        className={`app-tabbar md:hidden fixed inset-x-0 bottom-0 z-40 rounded-t-[20px] border-t border-ink/10 bg-background/80 pb-[var(--bar-bottom)] backdrop-blur-xl backdrop-saturate-150 no-print ${
+        className={`app-tabbar md:hidden fixed inset-x-4 bottom-[var(--pill-bottom)] z-40 rounded-full border border-ink/10 bg-background/90 p-1 shadow-[0_10px_30px_-8px_rgba(0,0,0,0.28)] backdrop-blur-xl backdrop-saturate-150 no-print ${
           hideOnMobile ? "hidden" : ""
         }`}
       >
-        <div className="flex items-stretch">
+        <div className="flex items-stretch gap-0.5">
           {tabs.map((l) => {
             const icons = TAB_ICONS[l.id];
             const isActive = l.href === activeTabHref;
@@ -307,8 +328,8 @@ export function Nav() {
                 prefetch={false}
                 aria-current={isActive ? "page" : undefined}
                 aria-label={l.badge > 0 ? t("nav.badgeNew", { label: l.label, count: l.badge }) : l.label}
-                className={`flex flex-1 items-center justify-center pt-3 pb-1.5 transition ${
-                  isActive ? "text-ink" : "text-neutral-400 dark:text-neutral-500"
+                className={`flex h-12 flex-1 items-center justify-center rounded-full transition ${
+                  isActive ? "bg-ink/10 text-ink" : "text-neutral-400 dark:text-neutral-500"
                 }`}
               >
                 {/* Two stacked icons cross-fading, not a conditional swap —

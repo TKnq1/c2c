@@ -108,3 +108,11 @@ Alles hängt am Schalter `BRAND_DEALS_ENABLED`: ohne ihn bleibt die Oberfläche 
   Zahlen stehen zu zweit nebeneinander.
 - *Nicht angefasst:* Installations-Hinweis (steht weiter auf jeder Seite oben), Kontrast der grauen Hilfstexte, Touch-Flächen im
   Feed (40 px), Smoke-Tests in der CI, Doppelung von Deals-Karte und Kachel „Offene Zahlungen“ auf der Marken-Startseite.
+- **Untere Leiste (Handy):** eine lange, runde Pille, die über dem unteren Rand schwebt (`--pill-bottom`, `--tabbar-space` in
+  `globals.css`), mit Schatten und Glas; der aktuelle Eintrag liegt auf einer eigenen Pille. Fünf Einträge: Start, **Entdecken
+  (Lupe)**, Nachrichten, Deals, Konto (ohne Deals: Zahlungen und Einstellungen). Die Lupe oben in der Kopfzeile entfällt dafür.
+  Seitenränder, Speichern-Leiste im Briefing und Toasts richten sich nach `--tabbar-space`.
+- **Haptik:** bei jedem Tipp auf einen Link, der auf eine andere Seite der App führt, ein kurzer Tick (`haptic()`, Android:
+  `vibrate`, iOS 18: Schalter-Trick). Nur auf einem echten iPhone prüfbar.
+- **Onboarding, E-Mail-Haken:** der Haken ist die Einwilligung (`marketingConsentFromCheckbox`), es geht keine Mail zum Bestätigen
+  mehr raus. In den Einstellungen bleibt der Weg über den Link. Datenschutztext angepasst, `LEGAL_VERSION` 2026-10-09.1.

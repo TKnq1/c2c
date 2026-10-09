@@ -57,12 +57,12 @@ function dealsLink(badge: number, dealsToDo: number, label: Labels): NavLink {
   };
 }
 
-// The phone's tab bar. Where brand deals are on it holds four tabs: home, messages, deals, account. Discover sits in the header
-// then, and Payments and Invoices are tabs on the Deals pages (see DealsTabs). Without deals nothing changes.
+// The phone's tab bar, five tabs either way: home, Discover, messages, then deals and account where brand deals are on (Payments and
+// Invoices are tabs on the Deals pages then, see DealsTabs), or Payments and settings where they are not.
 export function tabLinks(role: Role, showDeals: boolean, counts: NavCounts, label: Labels): NavLink[] {
   const all = appLinks(role, showDeals, counts, label);
   if (!showDeals) return all;
-  const tabs = all.filter((l) => l.id === "requests" || l.id === "feed" || l.id === "messages" || l.id === "deals");
+  const tabs = all.filter((l) => l.id === "requests" || l.id === "feed" || l.id === "discover" || l.id === "messages" || l.id === "deals");
   return [
     ...tabs.map((l) => (l.id === "deals" ? { ...l, covers: [...(l.covers ?? []), paymentsHrefOf(role)] } : l)),
     { href: settingsHrefOf(role), id: "account", label: label("account"), badge: 0 },
