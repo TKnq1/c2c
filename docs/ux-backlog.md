@@ -37,7 +37,7 @@ Alles hängt am Schalter `BRAND_DEALS_ENABLED`: ohne ihn bleibt die Oberfläche 
 12. **Vorlagen** ✓: wählen, aus dem Formular speichern (auf Wunsch als Standard für neue Anfragen), umbenennen, löschen, Standard
     setzen, auf mehrere Anfragen anwenden (`/dashboard/startup/templates`, mit Ergebnis je Anfrage). *Offen:* mitgelieferte
     Beispielvorlagen („Reel + Story“, „Nur TikTok“, „UGC ohne Posting“): bisher legt die Marke ihre eigenen an.
-13. **Drei Schritte statt sechs Abschnitte** ✓: Inhalt → Kennzeichnung und Fristen → Rechte. Exklusivität und Nutzungsrechte sind
+13. **Drei Schritte statt sechs Abschnitte** ✓: Inhalt → Regeln → Rechte. Exklusivität und Nutzungsrechte sind
     aus, bis man sie einschaltet. Fehlerzahl je Schritt auf dem Reiter.
 14. **Briefing aus früherer Anfrage kopieren und Standardwerte merken** ✓: Auswahl „Von einer früheren Anfrage übernehmen“ füllt das
     Formular (ohne Termine), gespeichert wird erst mit dem Briefing. Ein unfertiger Entwurf wird nach zwei Sekunden automatisch
@@ -117,7 +117,7 @@ Alles hängt am Schalter `BRAND_DEALS_ENABLED`: ohne ihn bleibt die Oberfläche 
 - **Onboarding, E-Mail-Haken:** der Haken ist die Einwilligung (`marketingConsentFromCheckbox`), es geht keine Mail zum Bestätigen
   mehr raus. In den Einstellungen bleibt der Weg über den Link. Datenschutztext angepasst, `LEGAL_VERSION` 2026-10-09.1.
 - **Briefing (9.10., abends):** Formate als Plattform-Buttons mit Icon, darunter klappen Reel, Post, Story usw. auf (`FormatPicker`);
-  Budget-Rechner pro Format (nur im Browser gemerkt, nicht Teil des Vertrags); Vorschau „So sieht der Creator dein Briefing“;
+  Vorschau „So sieht der Creator dein Briefing“;
   „Beispiel einfügen“ bei Kernbotschaft und „Bitte vermeiden“; Frist-Schnellwahl (2 Wochen, 30 Tage, Monatsende); Hashtags und
   Erwähnungen als Chips; Nutzungsrechte als Ja/Nein-Frage; der Balken nennt den ersten Fehler beim Namen. Akzentfarbe: Elektro-Indigo
   `#5B5BF0` (`--accent` in `globals.css`).

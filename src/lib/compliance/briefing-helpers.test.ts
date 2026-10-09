@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { addTags, deadlineFor, eurosToCents, removeTag, splitTags } from "@/lib/compliance/briefing-helpers";
+import { addTags, deadlineFor, removeTag, splitTags } from "@/lib/compliance/briefing-helpers";
 
 const day = (y: number, m: number, d: number) => new Date(y, m - 1, d, 12, 0, 0);
 
@@ -28,14 +28,5 @@ describe("tags", () => {
   it("adds what was typed and removes a tag", () => {
     expect(addTags("glowco", "#herbst winter")).toBe("glowco herbst winter");
     expect(removeTag("glowco herbst", "Herbst")).toBe("glowco");
-  });
-});
-
-describe("eurosToCents", () => {
-  it("reads commas and points, and treats anything else as zero", () => {
-    expect(eurosToCents("180")).toBe(18000);
-    expect(eurosToCents("180,50")).toBe(18050);
-    expect(eurosToCents("abc")).toBe(0);
-    expect(eurosToCents("-5")).toBe(0);
   });
 });

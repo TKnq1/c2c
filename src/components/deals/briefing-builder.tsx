@@ -15,11 +15,9 @@ import { issueMessage, dealLocale } from "@/lib/deals/copy";
 import type { FieldIssue } from "@/lib/deals/action-state";
 import { toast } from "@/lib/toast";
 import { BriefingPreview } from "@/components/deals/briefing-preview";
-import { BudgetSplit } from "@/components/deals/budget-split";
 import { Check } from "@/components/deals/choice-button";
 import { TagInput } from "@/components/deals/tag-input";
 import { FormatPicker } from "@/components/deals/format-picker";
-import { isPostFormat } from "@/lib/social/platforms";
 import { BriefingDone } from "@/components/deals/briefing-done";
 import { BriefingProgress } from "@/components/deals/briefing-progress";
 import { BriefingTemplatePanel, type CopyOption, type TemplateOption } from "@/components/deals/briefing-template-panel";
@@ -320,7 +318,6 @@ export function BriefingBuilder({
                 <div className="mt-1">
                   <FormatPicker selected={csv(values.contentFormats)} onToggle={(f, on) => toggle("contentFormats", f, on)} />
                 </div>
-                <BudgetSplit requestId={requestId} formats={csv(values.contentFormats).filter(isPostFormat)} budgetCents={budgetMaxCents} />
                 <FieldNote issues={issues} field="contentFormats" />
               </div>
               <Field label={u("briefing.talkingPoints")} name="talkingPoints" issues={issues}>
@@ -393,7 +390,6 @@ export function BriefingBuilder({
                 <div className="mt-1">
                   <FormatPicker selected={csv(values.contentFormats)} onToggle={(f, on) => toggle("contentFormats", f, on)} />
                 </div>
-                <BudgetSplit requestId={requestId} formats={csv(values.contentFormats).filter(isPostFormat)} budgetCents={budgetMaxCents} />
                 <FieldNote issues={issues} field="contentFormats" />
               </div>
               <Field label={u("briefing.hashtags")} hint={u("briefing.hashtagsHint")} name="requiredHashtags" issues={issues} plain>

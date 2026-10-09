@@ -47,9 +47,3 @@ export function removeTag(raw: string | undefined, tag: string): string {
     .filter((t) => t.toLowerCase() !== tag.toLowerCase())
     .join(" ");
 }
-
-// "180", "180,50" or "180.5" -> cents; anything else counts as nothing.
-export function eurosToCents(raw: string | undefined): number {
-  const n = Number((raw ?? "").trim().replace(",", "."));
-  return Number.isFinite(n) && n > 0 ? Math.round(n * 100) : 0;
-}
