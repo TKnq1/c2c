@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { IoCheckmarkCircle, IoChevronDown } from "react-icons/io5";
 import type { FieldIssue } from "@/lib/deals/action-state";
 
 // The few shapes every deal screen is built from, in the app's monochrome look.
@@ -36,6 +37,25 @@ export function Section({
         {action}
       </div>
       {children}
+    </section>
+  );
+}
+
+// A part of the deal page folded to one line: what is behind the deal ("Held safely: 238 €") and the history. One tap opens it.
+// Deep links to the part (#drafts) open it too, see ScrollToHash.
+export function Folded({ id, summary, check = false, children }: { id: string; summary: string; check?: boolean; children: ReactNode }) {
+  return (
+    <section id={id} className="scroll-mt-6">
+      <details className="group rounded bg-fog px-4 py-1">
+        <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between gap-3 text-sm font-medium [&::-webkit-details-marker]:hidden">
+          <span className="flex min-w-0 items-center gap-2">
+            {check && <IoCheckmarkCircle className="h-5 w-5 shrink-0" aria-hidden />}
+            <span className="min-w-0 break-words">{summary}</span>
+          </span>
+          <IoChevronDown className="h-4 w-4 shrink-0 text-neutral-500 transition-transform group-open:rotate-180" aria-hidden />
+        </summary>
+        <div className="pb-3 pt-1">{children}</div>
+      </details>
     </section>
   );
 }

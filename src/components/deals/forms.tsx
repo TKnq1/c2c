@@ -1,6 +1,7 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { IoEllipsisHorizontal } from "react-icons/io5";
 import { cancelDealAction, confirmPostAction, confirmUsageAction, deliverUsageAction, openDisputeAction, recheckPostsAction, reviewDraftAction, schedulePostAction, signContractAction, submitDealPostAction, submitDraftAction } from "@/lib/actions/deals";
 import { resizeImageFile } from "@/lib/resize-image";
 import { validatePostDisclosure, type Market } from "@/lib/compliance/disclosure";
@@ -29,11 +30,12 @@ export function ContinueContractButton({ dealId, termsHash }: { dealId: string; 
   return <DealActionButton action={() => signContractAction(dealId, termsHash)} label={u("contract.continue")} successMessage={u("contract.signed")} />;
 }
 
-export function CancelDealButton({ dealId, funded }: { dealId: string; funded: boolean }) {
+export function CancelDealButton({ dealId, funded, className }: { dealId: string; funded: boolean; className?: string }) {
   const u = useDealText();
   return (
     <DealActionButton
       variant="secondary"
+      className={className}
       action={() => cancelDealAction(dealId)}
       label={u("deal.cancel")}
       successMessage={u("deal.cancelled")}
@@ -330,35 +332,92 @@ export function DeliverUsageForm({ dealId, channels }: { dealId: string; channel
 // A chargeback is never opened by a person: only the system does that, when Stripe tells it about one.
 const REASONS: Exclude<DisputeReason, "CHARGEBACK">[] = ["MISSED_DEADLINE", "DRAFT_REJECTED", "POST_REMOVED", "DISCLOSURE_MISSING", "CONTENT_MISMATCH", "USAGE_RIGHTS_MISSING", "OTHER"];
 
-export function OpenDisputeButton({ dealId }: { dealId: string }) {
+function DisputeDialog({ dealId, open, onClose }: { dealId: string; open: boolean; onClose: () => void }) {
+  const u = useDealText();
+  return (
+    <Dialog open={open} onClose={onClose} title={u("dispute.title")}>
+      <p className="text-sm text-neutral-600 dark:text-neutral-400">{u("dispute.explain")}</p>
+      <DealForm action={openDisputeAction.bind(null, dealId)} successMessage={u("dispute.opened")} submitLabel={u("dispute.submit")} onDone={onClose} className="mt-3 flex flex-col gap-3">
+        {(state) => (
+          <>
+            <Field label={u("dispute.reason")}>
+              <select name="reason" defaultValue="OTHER" className={inputClass}>
+                {REASONS.map((r) => (
+                  <option key={r} value={r}>
+                    {u(`dispute.reason.${r}`)}
+                  </option>
+                ))}
+              </select>
+            </Field>
+            <Field label={u("dispute.details")} hint={u("dispute.detailsHint")} name="details" issues={state?.issues}>
+              <textarea name="details" rows={4} maxLength={1000} required className={inputClass} />
+            </Field>
+          </>
+        )}
+      </DealForm>
+    </Dialog>
+  );
+}
+
+const menuItem = "w-full rounded px-3 py-2.5 text-left text-sm transition hover:bg-neutral-200/60 disabled:opacity-50 dark:hover:bg-neutral-700/60";
+
+// The rarely needed actions of a deal, out of the way: report a problem, cancel the deal. A menu button in the header, so the
+// page itself is about the next step. The dispute form is a dialog that lives outside the menu, so closing the menu does not
+// close it.
+export function DealMenu({ dealId, canDispute, canCancel, funded }: { dealId: string; canDispute: boolean; canCancel: boolean; funded: boolean }) {
   const u = useDealText();
   const [open, setOpen] = useState(false);
+  const [dispute, setDispute] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const outside = (e: PointerEvent) => {
+      if (!ref.current?.contains(e.target as Node)) setOpen(false);
+    };
+    const escape = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setOpen(false);
+    };
+    document.addEventListener("pointerdown", outside);
+    document.addEventListener("keydown", escape);
+    return () => {
+      document.removeEventListener("pointerdown", outside);
+      document.removeEventListener("keydown", escape);
+    };
+  }, [open]);
+
+  if (!canDispute && !canCancel) return null;
   return (
-    <>
-      <button type="button" onClick={() => setOpen(true)} className={quietButton}>
-        {u("dispute.open")}
+    <div ref={ref} className="relative shrink-0">
+      <button
+        type="button"
+        aria-haspopup="menu"
+        aria-expanded={open}
+        aria-label={u("deal.menu")}
+        onClick={() => setOpen((value) => !value)}
+        className="flex h-10 w-10 items-center justify-center rounded-full text-neutral-500 transition hover:bg-fog hover:text-ink"
+      >
+        <IoEllipsisHorizontal className="h-5 w-5" aria-hidden />
       </button>
-      <Dialog open={open} onClose={() => setOpen(false)} title={u("dispute.title")}>
-        <p className="text-sm text-neutral-600 dark:text-neutral-400">{u("dispute.explain")}</p>
-        <DealForm action={openDisputeAction.bind(null, dealId)} successMessage={u("dispute.opened")} submitLabel={u("dispute.submit")} onDone={() => setOpen(false)} className="mt-3 flex flex-col gap-3">
-          {(state) => (
-            <>
-              <Field label={u("dispute.reason")}>
-                <select name="reason" defaultValue="OTHER" className={inputClass}>
-                  {REASONS.map((r) => (
-                    <option key={r} value={r}>
-                      {u(`dispute.reason.${r}`)}
-                    </option>
-                  ))}
-                </select>
-              </Field>
-              <Field label={u("dispute.details")} hint={u("dispute.detailsHint")} name="details" issues={state?.issues}>
-                <textarea name="details" rows={4} maxLength={1000} required className={inputClass} />
-              </Field>
-            </>
+      {open && (
+        <div role="menu" className="absolute right-0 top-full z-20 mt-1 flex w-60 flex-col rounded border border-ink/10 bg-background p-1.5 shadow-lg">
+          {canDispute && (
+            <button
+              type="button"
+              role="menuitem"
+              className={menuItem}
+              onClick={() => {
+                setOpen(false);
+                setDispute(true);
+              }}
+            >
+              {u("dispute.open")}
+            </button>
           )}
-        </DealForm>
-      </Dialog>
-    </>
+          {canCancel && <CancelDealButton dealId={dealId} funded={funded} className={menuItem} />}
+        </div>
+      )}
+      <DisputeDialog dealId={dealId} open={dispute} onClose={() => setDispute(false)} />
+    </div>
   );
 }

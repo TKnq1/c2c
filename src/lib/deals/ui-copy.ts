@@ -34,6 +34,14 @@ const CORE_WORDS = {
   "deals.open": { en: "Open deal", de: "Deal öffnen" },
   "deals.filterEmpty": { en: "No deal matches this filter.", de: "Kein Deal passt zu diesem Filter." },
   "deals.showAll": { en: "Show all deals", de: "Alle Deals zeigen" },
+  "deals.filters": { en: "Filter", de: "Filter" },
+  "deals.filter.all": { en: "All", de: "Alle" },
+  "deals.filter.mine": { en: "Waiting for me", de: "Wartet auf mich" },
+  "deals.filter.active": { en: "Active", de: "Aktiv" },
+  "deals.filter.done": { en: "Finished", de: "Abgeschlossen" },
+  "home.dealsWaiting.one": { en: "1 deal is waiting for you", de: "1 Deal wartet auf dich" },
+  "home.dealsWaiting.many": { en: "{count} deals are waiting for you", de: "{count} Deals warten auf dich" },
+  "home.dealsWaiting.open": { en: "Open", de: "Öffnen" },
   "deals.businessLink": { en: "Business details", de: "Geschäftsdaten" },
 
   // ----- status
@@ -89,6 +97,14 @@ const CORE_WORDS = {
   "next.repost.brand": { en: "The post was removed. {name} has until {date} to publish it again.", de: "Der Post wurde entfernt. {name} hat bis {date} Zeit, ihn erneut zu veröffentlichen." },
   "next.payout": { en: "The payout is being released.", de: "Die Auszahlung wird freigegeben." },
   "next.payoutBlocked": { en: "The payout is ready, but payouts are not set up yet. Finish the setup to receive it.", de: "Die Auszahlung ist bereit, aber die Auszahlung ist noch nicht eingerichtet. Schließe die Einrichtung ab, um sie zu erhalten." },
+  "next.action.escrow": { en: "Go to payment", de: "Zur Zahlung" },
+  "next.action.draft": { en: "Go to the draft form", de: "Zum Entwurfsformular" },
+  "next.action.review": { en: "Go to the review", de: "Zur Prüfung" },
+  "next.action.revise": { en: "Go to the draft form", de: "Zum Entwurfsformular" },
+  "next.action.post": { en: "Go to the post form", de: "Zum Post-Formular" },
+  "next.action.repost": { en: "Go to the post form", de: "Zum Post-Formular" },
+  "next.action.proof": { en: "Go to the proof", de: "Zum Beleg" },
+  "stepper.progress": { en: "Step {n} of {total}: {stage}", de: "Schritt {n} von {total}: {stage}" },
   "next.completed": { en: "Done. The payout was released.", de: "Fertig. Die Auszahlung wurde freigegeben." },
   "next.disputed": { en: "Frozen. Our team is looking into it and will decide.", de: "Eingefroren. Unser Team prüft den Fall und entscheidet." },
   "next.cancelled": { en: "This deal was cancelled.", de: "Dieser Deal wurde abgebrochen." },
@@ -96,6 +112,7 @@ const CORE_WORDS = {
 
   // ----- deal page
   "deal.back": { en: "All deals", de: "Alle Deals" },
+  "deal.menu": { en: "More", de: "Mehr" },
   "deal.with": { en: "with {name}", de: "mit {name}" },
   "deal.chat": { en: "Open chat", de: "Chat öffnen" },
   "deal.cancel": { en: "Cancel deal", de: "Deal abbrechen" },
@@ -107,6 +124,7 @@ const CORE_WORDS = {
 
   // ----- contract
   "contract.title": { en: "Contract", de: "Vertrag" },
+  "contract.allTerms": { en: "All terms", de: "Alle Bedingungen" },
   "contract.intro": { en: "These are the terms of the briefing as they were when the offer was accepted. They can't change any more.", de: "Das sind die Bedingungen des Briefings zum Zeitpunkt der Annahme. Sie können sich nicht mehr ändern." },
   "contract.price": { en: "Price (net)", de: "Preis (netto)" },
   "contract.vat": { en: "VAT {rate} %", de: "USt. {rate} %" },
@@ -160,6 +178,7 @@ const CORE_WORDS = {
 
   // ----- drafts
   "drafts.title": { en: "Drafts", de: "Entwürfe" },
+  "drafts.done": { en: "Draft approved", de: "Entwurf freigegeben" },
   "drafts.none": { en: "No draft yet.", de: "Noch kein Entwurf." },
   "drafts.version": { en: "Draft {version}", de: "Entwurf {version}" },
   "drafts.status.SUBMITTED": { en: "Waiting for review", de: "Wartet auf Prüfung" },
@@ -192,6 +211,7 @@ const CORE_WORDS = {
 
   // ----- posts
   "posts.title": { en: "Posts", de: "Posts" },
+  "posts.done": { en: "Post verified", de: "Post verifiziert" },
   "posts.none": { en: "No post reported yet.", de: "Noch kein Post gemeldet." },
   "posts.status.PENDING": { en: "Being checked", de: "Wird geprüft" },
   "posts.status.VERIFIED": { en: "Verified live", de: "Online verifiziert" },
@@ -265,6 +285,7 @@ const CORE_WORDS = {
 
   // ----- disputes
   "dispute.title": { en: "Report a problem", de: "Problem melden" },
+  "dispute.section": { en: "Reported problem", de: "Gemeldetes Problem" },
   "dispute.open": { en: "Something is wrong? Report a problem", de: "Stimmt etwas nicht? Problem melden" },
   "dispute.explain": { en: "The deal and the payment are frozen until our team has looked at it and decided. Please only use this if you can't sort it out with the other side.", de: "Der Deal und die Zahlung werden eingefroren, bis unser Team den Fall geprüft und entschieden hat. Nutze das nur, wenn ihr es nicht mit der Gegenseite klären könnt." },
   "dispute.reason": { en: "What is the problem?", de: "Worin besteht das Problem?" },

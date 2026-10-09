@@ -49,6 +49,13 @@ describe("contractView", () => {
     expect(rows["Creator erhält"]).toBe(formatCents(97_000));
   });
 
+  it("marks the short form: price, what is paid or paid out, formats, labelling, window and usage, and nothing about tax or fees", () => {
+    const core = (viewer: "STARTUP" | "CREATOR") =>
+      contractView({ ...base, viewer, u: de }).rows.flatMap((r) => (r.kind === "row" && r.core ? [r.label] : []));
+    expect(core("STARTUP")).toEqual(["Preis (netto)", "Marke zahlt", "Content", "Werbekennzeichnung", "Posting-Fenster", "Nutzungsrechte"]);
+    expect(core("CREATOR")).toEqual(["Preis (netto)", "Creator erhält", "Content", "Werbekennzeichnung", "Posting-Fenster", "Nutzungsrechte"]);
+  });
+
   it("lists the content, the labels, the workflow, the window and how long it stays live", () => {
     const rows = rowsOf(contractView({ ...base, viewer: "STARTUP", u: de }));
     expect(rows["Content"]).toBe("TikTok Video");

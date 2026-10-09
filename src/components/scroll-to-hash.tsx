@@ -16,7 +16,13 @@ export function ScrollToHash() {
     }
     if (!id) return;
 
-    const go = () => document.getElementById(id)?.scrollIntoView({ block: "start" });
+    const go = () => {
+      const target = document.getElementById(id);
+      if (!target) return;
+      // A part that is folded away (<details>) opens first: there is nothing to scroll to inside a closed one.
+      for (let d = target.closest("details"); d; d = d.parentElement?.closest("details") ?? null) d.open = true;
+      target.scrollIntoView({ block: "start" });
+    };
     // A few looks while the layout settles: the shell class is set in an effect of Nav, and fonts and images move things a little.
     const timers = [0, 150, 500].map((ms) => window.setTimeout(go, ms));
     const stop = () => {

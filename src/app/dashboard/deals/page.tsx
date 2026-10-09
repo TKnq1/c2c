@@ -7,13 +7,14 @@ import { Avatar } from "@/components/avatar";
 import { EmptyState } from "@/components/empty-state";
 import { PageTitle } from "@/components/page-title";
 import { Badge, Section, cardClass } from "@/components/deals/ui";
+import { DealsFilter } from "@/components/deals/deals-filter";
 import { DealsTabs } from "@/components/deals/deals-tabs";
 import { dealLocale } from "@/lib/deals/copy";
 import { getLocale } from "@/lib/i18n/server";
 import { nextStep } from "@/lib/deals/next-step";
 import { formatDealDate } from "@/lib/deals/notices";
 import { canUseDeals, isMyTurn, listDealsForUser, type DealListItem } from "@/lib/deals/queries";
-import { filterDeals, parseDealFilter } from "@/lib/deals/list-filter";
+import { GROUP_BY_CAMPAIGN_FROM, dealCounts, filterDeals, groupByCampaign, parseDealFilter } from "@/lib/deals/list-filter";
 import { isTerminal } from "@/lib/deals/status";
 import { parseTerms } from "@/lib/deals/terms";
 import { uiText } from "@/lib/deals/ui-copy";
@@ -41,6 +42,8 @@ export default async function DealsPage(props: PageProps<"/dashboard/deals">) {
   const mine = shown.filter((d) => !isTerminal(d.status) && isMyTurn(d, role));
   const running = shown.filter((d) => !isTerminal(d.status) && !isMyTurn(d, role));
   const finished = shown.filter((d) => isTerminal(d.status));
+  // A brand with many deals sees them grouped by campaign.
+  const byCampaign = role === "STARTUP" && deals.length >= GROUP_BY_CAMPAIGN_FROM;
 
   return (
     <div className="mx-auto flex w-full max-w-2xl flex-col gap-6 pb-8">
@@ -56,6 +59,8 @@ export default async function DealsPage(props: PageProps<"/dashboard/deals">) {
         </div>
       )}
 
+      {deals.length > 0 && <DealsFilter current={filter} counts={dealCounts(deals, role)} u={u} />}
+
       {deals.length === 0 ? (
         <EmptyState icon={IoBriefcaseOutline} title={u("deals.empty")} description={role === "STARTUP" ? u("deals.emptyBrand") : u("deals.emptyCreator")} />
       ) : shown.length === 0 ? (
@@ -67,9 +72,9 @@ export default async function DealsPage(props: PageProps<"/dashboard/deals">) {
         </div>
       ) : (
         <>
-          {mine.length > 0 && <DealGroup title={u("deals.yourTurn")} deals={mine} role={role} locale={locale} highlight />}
-          {running.length > 0 && <DealGroup title={u("deals.running")} deals={running} role={role} locale={locale} />}
-          {finished.length > 0 && <DealGroup title={u("deals.finished")} deals={finished} role={role} locale={locale} />}
+          {mine.length > 0 && <DealGroup title={u("deals.yourTurn")} deals={mine} role={role} locale={locale} campaigns={byCampaign} highlight />}
+          {running.length > 0 && <DealGroup title={u("deals.running")} deals={running} role={role} locale={locale} campaigns={byCampaign} />}
+          {finished.length > 0 && <DealGroup title={u("deals.finished")} deals={finished} role={role} locale={locale} campaigns={byCampaign} />}
         </>
       )}
 
@@ -82,10 +87,30 @@ export default async function DealsPage(props: PageProps<"/dashboard/deals">) {
   );
 }
 
-function DealGroup({ title, deals, role, locale, highlight = false }: { title: string; deals: DealListItem[]; role: "STARTUP" | "CREATOR"; locale: "de" | "en"; highlight?: boolean }) {
-  const u = uiText(locale);
+function DealGroup({ title, deals, role, locale, campaigns = false, highlight = false }: { title: string; deals: DealListItem[]; role: "STARTUP" | "CREATOR"; locale: "de" | "en"; campaigns?: boolean; highlight?: boolean }) {
   return (
     <Section title={title}>
+      {campaigns ? (
+        groupByCampaign(deals).map((group) => (
+          <div key={group.requestId} className="flex flex-col gap-2">
+            {group.deals.length > 1 && (
+              <p className="truncate px-1 text-sm font-medium">
+                {group.title} <span className="font-normal tabular-nums text-neutral-500 dark:text-neutral-400">· {group.deals.length}</span>
+              </p>
+            )}
+            <DealCards deals={group.deals} role={role} locale={locale} highlight={highlight} />
+          </div>
+        ))
+      ) : (
+        <DealCards deals={deals} role={role} locale={locale} highlight={highlight} />
+      )}
+    </Section>
+  );
+}
+
+function DealCards({ deals, role, locale, highlight }: { deals: DealListItem[]; role: "STARTUP" | "CREATOR"; locale: "de" | "en"; highlight: boolean }) {
+  const u = uiText(locale);
+  return (
       <div className="flex flex-col gap-2">
         {deals.map((deal) => {
           const { interest } = deal;
@@ -132,6 +157,5 @@ function DealGroup({ title, deals, role, locale, highlight = false }: { title: s
           );
         })}
       </div>
-    </Section>
   );
 }

@@ -1,10 +1,10 @@
 import Link from "next/link";
 import type { DealStatus } from "@prisma/client";
-import { IoChatbubbleOutline, IoChevronBack, IoDocumentTextOutline } from "react-icons/io5";
+import { IoChatbubbleOutline, IoChevronBack, IoChevronDown, IoDocumentTextOutline } from "react-icons/io5";
 import { Avatar } from "@/components/avatar";
 import { CompletePaymentButton } from "@/components/complete-payment-button";
-import { ConfirmPostButton, ConfirmUsageButton, ContinueContractButton, DeliverUsageForm, OpenDisputeButton, RecheckButton, ReviewDraftForm, ScheduleForm, SignContractButton, SubmitDraftForm, SubmitPostForm, CancelDealButton } from "@/components/deals/forms";
-import { Badge, Row, Section, cardClass } from "@/components/deals/ui";
+import { ConfirmPostButton, ConfirmUsageButton, ContinueContractButton, DealMenu, DeliverUsageForm, RecheckButton, ReviewDraftForm, ScheduleForm, SignContractButton, SubmitDraftForm, SubmitPostForm } from "@/components/deals/forms";
+import { Badge, Folded, Row, Section, cardClass } from "@/components/deals/ui";
 import { usageState } from "@/lib/compliance/usage-rights";
 import { contractView } from "@/lib/deals/contract-rows";
 import type { DealLocale } from "@/lib/deals/copy";
@@ -34,8 +34,21 @@ const date = (value: Date | null, locale: DealLocale) => (value ? formatDealDate
 
 // ---------------------------------------------------------------------------------------------------------------------
 
+// What the "more" menu in the header offers: reporting a problem, and cancelling while that is still possible.
+function menuFlags(data: DealPageData, role: "STARTUP" | "CREATOR") {
+  const status = data.status;
+  const brandMay = status === "CONTRACT_PENDING" || status === "AWAITING_ESCROW" || (status === "IN_PRODUCTION" && data.drafts.length === 0);
+  const creatorMay = ["CONTRACT_PENDING", "AWAITING_ESCROW", "IN_PRODUCTION", "CHANGES_REQUESTED", "DRAFT_APPROVED", "POST_SCHEDULED"].includes(status);
+  return {
+    canDispute: allowedActions(status, role).includes("OPEN_DISPUTE"),
+    canCancel: role === "STARTUP" ? brandMay : creatorMay,
+    funded: data.interest.paymentStatus === "HELD",
+  };
+}
+
 export function DealHeader({ data, role, u, locale }: PanelContext) {
   const { interest } = data;
+  const menu = menuFlags(data, role);
   const other = role === "STARTUP" ? interest.creator : interest.request.startup;
   const name = "displayName" in other ? other.displayName : other.companyName;
   return (
@@ -50,9 +63,10 @@ export function DealHeader({ data, role, u, locale }: PanelContext) {
           <h1 className="break-words font-display text-title-2 font-bold">{interest.request.title}</h1>
           <p className="truncate text-sm text-neutral-500 dark:text-neutral-400">{u("deal.with", { name })}</p>
         </div>
-        <Badge strong={data.status === "DISPUTED"}>{u(`status.${data.status}`)}</Badge>
+        <DealMenu dealId={data.id} {...menu} />
       </div>
-      <div className="flex flex-wrap items-center gap-3 text-sm">
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-2 text-sm">
+        <Badge strong={data.status === "DISPUTED"}>{u(`status.${data.status}`)}</Badge>
         <span className="font-bold tabular-nums">{formatCents(data.brandTotalCents ?? (interest.amountCents ?? 0))}</span>
         <Link href={`/dashboard/messages/${interest.id}`} className="inline-flex items-center gap-1.5 text-neutral-600 hover:text-ink dark:text-neutral-400">
           <IoChatbubbleOutline className="h-4 w-4" aria-hidden />
@@ -64,29 +78,41 @@ export function DealHeader({ data, role, u, locale }: PanelContext) {
   );
 }
 
+// On a phone one line and a bar ("Step 4 of 9: Draft"), from md up all the stages.
 export function Stepper({ data, u }: Pick<PanelContext, "data" | "u">) {
   const current = stageOf(data.status, data.statusBeforeDispute);
   const index = LIFECYCLE_STAGES.indexOf(current);
+  const total = LIFECYCLE_STAGES.length;
   const stopped = data.status === "CANCELLED" || data.status === "DISPUTED";
+  const completed = data.status === "COMPLETED";
+  const step = completed ? total : index + 1;
   return (
-    <ol className="no-scrollbar -mx-1 flex gap-1 overflow-x-auto px-1 text-xs" aria-label="Lifecycle">
-      {LIFECYCLE_STAGES.map((stage, i) => {
-        const done = i < index || data.status === "COMPLETED";
-        const active = i === index && data.status !== "COMPLETED";
-        return (
-          <li
-            key={stage}
-            aria-current={active ? "step" : undefined}
-            className={`flex shrink-0 items-center gap-1.5 rounded-full px-2.5 py-1 ${
-              active ? (stopped ? "border border-ink font-semibold" : "bg-ink font-semibold text-paper") : done ? "bg-fog text-ink" : "text-neutral-400 dark:text-neutral-500"
-            }`}
-          >
-            <span aria-hidden>{done ? "✓" : i + 1}</span>
-            {u(`stage.${stage}`)}
-          </li>
-        );
-      })}
-    </ol>
+    <>
+      <div className="md:hidden">
+        <p className="text-sm font-medium">{u("stepper.progress", { n: step, total, stage: u(`stage.${current}`) })}</p>
+        <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-fog" role="progressbar" aria-valuemin={1} aria-valuemax={total} aria-valuenow={step}>
+          <div className={`h-full rounded-full ${stopped ? "bg-neutral-400" : "bg-ink"}`} style={{ width: `${Math.round((step / total) * 100)}%` }} />
+        </div>
+      </div>
+      <ol className="no-scrollbar -mx-1 hidden gap-1 overflow-x-auto px-1 text-xs md:flex" aria-label="Lifecycle">
+        {LIFECYCLE_STAGES.map((stage, i) => {
+          const done = i < index || completed;
+          const active = i === index && !completed;
+          return (
+            <li
+              key={stage}
+              aria-current={active ? "step" : undefined}
+              className={`flex shrink-0 items-center gap-1.5 rounded-full px-2.5 py-1 ${
+                active ? (stopped ? "border border-ink font-semibold" : "bg-ink font-semibold text-paper") : done ? "bg-fog text-ink" : "text-neutral-400 dark:text-neutral-500"
+              }`}
+            >
+              <span aria-hidden>{done ? "✓" : i + 1}</span>
+              {u(`stage.${stage}`)}
+            </li>
+          );
+        })}
+      </ol>
+    </>
   );
 }
 
@@ -109,28 +135,43 @@ export function ContractPanel({ ctx, clashes, bare = false }: { ctx: PanelContex
     u,
   });
 
+  // The short form up top; everything else (tax lines, labels, hashtags, the brief) under "All terms". Open for whoever still has to
+  // confirm: that is the person who has to read all of it.
+  const core = rows.filter((r) => r.kind === "row" && r.core);
+  const rest = rows.filter((r) => !(r.kind === "row" && r.core));
+  const mustRead = data.status === "CONTRACT_PENDING" && !signedAt;
+  const lines = (list: typeof rows) =>
+    list.map((r) =>
+      r.kind === "row" ? (
+        <Row key={r.label} label={r.label}>
+          {r.value}
+        </Row>
+      ) : (
+        <p key="pending" className="py-1.5 text-xs text-neutral-500 dark:text-neutral-400">
+          {r.text}
+        </p>
+      ),
+    );
+
   const card = (
       <div className={cardClass}>
-        <dl className="divide-y divide-neutral-200 dark:divide-neutral-700">
-          {rows.map((r) =>
-            r.kind === "row" ? (
-              <Row key={r.label} label={r.label}>
-                {r.value}
-              </Row>
-            ) : (
-              <p key="pending" className="py-1.5 text-xs text-neutral-500 dark:text-neutral-400">
-                {r.text}
-              </p>
-            ),
-          )}
-        </dl>
+        <dl className="divide-y divide-neutral-200 dark:divide-neutral-700">{lines(core)}</dl>
 
-        {notes.map((note, index) => (
-          <p key={note.label} className={`${index === 0 ? "mt-3" : "mt-2"} text-sm`}>
-            <span className="font-medium">{note.label}: </span>
-            {note.value}
-          </p>
-        ))}
+        {(rest.length > 0 || notes.length > 0) && (
+          <details className="group mt-2 border-t border-neutral-200 pt-1 dark:border-neutral-700" open={mustRead}>
+            <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between gap-3 text-sm font-medium [&::-webkit-details-marker]:hidden">
+              {u("contract.allTerms")}
+              <IoChevronDown className="h-4 w-4 shrink-0 text-neutral-500 transition-transform group-open:rotate-180" aria-hidden />
+            </summary>
+            <dl className="divide-y divide-neutral-200 dark:divide-neutral-700">{lines(rest)}</dl>
+            {notes.map((note, index) => (
+              <p key={note.label} className={`${index === 0 ? "mt-3" : "mt-2"} text-sm`}>
+                <span className="font-medium">{note.label}: </span>
+                {note.value}
+              </p>
+            ))}
+          </details>
+        )}
 
         {clashes.length > 0 && (
           <ul className="mt-3 flex flex-col gap-1 rounded border border-neutral-300 p-3 text-sm dark:border-neutral-700">
@@ -183,35 +224,36 @@ export function ContractPanel({ ctx, clashes, bare = false }: { ctx: PanelContex
 
 // ---------------------------------------------------------------------------------------------------------------------
 
-export function EscrowPanel({ ctx }: { ctx: PanelContext }) {
+export function EscrowPanel({ ctx, behind = false }: { ctx: PanelContext; behind?: boolean }) {
   const { data, role, u } = ctx;
   const status = data.interest.paymentStatus;
   if (data.status === "CONTRACT_PENDING" || (data.status === "CANCELLED" && status !== "REFUNDED")) return null;
   const total = data.brandTotalCents ?? data.interest.amountCents ?? 0;
+  const state = status === "HELD" ? u("escrow.held", { amount: formatCents(total) }) : status === "RELEASED" ? u("escrow.released") : status === "REFUNDED" ? u("escrow.refunded", { amount: formatCents(total) }) : "";
+  const card = (
+    <div className={cardClass}>
+      {data.status === "AWAITING_ESCROW" ? (
+        <>
+          <p className="text-sm text-neutral-600 dark:text-neutral-400">{u("escrow.explain")}</p>
+          <p className="mt-2 text-sm font-medium">{u("escrow.waiting")}</p>
+          {role === "STARTUP" && <CompletePaymentButton interestId={data.interest.id} label={u("escrow.pay", { amount: formatCents(total) })} />}
+        </>
+      ) : (
+        <p className="text-sm font-medium">{state}</p>
+      )}
+    </div>
+  );
+  if (behind && state) return <Folded id="escrow" summary={state} check>{card}</Folded>;
   return (
     <Section id="escrow" title={u("escrow.title")}>
-      <div className={cardClass}>
-        {data.status === "AWAITING_ESCROW" ? (
-          <>
-            <p className="text-sm text-neutral-600 dark:text-neutral-400">{u("escrow.explain")}</p>
-            <p className="mt-2 text-sm font-medium">{u("escrow.waiting")}</p>
-            {role === "STARTUP" && <CompletePaymentButton interestId={data.interest.id} label={u("escrow.pay", { amount: formatCents(total) })} />}
-          </>
-        ) : (
-          <p className="text-sm font-medium">
-            {status === "HELD" && u("escrow.held", { amount: formatCents(total) })}
-            {status === "RELEASED" && u("escrow.released")}
-            {status === "REFUNDED" && u("escrow.refunded", { amount: formatCents(total) })}
-          </p>
-        )}
-      </div>
+      {card}
     </Section>
   );
 }
 
 // ---------------------------------------------------------------------------------------------------------------------
 
-export function DraftsPanel({ ctx }: { ctx: PanelContext }) {
+export function DraftsPanel({ ctx, behind = false }: { ctx: PanelContext; behind?: boolean }) {
   const { data, terms, role, u, locale } = ctx;
   if (!terms.workflow.draftRequired) return null;
   if (["CONTRACT_PENDING", "AWAITING_ESCROW"].includes(data.status) && data.drafts.length === 0) return null;
@@ -219,8 +261,7 @@ export function DraftsPanel({ ctx }: { ctx: PanelContext }) {
   const canSubmit = role === "CREATOR" && (data.status === "IN_PRODUCTION" || data.status === "CHANGES_REQUESTED");
   const canReview = role === "STARTUP" && data.status === "DRAFT_SUBMITTED";
 
-  return (
-    <Section id="drafts" title={u("drafts.title")}>
+  const card = (
       <div className={`${cardClass} flex flex-col gap-4`}>
         {data.drafts.length === 0 && <p className="text-sm text-neutral-500 dark:text-neutral-400">{u("drafts.none")}</p>}
         {data.drafts.map((draft) => (
@@ -249,6 +290,11 @@ export function DraftsPanel({ ctx }: { ctx: PanelContext }) {
         {canSubmit && <SubmitDraftForm dealId={data.id} revising={data.status === "CHANGES_REQUESTED"} />}
         {canReview && <ReviewDraftForm dealId={data.id} canRequestChanges={roundsLeft > 0} roundsLeft={roundsLeft} />}
       </div>
+  );
+  if (behind && data.drafts.length > 0) return <Folded id="drafts" summary={u("drafts.done")} check>{card}</Folded>;
+  return (
+    <Section id="drafts" title={u("drafts.title")}>
+      {card}
     </Section>
   );
 }
@@ -257,7 +303,7 @@ export function DraftsPanel({ ctx }: { ctx: PanelContext }) {
 
 const POST_STAGES: DealStatus[] = ["DRAFT_APPROVED", "POST_SCHEDULED", "POST_SUBMITTED", "REPOST_REQUIRED"];
 
-export function PostsPanel({ ctx }: { ctx: PanelContext }) {
+export function PostsPanel({ ctx, behind = false }: { ctx: PanelContext; behind?: boolean }) {
   const { data, terms, role, u, locale } = ctx;
   const status = data.status;
   const reachable = POST_STAGES.includes(status) || (status === "IN_PRODUCTION" && !terms.workflow.draftRequired);
@@ -269,13 +315,7 @@ export function PostsPanel({ ctx }: { ctx: PanelContext }) {
   const canReport = role === "CREATOR" && reachable;
   const canRecheck = ["POST_SUBMITTED", "VERIFYING", "REPOST_REQUIRED"].includes(status);
 
-  return (
-    <Section
-      id="posts"
-      title={u("posts.title")}
-      action={canRecheck ? <RecheckButton dealId={data.id} /> : undefined}
-      description={status === "VERIFYING" && data.verificationEndsAt ? u("posts.holdUntil", { date: date(data.verificationEndsAt, locale) }) : undefined}
-    >
+  const card = (
       <div className={`${cardClass} flex flex-col gap-4`}>
         {!hasPosts && <p className="text-sm text-neutral-500 dark:text-neutral-400">{u("posts.none")}</p>}
         {data.scheduledFor && ["POST_SCHEDULED", "POST_SUBMITTED"].includes(status) && !hasPosts && (
@@ -362,6 +402,16 @@ export function PostsPanel({ ctx }: { ctx: PanelContext }) {
           </div>
         )}
       </div>
+  );
+  if (behind && hasPosts) return <Folded id="posts" summary={u("posts.done")} check>{card}</Folded>;
+  return (
+    <Section
+      id="posts"
+      title={u("posts.title")}
+      action={canRecheck ? <RecheckButton dealId={data.id} /> : undefined}
+      description={status === "VERIFYING" && data.verificationEndsAt ? u("posts.holdUntil", { date: date(data.verificationEndsAt, locale) }) : undefined}
+    >
+      {card}
     </Section>
   );
 }
@@ -404,11 +454,10 @@ export function UsagePanel({ ctx }: { ctx: PanelContext }) {
 // ---------------------------------------------------------------------------------------------------------------------
 
 export function DisputePanel({ ctx }: { ctx: PanelContext }) {
-  const { data, role, u, locale } = ctx;
-  const canOpen = allowedActions(data.status, role).includes("OPEN_DISPUTE");
-  if (data.disputes.length === 0 && !canOpen) return null;
+  const { data, u, locale } = ctx;
+  if (data.disputes.length === 0) return null;
   return (
-    <Section id="dispute" title={u("dispute.title")}>
+    <Section id="dispute" title={u("dispute.section")}>
       <div className={`${cardClass} flex flex-col gap-3 text-sm`}>
         {data.disputes.map((d) => (
           <div key={d.id}>
@@ -423,7 +472,6 @@ export function DisputePanel({ ctx }: { ctx: PanelContext }) {
             {d.resolution && <p className="mt-1 font-medium">{u("dispute.resolution", { text: d.resolution })}</p>}
           </div>
         ))}
-        {canOpen && <OpenDisputeButton dealId={data.id} />}
       </div>
     </Section>
   );
@@ -461,8 +509,8 @@ export function TimelinePanel({ ctx }: { ctx: PanelContext }) {
   const { data, u, locale } = ctx;
   const known = (key: string): key is UiKey => key in UI_WORDS;
   return (
-    <Section id="timeline" title={u("deal.timeline")}>
-      <ol className="flex flex-col gap-2 px-1 text-sm">
+    <Folded id="timeline" summary={u("deal.timeline")}>
+      <ol className="flex flex-col gap-2 text-sm">
         {data.events.length === 0 && <li className="text-neutral-500 dark:text-neutral-400">{u("deal.noEvents")}</li>}
         {data.events.map((event) => {
           const direct = `event.${event.kind}`;
@@ -486,16 +534,6 @@ export function TimelinePanel({ ctx }: { ctx: PanelContext }) {
           );
         })}
       </ol>
-    </Section>
+    </Folded>
   );
-}
-
-export function CancelPanel({ ctx, funded }: { ctx: PanelContext; funded: boolean }) {
-  const { data, role } = ctx;
-  const draftCount = data.drafts.length;
-  const status = data.status;
-  const brandMay = status === "CONTRACT_PENDING" || status === "AWAITING_ESCROW" || (status === "IN_PRODUCTION" && draftCount === 0);
-  const creatorMay = ["CONTRACT_PENDING", "AWAITING_ESCROW", "IN_PRODUCTION", "CHANGES_REQUESTED", "DRAFT_APPROVED", "POST_SCHEDULED"].includes(status);
-  if (role === "STARTUP" ? !brandMay : !creatorMay) return null;
-  return <CancelDealButton dealId={data.id} funded={funded} />;
 }

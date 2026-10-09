@@ -46,6 +46,6 @@ describe("the sections", () => {
   it("are the ids the deal page puts on its parts", () => {
     // A link to #drafts only works if a part of the page has that id: the two are kept in step here.
     const panels = readFileSync(join(process.cwd(), "src/components/deals/panels.tsx"), "utf8");
-    for (const section of DEAL_SECTIONS) expect(panels, section).toMatch(new RegExp(`<Section[^>]*\\bid="${section}"`));
+    for (const section of DEAL_SECTIONS) expect(panels, section).toMatch(new RegExp(`<(Section|Folded)[^>]*\\bid="${section}"`));
   });
 });

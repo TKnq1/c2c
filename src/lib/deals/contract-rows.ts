@@ -9,7 +9,9 @@ import { POST_FORMATS } from "@/lib/social/platforms";
 // two cannot say different things. The money a side sees is its own: the brand sees the price, the VAT and what it pays, the
 // creator the fee and the payout; an admin sees both.
 
-export type ContractRow = { kind: "row"; label: string; value: string } | { kind: "pending"; text: string };
+// `core` marks the lines that make up the short form on the deal page (price, what is paid or paid out, formats, labelling, post
+// window, usage rights); everything else sits under "All terms". The PDF prints every line.
+export type ContractRow = { kind: "row"; label: string; value: string; core?: boolean } | { kind: "pending"; text: string };
 
 export type ContractView = {
   rows: ContractRow[];
@@ -28,22 +30,22 @@ export function contractView(args: {
 }): ContractView {
   const { terms, snapshot, viewer, payoutCents, feeCents, u } = args;
   const rows: ContractRow[] = [];
-  const row = (label: string, value: string) => rows.push({ kind: "row", label, value });
+  const row = (label: string, value: string, core = false) => rows.push(core ? { kind: "row", label, value, core } : { kind: "row", label, value });
   const both = viewer === "ADMIN";
 
-  row(u("contract.price"), formatCents(terms.amountCents));
+  row(u("contract.price"), formatCents(terms.amountCents), true);
   if (viewer !== "CREATOR") {
     if (snapshot) {
       row(u("contract.vat", { rate: snapshot.tax.brand.rateBp / 100 }), formatCents(snapshot.tax.brand.vatCents));
       row(both ? `${u("tax.treatment")} (${terms.brandName})` : u("tax.treatment"), u(`tax.${snapshot.tax.brand.treatment}`));
-      row(u("contract.total"), formatCents(snapshot.tax.brand.totalCents));
+      row(u("contract.total"), formatCents(snapshot.tax.brand.totalCents), true);
     } else {
       rows.push({ kind: "pending", text: u("contract.vatPending") });
     }
   }
   if (viewer !== "STARTUP") {
     row(u("contract.fee"), `${formatCents(feeCents)} (${Math.round((feeCents / Math.max(terms.amountCents, 1)) * 1000) / 10} %)`);
-    row(u("contract.payout"), formatCents(payoutCents));
+    row(u("contract.payout"), formatCents(payoutCents), true);
     if (snapshot) row(both ? `${u("tax.treatment")} (${terms.creatorName})` : u("tax.treatment"), u(`tax.${snapshot.tax.creator.treatment}`));
   }
 
@@ -53,9 +55,9 @@ export function contractView(args: {
   const channels = us.channels.map((c) => (isUsageChannel(c) ? USAGE_CHANNELS[c].label : c)).join(", ");
   const exScope = [...(ex.categories.length > 0 ? ex.categories : [terms.productCategory]), ...ex.competitors].join(", ");
 
-  row(u("contract.formats"), terms.contentFormats.map((f) => POST_FORMATS[f].label).join(", "));
+  row(u("contract.formats"), terms.contentFormats.map((f) => POST_FORMATS[f].label).join(", "), true);
   row(u("contract.market"), terms.targetMarket);
-  row(u("contract.labels"), terms.disclosure.labels.join(" / "));
+  row(u("contract.labels"), terms.disclosure.labels.join(" / "), true);
   if (terms.disclosure.requirePaidPartnershipLabel) row(u("contract.partnershipLabel"), "✓");
   if (terms.requiredHashtags.length > 0) row(u("contract.hashtags"), terms.requiredHashtags.map((t) => `#${t}`).join(" "));
   if (terms.requiredMentions.length > 0) row(u("contract.mentions"), terms.requiredMentions.map((m) => `@${m}`).join(" "));
@@ -63,6 +65,7 @@ export function contractView(args: {
   row(
     u("contract.window"),
     w.postingWindowEnd ? `${w.postingWindowStart ? `${w.postingWindowStart} – ` : "… – "}${w.postingWindowEnd}` : u("contract.windowFlexible", { days: 30 }),
+    true,
   );
   row(u("contract.minLive"), w.minLiveHours >= 48 && w.minLiveHours % 24 === 0 ? u("contract.days", { count: w.minLiveHours / 24 }) : u("contract.hours", { count: w.minLiveHours }));
   row(u("contract.exclusivity"), ex.enabled ? u("contract.exclusivityScope", { scope: exScope, before: ex.daysBefore, after: ex.daysAfter }) : u("contract.exclusivityNone"));
@@ -73,6 +76,7 @@ export function contractView(args: {
       : us.type === "CROSS_POST"
         ? u("contract.usageCross", { days: us.durationDays ?? 0 })
         : u("contract.usagePaid", { days: us.durationDays ?? 0, channels, territory: us.territory, fee: formatCents(us.feeCents ?? 0) }),
+    true,
   );
 
   const notes: ContractView["notes"] = [];
