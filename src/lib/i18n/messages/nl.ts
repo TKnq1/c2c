@@ -1,4 +1,5 @@
 import type { Catalog } from "@/lib/i18n/messages/types";
+import { faqNl as faq } from "@/lib/i18n/messages/faq-nl";
 import { foundingNl as founding } from "@/lib/i18n/messages/founding-nl";
 import { landingNl as landing } from "@/lib/i18n/messages/landing-nl";
 import { screensNl as screens } from "@/lib/i18n/messages/screens-nl";
@@ -252,6 +253,7 @@ export const nl: Catalog = {
       heardOther: "Ergens anders",
     },
   },
+  faq,
   landing,
   founding,
   screens,

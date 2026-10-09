@@ -1,56 +1,48 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { UgcBreadcrumbs, UgcCtas, UgcFaq, UgcFooter, UgcHeader, UgcSection, UgcSteps, UgcWatermark } from "@/components/ugc/ugc-parts";
-import { RELEASE_REVIEW_DAYS } from "@/lib/constants";
 import { canonical } from "@/lib/seo";
-import { UGC_CREATOR_PATH, UGC_HUB_FAQS, UGC_NICHE_PAGES, UGC_PATH, ugcNicheHref } from "@/lib/seo-pages";
+import { UGC_CREATOR_PATH, UGC_PATH, ugcNicheHref } from "@/lib/seo-pages";
+import { getUgcContent, ugcFill } from "@/lib/ugc";
 
-const TITLE = "UGC-Creator finden und beauftragen";
-const DESCRIPTION =
-  "Marken finden UGC-Creator für Videos und Fotos, Creator bezahlte Aufträge. Anfrage einstellen, im Chat absprechen, über die Plattform bezahlen. Kostenlos.";
+export async function generateMetadata(): Promise<Metadata> {
+  const { ui, ogLocale } = await getUgcContent();
+  return {
+    title: ui.hubTitle,
+    description: ui.hubDescription,
+    alternates: canonical(UGC_PATH),
+    openGraph: { title: ui.hubTitle, description: ui.hubDescription, locale: ogLocale },
+    twitter: { card: "summary_large_image", title: ui.hubTitle, description: ui.hubDescription },
+  };
+}
 
-export const metadata: Metadata = {
-  title: TITLE,
-  description: DESCRIPTION,
-  alternates: canonical(UGC_PATH),
-  openGraph: { title: TITLE, description: DESCRIPTION, locale: "de_DE" },
-  twitter: { card: "summary_large_image", title: TITLE, description: DESCRIPTION },
-};
-
-// The German overview: what UGC is, how comtor works, and the way into each niche page.
-export default function UgcPage() {
+// The overview: what UGC is, how comtor works, and the way into each niche page, in the reader's language.
+export default async function UgcPage() {
+  const { ui, niches, hubFaqs, htmlLang } = await getUgcContent();
   return (
-    <div lang="de" className="relative flex flex-1 flex-col">
+    <div lang={htmlLang} className="relative flex flex-1 flex-col">
       <UgcWatermark />
-      <UgcBreadcrumbs trail={[{ name: TITLE, path: UGC_PATH }]} />
+      <UgcBreadcrumbs trail={[{ name: ui.hubTitle, path: UGC_PATH }]} />
       <UgcHeader />
       <main className="relative z-10 flex-1 px-4 py-12 md:py-16">
         <div className="mx-auto flex max-w-3xl flex-col gap-12">
           <div className="flex flex-col gap-5">
             <h1 className="font-display text-[40px] leading-[1.02] font-black tracking-[-0.03em] text-balance md:text-[56px]">
-              {TITLE}
+              {ui.hubTitle}
             </h1>
-            <p className="max-w-[60ch] text-lg text-neutral-700 dark:text-neutral-300">
-              Marken brauchen Videos und Fotos von echten Menschen, Creator wollen dafür bezahlt werden. comtor
-              bringt beide zusammen: Die Marke stellt eine Anfrage ein, passende Creator melden sich, bezahlt wird
-              über die Plattform.
-            </p>
+            <p className="max-w-[60ch] text-lg text-neutral-700 dark:text-neutral-300">{ui.hubIntro}</p>
             <UgcCtas className="mt-2" />
-            <p className="text-footnote text-neutral-500 dark:text-neutral-400">
-              Kostenlos anmelden. comtor läuft im Browser, die Sprache wählst du beim Start.
-            </p>
+            <p className="text-footnote text-neutral-500 dark:text-neutral-400">{ui.signupNote}</p>
           </div>
 
           <Link href={UGC_CREATOR_PATH} className="rounded bg-fog p-5 transition hover:bg-ink/10">
-            <h2 className="font-display text-title-2 font-bold">Du bist Creator?</h2>
-            <p className="mt-1 text-sm text-neutral-700 dark:text-neutral-300">
-              So findest du bezahlte UGC-Aufträge und wirst über die Plattform bezahlt: Als UGC-Creator Geld verdienen.
-            </p>
+            <h2 className="font-display text-title-2 font-bold">{ui.creatorCardTitle}</h2>
+            <p className="mt-1 text-sm text-neutral-700 dark:text-neutral-300">{ui.creatorCardBody}</p>
           </Link>
 
-          <UgcSection title="UGC nach Nische">
+          <UgcSection title={ui.byNicheTitle}>
             <div className="grid gap-3 sm:grid-cols-2">
-              {UGC_NICHE_PAGES.map((page) => (
+              {niches.map((page) => (
                 <Link
                   key={page.slug}
                   href={ugcNicheHref(page.slug)}
@@ -63,28 +55,14 @@ export default function UgcPage() {
             </div>
           </UgcSection>
 
-          <UgcSection title="So funktioniert comtor">
+          <UgcSection title={ui.howTitle}>
             <div className="grid gap-3 md:grid-cols-2">
-              <UgcSteps
-                title="Für Marken"
-                steps={[
-                  "Anfrage einstellen: Nische, Sprache, Mindestzahl an Followern, Produktkategorie, Budget und Lieferumfang.",
-                  "Creator melden sich: Wer passt, sieht die Anfrage im Feed und schreibt dir im Chat.",
-                  "Bezahlen und freigeben: Du zahlst über die Plattform und gibst den Post frei, wenn er passt.",
-                ]}
-              />
-              <UgcSteps
-                title="Für Creator"
-                steps={[
-                  "Profil anlegen: Bis zu drei Nischen und deine Plattformen mit der jeweiligen Followerzahl.",
-                  "Anfragen ansehen: Im Feed siehst du Budget und Anforderungen, bevor du dich meldest.",
-                  `Posten und bezahlt werden: Nach dem Post reichst du den Link ein. Sobald die Marke ihn freigibt (spätestens nach ${RELEASE_REVIEW_DAYS} Tagen), wird die Zahlung ausgezahlt.`,
-                ]}
-              />
+              <UgcSteps title={ui.forBrands} steps={ui.hubBrandSteps.map((step) => ugcFill(step))} />
+              <UgcSteps title={ui.forCreators} steps={ui.hubCreatorSteps.map((step) => ugcFill(step))} />
             </div>
           </UgcSection>
 
-          <UgcFaq faqs={UGC_HUB_FAQS} />
+          <UgcFaq faqs={hubFaqs} title={ui.faqTitle} />
         </div>
       </main>
       <UgcFooter onHub />

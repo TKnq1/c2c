@@ -2,24 +2,29 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { UgcBreadcrumbs, UgcCtas, UgcFaq, UgcFooter, UgcHeader, UgcSection, UgcWatermark } from "@/components/ugc/ugc-parts";
 import { canonical } from "@/lib/seo";
-import { UGC_CREATOR_PAGE as page, UGC_CREATOR_PATH, UGC_PATH } from "@/lib/seo-pages";
+import { UGC_CREATOR_PATH, UGC_PATH } from "@/lib/seo-pages";
+import { getUgcContent } from "@/lib/ugc";
 
-export const metadata: Metadata = {
-  title: page.title,
-  description: page.description,
-  alternates: canonical(UGC_CREATOR_PATH),
-  openGraph: { title: page.title, description: page.description, locale: "de_DE" },
-  twitter: { card: "summary_large_image", title: page.title, description: page.description },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const { creator: page, ogLocale } = await getUgcContent();
+  return {
+    title: page.title,
+    description: page.description,
+    alternates: canonical(UGC_CREATOR_PATH),
+    openGraph: { title: page.title, description: page.description, locale: ogLocale },
+    twitter: { card: "summary_large_image", title: page.title, description: page.description },
+  };
+}
 
-// The German search page for creators: what UGC creators do, how to start on comtor, how the money works.
-export default function UgcCreatorPage() {
+// The search page for creators: what UGC creators do, how to start on comtor, how the money works.
+export default async function UgcCreatorPage() {
+  const { creator: page, ui, htmlLang } = await getUgcContent();
   return (
-    <div lang="de" className="relative flex flex-1 flex-col">
+    <div lang={htmlLang} className="relative flex flex-1 flex-col">
       <UgcBreadcrumbs
         trail={[
-          { name: "UGC-Creator finden", path: UGC_PATH },
-          { name: "Creator werden", path: UGC_CREATOR_PATH },
+          { name: ui.hubTitle, path: UGC_PATH },
+          { name: ui.creatorCrumb, path: UGC_CREATOR_PATH },
         ]}
       />
       <UgcWatermark />
@@ -32,12 +37,10 @@ export default function UgcCreatorPage() {
             </h1>
             <p className="max-w-[60ch] text-lg text-neutral-700 dark:text-neutral-300">{page.lead}</p>
             <UgcCtas className="mt-2" />
-            <p className="text-footnote text-neutral-500 dark:text-neutral-400">
-              Kostenlos anmelden. comtor läuft im Browser, die Sprache wählst du beim Start.
-            </p>
+            <p className="text-footnote text-neutral-500 dark:text-neutral-400">{ui.signupNote}</p>
           </div>
 
-          <UgcSection title="Was UGC-Creator machen">
+          <UgcSection title={ui.creatorDoingTitle}>
             <div className="grid gap-3 sm:grid-cols-2">
               {page.doing.map((item) => (
                 <div key={item.title} className="rounded bg-fog p-5">
@@ -48,7 +51,7 @@ export default function UgcCreatorPage() {
             </div>
           </UgcSection>
 
-          <UgcSection title="So startest du auf comtor">
+          <UgcSection title={ui.creatorStartTitle}>
             <ol className="flex flex-col gap-3">
               {page.steps.map((step, i) => (
                 <li key={step} className="flex gap-4 rounded bg-fog p-5">
@@ -59,7 +62,7 @@ export default function UgcCreatorPage() {
             </ol>
           </UgcSection>
 
-          <UgcSection title="Tipps für gute UGC-Inhalte">
+          <UgcSection title={ui.creatorTipsTitle}>
             <div className="grid gap-3 sm:grid-cols-2">
               {page.tips.map((tip) => (
                 <div key={tip.title} className="rounded bg-fog p-5">
@@ -70,15 +73,15 @@ export default function UgcCreatorPage() {
             </div>
           </UgcSection>
 
-          <UgcFaq faqs={page.faqs} />
+          <UgcFaq faqs={page.faqs} title={ui.faqTitle} />
 
           <div className="flex flex-col gap-4 rounded bg-fog p-6">
-            <h2 className="font-display text-title-2 font-bold text-balance">Bereit für deinen ersten bezahlten Auftrag?</h2>
+            <h2 className="font-display text-title-2 font-bold text-balance">{ui.creatorReadyTitle}</h2>
             <UgcCtas />
             <p className="text-sm text-neutral-600 dark:text-neutral-400">
-              Du suchst Creator für deine Marke? Was UGC ist und wie comtor funktioniert, erklären wir im Überblick:{" "}
+              {ui.creatorBrandHint}{" "}
               <Link href={UGC_PATH} className="underline">
-                UGC-Creator finden
+                {ui.overviewLink}
               </Link>
               .
             </p>
