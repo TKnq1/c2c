@@ -116,3 +116,9 @@ Alles hängt am Schalter `BRAND_DEALS_ENABLED`: ohne ihn bleibt die Oberfläche 
   `vibrate`, iOS 18: Schalter-Trick). Nur auf einem echten iPhone prüfbar.
 - **Onboarding, E-Mail-Haken:** der Haken ist die Einwilligung (`marketingConsentFromCheckbox`), es geht keine Mail zum Bestätigen
   mehr raus. In den Einstellungen bleibt der Weg über den Link. Datenschutztext angepasst, `LEGAL_VERSION` 2026-10-09.1.
+- **Briefing (9.10., abends):** Formate als Plattform-Buttons mit Icon, darunter klappen Reel, Post, Story usw. auf (`FormatPicker`);
+  Budget-Rechner pro Format (nur im Browser gemerkt, nicht Teil des Vertrags); Vorschau „So sieht der Creator dein Briefing“;
+  „Beispiel einfügen“ bei Kernbotschaft und „Bitte vermeiden“; Frist-Schnellwahl (2 Wochen, 30 Tage, Monatsende); Hashtags und
+  Erwähnungen als Chips; Nutzungsrechte als Ja/Nein-Frage; der Balken nennt den ersten Fehler beim Namen. Akzentfarbe: Elektro-Indigo
+  `#5B5BF0` (`--accent` in `globals.css`).
+
