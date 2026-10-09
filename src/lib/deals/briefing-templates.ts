@@ -5,6 +5,7 @@ import { briefingToValues, cleanFormValues, parseBriefingForm, withoutWindow, ty
 import { saveBriefing } from "@/lib/deals/briefing-store";
 import { hasErrors, type Issue } from "@/lib/deals/issues";
 import { briefingRowToInput, defaultBriefingFor, type BriefingRow } from "@/lib/deals/terms";
+import { marketForCountry } from "@/lib/compliance/disclosure";
 
 // A brand's saved briefings ("templates") and the unfinished briefing of a request ("draft"). A template is a copy: applying
 // it writes a briefing into a request, and changing the template later changes nothing that exists. Everything here takes the
@@ -81,6 +82,25 @@ async function nameTaken(userId: string, name: string, exceptId?: string): Promi
 export async function listTemplates(userId: string): Promise<TemplateSummary[]> {
   const rows = await prisma.briefingTemplate.findMany({ where: { userId }, orderBy: [{ isDefault: "desc" }, { updatedAt: "desc" }] });
   return rows.map(summarise);
+}
+
+// All of the brand's templates with their rules, for the builder to fill the form from without a round trip.
+export async function listTemplatesWithValues(userId: string): Promise<(TemplateSummary & { values: FormValues })[]> {
+  const rows = await prisma.briefingTemplate.findMany({ where: { userId }, orderBy: [{ isDefault: "desc" }, { updatedAt: "desc" }] });
+  return rows.map((row) => ({ ...summarise(row), values: cleanFormValues(row.values) }));
+}
+
+export type CopyableBriefing = { requestId: string; title: string; values: FormValues };
+
+// The briefings of the brand's other requests, newest first: what "copy from an earlier request" offers.
+export async function listCopyableBriefings(userId: string, exceptRequestId: string): Promise<CopyableBriefing[]> {
+  const rows = await prisma.request.findMany({
+    where: { startup: { userId }, id: { not: exceptRequestId }, briefing: { isNot: null } },
+    include: { briefing: true },
+    orderBy: { createdAt: "desc" },
+    take: 30,
+  });
+  return rows.flatMap((row) => (row.briefing ? [{ requestId: row.id, title: row.title, values: withoutWindow(briefingToValues(briefingRowToInput(row.briefing as BriefingRow))) }] : []));
 }
 
 export async function loadTemplate(userId: string, id: string): Promise<(TemplateSummary & { values: FormValues }) | null> {
@@ -167,7 +187,9 @@ export async function briefingStartValues(requestId: string, userId: string): Pr
   if (request.briefing) return { values: briefingToValues(briefingRowToInput(request.briefing as BriefingRow)), source: "briefing" };
   const template = await prisma.briefingTemplate.findFirst({ where: { userId, isDefault: true } });
   if (template) return { values: briefingToValues(inputFromTemplate(template.values, request, null)), source: "template", templateId: template.id };
-  return { values: briefingToValues(defaultBriefingFor(request)), source: "defaults" };
+  // The form starts in the brand's own market when its business details say where that is.
+  const business = await prisma.businessProfile.findUnique({ where: { userId }, select: { country: true } });
+  return { values: briefingToValues(defaultBriefingFor(request, marketForCountry(business?.country))), source: "defaults" };
 }
 
 export type ApplyResult =

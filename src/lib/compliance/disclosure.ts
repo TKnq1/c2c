@@ -15,6 +15,13 @@ export function isMarket(value: string): value is Market {
   return (MARKETS as readonly string[]).includes(value);
 }
 
+// The market a brand most likely advertises in: the country of its business, where there are disclosure rules for it, and
+// Germany otherwise.
+export function marketForCountry(country: string | null | undefined): Market {
+  const code = (country ?? "").trim().toUpperCase();
+  return isMarket(code) && code !== "OTHER" ? code : "DE";
+}
+
 type MarketRules = {
   // Wording that counts as a clear disclosure.
   accepted: string[];

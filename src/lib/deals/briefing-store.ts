@@ -60,6 +60,15 @@ export function isOfferStale(offerVersion: number | null | undefined, currentVer
   return offerVersion !== null && offerVersion !== undefined && offerVersion !== currentVersion;
 }
 
+// Open offers of a request that were made under another version of the briefing than the current one (0: it has none). With
+// `offerRole`, only the offers that side made: the proposer is the one who confirms an offer again.
+export async function countStaleOffers(requestId: string, offerRole?: "STARTUP" | "CREATOR"): Promise<number> {
+  const current = (await prisma.campaignBriefing.findUnique({ where: { requestId }, select: { version: true } }))?.version ?? 0;
+  return prisma.interest.count({
+    where: { requestId, paymentStatus: "OFFERED", ...(offerRole ? { offerRole } : {}), offerBriefingVersion: { not: null }, NOT: { offerBriefingVersion: current } },
+  });
+}
+
 export type SavedBriefing = {
   version: number;
   changed: boolean;

@@ -417,6 +417,49 @@ describe.skipIf(!DB)("briefing templates (needs a database)", () => {
     });
   });
 
+  describe("what the builder offers", () => {
+    it("starts in the market of the brand's country, with that market's labels", async () => {
+      const s = await brand({ noBriefing: true });
+      expect((await lib.briefingStartValues(s.request.id, s.brand.id))?.values).toMatchObject({ targetMarket: "DE", disclosureLabels: "Werbung,Anzeige" });
+      await prisma.businessProfile.update({ where: { userId: s.brand.id }, data: { country: "FR" } });
+      expect((await lib.briefingStartValues(s.request.id, s.brand.id))?.values).toMatchObject({
+        targetMarket: "FR",
+        disclosureLabels: "Publicité,Partenariat rémunéré,Collaboration commerciale",
+      });
+      // A country without disclosure rules of its own starts in Germany.
+      await prisma.businessProfile.update({ where: { userId: s.brand.id }, data: { country: "BE" } });
+      expect((await lib.briefingStartValues(s.request.id, s.brand.id))?.values.targetMarket).toBe("DE");
+    });
+
+    it("lists the brand's templates with their rules, the default first, and nobody else's", async () => {
+      const s = await brand();
+      as(s.brand);
+      await save("Plain", { minLiveHours: "72" });
+      const second = (await save("Long hold", { minLiveHours: "168" }))!.templateId!;
+      await actions.setDefaultBriefingTemplateAction(second);
+      const listed = await lib.listTemplatesWithValues(s.brand.id);
+      expect(listed.map((t) => [t.name, t.isDefault, t.values.minLiveHours])).toEqual([
+        ["Long hold", true, "168"],
+        ["Plain", false, "72"],
+      ]);
+      expect(listed[0].values.postingWindowEnd).toBeUndefined();
+      expect(await lib.listTemplatesWithValues((await brand()).brand.id)).toEqual([]);
+    });
+
+    it("lists the briefings of the brand's other requests without their dates, newest first", async () => {
+      const s = await brand();
+      as(s.brand);
+      const newer = await newRequest(s, "Winter drop", 200, "2026-12-01");
+      await briefingActions.saveBriefingAction(newer.id, undefined, formData(values({ minLiveHours: "336" }, new Date("2026-12-01"))));
+      const listed = await lib.listCopyableBriefings(s.brand.id, newer.id);
+      // The request seedOffer made has a briefing; the one the list is for is left out.
+      expect(listed.map((c) => c.requestId)).toEqual([s.request.id]);
+      const fromNewer = await lib.listCopyableBriefings(s.brand.id, s.request.id);
+      expect(fromNewer.map((c) => [c.title, c.values.minLiveHours, c.values.postingWindowEnd])).toEqual([["Winter drop", "336", undefined]]);
+      expect(await lib.listCopyableBriefings((await brand()).brand.id, s.request.id)).toEqual(expect.not.arrayContaining([expect.objectContaining({ requestId: newer.id })]));
+    });
+  });
+
   describe("the account", () => {
     it("loses its templates and drafts when it is anonymised, and exports them before", async () => {
       const s = await brand();

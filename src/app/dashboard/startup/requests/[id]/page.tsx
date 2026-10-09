@@ -132,18 +132,23 @@ export default async function RequestDetailPage({ params }: { params: Promise<{ 
           </dl>
           {/* The campaign rules a deal is made under: advertising label, process, exclusivity, usage rights. */}
           {dealsEnabled() && (
-            <Link
-              href={`/dashboard/startup/requests/${request.id}/briefing`}
-              className="flex flex-col gap-0.5 rounded bg-fog px-4 py-3 transition hover:bg-neutral-200/60 dark:hover:bg-neutral-700/60"
-            >
-              <span className="flex items-center justify-between gap-3">
-                <span className="font-medium">{u("briefing.open")}</span>
-                <span className="rounded-full border border-neutral-300 px-2.5 py-0.5 text-xs font-medium dark:border-neutral-700">
-                  {request.briefing ? u("briefing.set") : u("briefing.defaults")}
+            <div className="flex flex-col gap-1">
+              <Link
+                href={`/dashboard/startup/requests/${request.id}/briefing`}
+                className="flex flex-col gap-0.5 rounded bg-fog px-4 py-3 transition hover:bg-neutral-200/60 dark:hover:bg-neutral-700/60"
+              >
+                <span className="flex items-center justify-between gap-3">
+                  <span className="font-medium">{u("briefing.open")}</span>
+                  <span className="rounded-full border border-neutral-300 px-2.5 py-0.5 text-xs font-medium dark:border-neutral-700">
+                    {request.briefing ? u("briefing.set") : u("briefing.defaults")}
+                  </span>
                 </span>
-              </span>
-              <span className="text-footnote text-neutral-500 dark:text-neutral-400">{u("briefing.openHint")}</span>
-            </Link>
+                <span className="text-footnote text-neutral-500 dark:text-neutral-400">{u("briefing.openHint")}</span>
+              </Link>
+              <Link href="/dashboard/startup/templates" className="w-fit px-1 text-footnote text-neutral-500 underline hover:text-ink dark:text-neutral-400">
+                {u("templates.linkLabel")}
+              </Link>
+            </div>
           )}
         </aside>
 

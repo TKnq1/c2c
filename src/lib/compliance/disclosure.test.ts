@@ -3,6 +3,7 @@ import {
   classifyLabel,
   containsForbiddenDisclosureInstruction,
   hashtagsIn,
+  marketForCountry,
   scanCaption,
   validatePostDisclosure,
   type PostDisclosureInput,
@@ -138,5 +139,21 @@ describe("validatePostDisclosure", () => {
     const agreed = { ...base.agreed, requiredHashtags: ["GlowCo"], requiredMentions: ["@glowco"] };
     expect(codes({ ...base, agreed })).toEqual(["error:REQUIRED_HASHTAG_MISSING", "error:REQUIRED_MENTION_MISSING"]);
     expect(codes({ ...base, caption: "Werbung | Creme #glowco @GlowCo", agreed })).toEqual([]);
+  });
+});
+
+describe("marketForCountry", () => {
+  it("is the market of the country where there are disclosure rules for it", () => {
+    expect(marketForCountry("AT")).toBe("AT");
+    expect(marketForCountry("fr")).toBe("FR");
+    expect(marketForCountry(" pl ")).toBe("PL");
+  });
+
+  it("is Germany for any other country, for none, and never the catch-all market", () => {
+    expect(marketForCountry("BE")).toBe("DE");
+    expect(marketForCountry("OTHER")).toBe("DE");
+    expect(marketForCountry("")).toBe("DE");
+    expect(marketForCountry(null)).toBe("DE");
+    expect(marketForCountry(undefined)).toBe("DE");
   });
 });

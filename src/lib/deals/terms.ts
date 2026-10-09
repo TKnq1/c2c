@@ -109,15 +109,16 @@ export function briefingRowToInput(row: BriefingRow): BriefingInput {
 
 // For requests written before briefings existed: the German defaults, the one platform the request names, a draft round
 // and a 24-hour hold. The brand can still write a full briefing before sending an offer.
-export function defaultBriefingFor(request: { platform: string | null; postBy: Date | null }): BriefingInput {
+// `market` starts the form in the brand's own market (its labels with it); contracts and deals always fall back to Germany.
+export function defaultBriefingFor(request: { platform: string | null; postBy: Date | null }, market: Market = "DE"): BriefingInput {
   return {
-    targetMarket: "DE",
+    targetMarket: market,
     contentFormats: defaultFormatsForPlatform(request.platform),
     talkingPoints: null,
     doNots: null,
     requiredHashtags: [],
     requiredMentions: [],
-    disclosureLabels: [...MARKET_RULES.DE.accepted],
+    disclosureLabels: [...MARKET_RULES[market].accepted],
     requirePaidPartnershipLabel: true,
     draftRequired: true,
     draftDueDaysBeforePost: 5,
