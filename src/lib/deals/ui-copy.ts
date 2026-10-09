@@ -11,6 +11,13 @@ const CORE_WORDS = {
   // ----- forms
   "form.working": { en: "Working…", de: "Einen Moment…" },
   "form.somethingWrong": { en: "Something went wrong. Refresh the page and try again.", de: "Etwas ist schiefgegangen. Lade die Seite neu und versuche es erneut." },
+  "form.date": { en: "Date", de: "Datum" },
+  "form.time": { en: "Time", de: "Uhrzeit" },
+  "form.quick.now": { en: "Now", de: "Jetzt" },
+  "form.quick.yesterday": { en: "Yesterday", de: "Gestern" },
+  "form.quick.tomorrow": { en: "Tomorrow", de: "Morgen" },
+  "form.quick.in3": { en: "In 3 days", de: "In 3 Tagen" },
+  "form.quick.in7": { en: "In 7 days", de: "In 7 Tagen" },
   "form.fixBusiness": { en: "Complete your business details →", de: "Geschäftsdaten vervollständigen →" },
 
   // ----- deals list
@@ -41,6 +48,7 @@ const CORE_WORDS = {
   "deals.filter.done": { en: "Finished", de: "Abgeschlossen" },
   "home.dealsWaiting.one": { en: "1 deal is waiting for you", de: "1 Deal wartet auf dich" },
   "home.dealsWaiting.many": { en: "{count} deals are waiting for you", de: "{count} Deals warten auf dich" },
+  "matches.openDeal": { en: "Open deal", de: "Deal öffnen" },
   "home.dealsWaiting.open": { en: "Open", de: "Öffnen" },
   "deals.businessLink": { en: "Business details", de: "Geschäftsdaten" },
 
@@ -144,6 +152,8 @@ const CORE_WORDS = {
   "contract.draftRequired": { en: "Draft first, {days} days review, {rounds} revision rounds", de: "Erst Entwurf, {days} Tage Prüfzeit, {rounds} Korrekturrunden" },
   "contract.noDraft": { en: "No draft needed, post directly", de: "Kein Entwurf nötig, direkt posten" },
   "contract.window": { en: "Posting window", de: "Posting-Fenster" },
+  "contract.windowUntil": { en: "until {end}", de: "bis {end}" },
+  "contract.windowRange": { en: "{start} – {end}", de: "{start} – {end}" },
   "contract.windowFlexible": { en: "within {days} days after payment", de: "innerhalb von {days} Tagen nach Zahlung" },
   "contract.minLive": { en: "Stays live", de: "Bleibt online" },
   "contract.hours": { en: "{count} hours", de: "{count} Stunden" },

@@ -184,10 +184,11 @@ export function BulkRequestsList({ requests }: { requests: RequestEntry[] }) {
                 </p>
                 <p className="truncate text-footnote text-neutral-500 dark:text-neutral-400">
                   {nicheLabel(t, r.niche)} · {r.budget ? `${r.budget} · ` : ""}
-                  {t("screens.requests.minFollowersLine", { count: r.minFollowers.toLocaleString(locale) })} ·{" "}
-                  <span className={r.interestCount > 0 ? "font-semibold text-neutral-900 dark:text-neutral-100" : ""}>
-                    {t("screens.requests.interestedCount", { count: r.interestCount })}
-                  </span>
+                  {t("screens.requests.minFollowersLine", { count: r.minFollowers.toLocaleString(locale) })}
+                </p>
+                {/* Its own line: at the end of the one above it was the part a phone cut off. */}
+                <p className={`text-footnote ${r.interestCount > 0 ? "font-semibold text-neutral-900 dark:text-neutral-100" : "text-neutral-500 dark:text-neutral-400"}`}>
+                  {t("screens.requests.interestedCount", { count: r.interestCount })}
                 </p>
               </div>
             </Link>

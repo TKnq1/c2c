@@ -280,6 +280,14 @@ export function noticeText(key: NoticeKey, locale: Locale | string, params: Noti
   return fill(NOTICE_TEXT[key][language], plainParams(params, language));
 }
 
+// A calendar day ("2026-11-07", as the briefing stores its window) in the reader's language: "7. Nov. 2026". UTC, as the day is not
+// a moment, so it must not slip across midnight.
+export function formatDealDay(day: string, locale: DealLocale): string {
+  const date = new Date(`${day}T00:00:00Z`);
+  if (Number.isNaN(date.getTime())) return day;
+  return date.toLocaleDateString(locale === "de" ? "de-DE" : "en-GB", { day: "numeric", month: "short", year: "numeric", timeZone: "UTC" });
+}
+
 // A date and time in Berlin, in the reader's language: deadlines are the same moment for everyone.
 export function formatDealDate(date: Date, locale: DealLocale): string {
   return date.toLocaleString(locale === "de" ? "de-DE" : "en-GB", {

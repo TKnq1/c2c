@@ -222,6 +222,7 @@ export function Nav() {
   // The heart is the way into Your matches, so it only shows where you're
   // doing the matching — the Feed you swipe in, and Discover. On Messages,
   // Payments, Settings or the matches page itself it was just clutter.
+  const isFeedHeader = pathname === "/dashboard/creator";
   const showMatchesLink =
     role === "CREATOR" &&
     (pathname === "/dashboard/creator" || pathname === "/dashboard/creator/discover" || pathname === "/dev-swipe-demo");
@@ -236,14 +237,17 @@ export function Nav() {
       <header
         className={`app-header fixed inset-x-0 top-0 z-30 border-b border-ink/10 bg-background/80 pt-[var(--safe-top)] backdrop-blur-xl backdrop-saturate-150 no-print md:hidden ${hideOnMobile ? "hidden" : ""}`}
       >
-        <div className="relative max-w-5xl mx-auto flex items-center justify-between px-6 py-3">
-          <Link href={base} onNavigate={onNavigate} className="shrink-0">
+        {/* The Feed's bar is a grid with the switch in the middle column: centered where the sides leave room, pushed left (never over the
+            icons) on narrow phones, where an absolutely centered switch ran under the Matches heart. */}
+        <div
+          className={`relative max-w-5xl mx-auto items-center px-6 py-3 ${isFeedHeader ? "grid grid-cols-[1fr_auto_1fr]" : "flex justify-between"}`}
+        >
+          <Link href={base} onNavigate={onNavigate} className="shrink-0 justify-self-start">
             <Logo />
           </Link>
-          {pathname === "/dashboard/creator" ? (
-            // The Feed title's spot: For you / All, centered the same way
-            // the title is on every other page.
-            <span className="absolute left-1/2 -translate-x-1/2">
+          {isFeedHeader ? (
+            // The Feed title's spot: For you / All.
+            <span>
               <Suspense fallback={<FeedScopeTabs scope="forYou" variant="header" />}>
                 <FeedHeaderToggle />
               </Suspense>
@@ -261,7 +265,7 @@ export function Nav() {
             )
           )}
 
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-4 justify-self-end max-[360px]:gap-3">
             {showMatchesLink && <MatchesLink onNavigate={onNavigate} />}
             {discoverInHeader && !pathname.startsWith(discoverHref) && <DiscoverLink href={discoverHref} onNavigate={onNavigate} />}
             <NotificationsLink unreadCount={unreadCount} onNavigate={onNavigate} />

@@ -22,7 +22,7 @@ export function OverviewTiles({ tiles }: { tiles: OverviewTile[] }) {
           <Link
             key={t.label}
             href={t.href}
-            className={`group flex flex-col gap-2 rounded px-4 py-3.5 transition ${
+            className={`group flex flex-col gap-1.5 rounded px-4 py-3 transition md:gap-2 md:py-3.5 ${
               active ? "bg-ink text-paper hover:bg-graphite" : "bg-fog hover:bg-ink/10"
             }`}
           >
@@ -36,7 +36,9 @@ export function OverviewTiles({ tiles }: { tiles: OverviewTile[] }) {
             <span className="font-display text-title-1 font-bold tabular-nums leading-none">{t.value}</span>
             <span className="flex flex-col">
               <span className="text-sm font-medium">{t.label}</span>
-              <span className={`text-footnote ${active ? "opacity-70" : "text-neutral-500 dark:text-neutral-400"}`}>{t.hint}</span>
+              {/* On a phone only a tile with something waiting explains itself; the quiet ones are just a label and a 0, which is what
+                  keeps the four of them from pushing the list below the fold. */}
+              <span className={`text-footnote ${active ? "opacity-70" : "text-neutral-500 max-md:hidden dark:text-neutral-400"}`}>{t.hint}</span>
             </span>
           </Link>
         );

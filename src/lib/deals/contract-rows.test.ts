@@ -8,7 +8,7 @@ const de = uiText("de");
 const en = uiText("en");
 const rowsOf = (view: ReturnType<typeof contractView>) => Object.fromEntries(view.rows.flatMap((r) => (r.kind === "row" ? [[r.label, r.value]] : [])));
 
-const base = { terms: termsFixture(), snapshot: snapshotFixture(), payoutCents: 90_000, feeCents: 10_000 };
+const base = { terms: termsFixture(), snapshot: snapshotFixture(), payoutCents: 90_000, feeCents: 10_000, locale: "de" as const };
 
 describe("contractView", () => {
   it("shows the brand its price, the VAT and what it pays, and not the fee or the payout", () => {
@@ -65,7 +65,7 @@ describe("contractView", () => {
     expect(rows["Pflicht-Hashtags"]).toBe("#glowco #herbst");
     expect(rows["Pflicht-Erwähnungen"]).toBe("@glowco");
     expect(rows["Ablauf"]).toBe("Erst Entwurf, 3 Tage Prüfzeit, 2 Korrekturrunden");
-    expect(rows["Posting-Fenster"]).toBe("2026-10-20 – 2026-11-20");
+    expect(rows["Posting-Fenster"]).toBe("20. Okt. 2026 – 20. Nov. 2026");
     expect(rows["Bleibt online"]).toBe("24 Stunden");
     expect(rows["Exklusivität"]).toBe("Keine");
     expect(rows["Nutzungsrechte"]).toBe("Nur Posting auf dem Kanal des Creators");
@@ -108,6 +108,11 @@ describe("contractView", () => {
     const flexible = rowsOf(contractView({ ...base, terms: termsFixture({ workflow: { ...termsFixture().workflow, postingWindowEnd: null, postingWindowStart: null, minLiveHours: 168 } }), viewer: "STARTUP", u: de }));
     expect(flexible["Posting-Fenster"]).toBe("innerhalb von 30 Tagen nach Zahlung");
     expect(flexible["Bleibt online"]).toBe("7 Tage");
+
+    const untilOnly = rowsOf(contractView({ ...base, terms: termsFixture({ workflow: { ...termsFixture().workflow, postingWindowStart: null, postingWindowEnd: "2026-11-07" } }), viewer: "STARTUP", u: de }));
+    expect(untilOnly["Posting-Fenster"]).toBe("bis 7. Nov. 2026");
+    const english = rowsOf(contractView({ ...base, terms: termsFixture({ workflow: { ...termsFixture().workflow, postingWindowStart: null, postingWindowEnd: "2026-11-07" } }), viewer: "STARTUP", u: en, locale: "en" }));
+    expect(english["Posting window"]).toBe("until 7 Nov 2026");
 
     const cross = rowsOf(contractView({ ...base, terms: termsFixture({ usage: { type: "CROSS_POST", channels: [], durationDays: 30, feeCents: null, territory: "EU" } }), viewer: "STARTUP", u: de }));
     expect(cross["Nutzungsrechte"]).toBe("Repost auf den Kanälen der Marke für 30 Tage");

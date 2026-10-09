@@ -326,6 +326,18 @@ html:has(body.dashboard-shell) {
   overscroll-behavior: none;
 }
 
+/* The Feed fills <main> on phones: <main> becomes a column, the Feed page (.feed-fill) takes what the notices above it leave
+   and passes it on to the swipe card. If that is less than the card needs, <main> scrolls like any page. */
+@media (max-width: 767px) {
+  main:has(> .feed-fill) {
+    display: flex;
+    flex-direction: column;
+  }
+  main:has(> .feed-fill) > .feed-fill {
+    flex: 1 0 auto;
+  }
+}
+
 /* The chat fills <main> exactly, so there's no room above it for the
    verify-email and install notices; every other page still shows them. */
 main:has(.chat-thread) > .dashboard-banners {

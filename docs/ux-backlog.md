@@ -1,4 +1,4 @@
-# UX-Backlog: Brand Deals (Stand 9.10.2026, abends)
+# UX-Backlog: Brand Deals (Stand 9.10.2026, nach dem Durchgang)
 
 Ideen, um den Deal-Ablauf auf dem Handy leichter zu machen, und was davon gebaut ist. Aufwand: S = unter 1 Std., M = ein paar
 Stunden, L = ein Tag oder mehr. **✓** = gebaut und im Browser geprüft (390 px und 1280 px, Demo-Seed mit allen 13 Deal-Zuständen),
@@ -88,3 +88,22 @@ Alles hängt am Schalter `BRAND_DEALS_ENABLED`: ohne ihn bleibt die Oberfläche 
 - Auf dem Handy gab es keinen horizontalen Überlauf (gemessen auf Deals-Liste, Deal-Seite in allen 13 Zuständen, Briefing,
   Geschäftsdaten, Entwurf- und Post-Formular).
 - Die neuen Texte (Checkliste, Vorlagen, Filter, Hinweise) gibt es auf Deutsch und Englisch; `nav.account` in allen acht Sprachen.
+
+## Durchgang vom 9.10. (alle gebaut, Handy 390 px und 375 px, Desktop 1280 px)
+
+- **Feed:** Die Karte „N Deals warten auf dich“ ist aus dem Creator-Feed raus (das Badge am Deals-Tab zeigt die Zahl; auf der
+  Marken-Startseite bleibt sie). Auf dem Handy bekommt die Swipe-Karte die Höhe, die in `<main>` übrig ist (`.feed-fill` in
+  `globals.css`, `flex-1` bis zur Karte), mindestens 22 rem: die Knopfreihe liegt auf 375 px, 390 px und 430 px Breite über der
+  Tab-Leiste, auch mit Installations-Hinweis.
+- **Kopfzeile Feed:** Gitter statt absolut zentriertem Umschalter; auf schmalen Handys schiebt er sich nach links, statt unter das
+  Herz zu laufen.
+- **Vertrag:** Posting-Fenster als „20. Okt. 2026 – 20. Nov. 2026“ bzw. „bis 7. Nov. 2026“ (`formatDealDay`), auch im PDF.
+- **Deals-Liste:** Status unter den Namen, Titel bis zu zwei Zeilen.
+- **Matches:** Bei Deal-Collabs steht der Deal-Status statt „Im Treuhandkonto“ und „Deal öffnen“ ist der Hauptknopf.
+- **404:** in der Sprache des Kontos (acht Sprachen).
+- **Marken-Startseite:** ruhige Kacheln ohne Hinweiszeile auf dem Handy, Interessenten-Zahl in eigener Zeile.
+- **Termine:** Datum und Uhrzeit getrennt, mit Schnellwahl („Morgen“, „In 3 Tagen“, „Jetzt“, „Gestern“).
+- **Admin mobil:** Reiterleisten zentrieren die aktuelle Seite und blenden den Rand aus, hinter dem noch mehr liegt; die vier
+  Zahlen stehen zu zweit nebeneinander.
+- *Nicht angefasst:* Installations-Hinweis (steht weiter auf jeder Seite oben), Kontrast der grauen Hilfstexte, Touch-Flächen im
+  Feed (40 px), Smoke-Tests in der CI, Doppelung von Deals-Karte und Kachel „Offene Zahlungen“ auf der Marken-Startseite.

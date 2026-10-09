@@ -144,13 +144,16 @@ function DealCards({ deals, role, locale, highlight }: { deals: DealListItem[]; 
                 <Avatar src={other.avatarUrl} name={name} size={40} />
                 <div className="min-w-0 flex-1">
                   <p className="truncate font-medium">{name}</p>
-                  <p className="truncate text-sm text-neutral-500 dark:text-neutral-400">{interest.request.title}</p>
+                  <p className="line-clamp-2 text-sm text-neutral-500 dark:text-neutral-400">{interest.request.title}</p>
+                </div>
+              </div>
+              {/* The status sits down here, not next to the names: beside them it took half the line and cut both names short. */}
+              <div className="mt-3 flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
+                <div className="flex items-baseline gap-2">
+                  <p className="font-bold tabular-nums">{formatCents(deal.brandTotalCents ?? interest.amountCents ?? 0)}</p>
+                  <p className="text-xs text-neutral-500 dark:text-neutral-400">{formatDealDate(deal.statusChangedAt, locale)}</p>
                 </div>
                 <Badge strong={highlight}>{u(`status.${deal.status}`)}</Badge>
-              </div>
-              <div className="mt-3 flex items-baseline justify-between gap-3">
-                <p className="font-bold tabular-nums">{formatCents(deal.brandTotalCents ?? interest.amountCents ?? 0)}</p>
-                <p className="text-xs text-neutral-500 dark:text-neutral-400">{formatDealDate(deal.statusChangedAt, locale)}</p>
               </div>
               {!isTerminal(deal.status) && <p className="mt-1 text-sm text-neutral-600 dark:text-neutral-400">{u(step.key, step.vars)}</p>}
             </Link>

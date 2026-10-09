@@ -34,6 +34,8 @@ type Props = {
   amount?: string | null;
   matchedAt?: number;
   canWithdraw?: boolean;
+  // A collab that has become a brand deal: the deal is where it goes on, so it is the main button and the chat the quiet one.
+  deal?: { href: string; label: string };
 };
 
 export function RequestCard({
@@ -54,6 +56,7 @@ export function RequestCard({
   amount,
   matchedAt,
   canWithdraw = true,
+  deal,
 }: Props) {
   const { t, locale } = useI18n();
   const { pending, trigger } = useUndoableAction(async () => {
@@ -94,7 +97,7 @@ export function RequestCard({
             {companyName}
           </Link>
           <h3 className="line-clamp-2 font-bold leading-snug">{title}</h3>
-          <p className="truncate text-footnote text-neutral-500 dark:text-neutral-400">
+          <p className="line-clamp-2 text-footnote text-neutral-500 dark:text-neutral-400">
             {budget && <span className="font-bold text-ink">{budget}</span>}
             {budget && details ? " · " : ""}
             {details}
@@ -139,12 +142,23 @@ export function RequestCard({
               stage ? "md:w-60" : ""
             }`}
           >
-            <Link
-              href={`/dashboard/messages/${interestId}`}
-              className="rounded-full bg-ink px-4 py-1.5 text-sm font-medium text-paper transition hover:bg-graphite"
-            >
-              {t("screens.messages.message")}
-            </Link>
+            {deal ? (
+              <>
+                <Link href={deal.href} className="rounded-full bg-ink px-4 py-1.5 text-sm font-medium text-paper transition hover:bg-graphite">
+                  {deal.label}
+                </Link>
+                <Link href={`/dashboard/messages/${interestId}`} className="text-sm text-neutral-500 transition hover:text-ink dark:text-neutral-400">
+                  {t("screens.messages.message")}
+                </Link>
+              </>
+            ) : (
+              <Link
+                href={`/dashboard/messages/${interestId}`}
+                className="rounded-full bg-ink px-4 py-1.5 text-sm font-medium text-paper transition hover:bg-graphite"
+              >
+                {t("screens.messages.message")}
+              </Link>
+            )}
             {canWithdraw && (
               <button
                 type="button"

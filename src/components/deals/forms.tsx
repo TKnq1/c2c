@@ -279,16 +279,60 @@ export function ReviewDraftForm({ dealId, canRequestChanges, roundsLeft }: { dea
 // Scheduling and posting
 // ---------------------------------------------------------------------------------------------------------------------
 
-// A datetime-local field that submits an absolute time: the browser's wall clock turned into ISO, so the server never has to
-// guess the person's time zone.
-function LocalDateTime({ name, defaultNow = false, min }: { name: string; defaultNow?: boolean; min?: string }) {
-  const [local, setLocal] = useState(() => (defaultNow ? toLocalInput(new Date()) : ""));
-  const iso = local ? new Date(local).toISOString() : "";
+// A date, a time and a few quick picks, submitted as one absolute time: the browser's wall clock turned into ISO, so the server never
+// has to guess the person's time zone. Two fields instead of one datetime-local, which every browser shows in its own order and
+// takes a long time to fill on a phone.
+type QuickPick = { key: "form.quick.now" | "form.quick.yesterday" | "form.quick.tomorrow" | "form.quick.in3" | "form.quick.in7"; days: number; at?: string };
+const FUTURE_PICKS: QuickPick[] = [
+  { key: "form.quick.tomorrow", days: 1, at: "10:00" },
+  { key: "form.quick.in3", days: 3, at: "10:00" },
+  { key: "form.quick.in7", days: 7, at: "10:00" },
+];
+const PAST_PICKS: QuickPick[] = [
+  { key: "form.quick.now", days: 0 },
+  { key: "form.quick.yesterday", days: -1 },
+];
+
+function LocalDateTime({ name, defaultNow = false, future = false }: { name: string; defaultNow?: boolean; future?: boolean }) {
+  const u = useDealText();
+  const [date, setDate] = useState(() => (defaultNow ? toLocalInput(new Date()).slice(0, 10) : ""));
+  const [time, setTime] = useState(() => (defaultNow ? toLocalInput(new Date()).slice(11, 16) : ""));
+  const iso = date && time ? new Date(`${date}T${time}`).toISOString() : "";
+  const now = toLocalInput(new Date());
+  const picks = future ? FUTURE_PICKS : PAST_PICKS;
+
+  function pick(p: QuickPick) {
+    const day = new Date();
+    day.setDate(day.getDate() + p.days);
+    const stamp = toLocalInput(day);
+    setDate(stamp.slice(0, 10));
+    // "Now" and "yesterday" keep the clock; the future picks start at a sensible hour unless one was typed already.
+    setTime(p.at ? time || p.at : stamp.slice(11, 16));
+  }
+
   return (
-    <>
-      <input type="datetime-local" value={local} min={min} onChange={(e) => setLocal(e.target.value)} className={inputClass} required={!defaultNow} />
+    <div className="flex flex-col gap-2">
+      <div className="grid grid-cols-[1fr_8rem] gap-2">
+        <input type="date" value={date} min={future ? now.slice(0, 10) : undefined} onChange={(e) => setDate(e.target.value)} className={inputClass} required={!defaultNow} aria-label={u("form.date")} />
+        <input
+          type="time"
+          value={time}
+          min={future && date === now.slice(0, 10) ? now.slice(11, 16) : undefined}
+          onChange={(e) => setTime(e.target.value)}
+          className={inputClass}
+          required={!defaultNow}
+          aria-label={u("form.time")}
+        />
+      </div>
+      <div className="flex flex-wrap gap-2">
+        {picks.map((p) => (
+          <button key={p.key} type="button" onClick={() => pick(p)} className="min-h-9 rounded-full border border-neutral-300 px-3 text-sm transition hover:border-neutral-500 dark:border-neutral-700">
+            {u(p.key)}
+          </button>
+        ))}
+      </div>
       <input type="hidden" name={name} value={iso} />
-    </>
+    </div>
   );
 }
 
@@ -303,7 +347,7 @@ export function ScheduleForm({ dealId, rescheduling }: { dealId: string; resched
     <DealForm action={schedulePostAction.bind(null, dealId)} successMessage={u("posts.scheduled")} submitLabel={rescheduling ? u("posts.reschedule") : u("posts.schedule")}>
       {(state) => (
         <Field label={u("posts.scheduleAt")} name="scheduledFor" issues={state?.issues}>
-          <LocalDateTime name="scheduledFor" min={toLocalInput(new Date())} />
+          <LocalDateTime name="scheduledFor" future />
         </Field>
       )}
     </DealForm>

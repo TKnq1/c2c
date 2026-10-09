@@ -115,7 +115,8 @@ export default async function AdminTodayPage(props: PageProps<"/admin">) {
               <h2 className="text-[0.9375rem] font-black">Die vier Zahlen</h2>
               <PeriodTabs current={period} />
             </div>
-            <div className="grid gap-[var(--gap,1rem)] sm:grid-cols-2 xl:grid-cols-4">
+            {/* Two to a row on a phone as well: four full-width charts one under the other made "Heute" six screens long. */}
+            <div className="grid grid-cols-2 gap-3 sm:gap-[var(--gap,1rem)] xl:grid-cols-4">
               {tiles.map((tile) => (
                 <KpiTile
                   key={tile.key}

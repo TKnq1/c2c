@@ -161,13 +161,16 @@ export function SwipeCardStack({
     // From lg up the card keeps phone proportions on the left and the top
     // card's details stay open on the right (RequestDetailsPanel); below
     // that it's the phone layout, details behind a tap.
-    <div className="flex flex-col items-center gap-3 lg:flex-row lg:items-start lg:justify-center lg:gap-12">
-      <div className="flex w-full flex-col items-center gap-3 md:w-auto">
+    <div className="flex flex-col items-center gap-3 max-md:flex-1 lg:flex-row lg:items-start lg:justify-center lg:gap-12">
+      <div className="flex w-full flex-col items-center gap-3 max-md:flex-1 md:w-auto">
         {/* -mx-6 cancels the padded <main> this sits inside (see
             dashboard/layout.tsx) so the card itself runs edge-to-edge on
             phones instead of sitting in a centered, padded column. From md
-            up it's a phone-sized card. */}
-        <div className="relative -mx-6 h-[min(580px,62dvh)] w-[calc(100%+3rem)] md:mx-0 md:h-[min(600px,70dvh)] md:w-[400px]">
+            up it's a phone-sized card. On phones its height is whatever is
+            left in <main> (flex-1 up the chain; see .feed-fill in
+            globals.css), so the buttons below stay on screen on any phone
+            and whatever sits above (install notice) is accounted for. */}
+        <div className="relative -mx-6 w-[calc(100%+3rem)] max-md:max-h-[46rem] max-md:min-h-[22rem] max-md:flex-1 md:mx-0 md:h-[min(600px,70dvh)] md:w-[400px]">
           {visible.map((r, i) => (
             <SwipeCard
               key={r.id}
