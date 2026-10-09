@@ -287,7 +287,14 @@ export function DraftsPanel({ ctx, behind = false }: { ctx: PanelContext; behind
             </p>
           </div>
         ))}
-        {canSubmit && <SubmitDraftForm dealId={data.id} revising={data.status === "CHANGES_REQUESTED"} />}
+        {canSubmit && (
+          <SubmitDraftForm
+            dealId={data.id}
+            revising={data.status === "CHANGES_REQUESTED"}
+            formats={terms.contentFormats}
+            terms={{ market: terms.targetMarket, labels: terms.disclosure.labels, requirePaidPartnershipLabel: terms.disclosure.requirePaidPartnershipLabel, requiredHashtags: terms.requiredHashtags, requiredMentions: terms.requiredMentions }}
+          />
+        )}
         {canReview && <ReviewDraftForm dealId={data.id} canRequestChanges={roundsLeft > 0} roundsLeft={roundsLeft} />}
       </div>
   );

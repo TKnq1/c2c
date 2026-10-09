@@ -148,3 +148,15 @@ export function urlFitsFormat(post: ParsedPostUrl, format: PostFormat): boolean 
   const info = POST_FORMATS[format];
   return info.platform === post.platform && (info.linkKinds as readonly PostLinkKind[]).includes(post.kind);
 }
+
+// The format a pasted link most plausibly is, out of the formats the deal asks for, so the form can pick it. A link that fits
+// the format already chosen leaves it alone; otherwise the format named for exactly this kind of link wins (a /reel/ link is a
+// Reel before it is a Post), then the first that fits. Null when the link is not a post address or fits none of them.
+export function detectFormat(raw: string, allowed: PostFormat[], current?: PostFormat): PostFormat | null {
+  const result = parsePostUrl(raw);
+  if (!result.ok) return null;
+  const fits = allowed.filter((format) => urlFitsFormat(result.post, format));
+  if (fits.length === 0) return null;
+  if (current && fits.includes(current)) return current;
+  return fits.find((format) => POST_FORMATS[format].linkKinds[0] === result.post.kind) ?? fits[0];
+}

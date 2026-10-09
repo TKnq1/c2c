@@ -22,6 +22,12 @@ export default async function BusinessPage() {
   const u = uiText(locale);
 
   const profile = await prisma.businessProfile.findUnique({ where: { userId: session.user.id } });
+  // Nothing saved yet: the form starts with the name the account already has, so the first deal does not hang on a long form.
+  const accountName = profile
+    ? null
+    : role === "STARTUP"
+      ? (await prisma.startupProfile.findUnique({ where: { userId: session.user.id }, select: { companyName: true } }))?.companyName
+      : (await prisma.creatorProfile.findUnique({ where: { userId: session.user.id }, select: { displayName: true } }))?.displayName;
   const issues = businessReadiness(profile, role);
   const complete = !hasErrors(issues);
 
@@ -57,7 +63,7 @@ export default async function BusinessPage() {
         <BusinessForm
           role={role}
           initial={{
-            legalName: profile?.legalName ?? "",
+            legalName: profile?.legalName ?? accountName ?? "",
             businessType: profile?.businessType ?? "",
             country: profile?.country ?? "DE",
             addressLine1: profile?.addressLine1 ?? "",

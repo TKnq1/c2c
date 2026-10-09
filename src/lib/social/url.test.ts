@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { parsePostUrl, urlFitsFormat } from "@/lib/social/url";
+import { detectFormat, parsePostUrl, urlFitsFormat } from "@/lib/social/url";
 
 function parsed(raw: string) {
   const result = parsePostUrl(raw);
@@ -85,5 +85,34 @@ describe("urlFitsFormat", () => {
     expect(urlFitsFormat(video, "YOUTUBE_SHORT")).toBe(true);
     expect(urlFitsFormat(short, "YOUTUBE_DEDICATED")).toBe(false);
     expect(urlFitsFormat(short, "YOUTUBE_SHORT")).toBe(true);
+  });
+});
+
+describe("detectFormat", () => {
+  const all = ["INSTAGRAM_REEL", "INSTAGRAM_POST", "INSTAGRAM_STORY", "TIKTOK_VIDEO", "YOUTUBE_INTEGRATION", "YOUTUBE_DEDICATED", "YOUTUBE_SHORT"] as const;
+  const booked = [...all];
+
+  it("picks the format named for exactly this kind of link", () => {
+    expect(detectFormat("https://www.instagram.com/reel/C8aBcDeFgHi/", booked)).toBe("INSTAGRAM_REEL");
+    expect(detectFormat("https://www.instagram.com/p/C8aBcDeFgHi/", booked)).toBe("INSTAGRAM_POST");
+    expect(detectFormat("https://www.instagram.com/stories/mia.summers/3412345678901234567/", booked)).toBe("INSTAGRAM_STORY");
+    expect(detectFormat("https://www.tiktok.com/@mia/video/7345678901234567890", booked)).toBe("TIKTOK_VIDEO");
+    expect(detectFormat("https://www.youtube.com/shorts/dQw4w9WgXcQ", booked)).toBe("YOUTUBE_SHORT");
+  });
+
+  it("only offers what the deal booked", () => {
+    expect(detectFormat("https://www.instagram.com/reel/C8aBcDeFgHi/", ["INSTAGRAM_POST", "TIKTOK_VIDEO"])).toBe("INSTAGRAM_POST");
+    expect(detectFormat("https://www.instagram.com/reel/C8aBcDeFgHi/", ["TIKTOK_VIDEO"])).toBeNull();
+  });
+
+  it("keeps the format that is chosen when the link fits it", () => {
+    expect(detectFormat("https://www.youtube.com/watch?v=dQw4w9WgXcQ", booked, "YOUTUBE_DEDICATED")).toBe("YOUTUBE_DEDICATED");
+    expect(detectFormat("https://www.youtube.com/watch?v=dQw4w9WgXcQ", booked, "INSTAGRAM_REEL")).toBe("YOUTUBE_INTEGRATION");
+  });
+
+  it("is null for something that is not a post address", () => {
+    expect(detectFormat("", booked)).toBeNull();
+    expect(detectFormat("hello", booked)).toBeNull();
+    expect(detectFormat("https://example.com/reel/abc", booked)).toBeNull();
   });
 });

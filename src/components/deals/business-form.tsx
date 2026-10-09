@@ -1,7 +1,8 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import { saveBusinessProfileAction, checkVatIdAction } from "@/lib/actions/business";
+import { useMemo, useState, useTransition } from "react";
+import { saveBusinessProfileAction, checkVatIdAction, lookupVatIdAction } from "@/lib/actions/business";
+import { toast } from "@/lib/toast";
 import { EU_COUNTRIES } from "@/lib/tax/vat-id";
 import { DealActionButton, DealForm } from "@/components/deals/deal-form";
 import { useDealText } from "@/components/deals/use-deal-text";
@@ -41,6 +42,41 @@ export function BusinessForm({ role, initial, vat }: { role: "STARTUP" | "CREATO
   const language = dealLocale(locale);
   const [country, setCountry] = useState(initial.country);
   const [vatStatus, setVatStatus] = useState<VatInfo["status"]>(vat.status);
+  // Controlled, so the VAT ID lookup can fill them in.
+  const [legalName, setLegalName] = useState(initial.legalName);
+  const [addressLine1, setAddressLine1] = useState(initial.addressLine1);
+  const [addressLine2, setAddressLine2] = useState(initial.addressLine2);
+  const [postalCode, setPostalCode] = useState(initial.postalCode);
+  const [city, setCity] = useState(initial.city);
+  const [vatId, setVatId] = useState(initial.vatId);
+  const [lookupNote, setLookupNote] = useState<string | null>(null);
+  const [looking, startLookup] = useTransition();
+
+  // Asks VIES what it knows about the VAT ID in the form and fills in name, address and country, after a question when that
+  // would replace something typed.
+  const fillFromVat = () =>
+    startLookup(async () => {
+      setLookupNote(null);
+      if (!vatId.trim()) return setLookupNote(u("business.vatFillEmpty"));
+      const result = await lookupVatIdAction(vatId).catch(() => null);
+      if (!result) return setLookupNote(u("form.somethingWrong"));
+      if (!result.ok) return setLookupNote(result.error);
+      if (result.status === "INVALID") return setLookupNote(u("business.vatFillInvalid"));
+      if (result.status !== "VALID") return setLookupNote(u("business.vatFillDown"));
+      if (!result.name && !result.address) return setLookupNote(u("business.vatFillNothing"));
+      const typed = [legalName, addressLine1, postalCode, city].some((value) => value.trim() !== "");
+      if (typed && !window.confirm(u("business.vatFillReplace"))) return;
+      if (result.name) setLegalName(result.name);
+      if (result.address) {
+        setAddressLine1(result.address.addressLine1);
+        setAddressLine2(result.address.addressLine2);
+        setPostalCode(result.address.postalCode);
+        setCity(result.address.city);
+      }
+      setCountry(result.country);
+      setLookupNote(u("business.vatFillDone"));
+      toast.success(u("business.vatFillDone"));
+    });
 
   const countries = useMemo(() => {
     const names = new Intl.DisplayNames([language === "de" ? "de" : "en"], { type: "region" });
@@ -59,7 +95,7 @@ export function BusinessForm({ role, initial, vat }: { role: "STARTUP" | "CREATO
       {(state) => (
         <>
           <Field label={u("business.legalName")} hint={u("business.legalNameHint")} name="legalName" issues={state?.issues}>
-            <input name="legalName" required defaultValue={initial.legalName} maxLength={160} autoComplete="organization" className={inputClass} />
+            <input name="legalName" required value={legalName} onChange={(e) => setLegalName(e.target.value)} maxLength={160} autoComplete="organization" className={inputClass} />
           </Field>
           <Field label={u("business.type")} name="businessType" issues={state?.issues}>
             <select name="businessType" defaultValue={initial.businessType || (role === "STARTUP" ? "COMPANY" : "FREELANCER")} className={inputClass}>
@@ -78,17 +114,17 @@ export function BusinessForm({ role, initial, vat }: { role: "STARTUP" | "CREATO
             </select>
           </Field>
           <Field label={u("business.address1")} name="addressLine1" issues={state?.issues}>
-            <input name="addressLine1" required defaultValue={initial.addressLine1} maxLength={160} autoComplete="address-line1" className={inputClass} />
+            <input name="addressLine1" required value={addressLine1} onChange={(e) => setAddressLine1(e.target.value)} maxLength={160} autoComplete="address-line1" className={inputClass} />
           </Field>
           <Field label={u("business.address2")}>
-            <input name="addressLine2" defaultValue={initial.addressLine2} maxLength={160} autoComplete="address-line2" className={inputClass} />
+            <input name="addressLine2" value={addressLine2} onChange={(e) => setAddressLine2(e.target.value)} maxLength={160} autoComplete="address-line2" className={inputClass} />
           </Field>
           <div className="grid gap-3 sm:grid-cols-[8rem_1fr]">
             <Field label={u("business.postalCode")} name="postalCode" issues={state?.issues}>
-              <input name="postalCode" required defaultValue={initial.postalCode} maxLength={20} autoComplete="postal-code" className={inputClass} />
+              <input name="postalCode" required value={postalCode} onChange={(e) => setPostalCode(e.target.value)} maxLength={20} autoComplete="postal-code" className={inputClass} />
             </Field>
             <Field label={u("business.city")} name="city" issues={state?.issues}>
-              <input name="city" required defaultValue={initial.city} maxLength={100} autoComplete="address-level2" className={inputClass} />
+              <input name="city" required value={city} onChange={(e) => setCity(e.target.value)} maxLength={100} autoComplete="address-level2" className={inputClass} />
             </Field>
           </div>
           <div className="grid gap-3 sm:grid-cols-2">
@@ -104,8 +140,14 @@ export function BusinessForm({ role, initial, vat }: { role: "STARTUP" | "CREATO
             <input name="taxNumber" defaultValue={initial.taxNumber} maxLength={40} className={inputClass} />
           </Field>
           <Field label={u("business.vatId")} hint={needsVatId ? u("business.vatIdHint") : undefined} name="vatId" issues={state?.issues}>
-            <input name="vatId" defaultValue={initial.vatId} maxLength={30} autoCapitalize="characters" spellCheck={false} placeholder="DE123456789" className={inputClass} />
+            <input name="vatId" value={vatId} onChange={(e) => setVatId(e.target.value)} maxLength={30} autoCapitalize="characters" spellCheck={false} placeholder="DE123456789" className={inputClass} />
           </Field>
+          <div className="-mt-1 flex flex-col items-start gap-1">
+            <button type="button" onClick={fillFromVat} disabled={looking} className="text-sm underline disabled:opacity-50">
+              {looking ? u("business.vatFillWorking") : u("business.vatFill")}
+            </button>
+            <span className="text-xs text-neutral-500 dark:text-neutral-400">{lookupNote ?? u("business.vatFillHint")}</span>
+          </div>
           {initial.vatId && (
             <div className="-mt-1 flex flex-wrap items-center gap-3 text-sm">
               <Badge strong={vatStatus === "VALID"}>{u(`business.vatStatus.${vatStatus}`)}</Badge>

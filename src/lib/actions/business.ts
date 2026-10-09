@@ -9,7 +9,9 @@ import { dealLocale } from "@/lib/deals/copy";
 import { failure, say, serializeIssues, type BusinessActionState } from "@/lib/deals/action-state";
 import { hasErrors } from "@/lib/deals/issues";
 import { SELF_BILLING_VERSION, TRADER_CERT_VERSION, validateBusinessInput, type BusinessInput } from "@/lib/tax/business";
-import { normalizeVatId } from "@/lib/tax/vat-id";
+import { normalizeVatId, parseVatId } from "@/lib/tax/vat-id";
+import { checkVatId } from "@/lib/tax/vies";
+import { parseViesAddress, viesName, type ViesAddress } from "@/lib/tax/vies-address";
 import { verifyStoredVatId } from "@/lib/tax/verify-profile";
 import { completePendingContracts } from "@/lib/deals/contract";
 
@@ -121,4 +123,27 @@ export async function checkVatIdAction(_prev: BusinessActionState): Promise<Busi
         : say(locale, "VIES can't be reached right now. Try again later.", "VIES ist gerade nicht erreichbar. Versuche es später erneut."),
     vatStatus: result.status,
   };
+}
+
+export type VatLookup =
+  | { ok: true; status: "UNCHECKED" | "VALID" | "INVALID" | "UNAVAILABLE"; country: string; name: string | null; address: ViesAddress | null }
+  | { ok: false; error: string };
+
+// Asks VIES about a VAT ID that is typed into the form, before anything is saved, to fill in the name and address it knows. It
+// stores nothing: the person checks what came back and saves the form as usual (which checks the VAT ID again).
+export async function lookupVatIdAction(rawVatId: string): Promise<VatLookup> {
+  const session = await auth();
+  const locale = dealLocale(await getLocale());
+  if (!session || (session.user.role !== "STARTUP" && session.user.role !== "CREATOR")) {
+    return { ok: false, error: say(locale, "Not authorized.", "Nicht berechtigt.") };
+  }
+  if (!(await takeToken("vies", session.user.id, 10, HOUR))) {
+    return { ok: false, error: say(locale, "Too many checks. Try again in an hour.", "Zu viele Prüfungen. Versuche es in einer Stunde erneut.") };
+  }
+  const parsed = parseVatId(String(rawVatId ?? "").slice(0, 40));
+  if (!parsed.ok) {
+    return { ok: false, error: say(locale, "This VAT ID does not look right. Check the country prefix and the digits.", "Diese USt-IdNr. sieht nicht richtig aus. Prüfe die Länderkennung und die Ziffern.") };
+  }
+  const result = await checkVatId(parsed.vatId);
+  return { ok: true, status: result.status, country: parsed.vatId.countryCode, name: viesName(result.name), address: parseViesAddress(result.address) };
 }

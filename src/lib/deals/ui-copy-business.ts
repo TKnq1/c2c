@@ -53,4 +53,13 @@ export const BUSINESS_WORDS = {
   "business.saved": { en: "Business details saved.", de: "Geschäftsdaten gespeichert." },
   "business.back": { en: "Back to deals", de: "Zurück zu den Deals" },
   "business.payout": { en: "Payouts are set up in Payments.", de: "Die Auszahlung richtest du unter Zahlungen ein." },
+  "business.vatFill": { en: "Fill in name and address from the VAT ID", de: "Name und Adresse aus der USt-IdNr. übernehmen" },
+  "business.vatFillHint": { en: "VIES knows the registered name and address of many VAT IDs. Nothing is saved until you save the form.", de: "VIES kennt Name und Adresse vieler USt-IdNrn. Gespeichert wird erst, wenn du das Formular speicherst." },
+  "business.vatFillWorking": { en: "Asking VIES…", de: "Frage VIES…" },
+  "business.vatFillReplace": { en: "This replaces the name and address you entered. Continue?", de: "Das ersetzt den Namen und die Adresse, die du eingetragen hast. Fortfahren?" },
+  "business.vatFillDone": { en: "Filled in from VIES. Check it before you save.", de: "Aus VIES übernommen. Prüfe es, bevor du speicherst." },
+  "business.vatFillNothing": { en: "VIES confirms this VAT ID but does not give out a name or address for it. Fill them in yourself.", de: "VIES bestätigt diese USt-IdNr., gibt aber keinen Namen und keine Adresse heraus. Trage sie selbst ein." },
+  "business.vatFillInvalid": { en: "VIES does not know this VAT ID. Check it for typos.", de: "VIES kennt diese USt-IdNr. nicht. Prüfe sie auf Tippfehler." },
+  "business.vatFillDown": { en: "VIES can't be reached right now. Try again later.", de: "VIES ist gerade nicht erreichbar. Versuche es später erneut." },
+  "business.vatFillEmpty": { en: "Type your VAT ID first.", de: "Trage zuerst deine USt-IdNr. ein." },
 } as const satisfies Record<string, Text>;
