@@ -336,6 +336,15 @@ html:has(body.dashboard-shell) {
   main:has(> .feed-fill) > .feed-fill {
     flex: 1 0 auto;
   }
+  /* The card runs from just under the header to just above the tab bar. The notices above it keep their place relative to it. */
+  main:has(> .feed-fill) {
+    padding-top: calc(var(--header-h) + 0.5rem);
+    padding-bottom: calc(var(--bar-bottom) + 3.5rem);
+  }
+  main:has(> .feed-fill) > .dashboard-banners {
+    margin-top: -0.5rem;
+    margin-bottom: 0.5rem;
+  }
 }
 
 /* The chat fills <main> exactly, so there's no room above it for the

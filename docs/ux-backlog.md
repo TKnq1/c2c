@@ -92,9 +92,10 @@ Alles hängt am Schalter `BRAND_DEALS_ENABLED`: ohne ihn bleibt die Oberfläche 
 ## Durchgang vom 9.10. (alle gebaut, Handy 390 px und 375 px, Desktop 1280 px)
 
 - **Feed:** Die Karte „N Deals warten auf dich“ ist aus dem Creator-Feed raus (das Badge am Deals-Tab zeigt die Zahl; auf der
-  Marken-Startseite bleibt sie). Auf dem Handy bekommt die Swipe-Karte die Höhe, die in `<main>` übrig ist (`.feed-fill` in
-  `globals.css`, `flex-1` bis zur Karte), mindestens 22 rem: die Knopfreihe liegt auf 375 px, 390 px und 430 px Breite über der
-  Tab-Leiste, auch mit Installations-Hinweis.
+  Marken-Startseite bleibt sie). Auf dem Handy läuft die Swipe-Karte von knapp unter der Kopfzeile bis knapp über die Tab-Leiste
+  (die Höhe, die in `<main>` übrig ist: `.feed-fill` in `globals.css`, mindestens 22 rem). Die Aktionsreihe (✕ ☆ ♥ ↺) liegt als
+  Glas-Knöpfe auf der Karte, wie bei Dating-Apps; der Text der Karte lässt dafür `--card-actions` frei (`RequestCardFace`),
+  „N Anfragen übrig“ steht als kleine Pille oben rechts. Ab md bleibt alles wie vorher.
 - **Kopfzeile Feed:** Gitter statt absolut zentriertem Umschalter; auf schmalen Handys schiebt er sich nach links, statt unter das
   Herz zu laufen.
 - **Vertrag:** Posting-Fenster als „20. Okt. 2026 – 20. Nov. 2026“ bzw. „bis 7. Nov. 2026“ (`formatDealDay`), auch im PDF.

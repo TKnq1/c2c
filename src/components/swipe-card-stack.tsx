@@ -16,6 +16,12 @@ import { createOrderedSaves } from "@/lib/ordered-saves";
 
 const VISIBLE_DEPTH = 3;
 
+// On phones the action row floats on the card, over its bottom edge (the card runs down to the tab bar), so the buttons sit on a
+// frosted white that reads on a photo and on paper alike. Pointer events are back on only for the buttons: the rest of the row
+// stays part of the card, which is dragged and tapped through it.
+const GLASS =
+  "max-md:pointer-events-auto max-md:border-black/10 max-md:bg-white/90 max-md:text-neutral-800 max-md:shadow-lg max-md:backdrop-blur-md max-md:hover:border-black/20 max-md:hover:text-neutral-800 max-md:dark:text-neutral-800 max-md:dark:hover:text-neutral-800";
+
 export function SwipeCardStack({
   requests,
   caughtUp,
@@ -162,15 +168,16 @@ export function SwipeCardStack({
     // card's details stay open on the right (RequestDetailsPanel); below
     // that it's the phone layout, details behind a tap.
     <div className="flex flex-col items-center gap-3 max-md:flex-1 lg:flex-row lg:items-start lg:justify-center lg:gap-12">
-      <div className="flex w-full flex-col items-center gap-3 max-md:flex-1 md:w-auto">
+      <div className="relative flex w-full flex-col items-center gap-3 max-md:flex-1 md:w-auto">
         {/* -mx-6 cancels the padded <main> this sits inside (see
             dashboard/layout.tsx) so the card itself runs edge-to-edge on
             phones instead of sitting in a centered, padded column. From md
             up it's a phone-sized card. On phones its height is whatever is
             left in <main> (flex-1 up the chain; see .feed-fill in
-            globals.css), so the buttons below stay on screen on any phone
-            and whatever sits above (install notice) is accounted for. */}
-        <div className="relative -mx-6 w-[calc(100%+3rem)] max-md:max-h-[46rem] max-md:min-h-[22rem] max-md:flex-1 md:mx-0 md:h-[min(600px,70dvh)] md:w-[400px]">
+            globals.css): it runs down to the tab bar, with the action row
+            on its bottom edge. --card-actions is the room the card's own
+            text leaves for that row (see RequestCardFace). */}
+        <div className="relative -mx-6 w-[calc(100%+3rem)] max-md:max-h-[52rem] max-md:min-h-[22rem] max-md:flex-1 max-md:[--card-actions:6.5rem] md:mx-0 md:h-[min(600px,70dvh)] md:w-[400px]">
           {visible.map((r, i) => (
             <SwipeCard
               key={r.id}
@@ -183,8 +190,13 @@ export function SwipeCardStack({
           ))}
         </div>
 
-        <div className="w-full max-w-md flex flex-col items-center gap-2">
-          <p className="text-xs text-neutral-400 dark:text-neutral-500">
+        {/* Phones: how many are left, on the card's top corner opposite the budget. */}
+        <p className="pointer-events-none absolute top-6 right-4 z-30 rounded-full bg-black/45 px-2.5 py-1 text-xs font-medium text-white backdrop-blur-sm md:hidden">
+          {stack.length === 1 ? t("screens.ui.leftOne", { count: stack.length }) : t("screens.ui.leftMany", { count: stack.length })}
+        </p>
+
+        <div className="w-full max-w-md flex flex-col items-center gap-2 max-md:pointer-events-none max-md:absolute max-md:inset-x-0 max-md:bottom-0 max-md:z-30 max-md:pb-4">
+          <p className="text-xs text-neutral-400 max-md:hidden dark:text-neutral-500">
             {stack.length === 1
               ? t("screens.ui.leftOne", { count: stack.length })
               : t("screens.ui.leftMany", { count: stack.length })}
@@ -211,7 +223,7 @@ export function SwipeCardStack({
               type="button"
               onClick={() => topCardRef.current?.triggerExit("left")}
               aria-label={t("screens.feed.pass")}
-              className="flex h-14 w-14 shrink-0 items-center justify-center justify-self-center rounded-full border border-ink/10 text-neutral-600 transition hover:border-ink hover:text-ink dark:text-neutral-400 dark:hover:text-white"
+              className={`flex h-14 w-14 shrink-0 items-center justify-center justify-self-center rounded-full border border-ink/10 text-neutral-600 transition hover:border-ink hover:text-ink dark:text-neutral-400 dark:hover:text-white ${GLASS}`}
             >
               <FiX className="h-6 w-6" />
             </button>
@@ -224,7 +236,7 @@ export function SwipeCardStack({
               className={`flex h-10 w-10 shrink-0 items-center justify-center justify-self-center rounded-full border transition-colors disabled:opacity-40 ${
                 topIsFavorited
                   ? "border-amber-400 bg-amber-400 text-white"
-                  : "border-ink/10 text-neutral-400 hover:border-ink hover:text-ink dark:hover:text-white"
+                  : `border-ink/10 text-neutral-400 hover:border-ink hover:text-ink dark:hover:text-white ${GLASS}`
               }`}
             >
               {topIsFavorited ? <IoStar className="h-4 w-4" /> : <IoStarOutline className="h-4 w-4" />}
@@ -233,7 +245,7 @@ export function SwipeCardStack({
               type="button"
               onClick={() => topCardRef.current?.triggerExit("right")}
               aria-label={t("screens.feed.interested")}
-              className="flex h-14 w-14 shrink-0 items-center justify-center justify-self-center rounded-full bg-ink text-paper transition hover:bg-graphite"
+              className="flex h-14 w-14 shrink-0 items-center justify-center justify-self-center rounded-full bg-ink text-paper transition hover:bg-graphite max-md:pointer-events-auto max-md:shadow-lg"
             >
               <FiHeart className="h-6 w-6" />
             </button>
@@ -242,7 +254,7 @@ export function SwipeCardStack({
               onClick={undoLastPass}
               disabled={!lastPassed}
               aria-label={t("screens.feed.undo")}
-              className="flex h-10 w-10 shrink-0 items-center justify-center justify-self-center rounded-full border border-ink/10 text-neutral-400 transition-colors hover:border-ink hover:text-ink disabled:opacity-40 disabled:hover:border-ink/10 disabled:hover:text-neutral-400 dark:hover:text-white"
+              className={`flex h-10 w-10 shrink-0 items-center justify-center justify-self-center rounded-full border border-ink/10 text-neutral-400 transition-colors hover:border-ink hover:text-ink disabled:opacity-40 disabled:hover:border-ink/10 disabled:hover:text-neutral-400 dark:hover:text-white ${GLASS}`}
             >
               <FiRotateCcw className="h-4 w-4" />
             </button>
