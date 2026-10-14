@@ -6,9 +6,7 @@ export default function Loading() {
   return (
     <div className="page-wide flex flex-col gap-6 pb-8">
       <DealsPageSkeletonHead />
-      <div className="max-w-2xl">
-        <SkeletonCardList count={3} />
-      </div>
+      <SkeletonCardList count={3} />
     </div>
   );
 }

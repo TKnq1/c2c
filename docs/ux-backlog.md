@@ -120,7 +120,7 @@ Alles hängt am Schalter `BRAND_DEALS_ENABLED`: ohne ihn bleibt die Oberfläche 
   Vorschau „So sieht der Creator dein Briefing“;
   „Beispiel einfügen“ bei Kernbotschaft und „Bitte vermeiden“; Frist-Schnellwahl (2 Wochen, 30 Tage, Monatsende); Hashtags und
   Erwähnungen als Chips; Nutzungsrechte als Ja/Nein-Frage; der Balken nennt den ersten Fehler beim Namen. Akzentfarbe: Elektro-Indigo
-  `#5B5BF0` (`--accent` in `globals.css`).
+  `#5B5BF0` (`--accent` in `globals.css`), am 14.10. wieder auf Schwarz/Weiß gestellt (`--accent: var(--ink)`); eine Farbe dort bringt den Akzent überall zurück.
 
 - **Briefing (14.10.):** Vorlagen-Feld ist eine Zeile und geht nur beim Start eines neuen Briefings auf, wenn die Marke schon
   Vorlagen hat; „Für jede neue Anfrage verwenden“ im Abschluss-Bildschirm und im Vorlagen-Dialog als Button (`Check`); ab 1280 px
