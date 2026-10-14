@@ -1,4 +1,5 @@
 import type { Catalog } from "@/lib/i18n/messages/types";
+import { emailsFr as emails } from "@/lib/i18n/messages/emails-fr";
 import { extrasFr as extras } from "@/lib/i18n/messages/extras-fr";
 import { faqFr as faq } from "@/lib/i18n/messages/faq-fr";
 import { foundingFr as founding } from "@/lib/i18n/messages/founding-fr";
@@ -181,7 +182,7 @@ export const fr: Catalog = {
       requestsMatch: "demandes te correspondent",
       matchesYou: "{matches}, {name}",
       andMore: "et {count} de plus dans ton fil",
-      trust: "Chaque budget est payé avant que tu publies, et tu gardes au moins {keep} % de ce qu’une marque paie.",
+      trust: "Chaque budget est payé avant que tu publies. Tu gardes au moins {keep} % de ce qu’une marque paie.",
       earlyBrand: "Tu es en avance",
       earlyBrandBody:
         "Aucun créateur en {niche} pour l’instant. Publie ta première demande : ceux qui correspondent sont prévenus dès qu’elle est en ligne.",
@@ -223,7 +224,7 @@ export const fr: Catalog = {
       description: "Ajoute tes infos de paiement maintenant, pour que le premier oui puisse être payé.",
       point1: "Une marque paie en séquestre avant que tu crées quoi que ce soit.",
       point2: "L’argent t’est versé une fois la publication en ligne.",
-      point3: "La configuration prend environ deux minutes, et la première marque qui te choisit peut payer tout de suite.",
+      point3: "La configuration prend environ deux minutes. La première marque qui te choisit peut payer tout de suite.",
       setup: "Configurer les virements",
       later: "Je le ferai plus tard",
     },
@@ -254,6 +255,7 @@ export const fr: Catalog = {
       heardOther: "Ailleurs",
     },
   },
+  emails,
   extras,
   faq,
   landing,

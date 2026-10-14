@@ -14,7 +14,7 @@ export const foundingNl: DeepString<typeof founding> = {
   doneLine: "Founding brand nr. {n}: Pro is gratis voor jou, zolang je account bestaat.",
   planTitle: "Pro · Founding brand nr. {n}",
   planBody:
-    "Pro is gratis voor jou, zolang je account bestaat: {pro}% in plaats van {standard}% op elke betaling. Je betaalt niets en hoeft niets op te zeggen.",
+    "Pro is gratis voor jou, zolang je account bestaat. Je betaalt {pro}% in plaats van {standard}% op elke betaling. Je betaalt niets en hoeft niets op te zeggen.",
   feeLine: "Founding brand nr. {n}: {pro}% kosten per betaling in plaats van {standard}%.",
   creator: {
     teaser: "De eerste {total} creators krijgen Pro gratis, zolang hun account bestaat. Nog {left} plekken vrij.",

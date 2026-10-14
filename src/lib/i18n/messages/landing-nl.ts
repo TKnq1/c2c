@@ -84,7 +84,7 @@ export const landingNl: DeepString<typeof landing> = {
     brand3Body: "Stuur een bod. Accepteert de creator, dan betaal je, en het geld wordt vastgehouden tot de post live staat.",
     brand4Title: "Keur de post goed, dan volgt de uitbetaling",
     brand4Body:
-      "Bekijk eerst de live post. Geen basisvergoeding: comtor houdt {standard}% van elke betaling in, of {pro}% als jij of de creator Pro heeft (€ {price} per maand).",
+      "Bekijk eerst de live post. Geen basisvergoeding. comtor houdt {standard}% van elke betaling in. Heeft een van beide kanten Pro (€ {price} per maand), dan is het {pro}%.",
   },
   mock: {
     interestSent: "Interesse gestuurd.",

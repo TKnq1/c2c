@@ -48,7 +48,7 @@ describe("landing, founding and FAQ text", () => {
       const other = flatten(CATALOGS[id]);
       expect(Object.keys(other).sort(), id).toEqual(Object.keys(english).sort());
       for (const [key, text] of Object.entries(english)) {
-        if (!/^(landing|founding|faq|extras)\./.test(key)) continue;
+        if (!/^(landing|founding|faq|extras|emails)\./.test(key)) continue;
         expect(placeholders(other[key]), `${id} ${key}`).toBe(placeholders(text));
       }
     }

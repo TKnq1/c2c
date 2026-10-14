@@ -1,3 +1,4 @@
+import { emails } from "@/lib/i18n/messages/emails-en";
 import { extras } from "@/lib/i18n/messages/extras-en";
 import { faq } from "@/lib/i18n/messages/faq-en";
 import { founding } from "@/lib/i18n/messages/founding-en";
@@ -181,7 +182,7 @@ export const en = {
       requestsMatch: "requests match",
       matchesYou: "open {matches} you, {name}",
       andMore: "and {count} more in your feed",
-      trust: "Every budget is paid in before you post, and you keep at least {keep}% of what a brand pays.",
+      trust: "Every budget is paid in before you post. You keep at least {keep}% of what a brand pays.",
       earlyBrand: "You're early",
       earlyBrandBody:
         "No {niche} creators are here yet. Post your first request and the ones who match are notified the moment it goes live.",
@@ -224,7 +225,7 @@ export const en = {
       point1: "A brand pays before you create anything, and the money is held until you've posted.",
       point2: "The money is released to you once the post is live.",
       point3:
-        "Setting it up now takes about two minutes, and means the first brand that picks you can pay straight away.",
+        "Set it up now in about 2 minutes. The first brand that picks you can pay right away.",
       setup: "Set up payouts",
       later: "I'll do this later",
     },
@@ -255,6 +256,7 @@ export const en = {
       heardOther: "Somewhere else",
     },
   },
+  emails,
   extras,
   faq,
   landing,

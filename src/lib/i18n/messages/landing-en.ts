@@ -80,7 +80,7 @@ export const landing = {
     brand3Body: "Send an offer. When they accept, you pay, and the money is held until the post is live.",
     brand4Title: "Approve the post, then it's paid out",
     brand4Body:
-      "Check the live post first. No base fee: comtor keeps {standard}% of each payment, or {pro}% when you or the creator has Pro (€{price} a month).",
+      "Check the live post first. No base fee. comtor keeps {standard}% of each payment. With Pro (€{price} a month) on either side, it's {pro}%.",
   },
   mock: {
     interestSent: "Interest sent.",
@@ -111,7 +111,7 @@ export const landing = {
     interestedCreators: "Interested creators",
     now: "now",
     pushText: "{name} is interested in “{title}”",
-    helloLove: "Hi! I'd love to do this.",
+    helloLove: "Hi! I'm in.",
     sendingOffer: "Great, sending an offer.",
     yourOffer: "Your offer",
     wouldGet: "{name} gets 270,00 € after the 10% fee.",

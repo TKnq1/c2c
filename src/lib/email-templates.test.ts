@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { APP_LOCALES } from "@/lib/i18n/locales";
 import {
   passwordChangedEmail,
   passwordResetEmail,
@@ -224,7 +225,6 @@ describe("German emails", () => {
 
   it("is the default language", () => {
     expect(verificationEmail(url).subject).toBe("Bestätige deine comtor-E-Mail-Adresse");
-    expect(verificationEmail(url, "fr").subject).toBe("Verify your comtor email");
   });
 
   it("writes the page in German, with German words around the content", () => {
@@ -299,4 +299,31 @@ describe("German emails", () => {
     expect(mail.text).toContain("Grund: Gefälschte Follower-Zahlen.");
     expect(mail.html).toContain("mailto:info@comtor.app?subject=Gesperrtes%20Konto");
   });
+});
+
+describe("every app language", () => {
+  const url = "https://www.comtor.app/verify-email/abc123";
+
+  for (const { id } of APP_LOCALES) {
+    it(`renders the welcome and verification mails in ${id}`, () => {
+      const mails = [
+        welcomeEmail(url, "CREATOR", id, 5),
+        welcomeEmail(url, "STARTUP", id),
+        verificationEmail(url, id),
+        foundingNoticeEmail(7, id, true, "creator"),
+        marketingWelcomeEmail(url, "CREATOR", "Hello", "Mia", 24, "https://www.comtor.app/outreach/opt-out?x=1", "a reason", id),
+        accountSuspendedEmail("Fake follower numbers.", id),
+      ];
+      for (const mail of mails) {
+        expect(mail.subject.trim()).not.toBe("");
+        for (const part of [mail.subject, mail.text, mail.html]) {
+          // No placeholder left unfilled and no key name shown in place of a missing text.
+          expect(part).not.toMatch(/\{\w+\}/);
+          expect(part).not.toContain("emails.");
+        }
+        expect(mail.html).toContain(`<html lang="${id}"`);
+      }
+      expect(verificationEmail(url, id).html.split(`href="${url}"`)).toHaveLength(3);
+    });
+  }
 });

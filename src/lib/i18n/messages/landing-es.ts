@@ -86,7 +86,7 @@ export const landingEs: DeepString<typeof landing> = {
     brand3Body: "Envía una oferta. Cuando la aceptan, pagas, y el dinero queda retenido hasta que la publicación esté en línea.",
     brand4Title: "Aprueba la publicación y se paga",
     brand4Body:
-      "Revisa primero la publicación. Sin cuota base: comtor se queda el {standard} % de cada pago, o el {pro} % cuando tú o el creador tenéis Pro ({price} € al mes).",
+      "Revisa primero la publicación. Sin cuota base. comtor se queda el {standard} % de cada pago. Si una de las partes tiene Pro ({price} € al mes), es el {pro} %.",
   },
   mock: {
     interestSent: "Interés enviado.",

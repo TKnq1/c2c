@@ -1,4 +1,5 @@
 import type { Catalog } from "@/lib/i18n/messages/types";
+import { emailsPl as emails } from "@/lib/i18n/messages/emails-pl";
 import { extrasPl as extras } from "@/lib/i18n/messages/extras-pl";
 import { faqPl as faq } from "@/lib/i18n/messages/faq-pl";
 import { foundingPl as founding } from "@/lib/i18n/messages/founding-pl";
@@ -181,7 +182,7 @@ export const pl: Catalog = {
       requestsMatch: "zleceń pasuje",
       matchesYou: "otwarte {matches} do ciebie, {name}",
       andMore: "i jeszcze {count} w twoim feedzie",
-      trust: "Każdy budżet jest wpłacany, zanim opublikujesz, a zostaje ci co najmniej {keep}% tego, co płaci marka.",
+      trust: "Każdy budżet jest wpłacany, zanim opublikujesz. Zostaje ci co najmniej {keep}% tego, co płaci marka.",
       earlyBrand: "Jesteś wcześnie",
       earlyBrandBody:
         "Nie ma jeszcze twórców z {niche}. Opublikuj pierwsze zlecenie, a pasujący dostaną powiadomienie, gdy będzie aktywne.",
@@ -223,7 +224,7 @@ export const pl: Catalog = {
       description: "Dodaj dane do wypłaty teraz, żeby pierwsze tak dało się opłacić.",
       point1: "Marka wpłaca środki na rachunek powierniczy, zanim cokolwiek stworzysz.",
       point2: "Pieniądze są zwalniane, gdy post jest już opublikowany.",
-      point3: "Konfiguracja zajmuje około dwóch minut, a pierwsza marka, która cię wybierze, może zapłacić od razu.",
+      point3: "Konfiguracja zajmuje około dwóch minut. Pierwsza marka, która cię wybierze, może zapłacić od razu.",
       setup: "Skonfiguruj wypłaty",
       later: "Zrobię to później",
     },
@@ -254,6 +255,7 @@ export const pl: Catalog = {
       heardOther: "Gdzie indziej",
     },
   },
+  emails,
   extras,
   faq,
   landing,

@@ -14,7 +14,7 @@ export const foundingPl: DeepString<typeof founding> = {
   doneLine: "Marka założycielska nr {n}: Pro jest dla ciebie darmowe, dopóki istnieje twoje konto.",
   planTitle: "Pro · Marka założycielska nr {n}",
   planBody:
-    "Pro jest dla ciebie darmowe, dopóki istnieje twoje konto: {pro}% zamiast {standard}% od każdej płatności. Nic nie płacisz i nic nie anulujesz.",
+    "Pro jest dla ciebie darmowe, dopóki istnieje twoje konto. Płacisz {pro}% zamiast {standard}% od każdej płatności. Nic do zapłaty, nic do anulowania.",
   feeLine: "Marka założycielska nr {n}: prowizja {pro}% od płatności zamiast {standard}%.",
   creator: {
     teaser: "Pro za darmo dla pierwszych {total} twórców, dopóki istnieje ich konto. Zostało {left} miejsc.",

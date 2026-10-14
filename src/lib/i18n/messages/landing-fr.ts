@@ -84,7 +84,7 @@ export const landingFr: DeepString<typeof landing> = {
     brand3Body: "Envoie une offre. Quand le créateur accepte, tu paies, et l’argent est retenu jusqu’à la mise en ligne.",
     brand4Title: "Approuve la publication, puis le virement part",
     brand4Body:
-      "Vérifie d’abord la publication en ligne. Pas de frais fixes : comtor garde {standard} % de chaque paiement, ou {pro} % si toi ou le créateur avez Pro ({price} € par mois).",
+      "Vérifie d’abord la publication en ligne. Pas de frais fixes. comtor garde {standard} % de chaque paiement. Si l’une des deux parties a Pro ({price} € par mois), c’est {pro} %.",
   },
   mock: {
     interestSent: "Intérêt envoyé.",

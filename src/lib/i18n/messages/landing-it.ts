@@ -86,7 +86,7 @@ export const landingIt: DeepString<typeof landing> = {
       "Invia un’offerta. Quando il creator accetta, paghi, e i soldi restano trattenuti finché il post non è online.",
     brand4Title: "Approvi il post, poi parte il pagamento",
     brand4Body:
-      "Controlla prima il post online. Nessuna quota fissa: comtor trattiene il {standard}% di ogni pagamento, solo il {pro}% se tu o il creator avete Pro ({price} € al mese).",
+      "Controlla prima il post online. Nessuna quota fissa. comtor trattiene il {standard}% di ogni pagamento. Con Pro ({price} € al mese) da una delle due parti, è il {pro}%.",
   },
   mock: {
     interestSent: "Interesse inviato.",

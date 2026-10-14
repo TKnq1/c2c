@@ -1,4 +1,5 @@
 import type { Catalog } from "@/lib/i18n/messages/types";
+import { emailsNl as emails } from "@/lib/i18n/messages/emails-nl";
 import { extrasNl as extras } from "@/lib/i18n/messages/extras-nl";
 import { faqNl as faq } from "@/lib/i18n/messages/faq-nl";
 import { foundingNl as founding } from "@/lib/i18n/messages/founding-nl";
@@ -181,7 +182,7 @@ export const nl: Catalog = {
       requestsMatch: "verzoeken passen",
       matchesYou: "open {matches} bij jou, {name}",
       andMore: "en nog {count} in je feed",
-      trust: "Elk budget wordt vooraf betaald, en jij houdt minstens {keep}% van wat een merk betaalt.",
+      trust: "Elk budget wordt vooraf betaald. Jij houdt minstens {keep}% van wat een merk betaalt.",
       earlyBrand: "Je bent er vroeg bij",
       earlyBrandBody:
         "Nog geen creators in {niche}. Plaats je eerste verzoek en passende creators krijgen bericht zodra het live is.",
@@ -223,7 +224,7 @@ export const nl: Catalog = {
       description: "Voeg je uitbetaling nu toe, zodat de eerste ja meteen betaald kan worden.",
       point1: "Een merk betaalt op een tussenrekening voordat je iets maakt.",
       point2: "Het geld komt vrij zodra de post live is.",
-      point3: "Instellen duurt ongeveer twee minuten, en het eerste merk dat je kiest kan meteen betalen.",
+      point3: "Instellen duurt ongeveer twee minuten. Het eerste merk dat je kiest, kan meteen betalen.",
       setup: "Uitbetaling instellen",
       later: "Doe ik later",
     },
@@ -254,6 +255,7 @@ export const nl: Catalog = {
       heardOther: "Ergens anders",
     },
   },
+  emails,
   extras,
   faq,
   landing,

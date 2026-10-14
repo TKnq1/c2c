@@ -84,7 +84,7 @@ export const landingPl: DeepString<typeof landing> = {
     brand3Body: "Wyślij ofertę. Gdy twórca ją przyjmie, płacisz, a środki są wstrzymane, aż publikacja pójdzie na żywo.",
     brand4Title: "Zatwierdź publikację, a wypłata rusza",
     brand4Body:
-      "Najpierw sprawdź publikację na żywo. Bez opłaty stałej: comtor zatrzymuje {standard}% każdej płatności, a {pro}%, gdy ty lub twórca macie Pro ({price} € miesięcznie).",
+      "Najpierw sprawdź publikację na żywo. Bez opłaty stałej. comtor zatrzymuje {standard}% każdej płatności. Gdy ty lub twórca macie Pro ({price} € miesięcznie), to {pro}%.",
   },
   mock: {
     interestSent: "Zainteresowanie wysłane.",

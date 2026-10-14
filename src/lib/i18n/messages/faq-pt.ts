@@ -12,7 +12,7 @@ export const faqPt: DeepString<typeof faq> = {
     matching: {
       question: "Como funcionam as correspondências?",
       answer:
-        "As marcas publicam um pedido com nicho, idiomas do conteúdo, mínimo de seguidores e categoria de produto. Os criadores escolhem até 3 nichos. Em «Para ti», veem os pedidos desses nichos, se o pedido estiver no idioma do seu conteúdo e uma das suas plataformas atingir o mínimo de seguidores. Em «Tudo», veem todos os pedidos que encaixam no idioma e no alcance. Ninguém aprova correspondências à mão: um pedido que encaixa aparece no feed.",
+        "As marcas publicam um pedido com nicho, idiomas do conteúdo, mínimo de seguidores e categoria de produto. Os criadores escolhem até 3 nichos. Em «Para ti», veem os pedidos desses nichos. Um pedido aparece quando está no idioma do seu conteúdo e uma das suas plataformas atinge o mínimo de seguidores. Em «Tudo», veem todos os pedidos que encaixam no idioma e no alcance. Ninguém aprova correspondências à mão: um pedido que encaixa aparece no feed.",
     },
     reachOut: {
       question: "Como entro em contacto?",
@@ -22,17 +22,17 @@ export const faqPt: DeepString<typeof faq> = {
     payments: {
       question: "Como funcionam os pagamentos?",
       answer:
-        "A marca paga o criador através da comtor, nunca diretamente. O dinheiro fica retido até o criador publicar e enviar a ligação. Depois, a marca tem {days} dias para aprovar a publicação, o que liberta o dinheiro de imediato, ou para comunicar um problema. Sem resposta após {days} dias? O dinheiro é libertado automaticamente. A comtor fica com {fee}% de cada pagamento.{proOffer}",
+        "A marca paga o criador através da comtor, nunca diretamente. O dinheiro fica retido até o criador publicar e enviar a ligação. Depois, a marca tem {days} dias para aprovar a publicação ou comunicar um problema. Ao aprovar, o dinheiro é libertado de imediato. Sem resposta após {days} dias? O dinheiro é libertado automaticamente. A comtor fica com {fee}% de cada pagamento.{proOffer}",
     },
     pro: {
       question: "O que é o plano Pro?",
       answer:
-        "Uma subscrição mensal opcional para marcas e criadores ({price} por mês). Baixa a comissão de {fee}% para {proFee}% em cada pagamento em que a marca ou o criador tenha Pro. Basta um dos lados. O Pro compensa quando passam cerca de {breakEven} por mês pela tua conta. A Stripe cobra todos os meses. Gere ou cancela nas Definições. As primeiras {foundingBrands} marcas e os primeiros {foundingCreators} criadores têm o Pro grátis, enquanto a conta existir.",
+        "Uma subscrição mensal opcional para marcas e criadores ({price} por mês). Baixa a comissão de {fee}% para {proFee}% em cada pagamento. A marca ou o criador precisa de Pro, não os dois. O Pro compensa quando passam cerca de {breakEven} por mês pela tua conta. A Stripe cobra todos os meses. Gere ou cancela nas Definições. As primeiras {foundingBrands} marcas e os primeiros {foundingCreators} criadores têm o Pro grátis, enquanto a conta existir.",
     },
     noPost: {
       question: "E se o criador nunca publicar?",
       answer:
-        "A marca cancela o pagamento em qualquer altura antes de o criador enviar a publicação e recebe o valor total de volta. Se a publicação for enviada mas algo estiver errado (em falta, removida, diferente do combinado), a marca comunica o problema em {days} dias. O dinheiro continua retido enquanto analisamos o caso. Depois, libertamo-lo ao criador ou reembolsamos a marca. Um pagamento libertado não pode ser revertido. As avaliações dos dois lados mostram quem é de confiança antes de pagares.",
+        "A marca cancela o pagamento antes de o criador enviar a publicação e recebe o valor total de volta. Se a publicação é enviada mas algo está errado (em falta, removida, diferente do combinado), a marca comunica o problema em {days} dias. O dinheiro continua retido enquanto analisamos o caso. Depois, libertamo-lo ao criador ou reembolsamos a marca. Um pagamento libertado não pode ser revertido. As avaliações dos dois lados mostram quem é de confiança antes de pagares.",
     },
     realMoney: {
       question: "É dinheiro a sério?",

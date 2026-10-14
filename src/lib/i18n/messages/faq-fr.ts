@@ -13,7 +13,7 @@ export const faqFr: DeepString<typeof faq> = {
     matching: {
       question: "Comment fonctionne le matching ?",
       answer:
-        "Les marques publient une demande avec une niche, les langues du contenu, un minimum d’abonnés et une catégorie de produit. Les créateurs choisissent jusqu’à 3 niches. Sous « Pour toi », ils voient les demandes de ces niches, si la demande est dans la langue de leur contenu et si l’une de leurs plateformes atteint le minimum d’abonnés. Sous « Tout », ils voient chaque demande qui correspond à leur langue et à leur portée. Personne ne valide les matchs à la main : une demande adaptée apparaît dans le fil.",
+        "Les marques publient une demande avec une niche, les langues du contenu, un minimum d’abonnés et une catégorie de produit. Les créateurs choisissent jusqu’à 3 niches. Sous « Pour toi », ils voient les demandes de ces niches. Une demande apparaît quand elle est dans la langue de leur contenu et qu’une de leurs plateformes atteint le minimum d’abonnés. Sous « Tout », ils voient chaque demande qui correspond à leur langue et à leur portée. Personne ne valide les matchs à la main : une demande adaptée apparaît dans le fil.",
     },
     reachOut: {
       question: "Comment je prends contact ?",
@@ -23,17 +23,17 @@ export const faqFr: DeepString<typeof faq> = {
     payments: {
       question: "Comment fonctionnent les paiements ?",
       answer:
-        "La marque paie le créateur via comtor, jamais en direct. L’argent est retenu jusqu’à ce que le créateur publie et envoie le lien. La marque a alors {days} jours pour approuver la publication, ce qui verse l’argent aussitôt, ou pour signaler un problème. Pas de réponse après {days} jours ? L’argent est versé automatiquement. comtor garde {fee} % de chaque paiement.{proOffer}",
+        "La marque paie le créateur via comtor, jamais en direct. L’argent est retenu jusqu’à ce que le créateur publie et envoie le lien. La marque a alors {days} jours pour approuver la publication ou signaler un problème. Avec l’approbation, l’argent est versé aussitôt. Pas de réponse après {days} jours ? L’argent est versé automatiquement. comtor garde {fee} % de chaque paiement.{proOffer}",
     },
     pro: {
       question: "C’est quoi la formule Pro ?",
       answer:
-        "Un abonnement mensuel optionnel pour les marques et les créateurs ({price} par mois). Il baisse les frais de {fee} % à {proFee} % sur chaque paiement où la marque ou le créateur a Pro. Une seule des parties suffit. Pro est rentable dès qu’environ {breakEven} par mois passent par ton compte. Stripe te facture chaque mois. Gère ou annule l’abonnement dans les réglages. Les {foundingBrands} premières marques et les {foundingCreators} premiers créateurs ont Pro gratuit tant que leur compte existe.",
+        "Un abonnement mensuel optionnel pour les marques et les créateurs ({price} par mois). Il baisse les frais de {fee} % à {proFee} % sur chaque paiement. La marque ou le créateur a besoin de Pro, pas les deux. Pro est rentable dès qu’environ {breakEven} par mois passent par ton compte. Stripe te facture chaque mois. Gère ou annule l’abonnement dans les réglages. Les {foundingBrands} premières marques et les {foundingCreators} premiers créateurs ont Pro gratuit tant que leur compte existe.",
     },
     noPost: {
       question: "Et si le créateur ne publie jamais ?",
       answer:
-        "La marque annule le paiement à tout moment avant l’envoi de la publication et récupère la totalité du montant. Si une publication est envoyée mais pose problème (absente, supprimée, non conforme), la marque signale le problème sous {days} jours. L’argent reste retenu pendant qu’on examine le cas. Ensuite, on le verse au créateur ou on rembourse la marque. Un paiement versé ne peut pas être annulé. Les avis des deux côtés montrent qui est fiable avant que tu paies.",
+        "La marque annule le paiement avant que le créateur envoie la publication et récupère la totalité du montant. Si une publication est envoyée mais pose problème (absente, supprimée, non conforme), la marque signale le problème sous {days} jours. L’argent reste retenu pendant qu’on examine le cas. Ensuite, on le verse au créateur ou on rembourse la marque. Un paiement versé ne peut pas être annulé. Les avis des deux côtés montrent qui est fiable avant que tu paies.",
     },
     realMoney: {
       question: "C’est de l’argent réel ?",

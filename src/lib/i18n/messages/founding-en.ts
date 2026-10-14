@@ -16,7 +16,7 @@ export const founding = {
   // Settings and Payments.
   planTitle: "Pro · Founding brand no. {n}",
   planBody:
-    "Pro is free for you for as long as your account exists: {pro}% instead of {standard}% on every payment. There's nothing to pay and nothing to cancel.",
+    "Pro is free for you for as long as your account exists. You pay {pro}% instead of {standard}% on every payment. Nothing to pay, nothing to cancel.",
   feeLine: "Founding brand no. {n}: {pro}% fee per payment instead of {standard}%.",
   // The same for the first creators (FOUNDING_CREATOR_LIMIT), numbered on their own.
   creator: {

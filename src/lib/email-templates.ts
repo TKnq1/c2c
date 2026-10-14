@@ -5,7 +5,9 @@ import {
   PLATFORM_FEE_RATE,
   PRO_PLATFORM_FEE_RATE,
   PRO_SUBSCRIPTION_PRICE_CENTS,
+  RELEASE_REVIEW_DAYS,
 } from "@/lib/constants";
+import { createT } from "@/lib/i18n/catalogs";
 import { DEFAULT_LOCALE, type Locale } from "@/lib/i18n/locales";
 
 // The app's emails, in the launch video's look: the white comtor mark and
@@ -24,16 +26,12 @@ import { DEFAULT_LOCALE, type Locale } from "@/lib/i18n/locales";
 // background image with a plain near-black underneath for clients without
 // one. /dev-emails/<name> shows them locally (see that route for the names).
 //
-// Every email exists in German and English. German is the default, like everywhere else; any other language
-// gets the English text. Each function takes the recipient's language as its last argument: the account's
-// stored language, or the visitor's language cookie for people without an account.
+// Every email exists in all eight app languages. The texts live in the catalog (src/lib/i18n/messages/emails-*.ts,
+// under "emails."); a key a language lacks falls back to English. German is the default, like everywhere else. Each
+// function takes the recipient's language as its last argument: the account's stored language, or the visitor's
+// language cookie for people without an account.
 
 export type Email = { subject: string; html: string; text: string };
-
-// One text per language. Anything that isn't German is English.
-function pick<T>(locale: Locale, en: T, de: T): T {
-  return locale === "de" ? de : en;
-}
 
 type Content = {
   locale: Locale;
@@ -73,49 +71,27 @@ export function welcomeEmail(
   // A brand or a creator that got one of the founding places: told right in the welcome.
   foundingNumber?: number | null,
 ): Email {
+  const t = createT(locale);
   const creator = role === "CREATOR";
   const pro = Math.round(PRO_PLATFORM_FEE_RATE * 100);
   const standard = Math.round(PLATFORM_FEE_RATE * 100);
   const founding = !foundingNumber
     ? ""
     : " " +
-      (creator
-        ? pick(
-            locale,
-            `You're founding creator no. ${foundingNumber}: Pro is free for you for as long as your account exists, so comtor keeps ${pro}% instead of ${standard}% of every payment and you keep ${100 - pro}%.`,
-            `Du bist Founding Creator Nr. ${foundingNumber}: Pro ist für dich kostenlos, solange dein Konto besteht. Auf jede Zahlung behält comtor ${pro} % statt ${standard} %, du bekommst ${100 - pro} %.`,
-          )
-        : pick(
-            locale,
-            `You're founding brand no. ${foundingNumber}: Pro is free for you for as long as your account exists, so ${pro}% instead of ${standard}% goes to comtor on every payment.`,
-            `Du bist Founding Brand Nr. ${foundingNumber}: Pro ist für dich kostenlos, solange dein Konto besteht. Auf jede Zahlung behält comtor ${pro} % statt ${standard} %.`,
-          ));
+      t(creator ? "emails.welcome.foundingCreator" : "emails.welcome.foundingBrand", {
+        number: foundingNumber,
+        pro,
+        standard,
+        keep: 100 - pro,
+      });
   return render({
     locale,
-    subject: pick(locale, "Welcome to comtor – verify your email", "Willkommen bei comtor – bestätige deine E-Mail-Adresse"),
-    preview: pick(
-      locale,
-      "Thanks for signing up. One tap and your email is verified.",
-      "Danke für deine Anmeldung. Ein Klick, und deine E-Mail-Adresse ist bestätigt.",
-    ),
-    heading: pick(locale, "Welcome to comtor.", "Willkommen bei comtor."),
-    body: creator
-      ? pick(
-          locale,
-          "Thanks for signing up. Verify your email, then swipe through brand deals with the budget right on the card.",
-          "Danke für deine Anmeldung. Bestätige deine E-Mail-Adresse und wisch dann durch Marken-Deals, mit dem Budget direkt auf der Karte.",
-        ) + founding
-      : pick(
-          locale,
-          "Thanks for signing up. Verify your email, then post your first request. Creators come to you.",
-          "Danke für deine Anmeldung. Bestätige deine E-Mail-Adresse und poste dann deine erste Anfrage. Creator melden sich bei dir.",
-        ) + founding,
-    action: { label: pick(locale, "Verify email", "E-Mail bestätigen"), url },
-    note: pick(
-      locale,
-      "The link works for 24 hours. Didn't sign up for comtor? Then you can ignore this email.",
-      "Der Link gilt 24 Stunden. Du hast dich nicht bei comtor angemeldet? Dann kannst du diese E-Mail ignorieren.",
-    ),
+    subject: t("emails.welcome.subject"),
+    preview: t("emails.welcome.preview"),
+    heading: t("emails.welcome.heading"),
+    body: t(creator ? "emails.welcome.bodyCreator" : "emails.welcome.bodyBrand") + founding,
+    action: { label: t("emails.welcome.action"), url },
+    note: t("emails.welcome.note"),
   });
 }
 
@@ -128,45 +104,29 @@ export function foundingNoticeEmail(
   paysForPro = false,
   side: "brand" | "creator" = "brand",
 ): Email {
+  const t = createT(locale);
   const pro = Math.round(PRO_PLATFORM_FEE_RATE * 100);
   const standard = Math.round(PLATFORM_FEE_RATE * 100);
   const creator = side === "creator";
-  const subscription = paysForPro
-    ? " " +
-      pick(
-        locale,
-        "Your Pro subscription from before is still running and still billed. You can cancel it in Settings and keep Pro.",
-        "Dein bisheriges Pro-Abo läuft weiter und wird weiter abgerechnet. Du kannst es in den Einstellungen kündigen und behältst trotzdem Pro.",
-      )
-    : "";
+  const subscription = paysForPro ? " " + t("emails.foundingNotice.subscription") : "";
   return render({
     locale,
-    subject: pick(locale, "Pro is free for you, for good", "Pro ist für dich dauerhaft kostenlos"),
-    preview: creator
-      ? pick(locale, "You are one of the first creators on comtor.", "Du gehörst zu den ersten Creatorn auf comtor.")
-      : pick(locale, "You are one of the first brands on comtor.", "Du gehörst zu den ersten Marken auf comtor."),
-    heading: pick(locale, "You have Pro, for good.", "Du hast Pro, dauerhaft kostenlos."),
+    subject: t("emails.foundingNotice.subject"),
+    preview: t(creator ? "emails.foundingNotice.previewCreator" : "emails.foundingNotice.previewBrand"),
+    heading: t("emails.foundingNotice.heading"),
     body:
-      (creator
-        ? pick(
-            locale,
-            `You are one of the first ${FOUNDING_CREATOR_LIMIT} creators on comtor (founding creator no. ${foundingNumber}). That's why Pro is free for you for as long as your account exists: comtor keeps ${pro}% instead of ${standard}% of every payment, so you keep ${100 - pro}%. There is nothing you need to do.`,
-            `Du gehörst zu den ersten ${FOUNDING_CREATOR_LIMIT} Creatorn auf comtor (Founding Creator Nr. ${foundingNumber}). Darum ist Pro für dich kostenlos, solange dein Konto besteht: Auf jede Zahlung behält comtor ${pro} % statt ${standard} %, du bekommst ${100 - pro} %. Du musst nichts tun.`,
-          )
-        : pick(
-            locale,
-            `You are one of the first ${FOUNDING_BRAND_LIMIT} brands on comtor (founding brand no. ${foundingNumber}). That's why Pro is free for you for as long as your account exists: comtor keeps ${pro}% instead of ${standard}% of every payment. There is nothing you need to do.`,
-            `Du gehörst zu den ersten ${FOUNDING_BRAND_LIMIT} Marken auf comtor (Founding Brand Nr. ${foundingNumber}). Darum ist Pro für dich kostenlos, solange dein Konto besteht: Auf jede Zahlung behält comtor ${pro} % statt ${standard} %. Du musst nichts tun.`,
-          )) + subscription,
+      t(creator ? "emails.foundingNotice.bodyCreator" : "emails.foundingNotice.bodyBrand", {
+        limit: creator ? FOUNDING_CREATOR_LIMIT : FOUNDING_BRAND_LIMIT,
+        number: foundingNumber,
+        pro,
+        standard,
+        keep: 100 - pro,
+      }) + subscription,
     action: {
-      label: pick(locale, "See your plan", "Zu deinem Tarif"),
+      label: t("emails.foundingNotice.action"),
       url: `${SITE_URL}${creator ? "/dashboard/creator/settings#plan" : "/dashboard/startup/settings#plan"}`,
     },
-    note: pick(
-      locale,
-      "You get this email because you have a comtor account. It is about your plan and is not an advert.",
-      "Du bekommst diese E-Mail, weil du ein comtor-Konto hast. Sie betrifft deinen Tarif und ist keine Werbung.",
-    ),
+    note: t("emails.foundingNotice.note"),
   });
 }
 
@@ -185,15 +145,6 @@ function crowdLine(count: number, one: string, many: string) {
   return { count: safe, label: safe === 1 ? one : many };
 }
 
-function marketingNote(locale: Locale, consentNote?: string): string {
-  const reason = consentNote?.trim();
-  return pick(
-    locale,
-    `You are getting this email because you agreed to hear from comtor${reason ? ` (${reason})` : ""}. You can stop it at any time with the link below.`,
-    `Du bekommst diese E-Mail, weil du zugestimmt hast, E-Mails von comtor zu erhalten${reason ? ` (${reason})` : ""}. Du kannst das jederzeit mit dem Link unten beenden.`,
-  );
-}
-
 export function marketingWelcomeEmail(
   url: string,
   role: "CREATOR" | "STARTUP",
@@ -205,307 +156,192 @@ export function marketingWelcomeEmail(
   consentNote?: string,
   locale: Locale = DEFAULT_LOCALE,
 ): Email {
+  const t = createT(locale);
   const who = name.trim();
-  const note = marketingNote(locale, consentNote);
+  const reason = consentNote?.trim();
+  const note = reason ? t("emails.marketingWelcome.noteWithReason", { reason }) : t("emails.marketingWelcome.note");
   const fee = Math.round(PLATFORM_FEE_RATE * 100);
   const proFee = Math.round(PRO_PLATFORM_FEE_RATE * 100);
   const price = PRO_SUBSCRIPTION_PRICE_CENTS / 100;
-  const hint = pick(locale, "Have a look first. Signing up is on the page.", "Schau dich erst einmal um. Die Anmeldung findest du auf der Seite.");
+  const hint = t("emails.marketingWelcome.hint");
   if (role === "CREATOR") {
-    const headline = pick(locale, "earn money posting on social media.", "verdiene Geld mit Posts in sozialen Medien.");
+    const vars = { keep: 100 - fee, proKeep: 100 - proFee, price, days: RELEASE_REVIEW_DAYS };
     return render({
       locale,
       subject,
-      preview: pick(locale, "Earn money posting on social media.", "Verdiene Geld mit Posts in sozialen Medien."),
-      heading: who ? `${who}, ${headline}` : headline.charAt(0).toUpperCase() + headline.slice(1),
-      body: pick(
-        locale,
-        "comtor is where brands post a paid deal and you swipe the ones you want. The budget is on the card, they pay before you post, and you keep 90%.",
-        "Auf comtor posten Marken bezahlte Deals, und du wischst die, die du willst. Das Budget steht auf der Karte, die Marke zahlt, bevor du postest, und du behältst 90 %.",
-      ),
+      preview: t("emails.marketingWelcome.creator.preview"),
+      heading: who ? t("emails.marketingWelcome.creator.headingNamed", { name: who }) : t("emails.marketingWelcome.creator.heading"),
+      body: t("emails.marketingWelcome.creator.body", vars),
       steps: [
         {
           icon: "swipe",
-          title: pick(locale, "Swipe a deal.", "Wisch einen Deal."),
-          text: pick(
-            locale,
-            "Right means you want it, left means you pass. The brand sees your profile and can message you.",
-            "Rechts heißt: Du willst ihn, links: Du überspringst ihn. Die Marke sieht dein Profil und kann dir schreiben.",
-          ),
+          title: t("emails.marketingWelcome.creator.steps.swipe.title"),
+          text: t("emails.marketingWelcome.creator.steps.swipe.text"),
         },
         {
           icon: "money-bag",
-          title: pick(locale, "The budget is on the card.", "Das Budget steht auf der Karte."),
-          text: pick(
-            locale,
-            "No more DMs about your rate. Every request says what it pays, what to post, and whether the product comes with it.",
-            "Schluss mit DMs über deinen Preis. Jede Anfrage nennt die Bezahlung, was gepostet werden soll und ob das Produkt dabei ist.",
-          ),
+          title: t("emails.marketingWelcome.creator.steps.budget.title"),
+          text: t("emails.marketingWelcome.creator.steps.budget.text"),
         },
         {
           icon: "locked",
-          title: pick(locale, "Paid before you post.", "Bezahlt, bevor du postest."),
-          text: pick(
-            locale,
-            "Accept the offer and the brand pays first. The money waits until your post is up.",
-            "Nimmst du das Angebot an, zahlt die Marke zuerst. Das Geld wird zurückgehalten, bis dein Post online ist.",
-          ),
+          title: t("emails.marketingWelcome.creator.steps.paid.title"),
+          text: t("emails.marketingWelcome.creator.steps.paid.text"),
         },
         {
           icon: "money-wings",
-          title: pick(locale, `You keep ${100 - fee}%.`, `Du behältst ${100 - fee} %.`),
-          text: pick(
-            locale,
-            `The brand has 3 days to approve your post. If they don't answer, it's released to you anyway. With Pro (€${price} a month) you keep ${100 - proFee}%.`,
-            `Die Marke hat 3 Tage Zeit, deinen Post freizugeben. Antwortet sie nicht, geht die Zahlung trotzdem an dich. Mit Pro (${price} € im Monat) behältst du ${100 - proFee} %.`,
-          ),
+          title: t("emails.marketingWelcome.creator.steps.keep.title", vars),
+          text: t("emails.marketingWelcome.creator.steps.keep.text", vars),
         },
       ],
-      crowd: crowdLine(crowd, pick(locale, "brand already here", "Marke ist schon dabei"), pick(locale, "brands already here", "Marken sind schon dabei")),
+      crowd: crowdLine(crowd, t("emails.marketingWelcome.creator.crowdOne"), t("emails.marketingWelcome.creator.crowdMany")),
       hint,
       watermark: true,
       invite: true,
-      action: { label: pick(locale, "See paid deals", "Bezahlte Deals ansehen"), url },
+      action: { label: t("emails.marketingWelcome.creator.action"), url },
       note,
       optOut,
     });
   }
-  const headline = pick(locale, "grow your brand with content creators.", "bring deine Marke mit Creatorn voran.");
+  const vars = { fee, proFee, price };
   return render({
     locale,
     subject,
-    preview: pick(locale, "Grow your brand with content creators.", "Bring deine Marke mit Creatorn voran."),
-    heading: who ? `${who}, ${headline}` : headline.charAt(0).toUpperCase() + headline.slice(1),
-    body: pick(
-      locale,
-      "comtor is where you post the product, the budget, and what to make. Creators who fit swipe right and come to you. You pay when you agree, and the money waits until the post is live.",
-      "Auf comtor stellst du Produkt, Budget und gewünschten Inhalt ein. Passende Creator wischen nach rechts und melden sich bei dir. Du zahlst, wenn ihr euch einig seid, und das Geld wird zurückgehalten, bis der Post online ist.",
-    ),
+    preview: t("emails.marketingWelcome.brand.preview"),
+    heading: who ? t("emails.marketingWelcome.brand.headingNamed", { name: who }) : t("emails.marketingWelcome.brand.heading"),
+    body: t("emails.marketingWelcome.brand.body"),
     steps: [
       {
         icon: "megaphone",
-        title: pick(locale, "Post the product and the budget.", "Poste Produkt und Budget."),
-        text: pick(
-          locale,
-          "Photos, the budget, the platform, and what to post. Creators get it as a card in their feed.",
-          "Fotos, Budget, Plattform und Inhalt. Creator bekommen die Anfrage als Karte in ihrem Feed.",
-        ),
+        title: t("emails.marketingWelcome.brand.steps.post.title"),
+        text: t("emails.marketingWelcome.brand.steps.post.text"),
       },
       {
         icon: "bell",
-        title: pick(locale, "Creators come to you.", "Creator melden sich bei dir."),
-        text: pick(
-          locale,
-          "Creators in your niche swipe right. You see their reach and reviews and pick who fits.",
-          "Creator aus deiner Nische wischen nach rechts. Du siehst Reichweite und Bewertungen und wählst, wer passt.",
-        ),
+        title: t("emails.marketingWelcome.brand.steps.come.title"),
+        text: t("emails.marketingWelcome.brand.steps.come.text"),
       },
       {
         icon: "speech-balloon",
-        title: pick(locale, "Agree on it in the chat.", "Sprich dich im Chat ab."),
-        text: pick(
-          locale,
-          "Send an offer. When they accept, you pay, and the money is held until the post is live.",
-          "Schick ein Angebot. Nimmt der Creator es an, zahlst du, und das Geld wird zurückgehalten, bis der Post online ist.",
-        ),
+        title: t("emails.marketingWelcome.brand.steps.chat.title"),
+        text: t("emails.marketingWelcome.brand.steps.chat.text"),
       },
       {
         icon: "camera-flash",
-        title: pick(locale, "Then it's paid out.", "Dann wird ausgezahlt."),
-        text: pick(
-          locale,
-          `You check the live post first. No base fee: comtor keeps ${fee}% of each payment, or ${proFee}% with Pro (€${price} a month).`,
-          `Du prüfst zuerst den Live-Post. Keine Grundgebühr: comtor behält ${fee} % jeder Zahlung, mit Pro (${price} € im Monat) nur ${proFee} %.`,
-        ),
+        title: t("emails.marketingWelcome.brand.steps.paidOut.title"),
+        text: t("emails.marketingWelcome.brand.steps.paidOut.text", vars),
       },
     ],
-    crowd: crowdLine(crowd, pick(locale, "creator already here", "Creator ist schon dabei"), pick(locale, "creators already here", "Creator sind schon dabei")),
+    crowd: crowdLine(crowd, t("emails.marketingWelcome.brand.crowdOne"), t("emails.marketingWelcome.brand.crowdMany")),
     hint,
     watermark: true,
     invite: true,
-    action: { label: pick(locale, "Post your first deal", "Ersten Deal posten"), url },
+    action: { label: t("emails.marketingWelcome.brand.action"), url },
     note,
     optOut,
   });
 }
 
 export function verificationEmail(url: string, locale: Locale = DEFAULT_LOCALE): Email {
+  const t = createT(locale);
   return render({
     locale,
-    subject: pick(locale, "Verify your comtor email", "Bestätige deine comtor-E-Mail-Adresse"),
-    preview: pick(
-      locale,
-      "Confirm it's your address. The link works for 24 hours.",
-      "Bestätige, dass die Adresse dir gehört. Der Link gilt 24 Stunden.",
-    ),
-    heading: pick(locale, "Verify your email.", "E-Mail bestätigen."),
-    body: pick(
-      locale,
-      "Confirm that this address belongs to your comtor account.",
-      "Bestätige, dass diese Adresse zu deinem comtor-Konto gehört.",
-    ),
-    action: { label: pick(locale, "Verify email", "E-Mail bestätigen"), url },
-    note: pick(
-      locale,
-      "The link works for 24 hours. Didn't sign up for comtor? Then you can ignore this email.",
-      "Der Link gilt 24 Stunden. Du hast dich nicht bei comtor angemeldet? Dann kannst du diese E-Mail ignorieren.",
-    ),
+    subject: t("emails.verification.subject"),
+    preview: t("emails.verification.preview"),
+    heading: t("emails.verification.heading"),
+    body: t("emails.verification.body"),
+    action: { label: t("emails.verification.action"), url },
+    note: t("emails.verification.note"),
   });
 }
 
 export function passwordResetEmail(url: string, locale: Locale = DEFAULT_LOCALE): Email {
+  const t = createT(locale);
   return render({
     locale,
-    subject: pick(locale, "Reset your comtor password", "Setze dein comtor-Passwort zurück"),
-    preview: pick(
-      locale,
-      "Choose a new password. The link works for 1 hour.",
-      "Wähle ein neues Passwort. Der Link gilt 1 Stunde.",
-    ),
-    heading: pick(locale, "Reset your password.", "Passwort zurücksetzen."),
-    body: pick(
-      locale,
-      "Someone asked to reset your comtor password. If that was you, choose a new one.",
-      "Jemand hat darum gebeten, dein comtor-Passwort zurückzusetzen. Warst du das, wähle ein neues.",
-    ),
-    action: { label: pick(locale, "Choose a new password", "Neues Passwort wählen"), url },
-    note: pick(
-      locale,
-      "The link works once, for 1 hour. A new password logs you out everywhere. Didn't ask for this? Then ignore this email and your password stays the same.",
-      "Der Link lässt sich nur einmal verwenden und gilt 1 Stunde. Mit einem neuen Passwort wirst du überall abgemeldet. Du hast das nicht angefordert? Dann ignoriere diese E-Mail, dein Passwort bleibt, wie es ist.",
-    ),
+    subject: t("emails.passwordReset.subject"),
+    preview: t("emails.passwordReset.preview"),
+    heading: t("emails.passwordReset.heading"),
+    body: t("emails.passwordReset.body"),
+    action: { label: t("emails.passwordReset.action"), url },
+    note: t("emails.passwordReset.note"),
   });
 }
 
 // After every password change and reset. The button is for when it wasn't
 // them: a reset through their inbox logs out whoever changed it.
 export function passwordChangedEmail(resetUrl: string, locale: Locale = DEFAULT_LOCALE): Email {
+  const t = createT(locale);
   return render({
     locale,
-    subject: pick(locale, "Your comtor password was changed", "Dein comtor-Passwort wurde geändert"),
-    preview: pick(locale, "If that was you, you're all set.", "Warst du das, ist alles in Ordnung."),
-    heading: pick(locale, "Your password was changed.", "Dein Passwort wurde geändert."),
-    body: pick(
-      locale,
-      "The password of your comtor account was just changed, and your other devices were logged out. If that was you, you're all set.",
-      "Das Passwort deines comtor-Kontos wurde gerade geändert, und deine anderen Geräte wurden abgemeldet. Warst du das, ist alles in Ordnung.",
-    ),
-    action: { label: pick(locale, "Reset password", "Passwort zurücksetzen"), url: resetUrl },
-    note: pick(
-      locale,
-      "Wasn't you? Reset your password right away. That logs out whoever changed it.",
-      "Warst du das nicht? Setze dein Passwort sofort zurück. Das meldet jeden ab, der es geändert hat.",
-    ),
+    subject: t("emails.passwordChanged.subject"),
+    preview: t("emails.passwordChanged.preview"),
+    heading: t("emails.passwordChanged.heading"),
+    body: t("emails.passwordChanged.body"),
+    action: { label: t("emails.passwordChanged.action"), url: resetUrl },
+    note: t("emails.passwordChanged.note"),
   });
 }
 
 // Sent when an admin suspends an account, with the reason: the person is told why, and how to object
 // (Digital Services Act, Art. 17).
 export function accountSuspendedEmail(reason: string, locale: Locale = DEFAULT_LOCALE): Email {
+  const t = createT(locale);
   return render({
     locale,
-    subject: pick(locale, "Your comtor account was suspended", "Dein comtor-Konto wurde gesperrt"),
-    preview: pick(locale, "Here is why, and how to object.", "Hier steht der Grund und wie du widersprechen kannst."),
-    heading: pick(locale, "Your account was suspended.", "Dein Konto wurde gesperrt."),
-    body: pick(
-      locale,
-      `We suspended your comtor account. Reason: ${reason.trim()} You can't sign in while it is suspended, and open requests of a brand account are closed.`,
-      `Wir haben dein comtor-Konto gesperrt. Grund: ${reason.trim()} Solange es gesperrt ist, kannst du dich nicht anmelden, und offene Anfragen eines Marken-Kontos werden geschlossen.`,
-    ),
+    subject: t("emails.accountSuspended.subject"),
+    preview: t("emails.accountSuspended.preview"),
+    heading: t("emails.accountSuspended.heading"),
+    body: t("emails.accountSuspended.body", { reason: reason.trim() }),
     action: {
-      label: pick(locale, "Object to this decision", "Der Entscheidung widersprechen"),
-      url: pick(
-        locale,
-        "mailto:info@comtor.app?subject=Suspended%20account",
-        "mailto:info@comtor.app?subject=Gesperrtes%20Konto",
-      ),
+      label: t("emails.accountSuspended.action"),
+      url: `mailto:info@comtor.app?subject=${encodeURIComponent(t("emails.accountSuspended.objectSubject"))}`,
     },
-    note: pick(
-      locale,
-      "If you think this is a mistake, reply to this email or write to info@comtor.app. We will look at it again and answer you.",
-      "Wenn du glaubst, dass das ein Irrtum ist, antworte auf diese E-Mail oder schreib an info@comtor.app. Wir sehen uns den Fall noch einmal an und antworten dir.",
-    ),
+    note: t("emails.accountSuspended.note"),
   });
 }
 
 // What /admin/email sends to check that mail gets out and looks right.
 export function testEmail(url: string, locale: Locale = DEFAULT_LOCALE): Email {
+  const t = createT(locale);
   return render({
     locale,
-    subject: pick(locale, "comtor test email", "comtor-Test-E-Mail"),
-    preview: pick(
-      locale,
-      "If you can read this, email from comtor works.",
-      "Wenn du das lesen kannst, funktionieren E-Mails von comtor.",
-    ),
-    heading: pick(locale, "It works.", "Es funktioniert."),
-    body: pick(
-      locale,
-      "This is a test email from the admin area. If it's in your inbox, sign-up, verification and password emails reach people too.",
-      "Das ist eine Test-E-Mail aus dem Admin-Bereich. Wenn sie in deinem Posteingang ist, erreichen auch Anmelde-, Bestätigungs- und Passwort-E-Mails die Leute.",
-    ),
-    action: { label: pick(locale, "Open comtor", "comtor öffnen"), url },
-    note: pick(
-      locale,
-      "Sent by an admin from /admin/email. Nothing to do.",
-      "Von einem Admin über /admin/email gesendet. Du musst nichts tun.",
-    ),
+    subject: t("emails.test.subject"),
+    preview: t("emails.test.preview"),
+    heading: t("emails.test.heading"),
+    body: t("emails.test.body"),
+    action: { label: t("emails.test.action"), url },
+    note: t("emails.test.note"),
   });
 }
 
 // Product news. The link opens a page; the button on that page is the
 // consent (see confirmMarketingConsent). Opening the mail is not a yes.
 export function marketingConsentEmail(url: string, locale: Locale = DEFAULT_LOCALE): Email {
+  const t = createT(locale);
   return render({
     locale,
-    subject: pick(locale, "Confirm news from comtor", "Bestätige Produkt-News von comtor"),
-    preview: pick(
-      locale,
-      "One button, then we can send occasional news about comtor.",
-      "Ein Klick, dann dürfen wir dir gelegentlich Neuigkeiten zu comtor schicken.",
-    ),
-    heading: pick(locale, "Confirm product news.", "Produkt-News bestätigen."),
-    body: pick(
-      locale,
-      "You asked for occasional emails about comtor. Press the button on the next page to confirm. Until then, this address gets no product news.",
-      "Du hast um gelegentliche E-Mails zu comtor gebeten. Klicke auf der nächsten Seite auf „Ja, schickt mir News“, um zuzustimmen. Bis dahin bekommt diese Adresse keine Produkt-News.",
-    ),
-    action: { label: pick(locale, "Review and confirm", "Prüfen und bestätigen"), url },
-    note: pick(
-      locale,
-      "Didn't ask for this? Ignore the email. Nothing is turned on until you press the button.",
-      "Du hast das nicht angefordert? Ignoriere die E-Mail. Es wird nichts aktiviert, bevor du auf der Seite zugestimmt hast.",
-    ),
+    subject: t("emails.marketingConsent.subject"),
+    preview: t("emails.marketingConsent.preview"),
+    heading: t("emails.marketingConsent.heading"),
+    body: t("emails.marketingConsent.body"),
+    action: { label: t("emails.marketingConsent.action"), url },
+    note: t("emails.marketingConsent.note"),
   });
 }
 
 // The waitlist's double opt-in: nobody gets the launch email without
 // clicking this first (see joinWaitlistAction).
 export function waitlistConfirmationEmail(url: string, locale: Locale = DEFAULT_LOCALE): Email {
+  const t = createT(locale);
   return render({
     locale,
-    subject: pick(
-      locale,
-      "Confirm your spot on the comtor waitlist",
-      "Bestätige deinen Platz auf der comtor-Warteliste",
-    ),
-    preview: pick(
-      locale,
-      "One tap and you'll hear from us the day the apps are out.",
-      "Ein Klick, und du hörst von uns, sobald die Apps da sind.",
-    ),
-    heading: pick(locale, "Confirm your email.", "E-Mail bestätigen."),
-    body: pick(
-      locale,
-      "You asked to hear when the comtor apps are out on iOS and Android. Confirm that this address is yours and you're on the list.",
-      "Du wolltest erfahren, wann die comtor-Apps für iOS und Android erscheinen. Bestätige, dass diese Adresse dir gehört, dann stehst du auf der Liste.",
-    ),
-    action: { label: pick(locale, "Confirm email", "E-Mail bestätigen"), url },
-    note: pick(
-      locale,
-      "We'll send you one email, the day the apps are out. Didn't sign up? Then ignore this email and you won't hear from us.",
-      "Wir schicken dir eine einzige E-Mail, wenn die Apps erscheinen. Du hast dich nicht angemeldet? Dann ignoriere diese E-Mail, und du hörst nicht von uns.",
-    ),
+    subject: t("emails.waitlistConfirmation.subject"),
+    preview: t("emails.waitlistConfirmation.preview"),
+    heading: t("emails.waitlistConfirmation.heading"),
+    body: t("emails.waitlistConfirmation.body"),
+    action: { label: t("emails.waitlistConfirmation.action"), url },
+    note: t("emails.waitlistConfirmation.note"),
   });
 }
 
@@ -552,28 +388,16 @@ function escapeHtml(value: string) {
     .replaceAll("'", "&#39;");
 }
 
-// The words around every email's content.
-const CHROME = {
-  en: {
-    pasteLink: "Button not working? Paste this link into your browser:",
-    stop: "Stop these emails",
-    tagline: "Brands meet the right creators.",
-    imprint: "Imprint",
-    privacy: "Privacy",
-    number: "en-US",
-  },
-  de: {
-    pasteLink: "Button funktioniert nicht? Füge diesen Link in deinen Browser ein:",
-    stop: "Diese E-Mails abbestellen",
-    tagline: "Marken treffen die richtigen Creator.",
-    imprint: "Impressum",
-    privacy: "Datenschutz",
-    number: "de-DE",
-  },
-} as const;
-
 function render(c: Content): Email {
-  const chrome = CHROME[c.locale === "de" ? "de" : "en"];
+  const t = createT(c.locale);
+  const chrome = {
+    pasteLink: t("emails.chrome.pasteLink"),
+    stop: t("emails.chrome.stop"),
+    tagline: t("emails.chrome.tagline"),
+    imprint: t("emails.chrome.imprint"),
+    privacy: t("emails.chrome.privacy"),
+    number: t("emails.chrome.numberLocale"),
+  };
   const url = escapeHtml(c.action.url);
   const imprint = `${SITE_URL}/legal/imprint`;
   const privacy = `${SITE_URL}/legal/privacy`;
@@ -655,7 +479,7 @@ function render(c: Content): Email {
     : "";
 
   const html = `<!doctype html>
-<html lang="${c.locale === "de" ? "de" : "en"}" xmlns:o="urn:schemas-microsoft-com:office:office">
+<html lang="${c.locale}" xmlns:o="urn:schemas-microsoft-com:office:office">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">

@@ -12,7 +12,7 @@ export const faqNl: DeepString<typeof faq> = {
     matching: {
       question: "Hoe werkt matching?",
       answer:
-        "Merken plaatsen een verzoek met een niche, contenttalen, een minimum aantal volgers en een productcategorie. Creators kiezen maximaal 3 niches. Onder “Voor jou” zien ze verzoeken in die niches, als het verzoek in hun contenttaal staat en een van hun platforms het minimum aan volgers haalt. Onder “Alles” zien ze elk verzoek dat bij hun taal en bereik past. Niemand keurt matches handmatig goed: een passend verzoek verschijnt in de feed.",
+        "Merken plaatsen een verzoek met een niche, contenttalen, een minimum aantal volgers en een productcategorie. Creators kiezen maximaal 3 niches. Onder “Voor jou” zien ze verzoeken in die niches. Een verzoek verschijnt als het in hun contenttaal staat en een van hun platforms het minimum aan volgers haalt. Onder “Alles” zien ze elk verzoek dat bij hun taal en bereik past. Niemand keurt matches handmatig goed: een passend verzoek verschijnt in de feed.",
     },
     reachOut: {
       question: "Hoe neem ik contact op?",
@@ -22,17 +22,17 @@ export const faqNl: DeepString<typeof faq> = {
     payments: {
       question: "Hoe werken betalingen?",
       answer:
-        "Het merk betaalt de creator via comtor, nooit direct. Het geld wordt vastgehouden tot de creator heeft gepost en de link heeft ingestuurd. Daarna heeft het merk {days} dagen om de post goed te keuren, waarna het geld meteen vrijkomt, of om een probleem te melden. Geen reactie na {days} dagen? Dan komt het geld automatisch vrij. comtor houdt {fee}% van elke betaling.{proOffer}",
+        "Het merk betaalt de creator via comtor, nooit direct. Het geld wordt vastgehouden tot de creator heeft gepost en de link heeft ingestuurd. Daarna heeft het merk {days} dagen om de post goed te keuren of een probleem te melden. Na goedkeuring komt het geld meteen vrij. Geen reactie na {days} dagen? Dan komt het geld automatisch vrij. comtor houdt {fee}% van elke betaling.{proOffer}",
     },
     pro: {
       question: "Wat is het Pro-abonnement?",
       answer:
-        "Een optioneel maandabonnement voor merken en creators ({price} per maand). Het verlaagt de kosten van {fee}% naar {proFee}% bij elke betaling waarbij het merk of de creator Pro heeft. Eén kant is genoeg. Pro verdient zich terug zodra ongeveer {breakEven} per maand via je account loopt. Stripe rekent maandelijks af. Beheer of zeg het op in Instellingen. De eerste {foundingBrands} merken en de eerste {foundingCreators} creators krijgen Pro gratis, zolang hun account bestaat.",
+        "Een optioneel maandabonnement voor merken en creators ({price} per maand). Het verlaagt de kosten van {fee}% naar {proFee}% bij elke betaling. Het merk of de creator heeft Pro nodig, niet allebei. Pro verdient zich terug zodra ongeveer {breakEven} per maand via je account loopt. Stripe rekent maandelijks af. Beheer of zeg het op in Instellingen. De eerste {foundingBrands} merken en de eerste {foundingCreators} creators krijgen Pro gratis, zolang hun account bestaat.",
     },
     noPost: {
       question: "Wat als de creator nooit post?",
       answer:
-        "Het merk annuleert de betaling op elk moment voordat de creator de post instuurt en krijgt het volledige bedrag terug. Is er een post ingestuurd, maar klopt er iets niet (ontbreekt, verwijderd, niet zoals afgesproken)? Dan meldt het merk binnen {days} dagen een probleem. Het geld blijft vastgehouden terwijl we de zaak bekijken. Daarna betalen we het uit aan de creator of storten we het terug aan het merk. Een vrijgegeven betaling kun je niet terugdraaien. Beoordelingen van beide kanten laten zien wie betrouwbaar is, nog voordat je betaalt.",
+        "Het merk annuleert de betaling voordat de creator de post instuurt en krijgt het volledige bedrag terug. Is er een post ingestuurd, maar klopt er iets niet (ontbreekt, verwijderd, niet zoals afgesproken)? Dan meldt het merk binnen {days} dagen een probleem. Het geld blijft vastgehouden terwijl we de zaak bekijken. Daarna betalen we het uit aan de creator of storten we het terug aan het merk. Een vrijgegeven betaling kun je niet terugdraaien. Beoordelingen van beide kanten laten zien wie betrouwbaar is, nog voordat je betaalt.",
     },
     realMoney: {
       question: "Is dit echt geld?",
