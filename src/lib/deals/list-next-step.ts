@@ -24,7 +24,7 @@ export function nextStepForListItem(deal: DealListItem, role: Extract<Role, "STA
       scheduledFor: deal.scheduledFor,
       verificationEndsAt: deal.verificationEndsAt,
       graceUntil: deal.graceUntil,
-      proofPending: false,
+      proofPending: deal.proofPending,
       payoutBlocked: !interest.creator.stripeOnboarded,
     },
     locale,

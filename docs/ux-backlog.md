@@ -128,3 +128,7 @@ Alles hängt am Schalter `BRAND_DEALS_ENABLED`: ohne ihn bleibt die Oberfläche 
   gerade erledigten Schritt einrasten (`animate-snap`, bei reduzierter Bewegung aus). **Fortschrittszeile auf der Anfrage der
   Marke** (`request-journey.ts`, `RequestJourney`): „Briefing steht, Creator-Antwort offen“ → Angebot → ab dem Deal der „Nächste
   Schritt“ des Deals mit Link („Zum Deal“); Punkt in der Akzentfarbe, wenn die Marke dran ist.
+- **Beleg wartet auf die Marke (14.10.):** Ein Post, den der Creator mit einem Screenshot belegt hat, zählt jetzt in der Deals-Liste,
+  im Badge am Deals-Tab, im Filter „Wartet auf mich“ und in der Fortschrittszeile als Zug der Marke (`waitingFor` mit
+  `proofPending`, `listDealsForUser` und `getDealActionCount` lesen den offenen Beleg). Vorher stand dort „Warten auf das System“.
+  Der Header `Permissions-Policy` ohne `bluetooth=()` (Chromium kennt es nicht und warnte bei jeder Seite).
