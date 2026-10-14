@@ -254,4 +254,22 @@ export const BRIEFING_WORDS = {
   "briefing.preview.postBy": { en: "Post by {date}", de: "Posten bis {date}" },
   "briefing.preview.label": { en: "Label: {labels}", de: "Kennzeichnung: {labels}" },
   "briefing.preview.noFormats": { en: "No format chosen yet", de: "Noch kein Format gewählt" },
+
+  // The line at the top of a request: where the campaign stands between the briefing and the first deal.
+  "journey.next": { en: "Next step", de: "Nächster Schritt" },
+  "journey.toDeal": { en: "Open the deal", de: "Zum Deal" },
+  "journey.toBriefing": { en: "Write the briefing", de: "Briefing schreiben" },
+  "journey.moreDeals.one": { en: "+ 1 more deal running", de: "+ 1 weiterer Deal läuft" },
+  "journey.moreDeals.many": { en: "+ {count} more deals running", de: "+ {count} weitere Deals laufen" },
+  "journey.noBriefing": { en: "No briefing yet: the defaults apply. Write it before you make an offer.", de: "Noch kein Briefing: Es gelten die Standardwerte. Schreibe es, bevor du ein Angebot machst." },
+  "journey.waiting": { en: "Briefing is set. No creator has answered yet.", de: "Briefing steht. Noch keine Creator-Antwort." },
+  "journey.contacted": { en: "Briefing is set. Waiting for the creator's answer.", de: "Briefing steht. Creator-Antwort offen." },
+  "journey.applicants.one": { en: "Briefing is set. 1 creator is waiting for your offer.", de: "Briefing steht. 1 Creator wartet auf dein Angebot." },
+  "journey.applicants.many": { en: "Briefing is set. {count} creators are waiting for your offer.", de: "Briefing steht. {count} Creator warten auf dein Angebot." },
+  "journey.offerOut.one": { en: "Offer sent. Waiting for the creator's answer.", de: "Angebot gesendet. Creator-Antwort offen." },
+  "journey.offerOut.many": { en: "{count} offers sent. Waiting for the creators' answers.", de: "{count} Angebote gesendet. Creator-Antworten offen." },
+  "journey.offerIn.one": { en: "A creator made you an offer. Your answer is missing.", de: "Ein Creator hat dir ein Angebot gemacht. Deine Antwort fehlt." },
+  "journey.offerIn.many": { en: "{count} creators made you an offer. Your answer is missing.", de: "{count} Creator haben dir ein Angebot gemacht. Deine Antwort fehlt." },
+  "journey.finished.one": { en: "The deal of this request is finished.", de: "Der Deal dieser Anfrage ist abgeschlossen." },
+  "journey.finished.many": { en: "All {count} deals of this request are finished.", de: "Alle {count} Deals dieser Anfrage sind abgeschlossen." },
 } as const satisfies Record<string, Text>;

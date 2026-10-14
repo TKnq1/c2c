@@ -26,9 +26,11 @@ export function dealWhereForUser(userId: string, role: Role) {
     : { interest: { creator: { userId } } };
 }
 
-export async function listDealsForUser(userId: string, role: Role) {
+// All of the person's deals, or with a request id only those of that request (the progress line at the top of a brand's request).
+export async function listDealsForUser(userId: string, role: Role, requestId?: string) {
+  const where = dealWhereForUser(userId, role);
   return prisma.deal.findMany({
-    where: dealWhereForUser(userId, role),
+    where: requestId ? { ...where, interest: { ...where.interest, requestId } } : where,
     orderBy: { statusChangedAt: "desc" },
     select: {
       id: true,

@@ -7,6 +7,7 @@ import type { FormValues } from "@/lib/compliance/briefing-form";
 import { hapticSuccess } from "@/lib/haptics";
 import { playSound } from "@/lib/sounds";
 import { toast } from "@/lib/toast";
+import { Check } from "@/components/deals/choice-button";
 import { saveValuesAsTemplate, TEMPLATES_HREF } from "@/components/deals/briefing-template-panel";
 import { cardClass, inputClass, primaryButton, secondaryButton } from "@/components/deals/ui";
 import { useDealText } from "@/components/deals/use-deal-text";
@@ -78,10 +79,7 @@ export function BriefingDone({ requestId, values, hasTemplates, onEdit }: { requ
               aria-label={u("briefing.template.name")}
               className={inputClass}
             />
-            <label className="flex items-start gap-2 text-sm">
-              <input type="checkbox" checked={makeDefault} onChange={(e) => setMakeDefault(e.target.checked)} className="mt-0.5" />
-              {u("briefing.template.makeDefault")}
-            </label>
+            <Check checked={makeDefault} onChange={setMakeDefault} label={u("briefing.template.makeDefault")} />
             {problem && (
               <p className="text-sm font-medium" role="alert">
                 {problem}

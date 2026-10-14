@@ -282,9 +282,15 @@ export function BriefingBuilder({
     >
       {(state, pending) =>
         saved ? (
-          <BriefingDone requestId={requestId} values={latest.current} hasTemplates={templates.length > 0} onEdit={() => setSaved(false)} />
+          <div className="w-full max-w-2xl">
+            <BriefingDone requestId={requestId} values={latest.current} hasTemplates={templates.length > 0} onEdit={() => setSaved(false)} />
+          </div>
         ) : (
         <>
+          {/* From xl the creator's view of the briefing stands in a column of its own next to the form and moves down with the page;
+              below that it follows the form, as it always did. */}
+          <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_19rem] xl:items-start">
+          <div className="flex min-w-0 flex-col gap-4">
           <BriefingProgress {...progress} />
           {source === "draft" && (
             <div className={`${cardClass} flex flex-col gap-3 text-sm`}>
@@ -305,7 +311,9 @@ export function BriefingBuilder({
           {source === "template" && templateName && <p className="px-1 text-sm text-neutral-600 dark:text-neutral-400">{u("briefing.template.startedWith", { name: templateName })}</p>}
           <ReconfirmOffers requestId={requestId} count={staleOwnOffers} />
 
-          <BriefingTemplatePanel values={values} templates={templates} copyable={copyable} startOpen={source === "defaults" || source === "template"} onFill={fill} />
+          {/* One line while there is nothing to pick from (a first briefing has no template yet); open at the start of a new briefing
+              once the brand has templates, which is when the choice saves the most. */}
+          <BriefingTemplatePanel values={values} templates={templates} copyable={copyable} startOpen={(source === "defaults" || source === "template") && templates.length > 0} onFill={fill} />
 
           {quick && (
             <div className={`${cardClass} flex flex-col gap-4`}>
@@ -546,13 +554,18 @@ export function BriefingBuilder({
           </div>
 
           </div>
+          </div>
 
-          <BriefingPreview values={values} brandName={brandName} requestTitle={requestTitle} language={language} />
+          <aside className="xl:sticky xl:top-4 xl:max-h-[calc(100dvh-2rem)] xl:overflow-y-auto">
+            <BriefingPreview values={values} brandName={brandName} requestTitle={requestTitle} language={language} />
+          </aside>
+          </div>
 
           {/* On a phone it is fixed above the tab bar (a sticky bar would sit at the mercy of <main>'s padding), from md up it sticks to
-              the foot of the window: the save button and the errors stay in reach however far the form is scrolled. */}
+              the foot of the window: the save button and the errors stay in reach however far the form is scrolled. From xl it is as wide
+              as the form, not the preview column too. */}
           <div aria-hidden className="h-20 md:hidden" />
-          <div className="max-md:fixed max-md:inset-x-6 max-md:bottom-[calc(var(--tabbar-space)-0.25rem)] max-md:z-30 md:sticky md:bottom-4 md:z-10" aria-live="polite">
+          <div className="max-md:fixed max-md:inset-x-6 max-md:bottom-[calc(var(--tabbar-space)-0.25rem)] max-md:z-30 md:sticky md:bottom-4 md:z-10 xl:w-[calc(100%-20rem)]" aria-live="polite">
             <div className="flex items-center gap-3 rounded border border-ink/10 bg-background/95 p-3 shadow-lg backdrop-blur">
               <div className="min-w-0 flex-1 text-sm">
                 {errors.length > 0 ? (

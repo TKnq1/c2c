@@ -8,6 +8,7 @@ import { saveBriefingTemplateAction, setDefaultBriefingTemplateAction } from "@/
 import type { FormValues } from "@/lib/compliance/briefing-form";
 import { toast } from "@/lib/toast";
 import { Dialog } from "@/components/dialog";
+import { Check } from "@/components/deals/choice-button";
 import { Field, IssueList, cardClass, inputClass, primaryButton, secondaryButton } from "@/components/deals/ui";
 import { useDealText } from "@/components/deals/use-deal-text";
 import type { FieldIssue } from "@/lib/deals/action-state";
@@ -45,9 +46,11 @@ export function BriefingTemplatePanel({
 }) {
   const u = useDealText();
   const [saving, setSaving] = useState(false);
+  // Only the first render decides: saving a template refreshes the page, and the panel must not jump open or shut under the hand.
+  const [open] = useState(startOpen);
 
   return (
-    <details className={`${cardClass} group`} open={startOpen}>
+    <details className={`${cardClass} group`} open={open}>
       <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between gap-3 text-sm font-medium [&::-webkit-details-marker]:hidden">
         {u("briefing.template.title")}
         <IoChevronDown className="h-4 w-4 shrink-0 text-neutral-500 transition-transform group-open:rotate-180" aria-hidden />
@@ -154,10 +157,7 @@ function SaveTemplateDialog({ open, values, onClose }: { open: boolean; values: 
             className={inputClass}
           />
         </Field>
-        <label className="flex items-start gap-2 text-sm">
-          <input type="checkbox" checked={makeDefault} onChange={(e) => setMakeDefault(e.target.checked)} className="mt-0.5" />
-          {u("briefing.template.makeDefault")}
-        </label>
+        <Check checked={makeDefault} onChange={setMakeDefault} label={u("briefing.template.makeDefault")} />
         {problem && issues.length === 0 && (
           <p className="text-sm font-medium" role="alert">
             {problem}

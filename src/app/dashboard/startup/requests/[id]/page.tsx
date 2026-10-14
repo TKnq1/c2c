@@ -14,8 +14,13 @@ import { RequestPhotoRow } from "@/components/request-photo-row";
 import { PLATFORM_FEE_RATE, PRO_PLATFORM_FEE_RATE } from "@/lib/constants";
 import { photoUrlsByRequestId, requestPhotoIds } from "@/lib/request-photos";
 import { getLocale, getT } from "@/lib/i18n/server";
+import { RequestJourney } from "@/components/deals/request-journey";
 import { dealLocale } from "@/lib/deals/copy";
 import { dealsEnabled } from "@/lib/deals/flag";
+import { nextStepForListItem } from "@/lib/deals/list-next-step";
+import { isMyTurn, listDealsForUser } from "@/lib/deals/queries";
+import { requestJourney } from "@/lib/deals/request-journey";
+import { isTerminal } from "@/lib/deals/status";
 import { uiText } from "@/lib/deals/ui-copy";
 
 export default async function RequestDetailPage({ params }: { params: Promise<{ id: string }> }) {
@@ -23,11 +28,12 @@ export default async function RequestDetailPage({ params }: { params: Promise<{ 
   const session = await auth();
   if (!session || session.user.role !== "STARTUP") redirect("/login");
   const t = await getT();
-  const u = uiText(dealLocale(await getLocale()));
+  const language = dealLocale(await getLocale());
+  const u = uiText(language);
 
   // The request query doesn't actually need `startup` first — only the
   // ownership check below does — so both run as one round-trip.
-  const [startup, request] = await Promise.all([
+  const [startup, request, requestDeals] = await Promise.all([
     prisma.startupProfile.findUniqueOrThrow({ where: { userId: session.user.id } }),
     prisma.request.findUnique({
       where: { id },
@@ -52,6 +58,8 @@ export default async function RequestDetailPage({ params }: { params: Promise<{ 
         },
       },
     }),
+    // Only for the progress line, which is part of the deals feature.
+    dealsEnabled() ? listDealsForUser(session.user.id, "STARTUP", id) : Promise.resolve([]),
   ]);
 
   if (!request || request.startupId !== startup.id) notFound();
@@ -68,6 +76,21 @@ export default async function RequestDetailPage({ params }: { params: Promise<{ 
   // ever describes creators who actually did that.
   const interestedCreators = request.interests.filter((i) => i.initiatedBy === "CREATOR");
   const contactedCreators = request.interests.filter((i) => i.initiatedBy === "STARTUP");
+
+  // Where the campaign stands between the briefing and the deals. Offers and deals are counted apart from creators who only wrote.
+  const dealInterestIds = new Set(requestDeals.map((d) => d.interest.id));
+  const openOffers = request.interests.filter((i) => i.paymentStatus === "OFFERED" && !dealInterestIds.has(i.id));
+  const journey = requestJourney({
+    hasBriefing: request.briefing !== null,
+    applicants: interestedCreators.filter((i) => i.paymentStatus === null && !dealInterestIds.has(i.id)).length,
+    contacted: contactedCreators.filter((i) => i.paymentStatus === null && !dealInterestIds.has(i.id)).length,
+    offersFromBrand: openOffers.filter((i) => i.offerRole === "STARTUP").length,
+    offersFromCreators: openOffers.filter((i) => i.offerRole === "CREATOR").length,
+    deals: requestDeals.map((d) => {
+      const step = nextStepForListItem(d, "STARTUP", language);
+      return { id: d.id, terminal: isTerminal(d.status), mine: isMyTurn(d, "STARTUP"), step };
+    }),
+  });
 
   return (
     <div className="flex flex-col gap-8">
@@ -94,6 +117,7 @@ export default async function RequestDetailPage({ params }: { params: Promise<{ 
           </div>
           <RequestActions requestId={request.id} isOpen={isOpen} />
         </div>
+        {dealsEnabled() && <RequestJourney journey={journey} requestId={request.id} u={u} />}
       </div>
 
       {/* Desktop: what the request is on the left, the facts in a column on

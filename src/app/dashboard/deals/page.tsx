@@ -11,12 +11,11 @@ import { DealsFilter } from "@/components/deals/deals-filter";
 import { DealsTabs } from "@/components/deals/deals-tabs";
 import { dealLocale } from "@/lib/deals/copy";
 import { getLocale } from "@/lib/i18n/server";
-import { nextStep } from "@/lib/deals/next-step";
+import { nextStepForListItem } from "@/lib/deals/list-next-step";
 import { formatDealDate } from "@/lib/deals/notices";
 import { canUseDeals, isMyTurn, listDealsForUser, type DealListItem } from "@/lib/deals/queries";
 import { GROUP_BY_CAMPAIGN_FROM, dealCounts, filterDeals, groupByCampaign, parseDealFilter } from "@/lib/deals/list-filter";
 import { isTerminal } from "@/lib/deals/status";
-import { parseTerms } from "@/lib/deals/terms";
 import { uiText } from "@/lib/deals/ui-copy";
 import { businessReadiness } from "@/lib/tax/business";
 import { hasErrors } from "@/lib/deals/issues";
@@ -116,28 +115,7 @@ function DealCards({ deals, role, locale, highlight }: { deals: DealListItem[]; 
           const { interest } = deal;
           const other = role === "STARTUP" ? interest.creator : interest.request.startup;
           const name = "displayName" in other ? other.displayName : other.companyName;
-          const step = nextStep(
-            {
-              status: deal.status,
-              role,
-              brandSigned: deal.brandSignedAt !== null,
-              creatorSigned: deal.creatorSignedAt !== null,
-              draftRequired: parseTerms(deal.terms).workflow.draftRequired,
-              brandName: interest.request.startup.companyName,
-              creatorName: interest.creator.displayName,
-              totalCents: deal.brandTotalCents,
-              draftDueAt: deal.draftDueAt,
-              draftReviewDueAt: deal.draftReviewDueAt,
-              revisionDueAt: deal.revisionDueAt,
-              postWindowEnd: deal.postWindowEnd,
-              scheduledFor: deal.scheduledFor,
-              verificationEndsAt: deal.verificationEndsAt,
-              graceUntil: deal.graceUntil,
-              proofPending: false,
-              payoutBlocked: !interest.creator.stripeOnboarded,
-            },
-            locale,
-          );
+          const step = nextStepForListItem(deal, role, locale);
           return (
             <Link key={deal.id} href={`/dashboard/deals/${deal.id}`} className={`${cardClass} block transition hover:bg-neutral-200/60 dark:hover:bg-neutral-700/60 ${highlight ? "ring-1 ring-ink" : ""}`}>
               <div className="flex items-center gap-3">

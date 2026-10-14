@@ -122,3 +122,9 @@ Alles hängt am Schalter `BRAND_DEALS_ENABLED`: ohne ihn bleibt die Oberfläche 
   Erwähnungen als Chips; Nutzungsrechte als Ja/Nein-Frage; der Balken nennt den ersten Fehler beim Namen. Akzentfarbe: Elektro-Indigo
   `#5B5BF0` (`--accent` in `globals.css`).
 
+- **Briefing (14.10.):** Vorlagen-Feld ist eine Zeile und geht nur beim Start eines neuen Briefings auf, wenn die Marke schon
+  Vorlagen hat; „Für jede neue Anfrage verwenden“ im Abschluss-Bildschirm und im Vorlagen-Dialog als Button (`Check`); ab 1280 px
+  steht die Creator-Vorschau als feste Spalte rechts neben dem Formular (Seite `xl:max-w-5xl`); der Fortschrittsring lässt einen
+  gerade erledigten Schritt einrasten (`animate-snap`, bei reduzierter Bewegung aus). **Fortschrittszeile auf der Anfrage der
+  Marke** (`request-journey.ts`, `RequestJourney`): „Briefing steht, Creator-Antwort offen“ → Angebot → ab dem Deal der „Nächste
+  Schritt“ des Deals mit Link („Zum Deal“); Punkt in der Akzentfarbe, wenn die Marke dran ist.
