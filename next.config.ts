@@ -80,7 +80,7 @@ const nextConfig: NextConfig = {
           { key: "Strict-Transport-Security", value: "max-age=63072000; includeSubDomains; preload" },
           // camera and payment stay unset: Stripe's embedded onboarding (identity check) needs the camera
           // inside its own frame, and a policy that names them would block handing it over.
-          { key: "Permissions-Policy", value: "microphone=(), geolocation=(), usb=(), bluetooth=()" },
+          { key: "Permissions-Policy", value: "microphone=(), geolocation=(), usb=()" },
           { key: "Cross-Origin-Opener-Policy", value: "same-origin-allow-popups" },
         ],
       },

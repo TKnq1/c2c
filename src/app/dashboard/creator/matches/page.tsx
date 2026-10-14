@@ -7,6 +7,10 @@ import { EmptyState } from "@/components/empty-state";
 import { MatchesList, type MatchEntry, type MatchGroup } from "@/components/matches-list";
 import { formatBudget, formatCents, formatPostBy } from "@/lib/format";
 import { photoUrlsByRequestId, requestPhotoIds } from "@/lib/request-photos";
+import { dealLocale } from "@/lib/deals/copy";
+import { dealsEnabled } from "@/lib/deals/flag";
+import { isTerminal } from "@/lib/deals/status";
+import { uiText } from "@/lib/deals/ui-copy";
 import { getLocale, getT } from "@/lib/i18n/server";
 import type { MessageKey } from "@/lib/i18n/translate";
 
@@ -42,9 +46,12 @@ export default async function CreatorMatchesPage() {
   const session = await auth();
   if (!session || session.user.role !== "CREATOR") redirect("/login");
 
+  const deals = dealsEnabled();
+  const u = uiText(dealLocale(locale));
   const interests = await prisma.interest.findMany({
     where: { creator: { userId: session.user.id } },
     include: {
+      ...(deals ? { deal: { select: { id: true, status: true } } } : {}),
       request: { include: { startup: true, ...requestPhotoIds }, omit: { imageUrl: true } },
       _count: { select: { messages: { where: { senderRole: "STARTUP" } } } },
     },
@@ -55,9 +62,12 @@ export default async function CreatorMatchesPage() {
   const matches: MatchEntry[] = interests.map((i) => {
     const stage = stageOf(i.paymentStatus, i._count.messages > 0 || i.initiatedBy === "STARTUP");
     const budget = formatBudget(i.request.budgetMinCents, i.request.budgetMaxCents);
+    // Once the collab is a deal, the deal's own status is the stage (not "in escrow"), and the deal is where it goes on.
+    const deal = "deal" in i ? i.deal : null;
     return {
       group: stage.group,
-      stage: { label: t(stage.label), emphasis: stage.emphasis },
+      stage: deal ? { label: u(`status.${deal.status}`), emphasis: !isTerminal(deal.status) } : { label: t(stage.label), emphasis: stage.emphasis },
+      deal: deal ? { href: `/dashboard/deals/${deal.id}`, label: u("matches.openDeal") } : undefined,
       amount: i.amountCents !== null ? formatCents(i.amountCents) : budget,
       amountCents: i.amountCents ?? i.request.budgetMinCents,
       matchedAt: i.createdAt.getTime(),

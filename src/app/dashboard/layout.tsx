@@ -86,7 +86,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
           pages like settings or a request. */}
       <main
         id="main-content"
-        className="flex-1 min-h-0 overflow-y-auto max-w-5xl has-[.page-wide]:max-w-7xl w-full mx-auto px-6 pt-[calc(var(--header-h)+2rem)] pb-24 max-md:scroll-pt-[var(--header-h)] md:pt-8 md:pb-8"
+        className="flex-1 min-h-0 overflow-y-auto max-w-5xl has-[.page-wide]:max-w-7xl w-full mx-auto px-6 pt-[calc(var(--header-h)+2rem)] pb-[calc(var(--tabbar-space)+1rem)] max-md:scroll-pt-[var(--header-h)] md:pt-8 md:pb-8"
       >
         {/* Inside <main>, right under the header, so they scroll away with
             the page instead of sitting between the header and a page that

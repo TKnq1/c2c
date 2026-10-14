@@ -1,5 +1,5 @@
 import type { Role } from "@prisma/client";
-import { isMyTurn, type DealListItem } from "@/lib/deals/queries";
+import { isMyTurn, type TurnInput } from "@/lib/deals/queries";
 import { isTerminal } from "@/lib/deals/status";
 
 // The filter in the address of the deals list (/dashboard/deals?filter=mine): "mine" are the deals that wait for the person, "active"
@@ -12,7 +12,7 @@ export function parseDealFilter(value: string | string[] | undefined): DealFilte
   return (DEAL_FILTERS as readonly string[]).includes(first ?? "") ? (first as DealFilter) : null;
 }
 
-export function filterDeals<T extends Pick<DealListItem, "status" | "brandSignedAt" | "creatorSignedAt">>(deals: T[], filter: DealFilter | null, role: Role): T[] {
+export function filterDeals<T extends TurnInput>(deals: T[], filter: DealFilter | null, role: Role): T[] {
   if (!filter) return deals;
   if (filter === "done") return deals.filter((d) => isTerminal(d.status));
   const open = deals.filter((d) => !isTerminal(d.status));
@@ -20,7 +20,7 @@ export function filterDeals<T extends Pick<DealListItem, "status" | "brandSigned
 }
 
 // How many deals each filter shows, for the numbers on the filter bar.
-export function dealCounts<T extends Pick<DealListItem, "status" | "brandSignedAt" | "creatorSignedAt">>(deals: T[], role: Role): Record<"all" | DealFilter, number> {
+export function dealCounts<T extends TurnInput>(deals: T[], role: Role): Record<"all" | DealFilter, number> {
   return {
     all: deals.length,
     mine: filterDeals(deals, "mine", role).length,

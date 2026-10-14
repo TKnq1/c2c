@@ -1,4 +1,4 @@
-# UX-Backlog: Brand Deals (Stand 9.10.2026, abends)
+# UX-Backlog: Brand Deals (Stand 9.10.2026, nach dem Durchgang)
 
 Ideen, um den Deal-Ablauf auf dem Handy leichter zu machen, und was davon gebaut ist. Aufwand: S = unter 1 Std., M = ein paar
 Stunden, L = ein Tag oder mehr. **✓** = gebaut und im Browser geprüft (390 px und 1280 px, Demo-Seed mit allen 13 Deal-Zuständen),
@@ -37,7 +37,7 @@ Alles hängt am Schalter `BRAND_DEALS_ENABLED`: ohne ihn bleibt die Oberfläche 
 12. **Vorlagen** ✓: wählen, aus dem Formular speichern (auf Wunsch als Standard für neue Anfragen), umbenennen, löschen, Standard
     setzen, auf mehrere Anfragen anwenden (`/dashboard/startup/templates`, mit Ergebnis je Anfrage). *Offen:* mitgelieferte
     Beispielvorlagen („Reel + Story“, „Nur TikTok“, „UGC ohne Posting“): bisher legt die Marke ihre eigenen an.
-13. **Drei Schritte statt sechs Abschnitte** ✓: Inhalt → Kennzeichnung und Fristen → Rechte. Exklusivität und Nutzungsrechte sind
+13. **Drei Schritte statt sechs Abschnitte** ✓: Inhalt → Regeln → Rechte. Exklusivität und Nutzungsrechte sind
     aus, bis man sie einschaltet. Fehlerzahl je Schritt auf dem Reiter.
 14. **Briefing aus früherer Anfrage kopieren und Standardwerte merken** ✓: Auswahl „Von einer früheren Anfrage übernehmen“ füllt das
     Formular (ohne Termine), gespeichert wird erst mit dem Briefing. Ein unfertiger Entwurf wird nach zwei Sekunden automatisch
@@ -88,3 +88,47 @@ Alles hängt am Schalter `BRAND_DEALS_ENABLED`: ohne ihn bleibt die Oberfläche 
 - Auf dem Handy gab es keinen horizontalen Überlauf (gemessen auf Deals-Liste, Deal-Seite in allen 13 Zuständen, Briefing,
   Geschäftsdaten, Entwurf- und Post-Formular).
 - Die neuen Texte (Checkliste, Vorlagen, Filter, Hinweise) gibt es auf Deutsch und Englisch; `nav.account` in allen acht Sprachen.
+
+## Durchgang vom 9.10. (alle gebaut, Handy 390 px und 375 px, Desktop 1280 px)
+
+- **Feed:** Die Karte „N Deals warten auf dich“ ist aus dem Creator-Feed raus (das Badge am Deals-Tab zeigt die Zahl; auf der
+  Marken-Startseite bleibt sie). Auf dem Handy läuft die Swipe-Karte von knapp unter der Kopfzeile bis knapp über die Tab-Leiste
+  (die Höhe, die in `<main>` übrig ist: `.feed-fill` in `globals.css`, mindestens 22 rem). Die Aktionsreihe (✕ ☆ ♥ ↺) liegt als
+  Glas-Knöpfe auf der Karte, wie bei Dating-Apps; der Text der Karte lässt dafür `--card-actions` frei (`RequestCardFace`),
+  „N Anfragen übrig“ steht als kleine Pille oben rechts. Ab md bleibt alles wie vorher.
+- **Kopfzeile Feed:** Gitter statt absolut zentriertem Umschalter; auf schmalen Handys schiebt er sich nach links, statt unter das
+  Herz zu laufen.
+- **Vertrag:** Posting-Fenster als „20. Okt. 2026 – 20. Nov. 2026“ bzw. „bis 7. Nov. 2026“ (`formatDealDay`), auch im PDF.
+- **Deals-Liste:** Status unter den Namen, Titel bis zu zwei Zeilen.
+- **Matches:** Bei Deal-Collabs steht der Deal-Status statt „Im Treuhandkonto“ und „Deal öffnen“ ist der Hauptknopf.
+- **404:** in der Sprache des Kontos (acht Sprachen).
+- **Marken-Startseite:** ruhige Kacheln ohne Hinweiszeile auf dem Handy, Interessenten-Zahl in eigener Zeile.
+- **Termine:** Datum und Uhrzeit getrennt, mit Schnellwahl („Morgen“, „In 3 Tagen“, „Jetzt“, „Gestern“).
+- **Admin mobil:** Reiterleisten zentrieren die aktuelle Seite und blenden den Rand aus, hinter dem noch mehr liegt; die vier
+  Zahlen stehen zu zweit nebeneinander.
+- *Nicht angefasst:* Installations-Hinweis (steht weiter auf jeder Seite oben), Kontrast der grauen Hilfstexte, Touch-Flächen im
+  Feed (40 px), Smoke-Tests in der CI, Doppelung von Deals-Karte und Kachel „Offene Zahlungen“ auf der Marken-Startseite.
+- **Untere Leiste (Handy):** eine lange, runde Pille, die über dem unteren Rand schwebt (`--pill-bottom`, `--tabbar-space` in
+  `globals.css`), mit Schatten und Glas; der aktuelle Eintrag liegt auf einer eigenen Pille. Fünf Einträge: Start, **Entdecken
+  (Lupe)**, Nachrichten, Deals, Konto (ohne Deals: Zahlungen und Einstellungen). Die Lupe oben in der Kopfzeile entfällt dafür.
+  Seitenränder, Speichern-Leiste im Briefing und Toasts richten sich nach `--tabbar-space`.
+- **Haptik:** bei jedem Tipp auf einen Link, der auf eine andere Seite der App führt, ein kurzer Tick (`haptic()`, Android:
+  `vibrate`, iOS 18: Schalter-Trick). Nur auf einem echten iPhone prüfbar.
+- **Onboarding, E-Mail-Haken:** der Haken ist die Einwilligung (`marketingConsentFromCheckbox`), es geht keine Mail zum Bestätigen
+  mehr raus. In den Einstellungen bleibt der Weg über den Link. Datenschutztext angepasst, `LEGAL_VERSION` 2026-10-09.1.
+- **Briefing (9.10., abends):** Formate als Plattform-Buttons mit Icon, darunter klappen Reel, Post, Story usw. auf (`FormatPicker`);
+  Vorschau „So sieht der Creator dein Briefing“;
+  „Beispiel einfügen“ bei Kernbotschaft und „Bitte vermeiden“; Frist-Schnellwahl (2 Wochen, 30 Tage, Monatsende); Hashtags und
+  Erwähnungen als Chips; Nutzungsrechte als Ja/Nein-Frage; der Balken nennt den ersten Fehler beim Namen. Akzentfarbe: Elektro-Indigo
+  `#5B5BF0` (`--accent` in `globals.css`).
+
+- **Briefing (14.10.):** Vorlagen-Feld ist eine Zeile und geht nur beim Start eines neuen Briefings auf, wenn die Marke schon
+  Vorlagen hat; „Für jede neue Anfrage verwenden“ im Abschluss-Bildschirm und im Vorlagen-Dialog als Button (`Check`); ab 1280 px
+  steht die Creator-Vorschau als feste Spalte rechts neben dem Formular (Seite `xl:max-w-5xl`); der Fortschrittsring lässt einen
+  gerade erledigten Schritt einrasten (`animate-snap`, bei reduzierter Bewegung aus). **Fortschrittszeile auf der Anfrage der
+  Marke** (`request-journey.ts`, `RequestJourney`): „Briefing steht, Creator-Antwort offen“ → Angebot → ab dem Deal der „Nächste
+  Schritt“ des Deals mit Link („Zum Deal“); Punkt in der Akzentfarbe, wenn die Marke dran ist.
+- **Beleg wartet auf die Marke (14.10.):** Ein Post, den der Creator mit einem Screenshot belegt hat, zählt jetzt in der Deals-Liste,
+  im Badge am Deals-Tab, im Filter „Wartet auf mich“ und in der Fortschrittszeile als Zug der Marke (`waitingFor` mit
+  `proofPending`, `listDealsForUser` und `getDealActionCount` lesen den offenen Beleg). Vorher stand dort „Warten auf das System“.
+  Der Header `Permissions-Policy` ohne `bluetooth=()` (Chromium kennt es nicht und warnte bei jeder Seite).

@@ -2,6 +2,8 @@ import { USAGE_CHANNELS, isUsageChannel } from "@/lib/compliance/usage-rights";
 import type { TaxSnapshot } from "@/lib/deals/parties";
 import type { DealTerms } from "@/lib/deals/terms";
 import type { UiText } from "@/lib/deals/ui-copy";
+import type { DealLocale } from "@/lib/deals/copy";
+import { formatDealDay } from "@/lib/deals/notices";
 import { formatCents } from "@/lib/format";
 import { POST_FORMATS } from "@/lib/social/platforms";
 
@@ -19,6 +21,13 @@ export type ContractView = {
   notes: { label: string; value: string }[];
 };
 
+// "20. Okt. 2026 – 20. Nov. 2026", "bis 7. Nov. 2026" with no start, "innerhalb von 30 Tagen nach Zahlung" with no end.
+function postingWindow(start: string | null, end: string | null, u: UiText, locale: DealLocale): string {
+  if (!end) return u("contract.windowFlexible", { days: 30 });
+  const last = formatDealDay(end, locale);
+  return start ? u("contract.windowRange", { start: formatDealDay(start, locale), end: last }) : u("contract.windowUntil", { end: last });
+}
+
 export function contractView(args: {
   terms: DealTerms;
   snapshot: TaxSnapshot | null;
@@ -27,8 +36,9 @@ export function contractView(args: {
   payoutCents: number;
   feeCents: number;
   u: UiText;
+  locale: DealLocale;
 }): ContractView {
-  const { terms, snapshot, viewer, payoutCents, feeCents, u } = args;
+  const { terms, snapshot, viewer, payoutCents, feeCents, u, locale } = args;
   const rows: ContractRow[] = [];
   const row = (label: string, value: string, core = false) => rows.push(core ? { kind: "row", label, value, core } : { kind: "row", label, value });
   const both = viewer === "ADMIN";
@@ -64,7 +74,7 @@ export function contractView(args: {
   row(u("contract.workflow"), w.draftRequired ? u("contract.draftRequired", { days: w.brandReviewDays, rounds: w.maxRevisionRounds }) : u("contract.noDraft"));
   row(
     u("contract.window"),
-    w.postingWindowEnd ? `${w.postingWindowStart ? `${w.postingWindowStart} – ` : "… – "}${w.postingWindowEnd}` : u("contract.windowFlexible", { days: 30 }),
+    postingWindow(w.postingWindowStart, w.postingWindowEnd, u, locale),
     true,
   );
   row(u("contract.minLive"), w.minLiveHours >= 48 && w.minLiveHours % 24 === 0 ? u("contract.days", { count: w.minLiveHours / 24 }) : u("contract.hours", { count: w.minLiveHours }));

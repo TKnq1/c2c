@@ -120,7 +120,7 @@ export function Stepper({ data, u }: Pick<PanelContext, "data" | "u">) {
 
 // bare: only the card, for a place that brings its own heading (the collapsed contract on the deal page).
 export function ContractPanel({ ctx, clashes, bare = false }: { ctx: PanelContext; clashes: FieldIssue[]; bare?: boolean }) {
-  const { data, terms, role, u } = ctx;
+  const { data, terms, role, u, locale } = ctx;
   const snapshot = parseTaxSnapshot(data.taxSnapshot);
   const signedAt = role === "STARTUP" ? data.brandSignedAt : data.creatorSignedAt;
   const otherSignedAt = role === "STARTUP" ? data.creatorSignedAt : data.brandSignedAt;
@@ -133,6 +133,7 @@ export function ContractPanel({ ctx, clashes, bare = false }: { ctx: PanelContex
     payoutCents: data.interest.payoutCents ?? terms.payoutCents,
     feeCents: data.interest.platformFeeCents ?? terms.platformFeeCents,
     u,
+    locale,
   });
 
   // The short form up top; everything else (tax lines, labels, hashtags, the brief) under "All terms". Open for whoever still has to

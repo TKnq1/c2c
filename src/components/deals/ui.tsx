@@ -65,17 +65,22 @@ export function Field({
   hint,
   issues,
   name,
+  plain = false,
   children,
 }: {
   label: string;
   hint?: string;
   issues?: FieldIssue[];
   name?: string;
+  // A <div> instead of a <label>, for a field made of several buttons (chips with crosses): a click on the label text must not press
+  // the first of them.
+  plain?: boolean;
   children: ReactNode;
 }) {
   const mine = name ? (issues ?? []).filter((i) => i.field === name) : [];
+  const Wrapper = plain ? "div" : "label";
   return (
-    <label className="flex flex-col gap-1" data-issue-field={name && issues ? name : undefined}>
+    <Wrapper className="flex flex-col gap-1" data-issue-field={name && issues ? name : undefined}>
       <span className="text-sm font-medium">{label}</span>
       {children}
       {hint && <span className="text-xs text-neutral-500 dark:text-neutral-400">{hint}</span>}
@@ -85,7 +90,7 @@ export function Field({
           {i.message}
         </span>
       ))}
-    </label>
+    </Wrapper>
   );
 }
 

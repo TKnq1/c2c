@@ -18,6 +18,11 @@ export const it: Catalog = {
     open: "Apri",
     export: "Esporta",
   },
+  notFound: {
+    title: "Pagina non trovata",
+    body: "La pagina che cerchi non esiste o è stata spostata.",
+    back: "Torna alla dashboard",
+  },
   nav: {
     requests: "Richieste",
     feed: "Feed",

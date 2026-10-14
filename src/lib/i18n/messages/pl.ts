@@ -18,6 +18,11 @@ export const pl: Catalog = {
     open: "Otwórz",
     export: "Eksportuj",
   },
+  notFound: {
+    title: "Nie znaleziono strony",
+    body: "Strona, której szukasz, nie istnieje lub została przeniesiona.",
+    back: "Wróć do panelu",
+  },
   nav: {
     requests: "Zlecenia",
     feed: "Feed",

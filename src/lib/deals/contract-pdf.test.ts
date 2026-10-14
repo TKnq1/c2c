@@ -77,7 +77,7 @@ describe("layoutContract", () => {
 
   it("lists the terms and the briefing's own words", () => {
     const all = lines(layoutContract(input(), fake).ops);
-    expect(all).toEqual(expect.arrayContaining(["Preis (netto)", "Werbekennzeichnung", "Werbung / Anzeige", "Ablauf", "Posting-Fenster", "2026-10-20 – 2026-11-20", "Nutzungsrechte", "Kernbotschaften", "Bitte vermeiden"]));
+    expect(all).toEqual(expect.arrayContaining(["Preis (netto)", "Werbekennzeichnung", "Werbung / Anzeige", "Ablauf", "Posting-Fenster", "20. Okt. 2026 – 20. Nov. 2026", "Nutzungsrechte", "Kernbotschaften", "Bitte vermeiden"]));
     // The check mark of the screen is written as a word, since the PDF's font has no check mark.
     expect(all).toContain("Ja");
     expect(all).not.toContain("✓");

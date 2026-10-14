@@ -18,6 +18,11 @@ export const nl: Catalog = {
     open: "Openen",
     export: "Exporteren",
   },
+  notFound: {
+    title: "Pagina niet gevonden",
+    body: "De pagina die je zoekt bestaat niet of is verplaatst.",
+    back: "Terug naar het dashboard",
+  },
   nav: {
     requests: "Verzoeken",
     feed: "Feed",

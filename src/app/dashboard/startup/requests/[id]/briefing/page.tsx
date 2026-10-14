@@ -29,7 +29,7 @@ export default async function BriefingPage(props: PageProps<"/dashboard/startup/
       budgetMinCents: true,
       budgetMaxCents: true,
       briefing: true,
-      startup: { select: { userId: true } },
+      startup: { select: { userId: true, companyName: true } },
     },
   });
   if (!request || request.startup.userId !== session.user.id) notFound();
@@ -43,7 +43,7 @@ export default async function BriefingPage(props: PageProps<"/dashboard/startup/
   ]);
   if (!start) notFound();
   return (
-    <div className="mx-auto flex w-full max-w-2xl flex-col gap-4 pb-8">
+    <div className="mx-auto flex w-full max-w-2xl flex-col gap-4 pb-8 xl:max-w-5xl">
       <Link href={`/dashboard/startup/requests/${id}`} className="inline-flex w-fit items-center gap-1 text-sm text-neutral-500 hover:text-ink dark:text-neutral-400">
         <IoChevronBack className="h-4 w-4" aria-hidden />
         {u("briefing.back")}
@@ -55,6 +55,8 @@ export default async function BriefingPage(props: PageProps<"/dashboard/startup/
         requestId={id}
         initialValues={start.values}
         budgetMaxCents={request.budgetMaxCents ?? request.budgetMinCents ?? null}
+        brandName={request.startup.companyName}
+        requestTitle={request.title}
         source={start.source}
         templateName={templates.find((t) => t.id === start.templateId)?.name ?? null}
         templates={templates.map((t) => ({ id: t.id, name: t.name, isDefault: t.isDefault, values: t.values }))}

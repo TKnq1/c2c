@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { marketingResendBlocked, MARKETING_RESEND_AFTER_MS } from "@/lib/marketing-consent";
+import { marketingConsentFromCheckbox, marketingResendBlocked, MARKETING_RESEND_AFTER_MS } from "@/lib/marketing-consent";
 
 describe("marketingResendBlocked", () => {
   it("allows the first send and blocks a repeat inside the window", () => {
@@ -7,5 +7,18 @@ describe("marketingResendBlocked", () => {
     expect(marketingResendBlocked(null, now)).toBe(false);
     expect(marketingResendBlocked(new Date(now - 60_000), now)).toBe(true);
     expect(marketingResendBlocked(new Date(now - MARKETING_RESEND_AFTER_MS - 1), now)).toBe(false);
+  });
+});
+
+describe("marketingConsentFromCheckbox", () => {
+  it("makes the ticked box the consent, with the moment it was given", () => {
+    const before = Date.now();
+    const data = marketingConsentFromCheckbox(true);
+    expect(data.marketingConsentAt).toBeInstanceOf(Date);
+    expect(data.marketingConsentAt!.getTime()).toBeGreaterThanOrEqual(before);
+  });
+
+  it("records nothing when the box is not ticked", () => {
+    expect(marketingConsentFromCheckbox(false)).toEqual({});
   });
 });

@@ -2,8 +2,8 @@
 
 import { useI18n } from "@/components/i18n-provider";
 
-// Optional, and never pre-checked. Checking it only asks for a confirmation
-// email. Consent is the button on the page that email opens.
+// Optional, and never pre-checked. Ticking it is the consent: no
+// confirmation email follows (see marketingConsentFromCheckbox).
 export function MarketingConsentCheckbox() {
   const { t } = useI18n();
   return (

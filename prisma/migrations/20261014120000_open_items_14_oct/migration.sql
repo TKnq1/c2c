@@ -1,0 +1,31 @@
+-- What is still open after the briefing and deal work of 14 Oct 2026, as manual tasks on the admin "Offen" page, next to the ones of 9 Oct.
+-- Data only: idempotent through the dedupe key. New tasks are skipped when they exist (also when ticked off), and the owner can tick off
+-- or delete them there like any manual task. Three of the tasks of 9 Oct get their text brought up to date while they are still open.
+INSERT INTO "AdminTask" ("id", "title", "reason", "priority", "source", "status", "href", "dedupeKey", "updatedAt")
+VALUES
+  (gen_random_uuid()::text, 'Anwalt: Werbe-Einwilligung per Haken ohne Bestätigungsmail', 'Seit dem 9.10. gilt der Haken im Onboarding als Einwilligung für Produkt-News, es geht keine Bestätigungsmail mehr raus (marketingConsentFromCheckbox). In den Einstellungen bleibt der Weg über den Link. Prüfen lassen, ob das als Nachweis der Einwilligung reicht (im Streitfall ist die Bestätigungsmail der übliche Beleg) und ob der Datenschutztext dazu stimmt (LEGAL_VERSION 2026-10-09.1).', 'HIGH', 'MANUAL', 'OPEN', NULL, 'manual:2026-10-14:consent-no-doi', CURRENT_TIMESTAMP),
+  (gen_random_uuid()::text, 'Vermittler-Modell festlegen: AGB und Rechnungen in Einklang bringen', 'comtor ist Vermittler, nicht Käufer der Creator-Leistung. Die AGB sagen „nicht Partei“, die Rechnungslogik (Rechnung an die Marke, Gutschrift an den Creator) behandelt comtor als Partei. Der Steuerberater entscheidet das Modell, zum Beispiel eine Vermittlungsprovision statt Weiterberechnung. Erst danach den Rechnungs-Umbau bauen. Fragenliste: docs/brand-deals.md, Abschnitt „Needs a lawyer or a tax adviser“, Punkt 1.', 'HIGH', 'MANUAL', 'OPEN', NULL, 'manual:2026-10-14:intermediary-model', CURRENT_TIMESTAMP),
+  (gen_random_uuid()::text, 'Verträge mit Auftragsverarbeitern abschließen und Datenpanne regeln', 'Vercel, Neon, Resend, Stripe, Google (Firebase Cloud Messaging) und, falls genutzt, Sentry: Auftragsverarbeitungsverträge akzeptieren oder unterschreiben und ablegen. Verarbeitungsverzeichnis und technische Maßnahmen aktuell halten, festlegen, wer eine Datenpanne in 72 Stunden meldet. docs/legal-readiness.md, Punkte 6 und 7.', 'MEDIUM', 'MANUAL', 'OPEN', NULL, 'manual:2026-10-14:dpa-processors', CURRENT_TIMESTAMP),
+  (gen_random_uuid()::text, 'Resend: Öffnungs- und Klick-Tracking ausschalten, Webhook löschen', 'Beim Absender in Resend Open- und Click-Tracking ausschalten und den Webhook auf /api/webhooks/resend löschen. docs/legal-readiness.md, Punkt 1.', 'MEDIUM', 'MANUAL', 'OPEN', '/admin/email', 'manual:2026-10-14:resend-tracking-off', CURRENT_TIMESTAMP),
+  (gen_random_uuid()::text, 'Pro-Abo (10 € im Monat) rechtlich prüfen lassen', 'Pro wird auch an Creator verkauft, oft Privatpersonen. Prüfen: Verbraucherregeln für Online-Abos (Kündigungsbutton nach § 312k BGB, Vorab-Informationen, 14 Tage Widerruf, den die App schon anbietet) und die Steuer-Einstellung des Stripe-Preises (Umsatzsteuer ausgewiesen, Reverse Charge bei Unternehmen). docs/legal-readiness.md, Punkt 5.', 'MEDIUM', 'MANUAL', 'OPEN', NULL, 'manual:2026-10-14:pro-consumer-rules', CURRENT_TIMESTAMP),
+  (gen_random_uuid()::text, 'Marke „comtor“ prüfen und Quellen für Fotos, Icons und Sounds eintragen', 'Name und Logo bei DPMA und EUIPO recherchieren. Dazu docs/assets.md ausfüllen (Quellen für Fotos, Icons, Sounds) und Sounds ohne Lizenz ersetzen. docs/legal-readiness.md, Punkte 8 und 9.', 'LOW', 'MANUAL', 'OPEN', NULL, 'manual:2026-10-14:trademark-assets', CURRENT_TIMESTAMP),
+  (gen_random_uuid()::text, 'Dependabot: 8 alte Pull Requests entscheiden', 'Offen sind #61 bis #68 (actions/setup-node 6, actions/checkout 7, @capacitor/app 8.1.2, react-dom 19.3, @types/node 26, eslint 10, pg 8.23.1, codeql-action 4) und die alten Entwürfe #48 und #79. Nach dem Merge des Branches einzeln prüfen: die CI muss grün sein, große Sprünge (eslint 10, @types/node 26) nur mit Test.', 'LOW', 'MANUAL', 'OPEN', NULL, 'manual:2026-10-14:dependabot', CURRENT_TIMESTAMP),
+  (gen_random_uuid()::text, 'Zurückgestellt: Leistungs-Tracking der Videos (View-Rate, Übersicht)', 'Erst nach den ersten echten Deals bauen. Grundlage gibt es: pro Post werden Metriken gespeichert (DealPostMetric). Offen: Auswertung pro Marke und Creator (View-Rate, Verlauf) und die Zugänge dafür (YOUTUBE_API_KEY, Meta-App-Prüfung, siehe die Aufgaben dazu).', 'LOW', 'MANUAL', 'OPEN', NULL, 'manual:2026-10-14:video-tracking', CURRENT_TIMESTAMP),
+  (gen_random_uuid()::text, 'Zurückgestellt: Briefing-Ideen und Checkboxen in den Formularen', 'Eine Frage pro Karte nur für Formate und Kernbotschaft, falls der Schnellstart zu lang wirkt. Die normalen Checkboxen in Geschäftsdaten, Entwurf- und Post-Formular und Vorlagen-Verwaltung im Button-Stil (braucht eine Variante von Check mit Formularwert). Details: docs/ux-backlog.md.', 'LOW', 'MANUAL', 'OPEN', NULL, 'manual:2026-10-14:deferred-ui', CURRENT_TIMESTAMP)
+ON CONFLICT ("dedupeKey") DO NOTHING;
+
+UPDATE "AdminTask"
+SET "reason" = 'Getestet ist nur Chromium (390 und 375 px, hell und dunkel, Deutsch und Englisch). Offen in Safari auf dem iPhone: feste Speichern-Leiste im Briefing mit Tastatur, schwebende Leiste unten, Haptik, Datumsfelder, ⋯-Menü, Safe-Area. Dafür die Vorschau des Branches auf Vercel nutzen.',
+    "updatedAt" = CURRENT_TIMESTAMP
+WHERE "dedupeKey" = 'manual:2026-10-09:safari-ios' AND "status" = 'OPEN';
+
+UPDATE "AdminTask"
+SET "reason" = '24 Hinweise und Mails (Deutsch, Englisch) in notices.ts und email-templates.ts, dazu die Texte von Checkliste, Filter, Vorlagen, Builder, Schnellstart, Fortschrittsring und der Fortschrittszeile auf der Anfrage (ui-copy*.ts, Schlüssel briefing.* und journey.*).',
+    "updatedAt" = CURRENT_TIMESTAMP
+WHERE "dedupeKey" = 'manual:2026-10-09:proofread-texts' AND "status" = 'OPEN';
+
+UPDATE "AdminTask"
+SET "title" = 'npm audit: 6 hohe und 2 mittlere Meldungen (Stand 14.10.)',
+    "reason" = 'Betrifft Werkzeug-Pakete (Prisma-CLI über deepmerge-ts, mysql2, sharp mit librsvg, source-map-js, uuid). Die CI prüft nur „kritisch“ und ist grün. Beim nächsten Dependabot-Lauf mitnehmen; npm audit fix ohne --force behebt sharp, source-map-js und uuid.',
+    "updatedAt" = CURRENT_TIMESTAMP
+WHERE "dedupeKey" = 'manual:2026-10-09:npm-audit' AND "status" = 'OPEN';
