@@ -39,6 +39,7 @@ import type { Me } from "@/app/api/me/route";
 import { useNavigationBlocker } from "@/lib/navigation-blocker";
 import { isTextField, resetPageScroll } from "@/lib/keyboard";
 import { dealsEnabled } from "@/lib/deals/flag";
+import { haptic } from "@/lib/haptics";
 import { activeHrefFor, appLinks, discoverHrefOf, tabLinks, type NavCounts, type NavId, type NavLink } from "@/lib/nav-links";
 
 const TAB_ICONS: Record<NavId, { outline: IconType; filled: IconType }> = {
@@ -189,6 +190,24 @@ export function Nav() {
     };
   }, [showNav, pathname, countsVersion]);
 
+  // A light tick whenever a tap on a link leads to another page of the app: tab bar, lists, cards, back links alike. Listened for on the
+  // document, in the capture phase, so every link counts without each one asking for it, and it still runs inside the tap (which is
+  // when iOS plays it). Links that stay on the page, open elsewhere or go to another site are no page change.
+  useEffect(() => {
+    if (!showNav) return;
+    const onClick = (e: MouseEvent) => {
+      if (e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+      const link = (e.target as Element | null)?.closest?.("a[href]") as HTMLAnchorElement | null;
+      if (!link || (link.target && link.target !== "_self") || link.hasAttribute("download")) return;
+      const url = new URL(link.href, window.location.href);
+      if (url.origin !== window.location.origin) return;
+      if (url.pathname === window.location.pathname && url.search === window.location.search) return;
+      haptic();
+    };
+    document.addEventListener("click", onClick, true);
+    return () => document.removeEventListener("click", onClick, true);
+  }, [showNav]);
+
   const onNavigate = (e: { preventDefault: () => void }) => {
     if (isBlocked && !window.confirm(t("nav.leaveUnsaved"))) {
       e.preventDefault();
@@ -222,6 +241,7 @@ export function Nav() {
   // The heart is the way into Your matches, so it only shows where you're
   // doing the matching — the Feed you swipe in, and Discover. On Messages,
   // Payments, Settings or the matches page itself it was just clutter.
+  const isFeedHeader = pathname === "/dashboard/creator";
   const showMatchesLink =
     role === "CREATOR" &&
     (pathname === "/dashboard/creator" || pathname === "/dashboard/creator/discover" || pathname === "/dev-swipe-demo");
@@ -236,14 +256,17 @@ export function Nav() {
       <header
         className={`app-header fixed inset-x-0 top-0 z-30 border-b border-ink/10 bg-background/80 pt-[var(--safe-top)] backdrop-blur-xl backdrop-saturate-150 no-print md:hidden ${hideOnMobile ? "hidden" : ""}`}
       >
-        <div className="relative max-w-5xl mx-auto flex items-center justify-between px-6 py-3">
-          <Link href={base} onNavigate={onNavigate} className="shrink-0">
+        {/* The Feed's bar is a grid with the switch in the middle column: centered where the sides leave room, pushed left (never over the
+            icons) on narrow phones, where an absolutely centered switch ran under the Matches heart. */}
+        <div
+          className={`relative max-w-5xl mx-auto items-center px-6 py-3 ${isFeedHeader ? "grid grid-cols-[1fr_auto_1fr]" : "flex justify-between"}`}
+        >
+          <Link href={base} onNavigate={onNavigate} className="shrink-0 justify-self-start">
             <Logo />
           </Link>
-          {pathname === "/dashboard/creator" ? (
-            // The Feed title's spot: For you / All, centered the same way
-            // the title is on every other page.
-            <span className="absolute left-1/2 -translate-x-1/2">
+          {isFeedHeader ? (
+            // The Feed title's spot: For you / All.
+            <span>
               <Suspense fallback={<FeedScopeTabs scope="forYou" variant="header" />}>
                 <FeedHeaderToggle />
               </Suspense>
@@ -261,7 +284,7 @@ export function Nav() {
             )
           )}
 
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-4 justify-self-end max-[360px]:gap-3">
             {showMatchesLink && <MatchesLink onNavigate={onNavigate} />}
             {discoverInHeader && !pathname.startsWith(discoverHref) && <DiscoverLink href={discoverHref} onNavigate={onNavigate} />}
             <NotificationsLink unreadCount={unreadCount} onNavigate={onNavigate} />
@@ -281,15 +304,17 @@ export function Nav() {
       />
 
       {/* Bottom tab bar — mobile only. Every destination is one tap away,
-          app-style, instead of behind a hamburger drawer. Frosted like the
-          header: the page scrolls on underneath it. */}
+          app-style, instead of behind a hamburger drawer. A long pill that
+          floats above the screen's bottom edge (--pill-bottom), frosted like
+          the header: the page scrolls on underneath it. The current tab sits
+          on a soft pill of its own. */}
       <nav
         aria-label={t("nav.main")}
-        className={`app-tabbar md:hidden fixed inset-x-0 bottom-0 z-40 rounded-t-[20px] border-t border-ink/10 bg-background/80 pb-[var(--bar-bottom)] backdrop-blur-xl backdrop-saturate-150 no-print ${
+        className={`app-tabbar md:hidden fixed inset-x-4 bottom-[var(--pill-bottom)] z-40 rounded-full border border-ink/10 bg-background/90 p-1 shadow-[0_10px_30px_-8px_rgba(0,0,0,0.28)] backdrop-blur-xl backdrop-saturate-150 no-print ${
           hideOnMobile ? "hidden" : ""
         }`}
       >
-        <div className="flex items-stretch">
+        <div className="flex items-stretch gap-0.5">
           {tabs.map((l) => {
             const icons = TAB_ICONS[l.id];
             const isActive = l.href === activeTabHref;
@@ -303,8 +328,8 @@ export function Nav() {
                 prefetch={false}
                 aria-current={isActive ? "page" : undefined}
                 aria-label={l.badge > 0 ? t("nav.badgeNew", { label: l.label, count: l.badge }) : l.label}
-                className={`flex flex-1 items-center justify-center pt-3 pb-1.5 transition ${
-                  isActive ? "text-ink" : "text-neutral-400 dark:text-neutral-500"
+                className={`flex h-12 flex-1 items-center justify-center rounded-full transition ${
+                  isActive ? "bg-accent/10 text-accent" : "text-neutral-400 dark:text-neutral-500"
                 }`}
               >
                 {/* Two stacked icons cross-fading, not a conditional swap —
@@ -323,7 +348,7 @@ export function Nav() {
                     }`}
                   />
                   {l.badge > 0 && (
-                    <span className="absolute -top-1.5 -right-2 flex h-4 min-w-4 items-center justify-center rounded-full border border-background bg-ink px-0.5 text-[9px] font-semibold text-paper">
+                    <span className="absolute -top-1.5 -right-2 flex h-4 min-w-4 items-center justify-center rounded-full border border-background bg-accent px-0.5 text-[9px] font-semibold text-on-accent">
                       {l.badge > 9 ? "9+" : l.badge}
                     </span>
                   )}
@@ -469,14 +494,14 @@ function SidebarLink({
       <span className="relative flex h-6 w-6 shrink-0 items-center justify-center">
         <Icon className="h-6 w-6" aria-hidden />
         {link.badge > 0 && (
-          <span className="absolute -right-2 -top-1.5 flex h-4 min-w-4 items-center justify-center rounded-full border border-background bg-ink px-0.5 text-[9px] font-semibold text-paper lg:hidden">
+          <span className="absolute -right-2 -top-1.5 flex h-4 min-w-4 items-center justify-center rounded-full border border-background bg-accent px-0.5 text-[9px] font-semibold text-on-accent lg:hidden">
             {badge}
           </span>
         )}
       </span>
       <span className="hidden flex-1 lg:inline">{link.label}</span>
       {link.badge > 0 && (
-        <span className="hidden h-5 min-w-5 items-center justify-center rounded-full bg-ink px-1.5 text-[11px] font-semibold text-paper lg:flex">
+        <span className="hidden h-5 min-w-5 items-center justify-center rounded-full bg-accent px-1.5 text-[11px] font-semibold text-on-accent lg:flex">
           {badge}
         </span>
       )}
@@ -529,7 +554,7 @@ function NotificationsLink({
     >
       <FiBell className="h-5 w-5 md:h-4 md:w-4" />
       {unreadCount > 0 && (
-        <span className="absolute -top-1.5 -right-1.5 flex h-4 min-w-4 items-center justify-center rounded-full border border-background bg-ink px-0.5 text-[10px] font-medium text-paper">
+        <span className="absolute -top-1.5 -right-1.5 flex h-4 min-w-4 items-center justify-center rounded-full border border-background bg-accent px-0.5 text-[10px] font-medium text-on-accent">
           {unreadCount > 9 ? "9+" : unreadCount}
         </span>
       )}

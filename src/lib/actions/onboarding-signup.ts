@@ -19,7 +19,7 @@ import { SITE_URL } from "@/lib/site";
 import { hashPassword } from "@/lib/password";
 import { hashToken, newToken } from "@/lib/tokens";
 import { CONSENT_ERROR, consentGiven, consentRecord } from "@/lib/legal/consent";
-import { queueMarketingConsent } from "@/lib/marketing-consent";
+import { marketingConsentFromCheckbox } from "@/lib/marketing-consent";
 import { guestBrandSignupSchema, guestCreatorSignupSchema } from "@/lib/validation";
 import { utmColumns, utmFromForm } from "@/lib/utm";
 import type { OnboardingState } from "@/lib/actions/onboarding";
@@ -97,6 +97,7 @@ export async function signupFromDraftAction(_prevState: OnboardingState, formDat
           locale,
           ...utm,
           ...consentRecord(),
+          ...marketingConsentFromCheckbox(field(formData, "marketing") === "yes"),
           creatorProfile: {
             create: {
               displayName: data.displayName,
@@ -117,7 +118,6 @@ export async function signupFromDraftAction(_prevState: OnboardingState, formDat
       // One of the first creators? Then the wizard's next screen says so, and so does the welcome mail.
       const foundingNumber = await claimFoundingProForUser(user.id).catch(() => null);
       after(() => sendWelcome(user.id, user.email, "CREATOR", locale, foundingNumber));
-      if (field(formData, "marketing") === "yes") queueMarketingConsent(user.id);
       const result = await signInWithoutLeaving(data.email, data.password);
       return result?.success ? { ...result, foundingNumber } : result;
     }
@@ -132,6 +132,7 @@ export async function signupFromDraftAction(_prevState: OnboardingState, formDat
           locale,
           ...utm,
           ...consentRecord(),
+          ...marketingConsentFromCheckbox(field(formData, "marketing") === "yes"),
           startupProfile: {
             create: {
               companyName: data.companyName,
@@ -145,7 +146,6 @@ export async function signupFromDraftAction(_prevState: OnboardingState, formDat
       // One of the first brands? Then the wizard's next screen says so, and so does the welcome mail.
       const foundingNumber = await claimFoundingProForUser(user.id).catch(() => null);
       after(() => sendWelcome(user.id, user.email, "STARTUP", locale, foundingNumber));
-      if (field(formData, "marketing") === "yes") queueMarketingConsent(user.id);
       const result = await signInWithoutLeaving(data.email, data.password);
       return result?.success ? { ...result, foundingNumber } : result;
     }

@@ -202,10 +202,11 @@ export function stageOf(status: DealStatus, before?: DealStatus | null): Lifecyc
 
 export type WaitingFor = Actor | null;
 
-// Who has to do something next, for the "your turn / waiting for" line.
+// Who has to do something next, for the "your turn / waiting for" line. A post the creator proved with a screenshot (not a link
+// the platforms can check) waits for the brand to confirm it: `proofPending` says there is one.
 export function waitingFor(
   status: DealStatus,
-  ctx: { brandSigned?: boolean; creatorSigned?: boolean } = {},
+  ctx: { brandSigned?: boolean; creatorSigned?: boolean; proofPending?: boolean } = {},
 ): WaitingFor[] {
   switch (status) {
     case "CONTRACT_PENDING": {
@@ -225,6 +226,7 @@ export function waitingFor(
     case "DRAFT_SUBMITTED":
       return ["STARTUP"];
     case "POST_SUBMITTED":
+      return ctx.proofPending ? ["STARTUP"] : ["SYSTEM"];
     case "VERIFYING":
     case "PAYOUT_PENDING":
       return ["SYSTEM"];

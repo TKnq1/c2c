@@ -12,7 +12,6 @@ import { FeedScopeTabs } from "@/components/feed-scope-tabs";
 import { SkeletonCardList } from "@/components/skeleton";
 import { EmptyState } from "@/components/empty-state";
 import { PageTitle } from "@/components/page-title";
-import { DealsWaitingCard } from "@/components/deals/deals-waiting-card";
 import { getT } from "@/lib/i18n/server";
 
 export default async function CreatorFeedPage(props: PageProps<"/dashboard/creator">) {
@@ -63,11 +62,10 @@ export default async function CreatorFeedPage(props: PageProps<"/dashboard/creat
   const favoritedStartupIds = new Set(favorites.map((f) => f.startupId));
 
   return (
-    <div className="flex flex-col gap-3 md:gap-6">
+    // feed-fill: on phones the swipe card takes whatever height <main> has left (see globals.css). Nothing sits above it that
+    // is not part of the Feed: the deals badge lives on the Deals tab.
+    <div className="feed-fill flex flex-col gap-3 md:gap-6">
       <PageTitle>{t("nav.feed")}</PageTitle>
-      <Suspense fallback={null}>
-        <DealsWaitingCard userId={session.user.id} role="CREATOR" />
-      </Suspense>
       {/* On a phone the same switch lives in the top bar, in place of "Feed". */}
       <div className="hidden justify-center md:flex">
         <FeedScopeTabs scope={scope} />

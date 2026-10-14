@@ -466,7 +466,7 @@ export const screensEs: DeepString<typeof screens> = {
     brand: "Marca",
   },
   marketing: {
-    checkbox: "Enviadme noticias de comtor de vez en cuando. Primero lo confirmo por correo.",
+    checkbox: "Enviadme noticias de comtor de vez en cuando. Se puede parar en cualquier momento.",
     settingsTitle: "Noticias del producto",
     settingsOff: "Opcional. Solo escribimos después de que confirmes el enlace.",
     settingsPending: "Abre el correo y pulsa el botón. Eso es el sí.",

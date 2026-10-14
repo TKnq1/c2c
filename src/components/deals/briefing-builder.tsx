@@ -5,14 +5,21 @@ import { saveBriefingAction } from "@/lib/actions/briefing";
 import { discardBriefingDraftAction, saveBriefingDraftAction } from "@/lib/actions/briefing-templates";
 import { validateBriefing, MIN_LIVE_HOURS_OPTIONS } from "@/lib/compliance/briefing";
 import { parseBriefingForm, type FormValues } from "@/lib/compliance/briefing-form";
+import { DEADLINE_PRESETS, deadlineFor } from "@/lib/compliance/briefing-helpers";
+import { briefingProgress } from "@/lib/compliance/briefing-progress";
 import { BRIEFING_STEPS, countByStep, firstError, type BriefingStep } from "@/lib/compliance/briefing-steps";
 import { MARKETS, MARKET_RULES, isMarket, type Market } from "@/lib/compliance/disclosure";
 import { USAGE_CHANNEL_CODES, USAGE_CHANNELS } from "@/lib/compliance/usage-rights";
 import { PRODUCT_CATEGORIES } from "@/lib/constants";
 import { issueMessage, dealLocale } from "@/lib/deals/copy";
 import type { FieldIssue } from "@/lib/deals/action-state";
-import { POST_FORMATS, POST_FORMAT_CODES } from "@/lib/social/platforms";
 import { toast } from "@/lib/toast";
+import { BriefingPreview } from "@/components/deals/briefing-preview";
+import { Check } from "@/components/deals/choice-button";
+import { TagInput } from "@/components/deals/tag-input";
+import { FormatPicker } from "@/components/deals/format-picker";
+import { BriefingDone } from "@/components/deals/briefing-done";
+import { BriefingProgress } from "@/components/deals/briefing-progress";
 import { BriefingTemplatePanel, type CopyOption, type TemplateOption } from "@/components/deals/briefing-template-panel";
 import { DealForm } from "@/components/deals/deal-form";
 import { ReconfirmOffers } from "@/components/deals/reconfirm-offers";
@@ -22,18 +29,6 @@ import { useI18n } from "@/components/i18n-provider";
 
 function csv(value: string | undefined): string[] {
   return (value ?? "").split(",").map((s) => s.trim()).filter(Boolean);
-}
-
-function Check({ checked, onChange, label, hint }: { checked: boolean; onChange: (checked: boolean) => void; label: string; hint?: string }) {
-  return (
-    <label className="flex items-start gap-2 text-sm">
-      <input type="checkbox" checked={checked} onChange={(e) => onChange(e.target.checked)} className="mt-0.5" />
-      <span>
-        {label}
-        {hint && <span className="block text-xs text-neutral-500 dark:text-neutral-400">{hint}</span>}
-      </span>
-    </label>
-  );
 }
 
 function Group({ title, intro, children }: { title: string; intro?: string; children: React.ReactNode }) {
@@ -75,6 +70,8 @@ export function BriefingBuilder({
   requestId,
   initialValues,
   budgetMaxCents,
+  brandName,
+  requestTitle,
   source,
   templateName,
   templates,
@@ -84,6 +81,8 @@ export function BriefingBuilder({
   requestId: string;
   initialValues: FormValues;
   budgetMaxCents: number | null;
+  brandName: string;
+  requestTitle: string;
   source: "draft" | "briefing" | "template" | "defaults";
   templateName: string | null;
   templates: TemplateOption[];
@@ -96,6 +95,9 @@ export function BriefingBuilder({
   const [values, setValues] = useState<FormValues>(initialValues);
   const [step, setStep] = useState<BriefingStep>("content");
   const [draftState, setDraftState] = useState<DraftState>("idle");
+  // A briefing that is not written yet starts on the quick start: four answers, the rest already filled in. One that exists opens in full.
+  const [quick, setQuick] = useState(source !== "briefing");
+  const [saved, setSaved] = useState(false);
 
   // What the saved briefing (or the starting point) looks like: a change against it is unsaved, and only that is kept as a draft.
   const baseline = useRef(JSON.stringify(initialValues));
@@ -113,6 +115,42 @@ export function BriefingBuilder({
     set(name, (on ? [...new Set([...list, item])] : list.filter((x) => x !== item)).join(","));
   };
 
+  // The text field with an example under it while it is empty: an empty box is the biggest hurdle of the form.
+  const exampleText = (name: "talkingPoints" | "doNots") => (
+    <>
+      <textarea rows={3} maxLength={2000} value={values[name] ?? ""} onChange={(e) => set(name, e.target.value)} className={inputClass} />
+      {(values[name] ?? "").trim() === "" && (
+        <button type="button" onClick={() => set(name, u(`briefing.example.${name}`))} className="w-fit text-sm text-neutral-500 underline transition hover:text-ink dark:text-neutral-400">
+          {u("briefing.example.insert")}
+        </button>
+      )}
+    </>
+  );
+
+  // The deadline: a date, and under it the three dates people mean most.
+  const deadline = (
+    <>
+      <input type="date" value={values.postingWindowEnd ?? ""} onChange={(e) => set("postingWindowEnd", e.target.value)} className={inputClass} />
+      <span className="flex flex-wrap gap-2 pt-1">
+        {DEADLINE_PRESETS.map((preset) => {
+          const day = deadlineFor(preset);
+          const on = values.postingWindowEnd === day;
+          return (
+            <button
+              key={preset}
+              type="button"
+              aria-pressed={on}
+              onClick={() => set("postingWindowEnd", day)}
+              className={`min-h-9 rounded-full border px-3 text-sm transition ${on ? "border-ink bg-ink text-paper" : "border-neutral-300 hover:border-ink dark:border-neutral-700"}`}
+            >
+              {u(`briefing.deadline.${preset}`)}
+            </button>
+          );
+        })}
+      </span>
+    </>
+  );
+
   const market: Market = isMarket(values.targetMarket ?? "") ? (values.targetMarket as Market) : "DE";
   const usageType = values.usageType ?? "ORGANIC_ONLY";
 
@@ -120,13 +158,32 @@ export function BriefingBuilder({
   const errors = findings.filter((i) => i.severity === "error");
   const warnings = findings.filter((i) => i.severity === "warning");
   const errorsByStep = countByStep(findings);
+  const progress = briefingProgress(values, errors.length);
   const issues: FieldIssue[] = useMemo(() => findings.map((i) => ({ code: i.code, severity: i.severity, field: i.field, message: issueMessage(i, language) })), [findings, language]);
+
+  const firstIssue = (() => {
+    const first = firstError(findings);
+    return first ? { message: issueMessage(first.issue, language) } : null;
+  })();
 
   const changeMarket = (next: string) => {
     const accepted = isMarket(next) ? MARKET_RULES[next].accepted : [];
     const kept = csv(values.disclosureLabels).filter((l) => accepted.includes(l));
     setValues((v) => ({ ...v, targetMarket: next, disclosureLabels: (kept.length > 0 ? kept : accepted.slice(0, 2)).join(",") }));
   };
+
+  // What the quick start leaves as it is, in one line.
+  const prefilled = [
+    u(`briefing.market.${market}`),
+    csv(values.disclosureLabels).join(" / "),
+    flag("draftRequired")
+      ? u("briefing.quick.draft", { lead: values.draftDueDaysBeforePost ?? "", review: values.brandReviewDays ?? "", rounds: values.maxRevisionRounds ?? "" })
+      : u("briefing.quick.noDraft"),
+    u(`briefing.live.${values.minLiveHours ?? "24"}` as Parameters<typeof u>[0]),
+    usageType === "ORGANIC_ONLY" ? u("briefing.quick.noUsage") : u("briefing.quick.usage"),
+  ]
+    .filter(Boolean)
+    .join(" · ");
 
   const usageChannels = USAGE_CHANNEL_CODES.filter((c) => USAGE_CHANNELS[c].type === usageType);
 
@@ -160,6 +217,7 @@ export function BriefingBuilder({
   const jumpToError = () => {
     const first = firstError(findings);
     if (!first) return;
+    setQuick(false);
     setStep(first.step);
     // After the step is on screen.
     requestAnimationFrame(() =>
@@ -217,10 +275,23 @@ export function BriefingBuilder({
         baseline.current = JSON.stringify(latest.current);
         lastDraft.current = baseline.current;
         setDraftState("idle");
+        setSaved(true);
+        window.scrollTo({ top: 0 });
+        document.getElementById("main-content")?.scrollTo({ top: 0, behavior: "smooth" });
       }}
     >
-      {(state, pending) => (
+      {(state, pending) =>
+        saved ? (
+          <div className="w-full max-w-2xl">
+            <BriefingDone requestId={requestId} values={latest.current} hasTemplates={templates.length > 0} onEdit={() => setSaved(false)} />
+          </div>
+        ) : (
         <>
+          {/* From xl the creator's view of the briefing stands in a column of its own next to the form and moves down with the page;
+              below that it follows the form, as it always did. */}
+          <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_19rem] xl:items-start">
+          <div className="flex min-w-0 flex-col gap-4">
+          <BriefingProgress {...progress} />
           {source === "draft" && (
             <div className={`${cardClass} flex flex-col gap-3 text-sm`}>
               <p>{u("briefing.draft.banner")}</p>
@@ -240,8 +311,45 @@ export function BriefingBuilder({
           {source === "template" && templateName && <p className="px-1 text-sm text-neutral-600 dark:text-neutral-400">{u("briefing.template.startedWith", { name: templateName })}</p>}
           <ReconfirmOffers requestId={requestId} count={staleOwnOffers} />
 
-          <BriefingTemplatePanel values={values} templates={templates} copyable={copyable} startOpen={source === "defaults" || source === "template"} onFill={fill} />
+          {/* One line while there is nothing to pick from (a first briefing has no template yet); open at the start of a new briefing
+              once the brand has templates, which is when the choice saves the most. */}
+          <BriefingTemplatePanel values={values} templates={templates} copyable={copyable} startOpen={(source === "defaults" || source === "template") && templates.length > 0} onFill={fill} />
 
+          {quick && (
+            <div className={`${cardClass} flex flex-col gap-4`}>
+              <div>
+                <h2 className="font-medium">{u("briefing.quick.title")}</h2>
+                <p className="text-sm text-neutral-600 dark:text-neutral-400">{u("briefing.quick.intro")}</p>
+              </div>
+              <div className="flex flex-col gap-1">
+                <span className="text-sm font-medium">{u("briefing.formats")}</span>
+                <div className="mt-1">
+                  <FormatPicker selected={csv(values.contentFormats)} onToggle={(f, on) => toggle("contentFormats", f, on)} />
+                </div>
+                <FieldNote issues={issues} field="contentFormats" />
+              </div>
+              <Field label={u("briefing.talkingPoints")} name="talkingPoints" issues={issues}>
+                {exampleText("talkingPoints")}
+              </Field>
+              <Field label={u("briefing.hashtags")} hint={u("briefing.hashtagsHint")} name="requiredHashtags" issues={issues} plain>
+                <TagInput value={values.requiredHashtags} onChange={(next) => set("requiredHashtags", next)} prefix="#" />
+              </Field>
+              <Field label={u("briefing.quick.postBy")} hint={u("briefing.windowHint")} name="postingWindowEnd" issues={issues}>
+                {deadline}
+              </Field>
+              <p className="text-xs text-neutral-500 dark:text-neutral-400">{u("briefing.quick.prefilled", { summary: prefilled })}</p>
+              <button type="button" onClick={() => setQuick(false)} className={`${secondaryButton} w-fit`}>
+                {u("briefing.quick.all")}
+              </button>
+            </div>
+          )}
+
+          <div hidden={quick} className="flex flex-col gap-4">
+          {!quick && (
+            <button type="button" onClick={() => setQuick(true)} className="w-fit text-sm text-neutral-500 underline transition hover:text-ink dark:text-neutral-400">
+              {u("briefing.quick.back")}
+            </button>
+          )}
           <div role="tablist" aria-label={u("briefing.steps")} className="grid grid-cols-[1fr_1.7fr_1fr] gap-1 rounded bg-fog p-1">
             {BRIEFING_STEPS.map((id, i) => (
               <button
@@ -287,27 +395,25 @@ export function BriefingBuilder({
               <div className="flex flex-col gap-1">
                 <span className="text-sm font-medium">{u("briefing.formats")}</span>
                 <span className="text-xs text-neutral-500 dark:text-neutral-400">{u("briefing.formatsHint")}</span>
-                <div className="mt-1 grid gap-1.5 sm:grid-cols-2">
-                  {POST_FORMAT_CODES.map((f) => (
-                    <Check key={f} checked={csv(values.contentFormats).includes(f)} onChange={(on) => toggle("contentFormats", f, on)} label={POST_FORMATS[f].label} />
-                  ))}
+                <div className="mt-1">
+                  <FormatPicker selected={csv(values.contentFormats)} onToggle={(f, on) => toggle("contentFormats", f, on)} />
                 </div>
                 <FieldNote issues={issues} field="contentFormats" />
               </div>
-              <Field label={u("briefing.hashtags")} hint={u("briefing.hashtagsHint")} name="requiredHashtags" issues={issues}>
-                <input value={values.requiredHashtags ?? ""} onChange={(e) => set("requiredHashtags", e.target.value)} className={inputClass} />
+              <Field label={u("briefing.hashtags")} hint={u("briefing.hashtagsHint")} name="requiredHashtags" issues={issues} plain>
+                <TagInput value={values.requiredHashtags} onChange={(next) => set("requiredHashtags", next)} prefix="#" />
               </Field>
-              <Field label={u("briefing.mentions")} hint={u("briefing.mentionsHint")} name="requiredMentions" issues={issues}>
-                <input value={values.requiredMentions ?? ""} onChange={(e) => set("requiredMentions", e.target.value)} className={inputClass} />
+              <Field label={u("briefing.mentions")} hint={u("briefing.mentionsHint")} name="requiredMentions" issues={issues} plain>
+                <TagInput value={values.requiredMentions} onChange={(next) => set("requiredMentions", next)} prefix="@" />
               </Field>
             </Group>
 
             <Group title={u("briefing.section.notes")}>
               <Field label={u("briefing.talkingPoints")} name="talkingPoints" issues={issues}>
-                <textarea rows={3} maxLength={2000} value={values.talkingPoints ?? ""} onChange={(e) => set("talkingPoints", e.target.value)} className={inputClass} />
+                {exampleText("talkingPoints")}
               </Field>
               <Field label={u("briefing.doNots")} name="doNots" issues={issues}>
-                <textarea rows={3} maxLength={2000} value={values.doNots ?? ""} onChange={(e) => set("doNots", e.target.value)} className={inputClass} />
+                {exampleText("doNots")}
               </Field>
             </Group>
             {stepNav}
@@ -318,7 +424,7 @@ export function BriefingBuilder({
               <div className="flex flex-col gap-1">
                 <span className="text-sm font-medium">{u("briefing.labels")}</span>
                 <span className="text-xs text-neutral-500 dark:text-neutral-400">{u("briefing.labelsHint")}</span>
-                <div className="mt-1 flex flex-wrap gap-x-4 gap-y-1.5">
+                <div className="mt-1 grid grid-cols-2 gap-2">
                   {MARKET_RULES[market].accepted.map((label) => (
                     <Check key={label} checked={csv(values.disclosureLabels).includes(label)} onChange={(on) => toggle("disclosureLabels", label, on)} label={label} />
                   ))}
@@ -354,7 +460,7 @@ export function BriefingBuilder({
                   <input type="date" value={values.postingWindowStart ?? ""} onChange={(e) => set("postingWindowStart", e.target.value)} className={inputClass} />
                 </Field>
                 <Field label={u("briefing.windowEnd")} hint={u("briefing.windowHint")} name="postingWindowEnd" issues={issues}>
-                  <input type="date" value={values.postingWindowEnd ?? ""} onChange={(e) => set("postingWindowEnd", e.target.value)} className={inputClass} />
+                  {deadline}
                 </Field>
               </div>
               <Field label={u("briefing.minLive")} hint={u("briefing.minLiveHint")} name="minLiveHours" issues={issues}>
@@ -380,7 +486,7 @@ export function BriefingBuilder({
                   <div className="flex flex-col gap-1">
                     <span className="text-sm font-medium">{u("briefing.categories")}</span>
                     <span className="text-xs text-neutral-500 dark:text-neutral-400">{u("briefing.categoriesHint")}</span>
-                    <div className="mt-1 grid gap-1.5 sm:grid-cols-2">
+                    <div className="mt-1 grid grid-cols-2 gap-2">
                       {PRODUCT_CATEGORIES.map((c) => (
                         <Check key={c} checked={csv(values.exclusivityCategories).includes(c)} onChange={(on) => toggle("exclusivityCategories", c, on)} label={c} />
                       ))}
@@ -403,18 +509,26 @@ export function BriefingBuilder({
             </Group>
 
             <Group title={u("briefing.section.usage")}>
-              <Field label={u("briefing.usageType")} name="usageType" issues={issues}>
-                <select value={usageType} onChange={(e) => setValues((v) => ({ ...v, usageType: e.target.value, usageChannels: "" }))} className={inputClass}>
-                  <option value="ORGANIC_ONLY">{u("briefing.usageType.ORGANIC_ONLY")}</option>
-                  <option value="CROSS_POST">{u("briefing.usageType.CROSS_POST")}</option>
-                  <option value="PAID_ADS">{u("briefing.usageType.PAID_ADS")}</option>
-                </select>
-              </Field>
+              <div className="flex flex-col gap-2" data-issue-field="usageType">
+                <span className="text-sm font-medium">{u("briefing.usage.question")}</span>
+                <div className="grid grid-cols-2 gap-2">
+                  <Check checked={usageType === "ORGANIC_ONLY"} onChange={() => setValues((v) => ({ ...v, usageType: "ORGANIC_ONLY", usageChannels: "" }))} label={u("briefing.usage.no")} />
+                  <Check checked={usageType !== "ORGANIC_ONLY"} onChange={() => usageType === "ORGANIC_ONLY" && setValues((v) => ({ ...v, usageType: "PAID_ADS", usageChannels: "" }))} label={u("briefing.usage.yes")} />
+                </div>
+              </div>
+              {usageType !== "ORGANIC_ONLY" && (
+                <Field label={u("briefing.usage.how")} name="usageType" issues={issues}>
+                  <select value={usageType} onChange={(e) => setValues((v) => ({ ...v, usageType: e.target.value, usageChannels: "" }))} className={inputClass}>
+                    <option value="CROSS_POST">{u("briefing.usageType.CROSS_POST")}</option>
+                    <option value="PAID_ADS">{u("briefing.usageType.PAID_ADS")}</option>
+                  </select>
+                </Field>
+              )}
               {usageType !== "ORGANIC_ONLY" && (
                 <>
                   <div className="flex flex-col gap-1">
                     <span className="text-sm font-medium">{u("briefing.channels")}</span>
-                    <div className="mt-1 flex flex-col gap-1.5">
+                    <div className="mt-1 flex flex-col gap-2">
                       {usageChannels.map((c) => (
                         <Check key={c} checked={csv(values.usageChannels).includes(c)} onChange={(on) => toggle("usageChannels", c, on)} label={u(`briefing.channel.${c}`)} />
                       ))}
@@ -439,15 +553,25 @@ export function BriefingBuilder({
             {stepNav}
           </div>
 
+          </div>
+          </div>
+
+          <aside className="xl:sticky xl:top-4 xl:max-h-[calc(100dvh-2rem)] xl:overflow-y-auto">
+            <BriefingPreview values={values} brandName={brandName} requestTitle={requestTitle} language={language} />
+          </aside>
+          </div>
+
           {/* On a phone it is fixed above the tab bar (a sticky bar would sit at the mercy of <main>'s padding), from md up it sticks to
-              the foot of the window: the save button and the errors stay in reach however far the form is scrolled. */}
+              the foot of the window: the save button and the errors stay in reach however far the form is scrolled. From xl it is as wide
+              as the form, not the preview column too. */}
           <div aria-hidden className="h-20 md:hidden" />
-          <div className="max-md:fixed max-md:inset-x-6 max-md:bottom-[calc(var(--bar-bottom)+3.5rem)] max-md:z-30 md:sticky md:bottom-4 md:z-10" aria-live="polite">
+          <div className="max-md:fixed max-md:inset-x-6 max-md:bottom-[calc(var(--tabbar-space)-0.25rem)] max-md:z-30 md:sticky md:bottom-4 md:z-10 xl:w-[calc(100%-20rem)]" aria-live="polite">
             <div className="flex items-center gap-3 rounded border border-ink/10 bg-background/95 p-3 shadow-lg backdrop-blur">
               <div className="min-w-0 flex-1 text-sm">
                 {errors.length > 0 ? (
                   <button type="button" onClick={jumpToError} className="text-left font-medium">
-                    ✕ {errors.length === 1 ? u("briefing.errorCount.one") : u("briefing.errorCount.many", { count: errors.length })}
+                    ✕ {firstIssue?.message}
+                    {errors.length > 1 && <span className="font-normal text-neutral-500 dark:text-neutral-400"> {errors.length === 2 ? u("briefing.error.more.one") : u("briefing.error.more.many", { count: errors.length - 1 })}</span>}
                     <span className="block text-xs font-normal underline">{u("briefing.jumpToError")}</span>
                   </button>
                 ) : (
@@ -466,7 +590,8 @@ export function BriefingBuilder({
             </div>
           </div>
         </>
-      )}
+        )
+      }
     </DealForm>
   );
 }

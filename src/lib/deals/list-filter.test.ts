@@ -47,6 +47,13 @@ describe("filterDeals", () => {
     expect(statuses(filterDeals(deals, "mine", "CREATOR"))).toEqual(["CONTRACT_PENDING", "IN_PRODUCTION"]);
   });
 
+  it("counts a screenshot proof the brand has not confirmed as the brand's turn, not the creator's", () => {
+    const withProof = [{ ...deal("POST_SUBMITTED"), proofPending: true }, { ...deal("POST_SUBMITTED"), proofPending: false }];
+    expect(filterDeals(withProof, "mine", "STARTUP")).toEqual([withProof[0]]);
+    expect(filterDeals(withProof, "mine", "CREATOR")).toEqual([]);
+    expect(dealCounts(withProof, "STARTUP").mine).toBe(1);
+  });
+
   it("shows the running deals, and the finished ones", () => {
     expect(statuses(filterDeals(deals, "active", "CREATOR"))).toEqual(["CONTRACT_PENDING", "AWAITING_ESCROW", "IN_PRODUCTION", "DRAFT_SUBMITTED", "VERIFYING"]);
     expect(statuses(filterDeals(deals, "done", "CREATOR"))).toEqual(["COMPLETED", "CANCELLED"]);

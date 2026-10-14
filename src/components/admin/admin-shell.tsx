@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
+import { ScrollStrip } from "@/components/admin/scroll-strip";
 import type { IconType } from "react-icons";
 import {
   FiActivity,
@@ -303,7 +304,7 @@ export function AdminShell({
           </div>
         </header>
         <nav aria-label="Admin" className="border-b border-(--adm-line) px-4 py-2 lg:hidden">
-          <div className="scrollbar-hide flex gap-1 overflow-x-auto">
+          <ScrollStrip watch={pathname} className="scrollbar-hide flex gap-1 overflow-x-auto">
             {[
               ...main.map((section) => ({ key: section.key, label: section.label, icon: section.icon, href: section.href ?? section.items![0].href, active: sectionActive(section), badge: section.badge })),
               ...footer.map((item) => ({ key: item.href, label: item.label, icon: item.icon, href: item.href, active: isActive(item.href), badge: undefined })),
@@ -319,9 +320,9 @@ export function AdminShell({
                 {!!badge && <span className={`rounded-full px-1.5 text-xs font-bold ${active ? "bg-paper text-ink" : "bg-ink text-paper"}`}>{badge}</span>}
               </Link>
             ))}
-          </div>
+          </ScrollStrip>
           {activeGroup && (
-            <div className="scrollbar-hide mt-1.5 flex gap-1 overflow-x-auto border-t border-(--adm-line) pt-1.5">
+            <ScrollStrip watch={pathname} className="scrollbar-hide mt-1.5 flex gap-1 overflow-x-auto border-t border-(--adm-line) pt-1.5">
               {activeGroup.items!.map(({ href, label, badge }) => {
                 const active = isActive(href);
                 return (
@@ -336,7 +337,7 @@ export function AdminShell({
                   </Link>
                 );
               })}
-            </div>
+            </ScrollStrip>
           )}
         </nav>
         <main className="min-w-0 px-4 py-6 lg:pr-8 lg:pl-2">

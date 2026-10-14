@@ -21,6 +21,11 @@ export const fr: Catalog = {
     open: "Ouvrir",
     export: "Exporter",
   },
+  notFound: {
+    title: "Page introuvable",
+    body: "La page demandée n'existe pas ou a été déplacée.",
+    back: "Retour au tableau de bord",
+  },
   nav: {
     requests: "Demandes",
     feed: "Fil",

@@ -132,4 +132,12 @@ describe("waitingFor", () => {
     expect(waitingFor("IN_PRODUCTION")).toEqual(["CREATOR"]);
     expect(waitingFor("COMPLETED")).toEqual([]);
   });
+
+  it("points at the brand for a screenshot proof it has not confirmed, and at the system for a link the platforms check", () => {
+    expect(waitingFor("POST_SUBMITTED")).toEqual(["SYSTEM"]);
+    expect(waitingFor("POST_SUBMITTED", { proofPending: false })).toEqual(["SYSTEM"]);
+    expect(waitingFor("POST_SUBMITTED", { proofPending: true })).toEqual(["STARTUP"]);
+    // The flag only matters while the post is submitted.
+    expect(waitingFor("VERIFYING", { proofPending: true })).toEqual(["SYSTEM"]);
+  });
 });

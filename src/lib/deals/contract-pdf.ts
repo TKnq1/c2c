@@ -71,7 +71,7 @@ export function layoutContract(input: ContractPdfInput, metrics: Metrics): PdfLa
   const rightEnd = party("Creator", terms.creatorName, "CREATOR", snapshot?.creator, PAGE.margin + CONTENT_WIDTH - COLUMN_WIDTH);
   b.top = Math.max(leftEnd, rightEnd) + 18;
 
-  const view = contractView({ terms, snapshot, viewer, payoutCents: input.payoutCents, feeCents: input.feeCents, u });
+  const view = contractView({ terms, snapshot, viewer, payoutCents: input.payoutCents, feeCents: input.feeCents, u, locale: "de" });
   b.text("Bedingungen", PAGE.margin, 11, { bold: true });
   b.top += lead(11) + 2;
   b.rule(0.8);

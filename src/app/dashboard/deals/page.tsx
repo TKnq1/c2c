@@ -11,12 +11,11 @@ import { DealsFilter } from "@/components/deals/deals-filter";
 import { DealsTabs } from "@/components/deals/deals-tabs";
 import { dealLocale } from "@/lib/deals/copy";
 import { getLocale } from "@/lib/i18n/server";
-import { nextStep } from "@/lib/deals/next-step";
+import { nextStepForListItem } from "@/lib/deals/list-next-step";
 import { formatDealDate } from "@/lib/deals/notices";
 import { canUseDeals, isMyTurn, listDealsForUser, type DealListItem } from "@/lib/deals/queries";
 import { GROUP_BY_CAMPAIGN_FROM, dealCounts, filterDeals, groupByCampaign, parseDealFilter } from "@/lib/deals/list-filter";
 import { isTerminal } from "@/lib/deals/status";
-import { parseTerms } from "@/lib/deals/terms";
 import { uiText } from "@/lib/deals/ui-copy";
 import { businessReadiness } from "@/lib/tax/business";
 import { hasErrors } from "@/lib/deals/issues";
@@ -116,41 +115,23 @@ function DealCards({ deals, role, locale, highlight }: { deals: DealListItem[]; 
           const { interest } = deal;
           const other = role === "STARTUP" ? interest.creator : interest.request.startup;
           const name = "displayName" in other ? other.displayName : other.companyName;
-          const step = nextStep(
-            {
-              status: deal.status,
-              role,
-              brandSigned: deal.brandSignedAt !== null,
-              creatorSigned: deal.creatorSignedAt !== null,
-              draftRequired: parseTerms(deal.terms).workflow.draftRequired,
-              brandName: interest.request.startup.companyName,
-              creatorName: interest.creator.displayName,
-              totalCents: deal.brandTotalCents,
-              draftDueAt: deal.draftDueAt,
-              draftReviewDueAt: deal.draftReviewDueAt,
-              revisionDueAt: deal.revisionDueAt,
-              postWindowEnd: deal.postWindowEnd,
-              scheduledFor: deal.scheduledFor,
-              verificationEndsAt: deal.verificationEndsAt,
-              graceUntil: deal.graceUntil,
-              proofPending: false,
-              payoutBlocked: !interest.creator.stripeOnboarded,
-            },
-            locale,
-          );
+          const step = nextStepForListItem(deal, role, locale);
           return (
             <Link key={deal.id} href={`/dashboard/deals/${deal.id}`} className={`${cardClass} block transition hover:bg-neutral-200/60 dark:hover:bg-neutral-700/60 ${highlight ? "ring-1 ring-ink" : ""}`}>
               <div className="flex items-center gap-3">
                 <Avatar src={other.avatarUrl} name={name} size={40} />
                 <div className="min-w-0 flex-1">
                   <p className="truncate font-medium">{name}</p>
-                  <p className="truncate text-sm text-neutral-500 dark:text-neutral-400">{interest.request.title}</p>
+                  <p className="line-clamp-2 text-sm text-neutral-500 dark:text-neutral-400">{interest.request.title}</p>
+                </div>
+              </div>
+              {/* The status sits down here, not next to the names: beside them it took half the line and cut both names short. */}
+              <div className="mt-3 flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
+                <div className="flex items-baseline gap-2">
+                  <p className="font-bold tabular-nums">{formatCents(deal.brandTotalCents ?? interest.amountCents ?? 0)}</p>
+                  <p className="text-xs text-neutral-500 dark:text-neutral-400">{formatDealDate(deal.statusChangedAt, locale)}</p>
                 </div>
                 <Badge strong={highlight}>{u(`status.${deal.status}`)}</Badge>
-              </div>
-              <div className="mt-3 flex items-baseline justify-between gap-3">
-                <p className="font-bold tabular-nums">{formatCents(deal.brandTotalCents ?? interest.amountCents ?? 0)}</p>
-                <p className="text-xs text-neutral-500 dark:text-neutral-400">{formatDealDate(deal.statusChangedAt, locale)}</p>
               </div>
               {!isTerminal(deal.status) && <p className="mt-1 text-sm text-neutral-600 dark:text-neutral-400">{u(step.key, step.vars)}</p>}
             </Link>

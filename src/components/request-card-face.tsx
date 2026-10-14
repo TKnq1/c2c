@@ -52,7 +52,7 @@ export function RequestCardFace({ request, photoIndex = 0, lazyPhotos = false }:
 
   if (!photo) {
     return (
-      <div className="flex min-h-0 flex-1 flex-col gap-4 px-6 pt-6 pb-8" style={{ containerType: "size" }}>
+      <div className="flex min-h-0 flex-1 flex-col gap-4 px-6 pt-6 pb-[var(--card-actions,2rem)]" style={{ containerType: "size" }}>
         {budget && (
           <p className="flex items-baseline gap-1.5">
             <span className="font-display text-title-2 font-black">{budget}</span>
@@ -125,7 +125,7 @@ export function RequestCardFace({ request, photoIndex = 0, lazyPhotos = false }:
           />
         </div>
         <div aria-hidden="true" className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
-        <div className="relative flex flex-col gap-4 px-6 pt-6 pb-8 text-white">
+        <div className="relative flex flex-col gap-4 px-6 pt-6 pb-[var(--card-actions,2rem)] text-white">
           <CardHeader request={request} light />
           <CardChips request={request} light />
         </div>
