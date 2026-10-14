@@ -6,16 +6,21 @@ export async function LegalDocument({
   title,
   updated,
   intro,
+  notice,
+  lang,
   sections,
 }: {
   title: string;
   updated: string;
   intro?: string;
+  // Set on a translation: says the German version is the binding one.
+  notice?: string | null;
+  lang?: string;
   sections: { title: string; body: string[] }[];
 }) {
   const t = await getT();
   return (
-    <article className="flex flex-col gap-8">
+    <article lang={lang} className="flex flex-col gap-8">
       <header className="flex flex-col gap-4">
         <h1 className="font-display text-[40px] leading-[1.02] font-black tracking-[-0.03em] text-balance md:text-[56px]">
           {title}
@@ -25,6 +30,7 @@ export async function LegalDocument({
           {t("landing.legal.updated")} {updated}
         </p>
       </header>
+      {notice && <p className="rounded border border-ink/15 p-4 text-sm text-neutral-700 dark:text-neutral-300">{notice}</p>}
       <div className="flex flex-col gap-3">
         {sections.map((s, i) => (
           <section key={s.title} className="rounded bg-fog p-5">

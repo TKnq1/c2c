@@ -1,7 +1,8 @@
 import { FOUNDING_BRAND_LIMIT, FOUNDING_CREATOR_LIMIT, PLATFORM_FEE_RATE, PRO_PLATFORM_FEE_RATE, PRO_SUBSCRIPTION_PRICE_CENTS, RELEASE_REVIEW_DAYS } from "@/lib/constants";
 import { formatCents } from "@/lib/format";
+import type { LegalContent, LegalSection } from "@/lib/legal/types";
 
-export type LegalSection = { title: string; body: string[] };
+export type { LegalSection };
 
 // The VAT identification number goes into the imprint when there is one (§ 5 Abs. 1 Nr. 6 DDG): set IMPRINT_VAT_ID.
 export function imprintVatId(): string | null {
@@ -228,3 +229,54 @@ export function dePrivacy({ sentry }: { sentry: boolean }): LegalSection[] {
     section.title === "Dienstleister" ? { ...section, body: [section.body[0], DE_SENTRY, ...section.body.slice(1)] } : section,
   );
 }
+
+const DE_LICENSES: LegalSection[] = [
+  {
+    title: "Open-Source-Software",
+    body: [
+      "comtor ist mit Open-Source-Software gebaut. Jedes Paket steht unter einer eigenen Lizenz, meist MIT, Apache-2.0, ISC und BSD. Die Lizenztexte von allem, womit die ausgelieferte App gebaut ist, stehen in der Datei, die unten verlinkt ist.",
+    ],
+  },
+  {
+    title: "Schriften",
+    body: [
+      "Der Text ist in Lato gesetzt, Copyright (c) 2010-2014 by tyPoland Lukasz Dziedzic (team@latofonts.com) with Reserved Font Name \"Lato\", unter der SIL Open Font License, Version 1.1.",
+    ],
+  },
+  {
+    title: "Icons und Markennamen",
+    body: [
+      "Oberflächen-Icons stammen von Feather und Ionicons (beide MIT-Lizenz), die Zeichen der sozialen Plattformen von Simple Icons (CC0). Die Namen und Logos von Instagram, TikTok, YouTube, Twitch und X gehören ihren Inhabern und werden nur gezeigt, um die Plattform zu benennen.",
+    ],
+  },
+  {
+    title: "Fotos",
+    body: [
+      "Die Produktfotos auf der Startseite stammen von Unsplash und werden unter der Unsplash-Lizenz genutzt. Die Marken, Creator und Bewertungen in den Beispielen sind erfunden.",
+    ],
+  },
+];
+
+// German is the binding version of every legal text.
+export const legalDe: LegalContent = {
+  htmlLang: "de",
+  notice: null,
+  updated: "7. Oktober 2026",
+  ui: {
+    termsTitle: "Allgemeine Geschäftsbedingungen",
+    termsDescription: "Die Bedingungen für die Nutzung von comtor.",
+    privacyTitle: "Datenschutzerklärung",
+    privacyDescription: "Welche personenbezogenen Daten comtor verarbeitet, warum, und welche Rechte du hast.",
+    imprintTitle: "Impressum",
+    imprintDescription: "Anbieterkennzeichnung nach § 5 DDG.",
+    vatLabel: "Umsatzsteuer-Identifikationsnummer",
+    licensesTitle: "Open-Source-Lizenzen",
+    licensesDescription: "Welche Software, Schriften und Bilder comtor verwendet, und unter welchen Lizenzen.",
+    licensesTextFile: "Lizenztexte aller Open-Source-Pakete (Textdatei)",
+    licensesOfl: "Lato: SIL Open Font License",
+  },
+  terms: deTerms,
+  privacy: dePrivacy,
+  imprint: DE_IMPRINT,
+  licenses: DE_LICENSES,
+};
