@@ -49,7 +49,7 @@ export default async function DealsPage(props: PageProps<"/dashboard/deals">) {
       <PageTitle description={u("deals.description")}>{u("deals.title")}</PageTitle>
       <DealsTabs current="active" userId={session.user.id} role={role} locale={locale} />
 
-      <div className="flex max-w-2xl flex-col gap-6">
+      <div className="flex flex-col gap-6">
 
       {needsBusiness && (
         <div className={`${cardClass} flex flex-col gap-2 text-sm`}>
