@@ -5,11 +5,13 @@ import { hashToken } from "@/lib/tokens";
 import { LogoBackdrop } from "@/components/logo-backdrop";
 import { ImprintLink } from "@/components/imprint-link";
 import { ConfirmMarketingForm, MarketingConfirmed } from "@/components/confirm-marketing-form";
-import { NO_INDEX, metadataFor } from "@/lib/seo";
+import { NO_INDEX } from "@/lib/seo";
 import { getT } from "@/lib/i18n/server";
 
-export const generateMetadata = (): Promise<Metadata> =>
-  metadataFor({ title: "Confirm product news", robots: NO_INDEX }, { title: "Produkt-News bestätigen", robots: NO_INDEX });
+export const generateMetadata = async (): Promise<Metadata> => ({
+  title: (await getT())("extras.meta.marketingConfirm"),
+  robots: NO_INDEX,
+});
 
 function settingsHref(role: string) {
   if (role === "STARTUP") return "/dashboard/startup/settings#news";

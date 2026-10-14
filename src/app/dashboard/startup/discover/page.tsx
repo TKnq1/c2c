@@ -108,7 +108,7 @@ export default async function DiscoverCreatorsPage() {
         <div>
           <h1 className="font-display text-title-1 font-bold">{t("screens.discover.creators")}</h1>
           <p className="text-sm text-neutral-600 mt-1 dark:text-neutral-400">
-            Browse creators across every niche and filter down to the right fit.
+            {t("extras.misc.creatorsHint")}
           </p>
         </div>
         <FavoritesOnlyToggle />

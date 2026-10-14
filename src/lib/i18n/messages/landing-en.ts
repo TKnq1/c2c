@@ -1,5 +1,4 @@
-// The public landing page (comtor.app, before login). English and German are written out; the other
-// languages fall back to the English text until the page is translated for them.
+// The public landing page (comtor.app, before login). All 8 languages are written out (landing-{locale}.ts).
 export const landing = {
   meta: {
     title: "comtor · Paid brand deals for creators",
@@ -77,11 +76,11 @@ export const landing = {
     brand1Body: "Photos, budget, platform and what to post. Creators get it as a card in their feed.",
     brand2Title: "Creators come to you",
     brand2Body: "Creators in your niche swipe right on it. You see their reach and reviews and pick who fits.",
-    brand3Title: "Agree on it in the chat",
+    brand3Title: "Settle the deal in the chat",
     brand3Body: "Send an offer. When they accept, you pay, and the money is held until the post is live.",
     brand4Title: "Approve the post, then it's paid out",
     brand4Body:
-      "Check the live post first. No base fee: comtor keeps {standard}% of each payment, or {pro}% when you or the creator has Pro (€{price} a month).",
+      "Check the live post first. No base fee. comtor keeps {standard}% of each payment. With Pro (€{price} a month) on either side, it's {pro}%.",
   },
   mock: {
     interestSent: "Interest sent.",
@@ -112,10 +111,10 @@ export const landing = {
     interestedCreators: "Interested creators",
     now: "now",
     pushText: "{name} is interested in “{title}”",
-    helloLove: "Hi! I'd love to do this.",
+    helloLove: "Hi! I'm in.",
     sendingOffer: "Great, sending an offer.",
     yourOffer: "Your offer",
-    wouldGet: "{name} would get 270,00 € after the 10% fee.",
+    wouldGet: "{name} gets 270,00 € after the 10% fee.",
     payThrough: "Pay through Stripe. It's held until {name} posts and you approve it.",
     payNow: "Pay now",
     releasedWhen: "Released to {name} once they post and you approve it.",

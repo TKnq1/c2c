@@ -1,9 +1,10 @@
 import Image from "next/image";
 import Link from "next/link";
 import { auth } from "@/lib/auth";
-import { getLocale, getT } from "@/lib/i18n/server";
+import { getT } from "@/lib/i18n/server";
 import type { MessageKey } from "@/lib/i18n/translate";
-import { UGC_CREATOR_PATH, UGC_NICHE_PAGES, UGC_PATH, ugcNicheHref } from "@/lib/seo-pages";
+import { UGC_CREATOR_PATH, UGC_PATH, ugcNicheHref } from "@/lib/seo-pages";
+import { getUgcContent } from "@/lib/ugc";
 import { SITE_URL } from "@/lib/site";
 
 // Pieces shared by the German search pages (/ugc and /ugc/<niche>). Plain server components: no script,
@@ -90,7 +91,7 @@ export function UgcSteps({ title, steps }: { title: string; steps: string[] }) {
   );
 }
 
-export function UgcFaq({ faqs }: { faqs: { question: string; answer: string }[] }) {
+export function UgcFaq({ faqs, title }: { faqs: { question: string; answer: string }[]; title: string }) {
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "FAQPage",
@@ -101,7 +102,7 @@ export function UgcFaq({ faqs }: { faqs: { question: string; answer: string }[] 
     })),
   };
   return (
-    <UgcSection title="Häufige Fragen">
+    <UgcSection title={title}>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
       <div className="flex flex-col gap-6">
         {faqs.map((f) => (
@@ -137,31 +138,28 @@ const LEGAL: { href: string; label: MessageKey }[] = [
   { href: "/legal/licenses", label: "screens.settings.licenses" },
 ];
 
-// The niche pages exist in German only, so their links are shown to German readers.
 export async function UgcFooter({ currentSlug, onHub = false }: { currentSlug?: string; onHub?: boolean }) {
   const t = await getT();
-  const german = (await getLocale()) === "de";
-  const others = UGC_NICHE_PAGES.filter((page) => page.slug !== currentSlug);
+  const { ui, niches } = await getUgcContent();
+  const others = niches.filter((page) => page.slug !== currentSlug);
   return (
     <footer className="relative z-10 border-t border-ink/10 px-4 pt-8 pb-[calc(var(--safe-bottom)+28px)]">
       <div className="mx-auto flex max-w-3xl flex-col gap-6 text-sm text-neutral-600 dark:text-neutral-400">
-        {german && (
-          <nav aria-label="UGC nach Nische" className="flex flex-wrap gap-x-5 gap-y-2">
-            {!onHub && (
-              <Link href={UGC_PATH} className="transition hover:text-ink">
-                {t("landing.footer.ugc")}
-              </Link>
-            )}
-            <Link href={UGC_CREATOR_PATH} className="transition hover:text-ink">
-              Creator werden
+        <nav aria-label={ui.nicheNavLabel} className="flex flex-wrap gap-x-5 gap-y-2">
+          {!onHub && (
+            <Link href={UGC_PATH} className="transition hover:text-ink">
+              {t("landing.footer.ugc")}
             </Link>
-            {others.map((page) => (
-              <Link key={page.slug} href={ugcNicheHref(page.slug)} className="transition hover:text-ink">
-                {page.label}
-              </Link>
-            ))}
-          </nav>
-        )}
+          )}
+          <Link href={UGC_CREATOR_PATH} className="transition hover:text-ink">
+            {ui.creatorFooterLink}
+          </Link>
+          {others.map((page) => (
+            <Link key={page.slug} href={ugcNicheHref(page.slug)} className="transition hover:text-ink">
+              {page.label}
+            </Link>
+          ))}
+        </nav>
         <nav aria-label={t("landing.footer.label")} className="flex flex-wrap gap-x-5 gap-y-2">
           {LEGAL.map((l) => (
             <Link key={l.href} href={l.href} className="transition hover:text-ink">

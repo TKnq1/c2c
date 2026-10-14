@@ -7,6 +7,7 @@ import type { OnboardingState } from "@/lib/actions/onboarding";
 import { localizedInsight } from "@/lib/i18n/insight";
 import type { OnboardingInsight } from "@/lib/onboarding-flow";
 import { prepareSounds, unlockSounds } from "@/lib/sounds";
+import { localizeError } from "@/lib/i18n/labels";
 
 // Shared pieces of the brand and creator onboarding wizards.
 
@@ -92,10 +93,11 @@ export function StepHeading({ title, description, align = "left" }: { title: str
 }
 
 export function StepError({ state }: { state: OnboardingState }) {
+  const { t } = useI18n();
   if (!state?.error) return null;
   return (
     <p role="alert" className="text-sm text-ink">
-      {state.error}
+      {localizeError(state.error, t)}
     </p>
   );
 }

@@ -3,11 +3,13 @@ import Link from "next/link";
 import { ForgotPasswordForm } from "@/components/forgot-password-form";
 import { LogoBackdrop } from "@/components/logo-backdrop";
 import { ImprintLink } from "@/components/imprint-link";
-import { NO_INDEX, metadataFor } from "@/lib/seo";
+import { NO_INDEX } from "@/lib/seo";
 import { getT } from "@/lib/i18n/server";
 
-export const generateMetadata = (): Promise<Metadata> =>
-  metadataFor({ title: "Reset your password", robots: NO_INDEX }, { title: "Passwort zurücksetzen", robots: NO_INDEX });
+export const generateMetadata = async (): Promise<Metadata> => ({
+  title: (await getT())("extras.meta.forgotPassword"),
+  robots: NO_INDEX,
+});
 
 export default async function ForgotPasswordPage() {
   const t = await getT();

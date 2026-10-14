@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { generateEmailVerificationAction } from "@/lib/actions/auth";
 import { useI18n } from "@/components/i18n-provider";
+import { localizeError } from "@/lib/i18n/labels";
 
 export function VerifyEmailLink() {
   const { t } = useI18n();
@@ -16,7 +17,7 @@ export function VerifyEmailLink() {
     });
   }, []);
 
-  if (error) return <p className="text-sm text-ink">{error}</p>;
+  if (error) return <p className="text-sm text-ink">{localizeError(error, t)}</p>;
   if (!sent) return <p className="text-sm text-neutral-500 dark:text-neutral-400">{t("screens.ui.verifySending")}</p>;
 
   return <p className="text-sm text-neutral-700 dark:text-neutral-300">{t("screens.ui.verifySent")}</p>;

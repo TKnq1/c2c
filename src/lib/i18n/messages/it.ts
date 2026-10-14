@@ -1,6 +1,9 @@
 import type { Catalog } from "@/lib/i18n/messages/types";
-import { founding } from "@/lib/i18n/messages/founding-en";
-import { landing } from "@/lib/i18n/messages/landing-en";
+import { emailsIt as emails } from "@/lib/i18n/messages/emails-it";
+import { extrasIt as extras } from "@/lib/i18n/messages/extras-it";
+import { faqIt as faq } from "@/lib/i18n/messages/faq-it";
+import { foundingIt as founding } from "@/lib/i18n/messages/founding-it";
+import { landingIt as landing } from "@/lib/i18n/messages/landing-it";
 import { screensIt as screens } from "@/lib/i18n/messages/screens-it";
 
 export const it: Catalog = {
@@ -186,7 +189,7 @@ export const it: Catalog = {
       requestsMatch: "richieste sono adatte",
       matchesYou: "{matches} a te, {name}",
       andMore: "e altre {count} nel tuo feed",
-      trust: "Ogni budget viene pagato prima che tu pubblichi, e tieni almeno il {keep}% di ciò che paga un brand.",
+      trust: "Ogni budget viene pagato prima che tu pubblichi. Tieni almeno il {keep}% di ciò che paga un brand.",
       earlyBrand: "Sei in anticipo",
       earlyBrandBody:
         "Ancora nessun creator in {niche}. Pubblica la prima richiesta: chi è in linea viene avvisato appena è online.",
@@ -228,7 +231,7 @@ export const it: Catalog = {
       description: "Aggiungi i dati di pagamento ora, così il primo sì si può pagare.",
       point1: "Un brand paga in deposito prima che tu crei qualcosa.",
       point2: "Il denaro viene sbloccato quando il post è online.",
-      point3: "Configurarlo ora richiede circa due minuti, e il primo brand che ti sceglie può pagare subito.",
+      point3: "La configurazione richiede circa due minuti. Il primo brand che ti sceglie può pagare subito.",
       setup: "Configura i pagamenti",
       later: "Lo faccio dopo",
     },
@@ -259,7 +262,9 @@ export const it: Catalog = {
       heardOther: "Altrove",
     },
   },
-  // Not translated yet: the English landing page text.
+  emails,
+  extras,
+  faq,
   landing,
   founding,
   screens,

@@ -1,4 +1,7 @@
 import type { Catalog } from "@/lib/i18n/messages/types";
+import { emailsDe as emails } from "@/lib/i18n/messages/emails-de";
+import { extrasDe as extras } from "@/lib/i18n/messages/extras-de";
+import { faqDe as faq } from "@/lib/i18n/messages/faq-de";
 import { foundingDe as founding } from "@/lib/i18n/messages/founding-de";
 import { landingDe as landing } from "@/lib/i18n/messages/landing-de";
 import { screensDe as screens } from "@/lib/i18n/messages/screens-de";
@@ -186,7 +189,7 @@ export const de: Catalog = {
       requestsMatch: "Anfragen passen",
       matchesYou: "offene {matches} zu dir, {name}",
       andMore: "und {count} weitere in deinem Feed",
-      trust: "Jedes Budget wird eingezahlt, bevor du postest, und du behältst mindestens {keep} % von dem, was eine Marke zahlt.",
+      trust: "Jedes Budget wird eingezahlt, bevor du postest. Du behältst mindestens {keep} % von dem, was eine Marke zahlt.",
       earlyBrand: "Du bist früh dran",
       earlyBrandBody:
         "Noch keine Creator in {niche}. Poste deine erste Anfrage, passende werden benachrichtigt, sobald sie online ist.",
@@ -259,6 +262,9 @@ export const de: Catalog = {
       heardOther: "Anderswo",
     },
   },
+  emails,
+  extras,
+  faq,
   landing,
   founding,
   screens,

@@ -5,6 +5,7 @@ import { confirmEmailVerificationAction } from "@/lib/actions/auth";
 import { useActionToast } from "@/lib/use-action-toast";
 import { useI18n } from "@/components/i18n-provider";
 import { VerifyContinueLink } from "@/components/verify-continue-link";
+import { localizeError } from "@/lib/i18n/labels";
 
 // The mail's link only opens this page: the address counts as confirmed once the button here is
 // pressed (mail scanners open links too, and must not confirm anything). So the step is spelled out.
@@ -28,7 +29,7 @@ export function ConfirmEmailVerificationForm({ token, continueTo }: { token: str
   return (
     <form action={formAction} className="flex flex-col items-center gap-4">
       <p className="text-sm text-neutral-700 dark:text-neutral-300">{t("screens.ui.verifyStep")}</p>
-      {state?.error && <p className="text-sm text-ink">{state.error}</p>}
+      {state?.error && <p className="text-sm text-ink">{localizeError(state.error, t)}</p>}
       <button
         type="submit"
         disabled={pending}

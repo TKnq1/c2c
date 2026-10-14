@@ -16,6 +16,7 @@ import { errorMessage } from "@/lib/error-message";
 import { useExitAnimation } from "@/lib/use-exit-animation";
 import { useI18n } from "@/components/i18n-provider";
 import type { MessageKey } from "@/lib/i18n/translate";
+import { localizeError } from "@/lib/i18n/labels";
 
 const REASONS: { value: string; label: MessageKey }[] = [
   { value: "Spam", label: "screens.ui.reasonSpam" },
@@ -225,7 +226,7 @@ function ReportForm({ otherUserId, onSent }: { otherUserId: string; onSent: () =
         aria-label={t("screens.ui.details")}
         className="resize-none rounded border border-neutral-300 px-3 py-2.5 text-base md:text-sm dark:border-neutral-700"
       />
-      {state?.error && <p className="text-sm text-ink">{state.error}</p>}
+      {state?.error && <p className="text-sm text-ink">{localizeError(state.error, t)}</p>}
       <button
         type="submit"
         disabled={pending}

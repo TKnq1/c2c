@@ -55,7 +55,8 @@ async function deliver({ to, subject, html, text, headers, attachments }: Outgoi
       ...(headers && { headers }),
       ...(attachments?.length && { attachments: attachments.map((a) => ({ filename: a.filename, content: Buffer.from(a.content) })) }),
     });
-    if (error) return failed(subject, `${error.name}: ${error.message}`);
+    // Resend sends no name with some errors (a key that may not send from the domain): no "undefined: …" in the log then.
+    if (error) return failed(subject, error.name ? `${error.name}: ${error.message}` : error.message);
     return { ok: true, id: data?.id ?? "" };
   } catch (err) {
     // A missing key throws instead of reporting; no caller should go down

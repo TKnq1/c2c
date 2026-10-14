@@ -8,6 +8,7 @@ import { formatCents } from "@/lib/format";
 import { PLATFORM_FEE_RATE, PRO_PLATFORM_FEE_RATE, PRO_SUBSCRIPTION_PRICE_CENTS } from "@/lib/constants";
 import { useI18n } from "@/components/i18n-provider";
 import type { FoundingSide } from "@/lib/founding-limits";
+import { localizeError } from "@/lib/i18n/labels";
 
 // The contents of the Plan card on brand and creator Settings (the card itself
 // is the section's, see SettingsSection).
@@ -153,7 +154,7 @@ export function ProPlanCard({
       >
         {pending ? t("screens.settings.redirecting") : t("screens.settings.goPro", { price: formatCents(PRO_SUBSCRIPTION_PRICE_CENTS) })}
       </button>
-      {error && <p className="text-sm text-ink">{error}</p>}
+      {error && <p className="text-sm text-ink">{localizeError(error, t)}</p>}
     </div>
   );
 }

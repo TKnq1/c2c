@@ -23,7 +23,8 @@ import { hashToken, newToken } from "@/lib/tokens";
 import { DAY, MINUTE, takeToken } from "@/lib/rate-limit";
 import { sendEmail } from "@/lib/email";
 import { claimFoundingProForUser } from "@/lib/founding";
-import { passwordChangedEmail, passwordResetEmail, verificationEmail, welcomeEmail } from "@/lib/email-templates";
+import { sendVerificationEmail } from "@/lib/email-verification";
+import { passwordChangedEmail, passwordResetEmail } from "@/lib/email-templates";
 import { SITE_URL } from "@/lib/site";
 import { getLocale } from "@/lib/i18n/server";
 import { parseLocale, type Locale } from "@/lib/i18n/locales";
@@ -332,23 +333,6 @@ export async function generateEmailVerificationAction(): Promise<GenerateVerific
   if (!recent) await sendVerificationEmail(session.user.id, session.user.email!, await getLocale());
 
   return { sent: true };
-}
-
-// A fresh 24-hour link, mailed: inside the welcome email right after
-// sign-up (pass the new account's role), on its own when asked for again.
-async function sendVerificationEmail(
-  userId: string,
-  email: string,
-  locale: Locale,
-  welcomeAs?: "CREATOR" | "STARTUP",
-  foundingNumber?: number | null,
-) {
-  const token = newToken();
-  await prisma.emailVerificationToken.create({
-    data: { userId, tokenHash: hashToken(token), expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000) },
-  });
-  const url = `${SITE_URL}/verify-email/${token}`;
-  await sendEmail({ to: email, ...(welcomeAs ? welcomeEmail(url, welcomeAs, locale, foundingNumber) : verificationEmail(url, locale)) });
 }
 
 // After every change and reset, so a change someone else made doesn't go

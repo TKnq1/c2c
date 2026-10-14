@@ -1,6 +1,9 @@
 import type { Catalog } from "@/lib/i18n/messages/types";
-import { founding } from "@/lib/i18n/messages/founding-en";
-import { landing } from "@/lib/i18n/messages/landing-en";
+import { emailsPt as emails } from "@/lib/i18n/messages/emails-pt";
+import { extrasPt as extras } from "@/lib/i18n/messages/extras-pt";
+import { faqPt as faq } from "@/lib/i18n/messages/faq-pt";
+import { foundingPt as founding } from "@/lib/i18n/messages/founding-pt";
+import { landingPt as landing } from "@/lib/i18n/messages/landing-pt";
 import { screensPt as screens } from "@/lib/i18n/messages/screens-pt";
 
 export const pt: Catalog = {
@@ -186,7 +189,7 @@ export const pt: Catalog = {
       requestsMatch: "pedidos encaixam",
       matchesYou: "{matches} contigo, {name}",
       andMore: "e mais {count} no teu feed",
-      trust: "Cada orçamento é pago antes de publicares, e ficas com pelo menos {keep}% do que uma marca paga.",
+      trust: "Cada orçamento é pago antes de publicares. Ficas com pelo menos {keep}% do que uma marca paga.",
       earlyBrand: "Chegas cedo",
       earlyBrandBody:
         "Ainda não há criadores de {niche}. Publica o primeiro pedido e quem encaixar é avisado assim que ficar online.",
@@ -228,7 +231,7 @@ export const pt: Catalog = {
       description: "Adiciona os dados de recebimento agora, para o primeiro sim poder ser pago.",
       point1: "Uma marca paga para uma conta de garantia antes de criares o que quer que seja.",
       point2: "O dinheiro é libertado quando a publicação fica online.",
-      point3: "Configurar agora demora cerca de dois minutos, e a primeira marca que te escolher pode pagar logo.",
+      point3: "Configurar agora demora cerca de dois minutos. A primeira marca que te escolher pode pagar logo.",
       setup: "Configurar recebimentos",
       later: "Faço isto mais tarde",
     },
@@ -259,7 +262,9 @@ export const pt: Catalog = {
       heardOther: "Outro sítio",
     },
   },
-  // Not translated yet: the English landing page text.
+  emails,
+  extras,
+  faq,
   landing,
   founding,
   screens,

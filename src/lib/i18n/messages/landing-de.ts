@@ -82,12 +82,12 @@ export const landingDe: DeepString<typeof landing> = {
     brand2Title: "Creator kommen zu dir",
     brand2Body:
       "Creator aus deiner Nische wischen nach rechts. Du siehst Reichweite und Bewertungen und wählst, wer passt.",
-    brand3Title: "Im Chat absprechen",
+    brand3Title: "Im Chat klären",
     brand3Body:
       "Schick ein Angebot. Nimmt der Creator es an, zahlst du, und das Geld wird zurückgehalten, bis der Post online ist.",
     brand4Title: "Post freigeben, dann wird ausgezahlt",
     brand4Body:
-      "Prüfe zuerst den Live-Post. Keine Grundgebühr: comtor behält {standard} % jeder Zahlung, nur {pro} %, wenn du oder der Creator Pro hat ({price} € im Monat).",
+      "Prüfe zuerst den Live-Post. Keine Grundgebühr. comtor behält {standard} % jeder Zahlung. Hat eine Seite Pro ({price} € im Monat), sind es {pro} %.",
   },
   mock: {
     interestSent: "Interesse gesendet.",
@@ -119,10 +119,10 @@ export const landingDe: DeepString<typeof landing> = {
     interestedCreators: "Interessierte Creator",
     now: "jetzt",
     pushText: "{name} interessiert sich für „{title}“",
-    helloLove: "Hallo! Das würde ich gern machen.",
+    helloLove: "Hallo! Das mache ich gern.",
     sendingOffer: "Super, ich schicke ein Angebot.",
     yourOffer: "Dein Angebot",
-    wouldGet: "Nach der Gebühr von 10 % bekäme {name} 270,00 €.",
+    wouldGet: "Nach der Gebühr von 10 % bekommt {name} 270,00 €.",
     payThrough: "Zahle über Stripe. Das Geld wird zurückgehalten, bis {name} postet und du den Post freigibst.",
     payNow: "Jetzt zahlen",
     releasedWhen: "Wird an {name} ausgezahlt, sobald der Post online ist und du ihn freigegeben hast.",

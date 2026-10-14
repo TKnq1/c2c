@@ -3,7 +3,8 @@ import type { Prisma, Role } from "@prisma/client";
 import { FiUsers } from "react-icons/fi";
 import { prisma } from "@/lib/prisma";
 import { foundingNoticeAudience } from "@/lib/founding-notice";
-import { sendFoundingNoticesAction } from "@/lib/actions/admin";
+import { resendVerificationMailsAction, sendFoundingNoticesAction } from "@/lib/actions/admin";
+import { RESEND_BATCH_SIZE, verificationResendAudience } from "@/lib/verification-resend";
 import { ConfirmActionButton } from "@/components/confirm-action-button";
 import { requireAdminSession } from "@/lib/admin-session";
 import { EmptyState } from "@/components/empty-state";
@@ -35,7 +36,7 @@ export default async function AdminUsersPage(props: PageProps<"/admin/users">) {
     }),
   };
 
-  const [users, total, roleCounts, suspendedCount, adminCount, notice] = await Promise.all([
+  const [users, total, roleCounts, suspendedCount, adminCount, notice, resend] = await Promise.all([
     prisma.user.findMany({
       where,
       orderBy: { createdAt: "desc" },
@@ -52,6 +53,7 @@ export default async function AdminUsersPage(props: PageProps<"/admin/users">) {
     prisma.user.count({ where: { suspendedAt: { not: null } } }),
     prisma.user.count({ where: { OR: [{ role: "ADMIN" }, { isAdmin: true }] } }),
     foundingNoticeAudience(),
+    verificationResendAudience(),
   ]);
   const countFor = (r: Role) => roleCounts.find((c) => c.role === r)?._count ?? 0;
   const allCount = roleCounts.reduce((sum, c) => sum + c._count, 0);
@@ -89,6 +91,30 @@ export default async function AdminUsersPage(props: PageProps<"/admin/users">) {
               Send notice
             </ConfirmActionButton>
           )}
+        </div>
+      )}
+
+      {resend.count > 0 && resend.since && (
+        <div className="flex flex-col gap-3 rounded border border-dashed border-ink px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="text-sm">
+            <p className="font-medium">Accounts that probably never got their confirmation email</p>
+            <p className="text-neutral-600 dark:text-neutral-400">
+              {resend.count} unconfirmed {resend.count === 1 ? "account" : "accounts"} signed up since the first failed mail (<LocalDate ms={resend.since.getTime()} />) and{" "}
+              {resend.count === 1 ? "has" : "have"} not been sent a new link yet.
+            </p>
+          </div>
+          <ConfirmActionButton
+            action={resendVerificationMailsAction}
+            requirePassword
+            successMessage="The links are sent."
+            title={`Send the confirmation link to ${Math.min(resend.count, RESEND_BATCH_SIZE)} ${Math.min(resend.count, RESEND_BATCH_SIZE) === 1 ? "account" : "accounts"}?`}
+            description={`Each account gets a fresh confirmation link by email, once. Up to ${RESEND_BATCH_SIZE} at a time: if more are waiting, press the button again afterwards.`}
+            confirmLabel="Send"
+            pendingLabel="Sending…"
+            className="shrink-0 self-start rounded-full border border-ink px-4 py-2 text-sm font-medium transition hover:bg-fog sm:self-auto"
+          >
+            Send links
+          </ConfirmActionButton>
         </div>
       )}
 
