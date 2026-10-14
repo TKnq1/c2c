@@ -45,9 +45,11 @@ export default async function DealsPage(props: PageProps<"/dashboard/deals">) {
   const byCampaign = role === "STARTUP" && deals.length >= GROUP_BY_CAMPAIGN_FROM;
 
   return (
-    <div className="mx-auto flex w-full max-w-2xl flex-col gap-6 pb-8">
+    <div className="page-wide flex flex-col gap-6 pb-8">
       <PageTitle description={u("deals.description")}>{u("deals.title")}</PageTitle>
       <DealsTabs current="active" userId={session.user.id} role={role} locale={locale} />
+
+      <div className="flex max-w-2xl flex-col gap-6">
 
       {needsBusiness && (
         <div className={`${cardClass} flex flex-col gap-2 text-sm`}>
@@ -81,6 +83,7 @@ export default async function DealsPage(props: PageProps<"/dashboard/deals">) {
         <Link href="/dashboard/business" className="underline">
           {u("deals.businessLink")}
         </Link>
+      </div>
       </div>
     </div>
   );

@@ -488,7 +488,7 @@ function SidebarLink({
       // The written-out label is display:none on tablets, so the name comes from here.
       aria-label={link.badge > 0 ? t("nav.badgeNew", { label: link.label, count: link.badge }) : link.label}
       className={`group relative flex h-11 items-center justify-center gap-3.5 rounded px-3 text-sm transition lg:justify-start ${
-        active ? "bg-fog font-semibold text-ink" : "text-graphite hover:bg-fog hover:text-ink"
+        active ? "bg-accent/10 font-semibold text-accent" : "text-graphite hover:bg-fog hover:text-ink"
       }`}
     >
       <span className="relative flex h-6 w-6 shrink-0 items-center justify-center">

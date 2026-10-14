@@ -23,6 +23,7 @@ const CORE_WORDS = {
   // ----- deals list
   "deals.title": { en: "Deals", de: "Deals" },
   "deals.description": { en: "Every sponsored collaboration from the contract to the payout.", de: "Jede bezahlte Kooperation vom Vertrag bis zur Auszahlung." },
+  "deals.paymentsDescription": { en: "The money of your deals: held, paid out and still open.", de: "Das Geld deiner Deals: hinterlegt, ausgezahlt und noch offen." },
   "deals.tabs": { en: "Deals sections", de: "Bereiche der Deals" },
   "deals.tab.active": { en: "Deals", de: "Deals" },
   "deals.tab.payments": { en: "Payments", de: "Zahlungen" },

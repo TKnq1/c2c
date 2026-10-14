@@ -84,8 +84,8 @@ export default async function CreatorPaymentsPage() {
     payments.length === 0 && pendingOffers.length === 0 && awaitingPayment.length === 0 && deposits.length === 0;
 
   return (
-    <div className="page-wide flex flex-col gap-8">
-      <PageTitle>{t("nav.payments")}</PageTitle>
+    <div className="page-wide flex flex-col gap-6">
+      <PageTitle description={u("deals.paymentsDescription")}>{t("nav.payments")}</PageTitle>
       <DealsTabs current="payments" userId={session.user.id} role="CREATOR" locale={locale} />
       <PaymentStats
         stats={[
