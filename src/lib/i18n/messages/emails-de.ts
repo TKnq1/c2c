@@ -153,4 +153,18 @@ export const emailsDe: DeepString<typeof emails> = {
     action: "E-Mail bestätigen",
     note: "Wir schicken dir eine einzige E-Mail, wenn die Apps erscheinen. Du hast dich nicht angemeldet? Dann ignoriere diese E-Mail, und du hörst nicht von uns.",
   },
+  // A deal notice and the documents of a deal (src/lib/deals/notices.ts, billing). {number}: document number, {title}: request title, {replaces}: the cancelled document.
+  dealNotice: {
+    headingAction: "Dein Deal braucht dich.",
+    headingNews: "Neuigkeiten zu deinem Deal.",
+    action: "In comtor öffnen",
+    note: "Du bekommst diese E-Mail, weil dabei eine Frist, ein Abbruch oder Geld im Spiel ist. Diese Hinweise lassen sich nicht abschalten.",
+  },
+  dealDocument: {
+    invoice: { subject: "Deine Rechnung {number}", heading: "Deine Rechnung ist da.", body: "Die Rechnung {number} für „{title}“ hängt als PDF an. Du findest sie auch unter Deals, Rechnungen." },
+    credit: { subject: "Deine Gutschrift {number}", heading: "Deine Gutschrift ist da.", body: "Die Gutschrift {number} für „{title}“ hängt als PDF an. Du findest sie auch unter Deals, Rechnungen." },
+    corrected: { subject: "Beleg korrigiert: {replaces} ersetzt durch {number}", heading: "Ein Beleg wurde korrigiert.", body: "Der Beleg {replaces} für „{title}“ wurde storniert und durch {number} ersetzt. Die Stornierung und der neue Beleg hängen als PDF an." },
+    action: "Beleg öffnen",
+    note: "Du bekommst diese E-Mail, weil für einen deiner Deals ein Beleg ausgestellt wurde. Bewahre ihn für deine Buchhaltung auf.",
+  },
 };

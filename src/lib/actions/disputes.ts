@@ -19,10 +19,12 @@ async function loadDisputedPayment(
   const passwordError = await confirmAdminPassword(session.user.id, password);
   if (passwordError) return { error: { error: passwordError } };
 
-  const interest = await prisma.interest.findUnique({ where: { id: interestId } });
+  const interest = await prisma.interest.findUnique({ where: { id: interestId }, include: { deal: { select: { id: true } } } });
   if (!interest || interest.paymentStatus !== "HELD" || !interest.disputedAt) {
     return { error: { error: "This payment isn't under review anymore." } };
   }
+  // A brand deal is settled together with its money, from /admin/deals: paying out around it would leave the deal frozen.
+  if (interest.deal) return { error: { error: "This payment belongs to a brand deal. Settle it under Brand Deals." } };
   return { adminId: session.user.id };
 }
 

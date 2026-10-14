@@ -24,7 +24,8 @@ export default async function AdminModerationPage(props: PageProps<"/admin/moder
   const [disputes, reports, reportCounts] = await Promise.all([
     // Oldest first: that money has been frozen longest.
     prisma.interest.findMany({
-      where: { paymentStatus: "HELD", disputedAt: { not: null } },
+      // Brand deals are settled on /admin/deals, where the deal and the money move together.
+      where: { paymentStatus: "HELD", disputedAt: { not: null }, deal: { is: null } },
       include: {
         creator: { include: { user: { select: { email: true } } } },
         request: { include: { startup: { include: { user: { select: { email: true } } } } } },
@@ -42,6 +43,7 @@ export default async function AdminModerationPage(props: PageProps<"/admin/moder
     }),
     prisma.report.groupBy({ by: ["status"], _count: true }),
   ]);
+  const openDealDisputes = await prisma.dealDispute.count({ where: { status: "OPEN" } });
   const countFor = (s: ReportStatus) => reportCounts.find((c) => c.status === s)?._count ?? 0;
 
   return (
@@ -52,6 +54,12 @@ export default async function AdminModerationPage(props: PageProps<"/admin/moder
           Disputed payments and reported accounts, oldest first.
         </p>
       </div>
+
+      {openDealDisputes > 0 && (
+        <Link href="/admin/deals" className="rounded border border-dashed border-ink px-4 py-3 text-sm font-medium hover:bg-fog">
+          {openDealDisputes} Brand-Deal-Streitfälle warten auf eine Entscheidung →
+        </Link>
+      )}
 
       <section className="flex flex-col gap-3">
         <div>

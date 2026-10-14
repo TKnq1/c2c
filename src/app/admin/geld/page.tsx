@@ -14,6 +14,16 @@ export default async function AdminMoneyPage() {
   const m = await loadMoney();
   const runway = runwayText(m.runway);
   const exportMonths = lastMonths(new Date(), 12).map((slot) => ({ value: slot.key, label: slot.start.toLocaleDateString("de-DE", { month: "long", year: "numeric", timeZone: "UTC" }) }));
+  // The quarters the last twelve months touch, oldest first like the months.
+  const exportQuarters = [
+    ...new Map(
+      exportMonths.map((month) => {
+        const [year, mm] = month.value.split("-");
+        const quarter = Math.floor((Number(mm) - 1) / 3) + 1;
+        return [`${year}-Q${quarter}`, { value: `${year}-Q${quarter}`, label: `Q${quarter} ${year}` }] as const;
+      }),
+    ).values(),
+  ];
 
   return (
     <div className="flex flex-col gap-6">
@@ -97,6 +107,45 @@ export default async function AdminMoneyPage() {
         </form>
         <p className="mt-3 text-xs text-neutral-500">
           Eine Zeile je Zahlung, die in dem Monat eingegangen, freigegeben oder erstattet wurde, mit Summen am Ende. Für Excel mit Semikolon und Dezimalkomma. Ohne Pro-Abos (die stehen im Stripe-Export) und ohne Kautionen. Jeder Download wird protokolliert. Die steuerliche Einordnung klärst du mit dem Steuerberater.
+        </p>
+
+        <form action="/api/admin/export/invoices" method="get" className="mt-5 flex flex-wrap items-center gap-2 border-t border-ink/10 pt-4">
+          <label className="flex items-center gap-2 text-sm">
+            <span className="font-bold">Belege, Monat</span>
+            <select name="month" defaultValue={exportMonths[exportMonths.length - 1].value} className="rounded border border-ink/15 bg-paper px-3 py-1.5 text-sm outline-none focus:border-ink">
+              {[...exportMonths].reverse().map((month) => (
+                <option key={month.value} value={month.value}>
+                  {month.label}
+                </option>
+              ))}
+            </select>
+          </label>
+          <button type="submit" className="rounded-full bg-ink px-4 py-1.5 text-xs font-bold text-paper transition">
+            Belege als CSV
+          </button>
+        </form>
+        <p className="mt-3 text-xs text-neutral-500">
+          Alle Rechnungen, Gutschriften und Stornos, die im Monat ausgestellt wurden, mit Steuerbehandlung und Summen. Ein stornierter Beleg steht mit seinem Storno in der Liste: beide zusammen ergeben null.
+        </p>
+
+        <form action="/api/admin/export/invoices" method="get" className="mt-5 flex flex-wrap items-center gap-2 border-t border-ink/10 pt-4">
+          <input type="hidden" name="report" value="zm" />
+          <label className="flex items-center gap-2 text-sm">
+            <span className="font-bold">Zusammenfassende Meldung, Quartal</span>
+            <select name="quarter" defaultValue={exportQuarters[exportQuarters.length - 1].value} className="rounded border border-ink/15 bg-paper px-3 py-1.5 text-sm outline-none focus:border-ink">
+              {[...exportQuarters].reverse().map((quarter) => (
+                <option key={quarter.value} value={quarter.value}>
+                  {quarter.label}
+                </option>
+              ))}
+            </select>
+          </label>
+          <button type="submit" className="rounded-full bg-ink px-4 py-1.5 text-xs font-bold text-paper transition">
+            Meldung als CSV
+          </button>
+        </form>
+        <p className="mt-3 text-xs text-neutral-500">
+          Die Leistungen an Unternehmen in anderen EU-Ländern, bei denen der Kunde die Umsatzsteuer schuldet, je USt-IdNr. mit dem Meldebetrag in vollen Euro. Die Meldung gibst du selbst im BZSt-Portal ab oder dein Steuerberater.
         </p>
       </DashCard>
 

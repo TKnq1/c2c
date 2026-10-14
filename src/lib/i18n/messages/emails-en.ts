@@ -172,4 +172,18 @@ export const emails = {
     action: "Confirm email",
     note: "We'll send you one email, the day the apps are out. Didn't sign up? Then ignore this email and you won't hear from us.",
   },
+  // A deal notice and the documents of a deal (src/lib/deals/notices.ts, billing). {number}: document number, {title}: request title, {replaces}: the cancelled document.
+  dealNotice: {
+    headingAction: "Your deal needs you.",
+    headingNews: "News on your deal.",
+    action: "Open in comtor",
+    note: "You get this e-mail because a deadline, a cancellation or money is involved. These messages cannot be switched off.",
+  },
+  dealDocument: {
+    invoice: { subject: "Your invoice {number}", heading: "Your invoice is ready.", body: "The invoice {number} for “{title}” is attached as a PDF. You also find it under Deals, Invoices." },
+    credit: { subject: "Your credit note {number}", heading: "Your credit note is ready.", body: "The credit note {number} for “{title}” is attached as a PDF. You also find it under Deals, Invoices." },
+    corrected: { subject: "Document corrected: {replaces} replaced by {number}", heading: "A document was corrected.", body: "The document {replaces} for “{title}” was cancelled and replaced by {number}. The cancellation and the new document are attached as PDFs." },
+    action: "Open the document",
+    note: "You get this e-mail because a document was issued for one of your deals. Keep it for your accounts.",
+  },
 } as const;

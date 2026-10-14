@@ -7,6 +7,8 @@ const mocks = vi.hoisted(() => ({
   emailIsVerified: vi.fn(),
   takeToken: vi.fn(),
   notify: vi.fn(),
+  dealsEnabled: vi.fn(() => false),
+  applyDefaultTemplate: vi.fn(async () => true),
   prisma: {
     startupProfile: { findUniqueOrThrow: vi.fn() },
     request: {
@@ -34,6 +36,11 @@ vi.mock("@/lib/rate-limit", () => ({ takeToken: mocks.takeToken, DAY: 86_400_000
 vi.mock("@/lib/notifications", () => ({ notify: mocks.notify }));
 vi.mock("@/lib/moderation", () => ({ getMutualBlockedUserIds: vi.fn(async () => []), isBlocked: vi.fn(async () => false) }));
 vi.mock("@/lib/visibility", () => ({ getCreatorFeed: vi.fn(async () => []) }));
+vi.mock("@/lib/deals/flag", () => ({ dealsEnabled: mocks.dealsEnabled }));
+vi.mock("@/lib/deals/briefing-templates", () => ({
+  applyDefaultTemplateToNewRequest: mocks.applyDefaultTemplate,
+  copyBriefingToNewRequest: vi.fn(async () => false),
+}));
 vi.mock("next/cache", () => ({ revalidatePath: vi.fn() }));
 vi.mock("next/navigation", () => ({
   redirect: vi.fn((to: string) => {
@@ -78,6 +85,7 @@ const complete = {
 
 beforeEach(() => {
   vi.clearAllMocks();
+  mocks.dealsEnabled.mockReturnValue(false);
   mocks.auth.mockResolvedValue(brand);
   mocks.emailIsVerified.mockResolvedValue(true);
   mocks.takeToken.mockResolvedValue(true);
@@ -148,6 +156,19 @@ describe("posting a draft", () => {
     expect(call.data.status).toBe("OPEN");
     expect(call.data.createdAt).toBeInstanceOf(Date);
     expect(mocks.prisma.creatorProfile.findMany).toHaveBeenCalledTimes(1);
+  });
+
+  it("gets the brand's default briefing template once it is live, when brand deals are on", async () => {
+    mocks.dealsEnabled.mockReturnValue(true);
+    await expect(updateRequestAction("r1", undefined, form({ ...complete, intent: "post" }))).rejects.toThrow("REDIRECT /dashboard/startup");
+    expect(mocks.applyDefaultTemplate).toHaveBeenCalledWith("r1", "u1");
+  });
+
+  it("gets no template with brand deals off, and none while it is only saved as a draft", async () => {
+    await expect(updateRequestAction("r1", undefined, form({ ...complete, intent: "post" }))).rejects.toThrow("REDIRECT /dashboard/startup");
+    mocks.dealsEnabled.mockReturnValue(true);
+    await expect(updateRequestAction("r1", undefined, form({ ...complete, intent: "draft" }))).rejects.toThrow("REDIRECT");
+    expect(mocks.applyDefaultTemplate).not.toHaveBeenCalled();
   });
 
   it("is not posted twice when it was posted in another tab meanwhile", async () => {

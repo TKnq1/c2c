@@ -12,6 +12,7 @@ import { FeedScopeTabs } from "@/components/feed-scope-tabs";
 import { SkeletonCardList } from "@/components/skeleton";
 import { EmptyState } from "@/components/empty-state";
 import { PageTitle } from "@/components/page-title";
+import { DealsWaitingCard } from "@/components/deals/deals-waiting-card";
 import { getT } from "@/lib/i18n/server";
 
 export default async function CreatorFeedPage(props: PageProps<"/dashboard/creator">) {
@@ -64,6 +65,9 @@ export default async function CreatorFeedPage(props: PageProps<"/dashboard/creat
   return (
     <div className="flex flex-col gap-3 md:gap-6">
       <PageTitle>{t("nav.feed")}</PageTitle>
+      <Suspense fallback={null}>
+        <DealsWaitingCard userId={session.user.id} role="CREATOR" />
+      </Suspense>
       {/* On a phone the same switch lives in the top bar, in place of "Feed". */}
       <div className="hidden justify-center md:flex">
         <FeedScopeTabs scope={scope} />

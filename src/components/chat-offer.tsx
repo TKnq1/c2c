@@ -22,6 +22,7 @@ import { useI18n } from "@/components/i18n-provider";
 import { PaymentApprovalButtons } from "@/components/payment-approval";
 import { SubmitPostButton } from "@/components/submit-post";
 import { Spinner } from "@/components/spinner";
+import { useDealText } from "@/components/deals/use-deal-text";
 import { formatCents } from "@/lib/format";
 import { RELEASE_REVIEW_MS } from "@/lib/constants";
 
@@ -54,6 +55,8 @@ export type ChatOffer = {
   // True when this proposal replaced an earlier one. The first amount in a
   // thread is an offer; everything after it is a counter-offer.
   isCounter?: boolean;
+  // The brand deal behind an accepted offer: contract, escrow, drafts and payout run on its page.
+  dealId: string | null;
 };
 
 const primaryButton =
@@ -126,6 +129,7 @@ export function ChatOfferCard({
   const refresh = () => router.refresh();
 
   const { t } = useI18n();
+  const du = useDealText();
   const other = offer.otherPartyName;
   const isMine = offer.offerRole === offer.viewerRole;
   const isBrand = offer.viewerRole === "STARTUP";
@@ -163,7 +167,14 @@ export function ChatOfferCard({
 
     case "ACCEPTED":
       eyebrow = t("screens.payments.copy.offerAccepted");
-      if (isBrand) {
+      if (offer.dealId) {
+        detail = du("chat.acceptedDeal");
+        actions = (
+          <Link href={`/dashboard/deals/${offer.dealId}`} className={`${primaryButton} mt-3 block w-full text-center`}>
+            {du("deals.open")}
+          </Link>
+        );
+      } else if (isBrand) {
         detail = t("screens.payments.copy.payThroughStripe", { name: other });
         actions = (
           <CompletePaymentButton interestId={interestId} label={t("screens.payments.copy.payNow")} className={`${primaryButton} w-full`} />
@@ -185,6 +196,16 @@ export function ChatOfferCard({
       break;
 
     case "HELD": {
+      if (offer.dealId) {
+        eyebrow = t("screens.payments.copy.paidHeld");
+        detail = du("chat.heldDeal");
+        actions = (
+          <Link href={`/dashboard/deals/${offer.dealId}`} className={`${primaryButton} mt-3 block w-full text-center`}>
+            {du("deals.open")}
+          </Link>
+        );
+        break;
+      }
       // Three steps inside HELD: waiting for the post, waiting for the
       // brand's approval (with its automatic-release date), or on hold
       // after a reported problem. See paymentStage.

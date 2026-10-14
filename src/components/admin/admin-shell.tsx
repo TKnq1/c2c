@@ -11,6 +11,7 @@ import {
   FiBarChart2,
   FiBell,
   FiBookOpen,
+  FiBriefcase,
   FiCheckSquare,
   FiChevronDown,
   FiClock,
@@ -75,6 +76,7 @@ function sections(counts: { attention: number; tasks: number; notices: number })
         badge: counts.attention,
         items: [
           { href: "/admin/moderation", label: "Moderation", icon: FiAlertTriangle, badge: counts.attention },
+          { href: "/admin/deals", label: "Brand Deals", icon: FiBriefcase },
           { href: "/admin/fristen", label: "Fristen", icon: FiClock },
           { href: "/admin/technik", label: "Technik", icon: FiActivity },
           { href: "/admin/log", label: "Entscheidungs-Log", icon: FiBookOpen },

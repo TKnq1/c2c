@@ -20,8 +20,12 @@ import { withdrawOfferAction } from "@/lib/actions/payments";
 import { formatCents, isWithinLastWeek } from "@/lib/format";
 import { DEPOSITS_ENABLED, RELEASE_REVIEW_DAYS, RELEASE_REVIEW_MS } from "@/lib/constants";
 import { PageTitle } from "@/components/page-title";
+import { DealsTabs } from "@/components/deals/deals-tabs";
 import { ProFeeBar } from "@/components/pro-fee-bar";
-import { getT } from "@/lib/i18n/server";
+import { getLocale, getT } from "@/lib/i18n/server";
+import { OpenDealLink } from "@/components/deals/open-deal-link";
+import { dealLocale } from "@/lib/deals/copy";
+import { uiText } from "@/lib/deals/ui-copy";
 
 const primaryButton =
   "mt-3 w-full rounded-full bg-ink px-4 py-2.5 text-sm font-medium text-paper transition hover:bg-graphite disabled:opacity-50 sm:w-auto";
@@ -33,6 +37,8 @@ export default async function CreatorPaymentsPage() {
   const session = await auth();
   if (!session || session.user.role !== "CREATOR") redirect("/login");
   const t = await getT();
+  const locale = dealLocale(await getLocale());
+  const u = uiText(locale);
 
   // One round-trip instead of two — filtered through the creator relation
   // rather than creator.id, so this doesn't have to wait on the fetch below
@@ -44,7 +50,7 @@ export default async function CreatorPaymentsPage() {
       where: { creator: { userId: session.user.id } },
       // Both sides' reviews: the creator's own prefills their review form,
       // the brands' make up the rating in the summary.
-      include: { request: { include: { startup: true } }, reviews: true },
+      include: { request: { include: { startup: true } }, reviews: true, deal: { select: { id: true } } },
     }),
   ]);
   const byDesc = <T,>(key: (i: T) => Date | null) => (a: T, b: T) => (key(b)?.getTime() ?? 0) - (key(a)?.getTime() ?? 0);
@@ -80,6 +86,7 @@ export default async function CreatorPaymentsPage() {
   return (
     <div className="page-wide flex flex-col gap-8">
       <PageTitle>{t("nav.payments")}</PageTitle>
+      <DealsTabs current="payments" userId={session.user.id} role="CREATOR" locale={locale} />
       <PaymentStats
         stats={[
           { label: t("screens.payments.earned"), value: formatCents(earnedCents), hint: t("screens.payments.paidOut") },
@@ -247,9 +254,11 @@ export default async function CreatorPaymentsPage() {
                 detail={
                   <>
                     {stage === "HELD" &&
-                      (creator.stripeOnboarded
-                        ? t("screens.payments.copy.postThenSubmit", { name: brand, days: RELEASE_REVIEW_DAYS, payout })
-                        : t("screens.payments.copy.payoutWaitingSetup", { payout }))}
+                      (p.deal
+                        ? u("deals.heldInDeal")
+                        : creator.stripeOnboarded
+                          ? t("screens.payments.copy.postThenSubmit", { name: brand, days: RELEASE_REVIEW_DAYS, payout })
+                          : t("screens.payments.copy.payoutWaitingSetup", { payout }))}
                     {stage === "SUBMITTED" && (
                       <>
                         {t("screens.payments.copy.waitingApproveBy", { name: brand })}
@@ -303,7 +312,8 @@ export default async function CreatorPaymentsPage() {
                   </>
                 }
               >
-                {stage === "HELD" && creator.stripeOnboarded && <SubmitPostForm interestId={p.id} brandName={brand} />}
+                {p.deal && <OpenDealLink dealId={p.deal.id} label={u("deals.open")} />}
+                {stage === "HELD" && creator.stripeOnboarded && !p.deal && <SubmitPostForm interestId={p.id} brandName={brand} />}
                 {stage === "SUBMITTED" && (
                   <div className="mt-2">
                     <SubmitPostButton

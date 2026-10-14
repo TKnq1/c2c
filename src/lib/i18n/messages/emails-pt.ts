@@ -153,4 +153,18 @@ export const emailsPt: DeepString<typeof emails> = {
     action: "Confirmar e-mail",
     note: "Enviamos-te um único e-mail, no dia em que as apps saírem. Não te registaste? Então ignora este e-mail e não voltas a ouvir falar de nós.",
   },
+  // A deal notice and the documents of a deal (src/lib/deals/notices.ts, billing). {number}: document number, {title}: request title, {replaces}: the cancelled document.
+  dealNotice: {
+    headingAction: "O teu deal precisa de ti.",
+    headingNews: "Novidades sobre o teu deal.",
+    action: "Abrir no comtor",
+    note: "Recebes este e-mail porque há um prazo, um cancelamento ou dinheiro em jogo. Estes avisos não podem ser desativados.",
+  },
+  dealDocument: {
+    invoice: { subject: "A tua fatura {number}", heading: "A tua fatura está pronta.", body: "A fatura {number} de «{title}» segue em anexo em PDF. Também a encontras em Deals, Faturas." },
+    credit: { subject: "A tua nota de crédito {number}", heading: "A tua nota de crédito está pronta.", body: "A nota de crédito {number} de «{title}» segue em anexo em PDF. Também a encontras em Deals, Faturas." },
+    corrected: { subject: "Documento corrigido: {replaces} substituído por {number}", heading: "Um documento foi corrigido.", body: "O documento {replaces} de «{title}» foi anulado e substituído por {number}. A anulação e o novo documento seguem em anexo em PDF." },
+    action: "Abrir o documento",
+    note: "Recebes este e-mail porque foi emitido um documento de um dos teus deals. Guarda-o para a tua contabilidade.",
+  },
 };

@@ -13,6 +13,7 @@ import { formatBudget } from "@/lib/format";
 import { photoUrlsByRequestId, requestPhotoIds } from "@/lib/request-photos";
 import { getUnreadMessageCount } from "@/lib/messages";
 import { OverviewTiles } from "@/components/overview-tiles";
+import { DealsWaitingCard } from "@/components/deals/deals-waiting-card";
 import { windowStart } from "@/lib/admin-stats";
 import { getT } from "@/lib/i18n/server";
 
@@ -74,6 +75,10 @@ export default async function StartupDashboardPage(props: PageProps<"/dashboard/
           {t("screens.requests.new")}
         </Link>
       </div>
+
+      <Suspense fallback={null}>
+        <DealsWaitingCard userId={session.user.id} role="STARTUP" />
+      </Suspense>
 
       <OverviewTiles
         tiles={[

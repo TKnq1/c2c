@@ -6,6 +6,8 @@ import { notify } from "@/lib/notifications";
 import { formatCents } from "@/lib/format";
 import { flagForReview } from "@/lib/moderation";
 import { recordProEvent } from "@/lib/pro-events";
+import { onEscrowFunded } from "@/lib/deals/escrow";
+import { onChargeRefunded, onDisputeClosed, onDisputeCreated } from "@/lib/deals/stripe-events";
 
 // Fulfillment lives here, not on the checkout return page — a brand can pay
 // successfully and never make it back to our site (closed tab, lost
@@ -49,21 +51,29 @@ export async function POST(req: Request) {
 
       const interest = await prisma.interest.findUnique({
         where: { stripeCheckoutSessionId: checkoutSession.id },
-        include: { request: { include: { startup: true } }, creator: true },
+        include: { request: { include: { startup: true } }, creator: true, deal: { select: { id: true, brandTotalCents: true } } },
       });
       // Already handled (completed and async_payment_succeeded can both
       // fire for the same session) or the interest was somehow removed —
       // either way there's nothing left to do.
-      if (!interest || interest.paymentStatus !== "ACCEPTED") break;
+      if (!interest) break;
+      // A second delivery for a payment the first one marked as held but did not get to start the deal for (it failed in
+      // between and Stripe is trying again): starting it is safe to repeat, it does nothing once the deal runs.
+      if (interest.paymentStatus === "HELD" && interest.deal) {
+        await onEscrowFunded(interest.deal.id);
+        break;
+      }
+      if (interest.paymentStatus !== "ACCEPTED") break;
 
-      // The session was created for exactly this amount (createCheckoutSessionAction). If what was
-      // paid isn't that, nothing is marked as held: a person looks at it.
-      if (checkoutSession.amount_total !== interest.amountCents || checkoutSession.currency !== "eur") {
+      // The session was created for exactly this amount (createCheckoutSessionAction): the net price, plus VAT for a
+      // brand deal. If what was paid isn't that, nothing is marked as held: a person looks at it.
+      const expectedCents = interest.deal?.brandTotalCents ?? interest.amountCents;
+      if (checkoutSession.amount_total !== expectedCents || checkoutSession.currency !== "eur") {
         console.error("Checkout amount mismatch", { interestId: interest.id, session: checkoutSession.id });
         await flagForReview(
           interest.request.startup.userId,
           "Payment amount mismatch",
-          `Checkout ${checkoutSession.id} for interest ${interest.id}: paid ${checkoutSession.amount_total} ${checkoutSession.currency}, expected ${interest.amountCents} eur.`,
+          `Checkout ${checkoutSession.id} for interest ${interest.id}: paid ${checkoutSession.amount_total} ${checkoutSession.currency}, expected ${expectedCents} eur.`,
         );
         break;
       }
@@ -85,6 +95,11 @@ export async function POST(req: Request) {
       });
       if (claimed.count === 0) break;
 
+      // A brand deal starts its clock now (draft and posting deadlines) and tells the creator in its own words.
+      if (interest.deal) {
+        await onEscrowFunded(interest.deal.id);
+        break;
+      }
       await notify(
         interest.creator.userId,
         `${interest.request.startup.companyName}'s payment of ${formatCents(interest.amountCents!)} for "${interest.request.title}" is now held in escrow`,
@@ -112,6 +127,18 @@ export async function POST(req: Request) {
       );
       break;
     }
+
+    // Money that moves in Stripe without the app asking (src/lib/deals/stripe-events.ts). The endpoint has to be subscribed to
+    // these three events in the Stripe Dashboard (Developers, Webhooks); until it is, they never arrive.
+    case "charge.refunded":
+      await onChargeRefunded(event.data.object as Stripe.Charge);
+      break;
+    case "charge.dispute.created":
+      await onDisputeCreated(event.data.object as Stripe.Dispute);
+      break;
+    case "charge.dispute.closed":
+      await onDisputeClosed(event.data.object as Stripe.Dispute);
+      break;
 
     case "customer.subscription.updated": {
       // Covers renewals, reactivations, and payment failures moving the

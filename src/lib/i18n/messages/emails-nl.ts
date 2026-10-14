@@ -154,4 +154,18 @@ export const emailsNl: DeepString<typeof emails> = {
     action: "E-mailadres bevestigen",
     note: "We sturen je één e-mail, op de dag dat de apps uit zijn. Heb je je niet aangemeld? Negeer dan deze e-mail, dan hoor je niets van ons.",
   },
+  // A deal notice and the documents of a deal (src/lib/deals/notices.ts, billing). {number}: document number, {title}: request title, {replaces}: the cancelled document.
+  dealNotice: {
+    headingAction: "Je deal heeft je nodig.",
+    headingNews: "Nieuws over je deal.",
+    action: "Openen in comtor",
+    note: "Je krijgt deze e-mail omdat er een termijn, een annulering of geld bij komt kijken. Deze berichten kun je niet uitzetten.",
+  },
+  dealDocument: {
+    invoice: { subject: "Je factuur {number}", heading: "Je factuur staat klaar.", body: "De factuur {number} voor “{title}” zit als pdf in de bijlage. Je vindt hem ook onder Deals, Facturen." },
+    credit: { subject: "Je creditnota {number}", heading: "Je creditnota staat klaar.", body: "De creditnota {number} voor “{title}” zit als pdf in de bijlage. Je vindt hem ook onder Deals, Facturen." },
+    corrected: { subject: "Document gecorrigeerd: {replaces} vervangen door {number}", heading: "Een document is gecorrigeerd.", body: "Het document {replaces} voor “{title}” is geannuleerd en vervangen door {number}. De annulering en het nieuwe document zitten als pdf in de bijlage." },
+    action: "Document openen",
+    note: "Je krijgt deze e-mail omdat er een document is uitgegeven voor een van je deals. Bewaar het voor je administratie.",
+  },
 };

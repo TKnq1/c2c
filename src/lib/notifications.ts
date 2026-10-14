@@ -29,7 +29,15 @@ const DIGESTS: Partial<Record<NotificationCategory, { plural: (count: number) =>
   newInterest: { plural: (n) => `${n} creators are interested in your requests`, link: "/dashboard/startup" },
 };
 
-export async function notify(userId: string, message: string, link: string | undefined, category: NotificationCategory) {
+// `force` is for the few notices that must reach the person whatever they switched off (a deadline that cancels a deal, a
+// dispute, a payment reversed). Everything else respects the settings.
+export async function notify(
+  userId: string,
+  message: string,
+  link: string | undefined,
+  category: NotificationCategory,
+  options: { force?: boolean } = {},
+) {
   const user = await prisma.user.findUnique({
     where: { id: userId },
     select: {
@@ -41,7 +49,7 @@ export async function notify(userId: string, message: string, link: string | und
       notifyDeposits: true,
     },
   });
-  if (!user || !user[PREFERENCE_FIELDS[category]]) return;
+  if (!user || (!options.force && !user[PREFERENCE_FIELDS[category]])) return;
 
   const digest = DIGESTS[category];
   const existing = digest

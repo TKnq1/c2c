@@ -1,7 +1,7 @@
 // The monthly payments export for the tax advisor: one CSV a month in the shape German spreadsheet programs open directly
 // (semicolons, decimal commas, UTF-8 with a marker so umlauts survive). Pure: the rows are loaded elsewhere.
 const ZONE = "Europe/Berlin";
-const BOM = "﻿";
+export const BOM = "﻿";
 
 export type PaymentRow = {
   request: string;
@@ -42,8 +42,8 @@ export function berlinMonthRange(month: string): { start: Date; end: Date } | nu
   return { start: midnight(year, m), end: m === 12 ? midnight(year + 1, 1) : midnight(year, m + 1) };
 }
 
-const euros = (cents: number | null) => (cents === null ? "" : (cents / 100).toLocaleString("de-DE", { minimumFractionDigits: 2, maximumFractionDigits: 2, useGrouping: false }));
-const day = (d: Date | null) => (d ? d.toLocaleDateString("de-DE", { day: "2-digit", month: "2-digit", year: "numeric", timeZone: ZONE }) : "");
+export const euros = (cents: number | null) => (cents === null ? "" : (cents / 100).toLocaleString("de-DE", { minimumFractionDigits: 2, maximumFractionDigits: 2, useGrouping: false }));
+export const day = (d: Date | null) => (d ? d.toLocaleDateString("de-DE", { day: "2-digit", month: "2-digit", year: "numeric", timeZone: ZONE }) : "");
 
 // One text cell. Quoted when it holds a delimiter, a quote or a line break; a cell that starts like a formula is made text,
 // because brands and creators type these names and a spreadsheet would otherwise run them.

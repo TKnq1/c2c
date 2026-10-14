@@ -301,6 +301,44 @@ export function accountSuspendedEmail(reason: string, locale: Locale = DEFAULT_L
   });
 }
 
+// A deal notice as an e-mail: the ones with a deadline, a cancellation, a dispute or money behind them (see NOTICE_SUBJECT in
+// src/lib/deals/notices.ts). The text is the notice the person also sees in the app; the heading says whether it asks
+// something of them.
+export function dealNoticeEmail(args: { subject: string; text: string; url: string; actionNeeded: boolean }, locale: Locale = DEFAULT_LOCALE): Email {
+  const t = createT(locale);
+  return render({
+    locale,
+    subject: args.subject,
+    preview: args.text.length > 110 ? `${args.text.slice(0, 107)}…` : args.text,
+    heading: args.actionNeeded ? t("emails.dealNotice.headingAction") : t("emails.dealNotice.headingNews"),
+    body: args.text,
+    action: { label: t("emails.dealNotice.action"), url: args.url },
+    note: t("emails.dealNotice.note"),
+  });
+}
+
+// The documents of a deal as an e-mail, with the PDFs attached: a new invoice, a new credit note, or a correction (the cancelled
+// document and its replacement). The PDFs are German like the documents; the mail is in the language of the account.
+export function dealDocumentEmail(
+  args: { kind: "invoice" | "credit" | "corrected"; title: string; number: string; replaces?: string; url: string },
+  locale: Locale = DEFAULT_LOCALE,
+): Email {
+  const t = createT(locale);
+  const vars = { title: args.title, number: args.number, replaces: args.replaces ?? "" };
+  const subject = t(`emails.dealDocument.${args.kind}.subject`, vars);
+  const heading = t(`emails.dealDocument.${args.kind}.heading`, vars);
+  const body = t(`emails.dealDocument.${args.kind}.body`, vars);
+  return render({
+    locale,
+    subject,
+    preview: body.length > 110 ? `${body.slice(0, 107)}…` : body,
+    heading,
+    body,
+    action: { label: t("emails.dealDocument.action"), url: args.url },
+    note: t("emails.dealDocument.note"),
+  });
+}
+
 // What /admin/email sends to check that mail gets out and looks right.
 export function testEmail(url: string, locale: Locale = DEFAULT_LOCALE): Email {
   const t = createT(locale);

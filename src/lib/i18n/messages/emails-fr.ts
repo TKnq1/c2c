@@ -3,7 +3,7 @@ import type { DeepString } from "@/lib/i18n/messages/types";
 
 export const emailsFr: DeepString<typeof emails> = {
   chrome: {
-    pasteLink: "Le bouton ne marche pas§? Colle ce lien dans ton navigateur§:",
+    pasteLink: "Le bouton ne marche pas ? Colle ce lien dans ton navigateur :",
     stop: "Ne plus recevoir ces e-mails",
     tagline: "Les marques rencontrent les bons créateurs.",
     imprint: "Mentions légales",
@@ -17,11 +17,11 @@ export const emailsFr: DeepString<typeof emails> = {
     bodyCreator: "Merci de t’être inscrit. Confirme ton adresse e-mail, puis swipe des deals de marques, avec le budget affiché sur la carte.",
     bodyBrand: "Merci de t’être inscrit. Confirme ton adresse e-mail, puis publie ta première demande. Les créateurs viennent à toi.",
     foundingCreator:
-      "Tu es le créateur fondateur n° {number}. Pro est gratuit pour toi tant que ton compte existe. comtor garde {pro}§% de chaque paiement au lieu de {standard}§%, et tu reçois {keep}§%.",
+      "Tu es le créateur fondateur n° {number}. Pro est gratuit pour toi tant que ton compte existe. comtor garde {pro} % de chaque paiement au lieu de {standard} %, et tu reçois {keep} %.",
     foundingBrand:
-      "Tu es la marque fondatrice n° {number}. Pro est gratuit pour toi tant que ton compte existe. comtor garde {pro}§% de chaque paiement au lieu de {standard}§%.",
+      "Tu es la marque fondatrice n° {number}. Pro est gratuit pour toi tant que ton compte existe. comtor garde {pro} % de chaque paiement au lieu de {standard} %.",
     action: "Confirmer l’e-mail",
-    note: "Le lien fonctionne 24 heures. Tu ne t’es pas inscrit sur comtor§? Alors ignore cet e-mail.",
+    note: "Le lien fonctionne 24 heures. Tu ne t’es pas inscrit sur comtor ? Alors ignore cet e-mail.",
   },
   foundingNotice: {
     subject: "Pro est gratuit pour toi, pour toujours",
@@ -29,9 +29,9 @@ export const emailsFr: DeepString<typeof emails> = {
     previewBrand: "Tu fais partie des premières marques sur comtor.",
     heading: "Tu as Pro, pour toujours.",
     bodyCreator:
-      "Tu fais partie des {limit} premiers créateurs sur comtor (créateur fondateur n° {number}). Voilà pourquoi Pro est gratuit pour toi tant que ton compte existe. comtor garde {pro}§% au lieu de {standard}§% de chaque paiement, et tu reçois {keep}§%. Tu n’as rien à faire.",
+      "Tu fais partie des {limit} premiers créateurs sur comtor (créateur fondateur n° {number}). Voilà pourquoi Pro est gratuit pour toi tant que ton compte existe. comtor garde {pro} % au lieu de {standard} % de chaque paiement, et tu reçois {keep} %. Tu n’as rien à faire.",
     bodyBrand:
-      "Tu fais partie des {limit} premières marques sur comtor (marque fondatrice n° {number}). Voilà pourquoi Pro est gratuit pour toi tant que ton compte existe. comtor garde {pro}§% au lieu de {standard}§% de chaque paiement. Tu n’as rien à faire.",
+      "Tu fais partie des {limit} premières marques sur comtor (marque fondatrice n° {number}). Voilà pourquoi Pro est gratuit pour toi tant que ton compte existe. comtor garde {pro} % au lieu de {standard} % de chaque paiement. Tu n’as rien à faire.",
     subscription: "Ton abonnement Pro actuel continue et reste facturé. Tu peux le résilier dans les réglages et garder Pro.",
     action: "Voir ton offre",
     note: "Tu reçois cet e-mail parce que tu as un compte comtor. Il concerne ton offre et n’est pas une publicité.",
@@ -45,7 +45,7 @@ export const emailsFr: DeepString<typeof emails> = {
       preview: "Gagne de l’argent en publiant sur les réseaux sociaux.",
       heading: "Gagne de l’argent en publiant sur les réseaux sociaux.",
       headingNamed: "{name}, gagne de l’argent en publiant sur les réseaux sociaux.",
-      body: "Sur comtor, les marques publient un deal payé et tu swipes ceux que tu veux. Le budget est sur la carte. La marque paie avant que tu publies, et tu gardes {keep}§%.",
+      body: "Sur comtor, les marques publient un deal payé et tu swipes ceux que tu veux. Le budget est sur la carte. La marque paie avant que tu publies, et tu gardes {keep} %.",
       steps: {
         swipe: {
           title: "Swipe un deal.",
@@ -60,8 +60,8 @@ export const emailsFr: DeepString<typeof emails> = {
           text: "Tu acceptes l’offre, la marque paie d’abord. L’argent est retenu jusqu’à ta publication.",
         },
         keep: {
-          title: "Tu gardes {keep}§%.",
-          text: "La marque a {days} jours pour valider ta publication. Sans réponse, l’argent te revient quand même. Avec Pro ({price}§€ par mois), tu gardes {proKeep}§%.",
+          title: "Tu gardes {keep} %.",
+          text: "La marque a {days} jours pour valider ta publication. Sans réponse, l’argent te revient quand même. Avec Pro ({price} € par mois), tu gardes {proKeep} %.",
         },
       },
       crowdOne: "marque déjà inscrite",
@@ -88,7 +88,7 @@ export const emailsFr: DeepString<typeof emails> = {
         },
         paidOut: {
           title: "Ensuite, c’est versé.",
-          text: "Tu vérifies d’abord la publication en ligne. Pas de frais fixes§: comtor garde {fee}§% de chaque paiement, ou {proFee}§% avec Pro ({price}§€ par mois).",
+          text: "Tu vérifies d’abord la publication en ligne. Pas de frais fixes : comtor garde {fee} % de chaque paiement, ou {proFee} % avec Pro ({price} € par mois).",
         },
       },
       crowdOne: "créateur déjà inscrit",
@@ -102,7 +102,7 @@ export const emailsFr: DeepString<typeof emails> = {
     heading: "Confirme ton adresse e-mail.",
     body: "Confirme que cette adresse appartient à ton compte comtor.",
     action: "Confirmer l’e-mail",
-    note: "Le lien fonctionne 24 heures. Tu ne t’es pas inscrit sur comtor§? Alors ignore cet e-mail.",
+    note: "Le lien fonctionne 24 heures. Tu ne t’es pas inscrit sur comtor ? Alors ignore cet e-mail.",
   },
   passwordReset: {
     subject: "Réinitialise ton mot de passe comtor",
@@ -110,7 +110,7 @@ export const emailsFr: DeepString<typeof emails> = {
     heading: "Réinitialise ton mot de passe.",
     body: "Quelqu’un a demandé la réinitialisation de ton mot de passe comtor. Si c’est toi, choisis-en un nouveau.",
     action: "Choisir un nouveau mot de passe",
-    note: "Le lien ne marche qu’une fois, pendant 1 heure. Un nouveau mot de passe te déconnecte partout. Tu n’as rien demandé§? Alors ignore cet e-mail, ton mot de passe ne change pas.",
+    note: "Le lien ne marche qu’une fois, pendant 1 heure. Un nouveau mot de passe te déconnecte partout. Tu n’as rien demandé ? Alors ignore cet e-mail, ton mot de passe ne change pas.",
   },
   passwordChanged: {
     subject: "Ton mot de passe comtor a été changé",
@@ -118,13 +118,13 @@ export const emailsFr: DeepString<typeof emails> = {
     heading: "Ton mot de passe a été changé.",
     body: "Ton mot de passe comtor vient d’être changé, et nous avons déconnecté tes autres appareils. Si c’était toi, tout est en ordre.",
     action: "Réinitialiser le mot de passe",
-    note: "Ce n’était pas toi§? Réinitialise ton mot de passe tout de suite. Cela déconnecte la personne qui l’a changé.",
+    note: "Ce n’était pas toi ? Réinitialise ton mot de passe tout de suite. Cela déconnecte la personne qui l’a changé.",
   },
   accountSuspended: {
     subject: "Ton compte comtor a été suspendu",
     preview: "Voici pourquoi, et comment contester.",
     heading: "Ton compte a été suspendu.",
-    body: "Nous avons suspendu ton compte comtor. Motif§: {reason} Tant qu’il est suspendu, tu ne peux pas te connecter. Nous fermons les demandes ouvertes d’un compte marque.",
+    body: "Nous avons suspendu ton compte comtor. Motif : {reason} Tant qu’il est suspendu, tu ne peux pas te connecter. Nous fermons les demandes ouvertes d’un compte marque.",
     action: "Contester cette décision",
     objectSubject: "Compte suspendu",
     note: "Si tu penses que c’est une erreur, réponds à cet e-mail ou écris à info@comtor.app. Nous réexaminerons le cas et te répondrons.",
@@ -143,7 +143,7 @@ export const emailsFr: DeepString<typeof emails> = {
     heading: "Confirme les nouveautés produit.",
     body: "Tu as demandé à recevoir de temps en temps des e-mails sur comtor. Appuie sur le bouton de la page suivante pour confirmer. D’ici là, cette adresse ne reçoit aucune nouveauté produit.",
     action: "Vérifier et confirmer",
-    note: "Tu n’as rien demandé§? Ignore cet e-mail. Rien n’est activé tant que tu n’as pas appuyé sur le bouton.",
+    note: "Tu n’as rien demandé ? Ignore cet e-mail. Rien n’est activé tant que tu n’as pas appuyé sur le bouton.",
   },
   waitlistConfirmation: {
     subject: "Confirme ta place sur la liste d’attente comtor",
@@ -151,6 +151,20 @@ export const emailsFr: DeepString<typeof emails> = {
     heading: "Confirme ton adresse e-mail.",
     body: "Tu as demandé à être prévenu de la sortie des apps comtor sur iOS et Android. Confirme que cette adresse est la tienne, et tu es sur la liste.",
     action: "Confirmer l’e-mail",
-    note: "Nous t’enverrons un seul e-mail, le jour de la sortie des apps. Tu ne t’es pas inscrit§? Alors ignore cet e-mail, et tu n’auras plus de nouvelles de nous.",
+    note: "Nous t’enverrons un seul e-mail, le jour de la sortie des apps. Tu ne t’es pas inscrit ? Alors ignore cet e-mail, et tu n’auras plus de nouvelles de nous.",
+  },
+  // A deal notice and the documents of a deal (src/lib/deals/notices.ts, billing). {number}: document number, {title}: request title, {replaces}: the cancelled document.
+  dealNotice: {
+    headingAction: "Ton deal a besoin de toi.",
+    headingNews: "Du nouveau sur ton deal.",
+    action: "Ouvrir dans comtor",
+    note: "Tu reçois cet e-mail parce qu’un délai, une annulation ou de l’argent est en jeu. Ces messages ne peuvent pas être désactivés.",
+  },
+  dealDocument: {
+    invoice: { subject: "Ta facture {number}", heading: "Ta facture est prête.", body: "La facture {number} pour « {title} » est jointe en PDF. Tu la retrouves aussi sous Deals, Factures." },
+    credit: { subject: "Ton avoir {number}", heading: "Ton avoir est prêt.", body: "L’avoir {number} pour « {title} » est joint en PDF. Tu le retrouves aussi sous Deals, Factures." },
+    corrected: { subject: "Document corrigé : {replaces} remplacé par {number}", heading: "Un document a été corrigé.", body: "Le document {replaces} pour « {title} » a été annulé et remplacé par {number}. L’annulation et le nouveau document sont joints en PDF." },
+    action: "Ouvrir le document",
+    note: "Tu reçois cet e-mail parce qu’un document a été émis pour l’un de tes deals. Conserve-le pour ta comptabilité.",
   },
 };

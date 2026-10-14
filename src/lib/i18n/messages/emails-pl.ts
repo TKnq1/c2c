@@ -153,4 +153,18 @@ export const emailsPl: DeepString<typeof emails> = {
     action: "Potwierdź e-mail",
     note: "Wyślemy jeden e-mail, w dniu premiery aplikacji. To nie ty się zapisujesz? Zignoruj ten e-mail, a nic od nas nie dostaniesz.",
   },
+  // A deal notice and the documents of a deal (src/lib/deals/notices.ts, billing). {number}: document number, {title}: request title, {replaces}: the cancelled document.
+  dealNotice: {
+    headingAction: "Twój deal cię potrzebuje.",
+    headingNews: "Nowości w twoim dealu.",
+    action: "Otwórz w comtor",
+    note: "Dostajesz tę wiadomość, bo w grę wchodzi termin, anulowanie lub pieniądze. Tych wiadomości nie można wyłączyć.",
+  },
+  dealDocument: {
+    invoice: { subject: "Twoja faktura {number}", heading: "Twoja faktura jest gotowa.", body: "Faktura {number} dla „{title}” jest w załączniku jako PDF. Znajdziesz ją też w Deals, Faktury." },
+    credit: { subject: "Twoja nota kredytowa {number}", heading: "Twoja nota kredytowa jest gotowa.", body: "Nota kredytowa {number} dla „{title}” jest w załączniku jako PDF. Znajdziesz ją też w Deals, Faktury." },
+    corrected: { subject: "Dokument poprawiony: {replaces} zastąpiony przez {number}", heading: "Dokument został poprawiony.", body: "Dokument {replaces} dla „{title}” został anulowany i zastąpiony przez {number}. Anulowanie i nowy dokument są w załączniku jako PDF." },
+    action: "Otwórz dokument",
+    note: "Dostajesz tę wiadomość, bo wystawiono dokument do jednego z twoich dealów. Zachowaj go do księgowości.",
+  },
 };

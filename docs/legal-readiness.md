@@ -30,6 +30,11 @@ what a developer needs.
 - **Accounts with payment records** are anonymised instead of deleted (`src/lib/account-deletion.ts`); the
   privacy policy says so (tax law: § 147 AO, § 257 HGB).
 - **Suspensions** send the person an email with the reason and how to object (DSA Art. 17).
+- **Brand deals** (`docs/brand-deals.md`): advertising-label checks (UWG / MStV / DDG), exclusivity and usage rights in the
+  contract, escrow released only after the post stayed live, VAT (domestic / reverse charge, VIES-checked VAT IDs), invoices and
+  self-billing credit notes, and the trader data (DSA Art. 30 / P2B) in `BusinessProfile`. The deal's drafts, posts and proof
+  images are deleted when an account is anonymised; the contract, its trail and the invoices stay (§ 147 AO). Business details
+  and deals are part of the data export.
 - **No cookie banner needed:** only strictly necessary cookies and local storage are used. Adding analytics,
   advertising pixels or tracking requires a consent banner first, and the CSP in `next.config.ts` has to be
   adapted.
@@ -70,6 +75,10 @@ shows them locally, `?lang=en` for English.
 11. **App stores:** at launch add the current official badges, linked to the store pages; fill in Apple's App
     Privacy and Google's Data safety from the table below.
 
+12. **Brand deals:** who contracts with whom (the terms say comtor is not a party, the invoicing treats it as one), the
+    self-billing agreement, the terms for deadlines / automatic refunds / deemed approval / disputes, the recapitulative
+    statement for reverse-charge services. See the end of `docs/brand-deals.md`.
+
 ## Record of processing activities (starting point, Art. 30 GDPR)
 
 | Processing | Purpose | Data | Recipients | Basis | Retention |
@@ -77,6 +86,8 @@ shows them locally, `?lang=en` for English.
 | Account and sign-in | contract | email, password hash, role, 2FA secret (encrypted), consent proof | Vercel, Neon | Art. 6(1)(b), (f) | until account deletion |
 | Profiles, requests, chat | matching | profile data, images, messages, offers | Vercel, Neon | Art. 6(1)(b) | until account deletion |
 | Payments | contract, accounting | amounts, status, Stripe ids | Stripe | Art. 6(1)(b), (c) | 8 to 10 years, anonymised |
+| Business details | trader transparency (DSA Art. 30), invoicing, VAT | legal name, address, tax number, VAT ID, VIES result | Vercel, Neon, EU VIES service | Art. 6(1)(b), (c), (f) | until account deletion; copies on invoices 10 years |
+| Brand deals | contract performance, evidence | frozen terms, drafts, post links, proof screenshots, status trail | Vercel, Neon, Instagram / TikTok / YouTube (link check) | Art. 6(1)(b), (f) | contract and trail 10 years; drafts, posts and proofs until account deletion |
 | Sign-in log | security | email, IP, browser, time | Vercel, Neon | Art. 6(1)(f) | 90 days |
 | Sign-up IP, rate limits | abuse protection | IP | Neon | Art. 6(1)(f) | 7 days / 24 hours |
 | Account emails | contract | email | Resend | Art. 6(1)(b) | at the provider |
