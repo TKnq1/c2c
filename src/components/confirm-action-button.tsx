@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import { Dialog } from "@/components/dialog";
 import { toast } from "@/lib/toast";
 import { errorMessage } from "@/lib/error-message";
+import { useI18n } from "@/components/i18n-provider";
+import { localizeError } from "@/lib/i18n/labels";
 
 // For actions that can't be taken back — a refund, keeping a deposit,
 // declining an offer. The trigger only opens a confirmation sheet (the same
@@ -16,7 +18,7 @@ export function ConfirmActionButton({
   title,
   description,
   confirmLabel,
-  pendingLabel = "Working…",
+  pendingLabel,
   redirectTo,
   requirePassword = false,
   className,
@@ -41,6 +43,7 @@ export function ConfirmActionButton({
 }) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
+  const { t } = useI18n();
   const [error, setError] = useState<string | null>(null);
   const [password, setPassword] = useState("");
   const [pending, startTransition] = useTransition();
@@ -48,7 +51,7 @@ export function ConfirmActionButton({
   const confirm = () => {
     setError(null);
     if (requirePassword && !password) {
-      setError("Enter your password to confirm.");
+      setError(t("extras.errors.enterPassword"));
       return;
     }
     startTransition(async () => {
@@ -97,12 +100,12 @@ export function ConfirmActionButton({
             autoComplete="current-password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            placeholder="Your password"
-            aria-label="Your password"
+            placeholder={t("screens.settings.yourPassword")}
+            aria-label={t("screens.settings.yourPassword")}
             className="rounded border border-neutral-300 bg-transparent px-3 py-2.5 text-base outline-none focus:border-neutral-500 md:text-sm dark:border-neutral-700"
           />
         )}
-        {error && <p className="text-sm font-medium text-ink">{error}</p>}
+        {error && <p className="text-sm font-medium text-ink">{localizeError(error, t)}</p>}
         <div className="flex gap-2">
           <button
             type="button"
@@ -112,7 +115,7 @@ export function ConfirmActionButton({
             }}
             className="flex-1 rounded-full border border-neutral-300 px-4 py-2.5 text-sm font-medium transition hover:border-neutral-400 dark:border-neutral-700"
           >
-            Cancel
+            {t("common.cancel")}
           </button>
           <button
             type="button"
@@ -120,7 +123,7 @@ export function ConfirmActionButton({
             disabled={pending}
             className="flex-1 rounded-full bg-ink px-4 py-2.5 text-sm font-medium text-paper transition hover:bg-graphite disabled:opacity-50"
           >
-            {pending ? pendingLabel : confirmLabel}
+            {pending ? (pendingLabel ?? t("extras.misc.working")) : confirmLabel}
           </button>
         </div>
       </Dialog>

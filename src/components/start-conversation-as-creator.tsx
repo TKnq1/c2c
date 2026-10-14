@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { IoChatbubble } from "react-icons/io5";
 import { startConversationAsCreatorAction } from "@/lib/actions/requests";
+import { useI18n } from "@/components/i18n-provider";
 
 type Props = {
   existingInterestId: string | null;
@@ -16,13 +17,14 @@ const BUTTON =
   "flex flex-1 items-center justify-center gap-2 rounded-full bg-ink px-4 py-2.5 text-sm font-medium text-paper transition hover:bg-graphite disabled:opacity-40 disabled:hover:bg-ink";
 
 export function StartConversationAsCreator({ existingInterestId, matchingRequests }: Props) {
+  const { t } = useI18n();
   const [pending, setPending] = useState(false);
 
   if (existingInterestId) {
     return (
       <Link href={`/dashboard/messages/${existingInterestId}`} className={BUTTON}>
         <IoChatbubble className="h-4 w-4" aria-hidden />
-        Message
+        {t("extras.misc.message")}
       </Link>
     );
   }
@@ -33,7 +35,7 @@ export function StartConversationAsCreator({ existingInterestId, matchingRequest
     return (
       <button type="button" disabled className={BUTTON}>
         <IoChatbubble className="h-4 w-4" aria-hidden />
-        Message
+        {t("extras.misc.message")}
       </button>
     );
   }
@@ -45,7 +47,7 @@ export function StartConversationAsCreator({ existingInterestId, matchingRequest
       <input type="hidden" name="requestId" value={matchingRequests[0].id} />
       <button type="submit" disabled={pending} className={BUTTON}>
         <IoChatbubble className="h-4 w-4" aria-hidden />
-        Message
+        {t("extras.misc.message")}
       </button>
     </form>
   );

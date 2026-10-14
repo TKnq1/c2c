@@ -6,7 +6,7 @@ import { requireAdminSession } from "@/lib/admin-session";
 import { hasAdminAccess } from "@/lib/admin-access";
 import { formatCents } from "@/lib/format";
 import { parseUserAgent } from "@/lib/user-agent";
-import { deleteUserAction, revokeFoundingProAction, unsuspendUserAction } from "@/lib/actions/admin";
+import { deleteUserAction, resendVerificationEmailAction, revokeFoundingProAction, unsuspendUserAction } from "@/lib/actions/admin";
 import { Avatar } from "@/components/avatar";
 import { LocalDate } from "@/components/local-date";
 import { ConfirmActionButton } from "@/components/confirm-action-button";
@@ -119,6 +119,19 @@ export default async function AdminUserPage(props: PageProps<"/admin/users/[id]"
         </div>
         {canSuspend && (
           <div className="flex flex-wrap items-center gap-2">
+            {!user.emailVerified && !user.deletedAt && (
+              <ConfirmActionButton
+                action={resendVerificationEmailAction.bind(null, user.id)}
+                successMessage="The confirmation link is sent."
+                title={`Send ${name} a new confirmation link?`}
+                description={`${user.email} gets a fresh confirmation link by email.`}
+                confirmLabel="Send"
+                pendingLabel="Sending…"
+                className="rounded-full border border-neutral-300 px-4 py-2 text-sm font-medium transition hover:border-ink dark:border-neutral-700"
+              >
+                Resend confirmation email
+              </ConfirmActionButton>
+            )}
             {!user.suspendedAt && <SuspendUserButton userId={user.id} label={name} isBrand={!!brand} />}
             {pro?.foundingNumber && (
               <ConfirmActionButton

@@ -2,9 +2,9 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { UgcBreadcrumbs, UgcCtas, UgcFaq, UgcFooter, UgcHeader, UgcSection, UgcSteps, UgcWatermark } from "@/components/ugc/ugc-parts";
-import { RELEASE_REVIEW_DAYS } from "@/lib/constants";
 import { canonical } from "@/lib/seo";
-import { getUgcNichePage, UGC_NICHE_PAGES, UGC_PATH, ugcNicheHref } from "@/lib/seo-pages";
+import { UGC_NICHE_PAGES, UGC_PATH, ugcNicheHref } from "@/lib/seo-pages";
+import { getUgcContent, ugcFill, ugcNiche } from "@/lib/ugc";
 
 // Only the niches listed in seo-pages.ts exist; anything else is a plain 404.
 export const dynamicParams = false;
@@ -14,29 +14,32 @@ export function generateStaticParams() {
 }
 
 export async function generateMetadata({ params }: { params: Promise<{ niche: string }> }): Promise<Metadata> {
-  const page = getUgcNichePage((await params).niche);
+  const content = await getUgcContent();
+  const page = ugcNiche(content, (await params).niche);
   if (!page) return {};
   return {
     title: page.title,
     description: page.description,
     alternates: canonical(ugcNicheHref(page.slug)),
-    openGraph: { title: page.title, description: page.description, locale: "de_DE" },
+    openGraph: { title: page.title, description: page.description, locale: content.ogLocale },
     twitter: { card: "summary_large_image", title: page.title, description: page.description },
   };
 }
 
-// A search landing page in German for one niche: what gets made, how it works for each side, the questions
-// people actually ask. The page's language is German whatever the app's own language is, hence lang="de".
+// A search landing page for one niche: what gets made, how it works for each side, the questions people
+// actually ask. In the reader's language; search engines without a language cookie get German.
 export default async function UgcNichePage({ params }: { params: Promise<{ niche: string }> }) {
-  const page = getUgcNichePage((await params).niche);
+  const content = await getUgcContent();
+  const { ui } = content;
+  const page = ugcNiche(content, (await params).niche);
   if (!page) notFound();
 
   return (
-    <div lang="de" className="relative flex flex-1 flex-col">
+    <div lang={content.htmlLang} className="relative flex flex-1 flex-col">
       <UgcWatermark />
       <UgcBreadcrumbs
         trail={[
-          { name: "UGC-Creator finden", path: UGC_PATH },
+          { name: ui.hubTitle, path: UGC_PATH },
           { name: page.label, path: ugcNicheHref(page.slug) },
         ]}
       />
@@ -49,12 +52,10 @@ export default async function UgcNichePage({ params }: { params: Promise<{ niche
             </h1>
             <p className="max-w-[60ch] text-lg text-neutral-700 dark:text-neutral-300">{page.lead}</p>
             <UgcCtas className="mt-2" />
-            <p className="text-footnote text-neutral-500 dark:text-neutral-400">
-              Kostenlos anmelden. comtor läuft im Browser, die Sprache wählst du beim Start.
-            </p>
+            <p className="text-footnote text-neutral-500 dark:text-neutral-400">{ui.signupNote}</p>
           </div>
 
-          <UgcSection title={`Diese Formate funktionieren in der Nische „${page.label}“`}>
+          <UgcSection title={ugcFill(ui.formatsTitle, { label: page.label })}>
             <div className="grid gap-3 sm:grid-cols-2">
               {page.formats.map((format) => (
                 <div key={format.title} className="rounded bg-fog p-5">
@@ -65,38 +66,22 @@ export default async function UgcNichePage({ params }: { params: Promise<{ niche
             </div>
           </UgcSection>
 
-          <UgcSection title="So funktioniert comtor">
+          <UgcSection title={ui.howTitle}>
             <div className="grid gap-3 md:grid-cols-2">
-              <UgcSteps
-                title="Für Marken"
-                steps={[
-                  `Anfrage einstellen: Nische ${page.label}, Sprache, Mindestzahl an Followern, Budget und Lieferumfang.`,
-                  "Creator melden sich: Wer passt, sieht die Anfrage im Feed und schreibt dir im Chat.",
-                  "Bezahlen und freigeben: Du zahlst über die Plattform und gibst den Post frei, wenn er passt.",
-                ]}
-              />
-              <UgcSteps
-                title="Für Creator"
-                steps={[
-                  `Profil anlegen: Bis zu drei Nischen, zum Beispiel ${page.label}, und deine Plattformen mit der jeweiligen Followerzahl.`,
-                  "Anfragen ansehen: Im Feed siehst du Budget und Anforderungen, bevor du dich meldest.",
-                  `Posten und bezahlt werden: Nach dem Post reichst du den Link ein. Sobald die Marke ihn freigibt (spätestens nach ${RELEASE_REVIEW_DAYS} Tagen), wird die Zahlung ausgezahlt.`,
-                ]}
-              />
+              <UgcSteps title={ui.forBrands} steps={ui.nicheBrandSteps.map((step) => ugcFill(step, { label: page.label }))} />
+              <UgcSteps title={ui.forCreators} steps={ui.nicheCreatorSteps.map((step) => ugcFill(step, { label: page.label }))} />
             </div>
           </UgcSection>
 
-          <UgcFaq faqs={page.faqs} />
+          <UgcFaq faqs={page.faqs} title={ui.faqTitle} />
 
           <div className="flex flex-col gap-4 rounded bg-fog p-6">
-            <h2 className="font-display text-title-2 font-bold text-balance">
-              Bereit für deinen ersten Auftrag in der Nische „{page.label}“?
-            </h2>
+            <h2 className="font-display text-title-2 font-bold text-balance">{ugcFill(ui.nicheReadyTitle, { label: page.label })}</h2>
             <UgcCtas />
             <p className="text-sm text-neutral-600 dark:text-neutral-400">
-              Was UGC ist und wie comtor funktioniert, erklären wir im Überblick:{" "}
+              {ui.overviewLead}{" "}
               <Link href={UGC_PATH} className="underline">
-                UGC-Creator finden
+                {ui.overviewLink}
               </Link>
               .
             </p>

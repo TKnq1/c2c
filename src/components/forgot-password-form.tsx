@@ -3,6 +3,7 @@
 import { useActionState } from "react";
 import { requestPasswordResetAction } from "@/lib/actions/auth";
 import { useI18n } from "@/components/i18n-provider";
+import { localizeError } from "@/lib/i18n/labels";
 
 export function ForgotPasswordForm() {
   const { t } = useI18n();
@@ -26,7 +27,7 @@ export function ForgotPasswordForm() {
           className="rounded border border-neutral-300 px-3 py-2.5 dark:border-neutral-700"
         />
       </div>
-      {state?.error && <p className="text-sm text-ink">{state.error}</p>}
+      {state?.error && <p className="text-sm text-ink">{localizeError(state.error, t)}</p>}
       <button
         type="submit"
         disabled={pending}

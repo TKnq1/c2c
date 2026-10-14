@@ -8,6 +8,7 @@ import { anonymiseAccount, hasPaymentRecords, moneyInFlight } from "@/lib/accoun
 import { audit } from "@/lib/audit";
 import { revokeFoundingPro } from "@/lib/founding";
 import { sendFoundingNotices } from "@/lib/founding-notice";
+import { resendVerificationMails, resendVerificationTo } from "@/lib/verification-resend";
 import { repriceOpenDeals } from "@/lib/open-deal-fees";
 import { prisma } from "@/lib/prisma";
 import { sendEmail } from "@/lib/email";
@@ -113,6 +114,36 @@ export async function sendFoundingNoticesAction(password: string): Promise<Admin
   revalidateAdmin();
   if (result.failed > 0) {
     return { error: `${result.sent} sent, ${result.failed} failed (they stay on the list). Check /admin/email, then try again.` };
+  }
+  return {};
+}
+
+// Mails one account its confirmation link again (the Resend button on the user's page).
+export async function resendVerificationEmailAction(userId: string): Promise<AdminActionResult> {
+  const session = await requireAdmin();
+  if (!session) return { error: "Not authorized." };
+  const user = await prisma.user.findUnique({ where: { id: userId }, select: { id: true, email: true, locale: true, emailVerified: true, deletedAt: true } });
+  if (!user || user.deletedAt) return { error: "This account no longer exists." };
+  if (user.emailVerified) return { error: "This email is already confirmed." };
+
+  const result = await resendVerificationTo(session.user.id, user);
+  revalidateAdmin();
+  return result.ok ? {} : { error: `Not sent: ${result.error}` };
+}
+
+// Mails the confirmation link again to everyone who signed up since mail started failing and hasn't been sent one yet
+// (see src/lib/verification-resend.ts). Real mail to real people, so it asks for the password. A batch at a time.
+export async function resendVerificationMailsAction(password: string): Promise<AdminActionResult> {
+  const session = await requireAdmin();
+  if (!session) return { error: "Not authorized." };
+  const passwordError = await confirmAdminPassword(session.user.id, password);
+  if (passwordError) return { error: passwordError };
+
+  const result = await resendVerificationMails(session.user.id);
+  await audit(session.user.id, "users.verification.resend", undefined, result);
+  revalidateAdmin();
+  if (result.failed > 0) {
+    return { error: `${result.sent} sent, ${result.failed} failed (they stay on the list). Check /admin/mails, then try again.` };
   }
   return {};
 }

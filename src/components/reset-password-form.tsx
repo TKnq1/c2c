@@ -4,6 +4,7 @@ import { useActionState } from "react";
 import { resetPasswordAction } from "@/lib/actions/auth";
 import { NewPasswordField } from "@/components/new-password-field";
 import { useI18n } from "@/components/i18n-provider";
+import { localizeError } from "@/lib/i18n/labels";
 
 export function ResetPasswordForm({ token }: { token: string }) {
   const { t } = useI18n();
@@ -12,7 +13,7 @@ export function ResetPasswordForm({ token }: { token: string }) {
   return (
     <form action={formAction} className="flex flex-col gap-4">
       <NewPasswordField name="password" label={t("screens.settings.newPassword")} />
-      {state?.error && <p className="text-sm text-ink">{state.error}</p>}
+      {state?.error && <p className="text-sm text-ink">{localizeError(state.error, t)}</p>}
       <button
         type="submit"
         disabled={pending}

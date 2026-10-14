@@ -1,18 +1,22 @@
 import type { Metadata } from "next";
 import { confirmOutreachOptOut } from "@/lib/actions/outreach-opt-out";
 import { isOutreachSide, outreachOptOutMatches } from "@/lib/outreach-opt-out";
-import { NO_INDEX, metadataFor } from "@/lib/seo";
+import { NO_INDEX } from "@/lib/seo";
+import { getT } from "@/lib/i18n/server";
 
-export const generateMetadata = (): Promise<Metadata> =>
-  metadataFor({ title: "Stop these emails", robots: NO_INDEX }, { title: "Diese E-Mails abbestellen", robots: NO_INDEX });
+export const generateMetadata = async (): Promise<Metadata> => ({
+  title: (await getT())("extras.meta.optOut"),
+  robots: NO_INDEX,
+});
 
 export default async function OutreachOptOutPage(props: PageProps<"/outreach/opt-out">) {
+  const t = await getT();
   const params = await props.searchParams;
   if (params.done === "1") {
     return (
       <main className="mx-auto flex max-w-md flex-1 flex-col gap-3 px-6 py-16">
-        <h1 className="font-display text-title-2 font-bold">These emails will stop</h1>
-        <p className="text-sm text-neutral-600 dark:text-neutral-400">The address is off the list. We will not send another note like this.</p>
+        <h1 className="font-display text-title-2 font-bold">{t("extras.optOut.doneTitle")}</h1>
+        <p className="text-sm text-neutral-600 dark:text-neutral-400">{t("extras.optOut.doneBody")}</p>
       </main>
     );
   }
@@ -25,24 +29,22 @@ export default async function OutreachOptOutPage(props: PageProps<"/outreach/opt
   if (!valid) {
     return (
       <main className="mx-auto flex max-w-md flex-1 flex-col gap-3 px-6 py-16">
-        <h1 className="font-display text-title-2 font-bold">This link doesn’t work</h1>
-        <p className="text-sm text-neutral-600 dark:text-neutral-400">Write to info@comtor.app and we will take the address off.</p>
+        <h1 className="font-display text-title-2 font-bold">{t("extras.optOut.invalidTitle")}</h1>
+        <p className="text-sm text-neutral-600 dark:text-neutral-400">{t("extras.optOut.invalidBody")}</p>
       </main>
     );
   }
 
   return (
     <main className="mx-auto flex max-w-md flex-1 flex-col gap-4 px-6 py-16">
-      <h1 className="font-display text-title-2 font-bold">Stop these emails</h1>
-      <p className="text-sm text-neutral-600 dark:text-neutral-400">
-        {email.trim().toLowerCase()} will be removed from the list. Account emails, if you have an account, are not affected.
-      </p>
+      <h1 className="font-display text-title-2 font-bold">{t("extras.optOut.title")}</h1>
+      <p className="text-sm text-neutral-600 dark:text-neutral-400">{t("extras.optOut.body", { email: email.trim().toLowerCase() })}</p>
       <form action={confirmOutreachOptOut}>
         <input type="hidden" name="email" value={email} />
         <input type="hidden" name="side" value={side} />
         <input type="hidden" name="token" value={token} />
         <button type="submit" className="rounded-full bg-ink px-4 py-2.5 text-sm font-medium text-paper">
-          Remove this address
+          {t("extras.optOut.button")}
         </button>
       </form>
     </main>

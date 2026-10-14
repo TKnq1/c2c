@@ -55,6 +55,14 @@ describe("sendEmail", () => {
     expect(console.error).toHaveBeenCalledWith(expect.stringContaining("The comtor.app domain is not verified."));
   });
 
+  it("leaves out the error name when Resend sends none", async () => {
+    vi.stubEnv("RESEND_API_KEY", "re_key");
+    send.mockResolvedValue({ data: null, error: { message: "This API key is not authorized to send emails from comtor.app" } });
+    const { sendEmail } = await load();
+
+    expect(await sendEmail(email)).toEqual({ ok: false, error: "This API key is not authorized to send emails from comtor.app" });
+  });
+
   it("logs every attempt with its subject and outcome, never the address", async () => {
     vi.stubEnv("RESEND_API_KEY", "re_key");
     send.mockResolvedValueOnce({ data: { id: "abc123" }, error: null });

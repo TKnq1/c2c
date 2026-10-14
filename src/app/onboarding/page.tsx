@@ -10,12 +10,15 @@ import { BrandOnboarding } from "@/components/brand-onboarding";
 import { CreatorOnboarding } from "@/components/creator-onboarding";
 import { GuestOnboarding } from "@/components/guest-onboarding";
 import type { Metadata } from "next";
-import { metadataFor, NO_INDEX } from "@/lib/seo";
+import { NO_INDEX } from "@/lib/seo";
+import { getT } from "@/lib/i18n/server";
 import { parseSignupRole } from "@/lib/signup-role";
 import { recordVisit } from "@/lib/visit-count";
 
-export const generateMetadata = (): Promise<Metadata> =>
-  metadataFor({ title: "Set up your profile", robots: NO_INDEX }, { title: "Profil einrichten", robots: NO_INDEX });
+export const generateMetadata = async (): Promise<Metadata> => ({
+  title: (await getT())("extras.meta.onboarding"),
+  robots: NO_INDEX,
+});
 
 export default async function OnboardingPage(props: PageProps<"/onboarding">) {
   const session = await auth();

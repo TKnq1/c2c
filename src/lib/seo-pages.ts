@@ -1,4 +1,5 @@
-import { NICHES, PLATFORM_FEE_RATE, PLATFORMS, PRO_PLATFORM_FEE_RATE, PRO_SUBSCRIPTION_PRICE_CENTS, RELEASE_REVIEW_DAYS } from "@/lib/constants";
+import type { UgcNichePage } from "@/lib/ugc/types";
+import { PLATFORM_FEE_RATE, PLATFORMS, PRO_PLATFORM_FEE_RATE, PRO_SUBSCRIPTION_PRICE_CENTS, RELEASE_REVIEW_DAYS } from "@/lib/constants";
 
 // The German search landing pages (/ugc and /ugc/<slug>). One page per niche, each with its own text: a
 // page only earns its place in search if it says something the others don't. Add a niche by adding an entry
@@ -6,25 +7,7 @@ import { NICHES, PLATFORM_FEE_RATE, PLATFORMS, PRO_PLATFORM_FEE_RATE, PRO_SUBSCR
 // testimonials, and no "escrow" wording on public pages until the payment model is cleared (see
 // docs/legal-readiness.md).
 
-type Niche = (typeof NICHES)[number];
-
-export type UgcNichePage = {
-  slug: string;
-  niche: Niche;
-  // The niche's name in the German app (src/lib/i18n/messages/screens-de.ts), as people see it after choosing
-  // German in the wizard.
-  label: string;
-  // <title> (the site adds " · comtor") and meta description.
-  title: string;
-  description: string;
-  heading: string;
-  // The heading split over two lines for the share image.
-  ogLines: [string, string];
-  lead: string;
-  formats: { title: string; text: string }[];
-  // Niche-specific questions; the shared ones follow (see ugcFaqs).
-  faqs: { question: string; answer: string }[];
-};
+export type { UgcNichePage };
 
 const NBSP = " ";
 const FEE = `${PLATFORM_FEE_RATE * 100}${NBSP}%`;

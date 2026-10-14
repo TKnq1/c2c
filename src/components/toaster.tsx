@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { subscribeToasts, toast, type Toast } from "@/lib/toast";
 import { useI18n } from "@/components/i18n-provider";
+import { localizeError } from "@/lib/i18n/labels";
 
 const VARIANT_STYLES: Record<Toast["variant"], string> = {
   success: "border-ink/10 bg-paper text-ink",
@@ -35,7 +36,7 @@ function ToastItem({ item }: { item: Toast }) {
       role="status"
       className={`pointer-events-auto rounded-xl border px-4 py-3 text-sm flex items-center justify-between gap-3 ${VARIANT_STYLES[item.variant]} ${closing ? "toast-out" : "toast-in"}`}
     >
-      <span>{item.message}</span>
+      <span>{item.variant === "error" ? localizeError(item.message, t) : item.message}</span>
       <div className="flex items-center gap-3 shrink-0">
         {item.action && (
           <button
