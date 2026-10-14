@@ -28,13 +28,15 @@ export default async function InvoicesPage() {
   });
 
   return (
-    <div className="mx-auto flex w-full max-w-2xl flex-col gap-4 pb-8">
+    <div className="page-wide flex flex-col gap-6 pb-8">
       <PageTitle description={u("invoices.listDescription")}>{u("invoices.listTitle")}</PageTitle>
       <DealsTabs current="invoices" userId={session.user.id} role={session.user.role} locale={locale} />
       {invoices.length === 0 ? (
-        <EmptyState icon={IoDocumentTextOutline} title={u("invoices.empty")} description={u("invoices.none")} />
+        <div className="max-w-2xl">
+          <EmptyState icon={IoDocumentTextOutline} title={u("invoices.empty")} description={u("invoices.none")} />
+        </div>
       ) : (
-        <div className="flex flex-col gap-2">
+        <div className="flex max-w-2xl flex-col gap-2">
           {invoices.map((invoice) => (
             <Link key={invoice.id} href={`/dashboard/invoices/${invoice.id}`} className={`${cardClass} flex items-center gap-3 transition hover:bg-neutral-200/60 dark:hover:bg-neutral-700/60`}>
               <IoDocumentTextOutline className="h-6 w-6 shrink-0" aria-hidden />

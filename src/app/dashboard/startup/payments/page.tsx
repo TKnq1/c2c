@@ -120,8 +120,8 @@ export default async function StartupPaymentsPage(props: PageProps<"/dashboard/s
   const requestHref = (requestId: string) => `/dashboard/startup/requests/${requestId}`;
 
   return (
-    <div className="page-wide flex flex-col gap-8">
-      <PageTitle>{t("nav.payments")}</PageTitle>
+    <div className="page-wide flex flex-col gap-6">
+      <PageTitle description={u("deals.paymentsDescription")}>{t("nav.payments")}</PageTitle>
       <DealsTabs current="payments" userId={session.user.id} role="STARTUP" locale={locale} />
       <CheckoutReturn status={checkout} waiting={confirmingId !== null} />
       <PaymentStats

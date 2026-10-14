@@ -152,13 +152,14 @@ export function CommandPalette({ role }: { role: Role }) {
 
   let index = -1;
   return (
-    <div className="fixed inset-0 z-[55] no-print">
+    <div className="fixed inset-0 z-[55] flex items-center justify-center px-4 no-print">
       <div aria-hidden className="animate-backdrop-in absolute inset-0 bg-black/30" onClick={close} />
       <div
         role="dialog"
         aria-modal="true"
         aria-label={t("nav.search")}
-        className="animate-dropdown-in absolute inset-x-4 top-[12vh] mx-auto flex max-h-[70vh] max-w-xl flex-col overflow-hidden rounded-[20px] bg-background shadow-2xl"
+        // Centred in the window, with a fixed height so it does not move while the results change.
+        className="animate-dropdown-in relative flex h-[min(70vh,32rem)] w-full max-w-xl flex-col overflow-hidden rounded-[20px] bg-background shadow-2xl"
       >
         <div className="flex shrink-0 items-center gap-3 border-b border-ink/10 px-4">
           <IoSearch className="h-5 w-5 shrink-0 text-neutral-400" aria-hidden />
