@@ -1,0 +1,70 @@
+[
+  {
+    "id": "L01",
+    "label": "1 · Problem: Kaltakquise"
+  },
+  {
+    "id": "L02",
+    "label": "2 · Problem: Geld"
+  },
+  {
+    "id": "L03",
+    "label": "3 · Wendung"
+  },
+  {
+    "id": "L04",
+    "label": "4 · Reveal „Das ist“"
+  },
+  {
+    "id": "L05",
+    "label": "5 · Reveal comtor"
+  },
+  {
+    "id": "L06",
+    "label": "6 · Claim"
+  },
+  {
+    "id": "L07",
+    "label": "7 · Produkt (Creator-Feed)"
+  },
+  {
+    "id": "L08",
+    "label": "8 · Matching"
+  },
+  {
+    "id": "L09",
+    "label": "9 · Ein Swipe"
+  },
+  {
+    "id": "L10",
+    "label": "10 · Geld zurückgehalten"
+  },
+  {
+    "id": "L11",
+    "label": "11 · Ausgezahlt"
+  },
+  {
+    "id": "L12",
+    "label": "12 · Und für Marken"
+  },
+  {
+    "id": "L13",
+    "label": "13 · Briefing (Zoom)"
+  },
+  {
+    "id": "L14",
+    "label": "14 · Briefing (Ganze Seite)"
+  },
+  {
+    "id": "L15",
+    "label": "15 · Abgrenzung"
+  },
+  {
+    "id": "L16",
+    "label": "16 · Logo"
+  },
+  {
+    "id": "L17",
+    "label": "17 · CTA"
+  }
+]

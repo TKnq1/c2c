@@ -1,8 +1,9 @@
-import { Composition, Folder } from "remotion";
+import { Composition, Folder, Still } from "remotion";
 import { ADS, HAS_VOICE } from "./ads";
 import { BRAND_DURATION, BrandVideo } from "./brand/BrandVideo";
 import { CREATOR_DURATION, CreatorVideo } from "./creator/CreatorVideo";
 import "./fonts";
+import { LAUNCH_HEIGHT, LAUNCH_STILLS, LAUNCH_WIDTH } from "./launch/stills";
 import { PINNED } from "./pinned";
 import { POST_HEIGHT, POST_WIDTH } from "./posts/kit";
 import { STORIES } from "./stories";
@@ -21,6 +22,11 @@ export const RemotionRoot: React.FC = () => (
     <Folder name="Styleframes">
       {STYLEFRAMES.map(({ id, component, keyframe }) => (
         <Composition key={id} id={id} component={component} durationInFrames={keyframe + 1} fps={FPS} width={WIDTH} height={HEIGHT} />
+      ))}
+    </Folder>
+    <Folder name="Launch-Stills">
+      {LAUNCH_STILLS.map(({ id, component }) => (
+        <Still key={id} id={id} component={component} width={LAUNCH_WIDTH} height={LAUNCH_HEIGHT} />
       ))}
     </Folder>
     <Folder name="Stories">
