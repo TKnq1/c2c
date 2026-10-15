@@ -8,7 +8,6 @@ import { photoUrlsByRequestId, requestPhotoIds } from "@/lib/request-photos";
 import { DiscoverBrands } from "@/components/discover-brands";
 import { SkeletonTileGrid } from "@/components/skeleton";
 import { PageTitle } from "@/components/page-title";
-import { FavoritesOnlyToggle } from "@/components/favorites-only-toggle";
 import { getT } from "@/lib/i18n/server";
 
 export default async function DiscoverBrandsPage() {
@@ -115,16 +114,8 @@ export default async function DiscoverBrandsPage() {
 
   return (
     <div className="page-wide flex flex-col gap-6">
-      {/* On phones the header names the page and holds the saved-only star (see Nav); from md up both are here. */}
-      {/* No box on phones (display: contents), so the hidden title leaves no gap above the search. */}
-      <div className="flex items-start justify-between gap-4 max-md:contents">
-        <PageTitle description={t("screens.discover.brandsHint")}>{t("screens.discover.brands")}</PageTitle>
-        <div className="hidden md:block">
-          <Suspense fallback={null}>
-            <FavoritesOnlyToggle />
-          </Suspense>
-        </div>
-      </div>
+      {/* On phones the header names the page. The saved-only switch is one of the filters. */}
+      <PageTitle description={t("screens.discover.brandsHint")}>{t("screens.discover.brands")}</PageTitle>
       <Suspense fallback={<SkeletonTileGrid />}>
         <DiscoverBrands brands={brandsWithRatings} />
       </Suspense>
