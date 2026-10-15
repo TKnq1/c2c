@@ -5,7 +5,7 @@ import { FiSearch } from "react-icons/fi";
 import { NICHES } from "@/lib/constants";
 import { useUrlState } from "@/lib/use-url-state";
 import { SearchInput } from "@/components/search-input";
-import { AppliedFilters, FilterButton, FilterChip, FilterGroup, FilterSheet, searchFieldClass, useFilterSheet } from "@/components/filters";
+import { AppliedFilters, FavoritesFilter, FilterButton, FilterChip, FilterGroup, FilterSheet, searchFieldClass, useFilterSheet } from "@/components/filters";
 import { BrandCard } from "@/components/brand-card";
 import { EmptyState } from "@/components/empty-state";
 import { computeRelevanceScore } from "@/lib/relevance";
@@ -34,8 +34,8 @@ export function DiscoverBrands({ brands }: { brands: BrandEntry[] }) {
   const [{ q: search, niche, favorites }, setParam, setParams] = useUrlState(["q", "niche", "favorites"]);
   const niches = useMemo(() => (niche ? niche.split(",") : []), [niche]);
   const sheet = useFilterSheet();
-  // Filter groups that narrow the list (the saved-only star in the header is not one of them).
-  const activeFilterCount = niches.length > 0 ? 1 : 0;
+  // Filter groups that narrow the list, saved-only among them (it is the star in the header too).
+  const activeFilterCount = (niches.length > 0 ? 1 : 0) + (favorites === "1" ? 1 : 0);
 
   function toggleNiche(n: string) {
     setParam("niche", (niches.includes(n) ? niches.filter((x) => x !== n) : [...niches, n]).join(","));
@@ -94,7 +94,10 @@ export function DiscoverBrands({ brands }: { brands: BrandEntry[] }) {
 
       <AppliedFilters
         removeLabel={t("common.remove")}
-        items={niches.map((n) => ({ key: n, label: nicheLabel(t, n), onRemove: () => toggleNiche(n) }))}
+        items={[
+          ...(favorites === "1" ? [{ key: "favorites", label: t("screens.discover.favoritesChip"), onRemove: () => setParam("favorites", "") }] : []),
+          ...niches.map((n) => ({ key: n, label: nicheLabel(t, n), onRemove: () => toggleNiche(n) })),
+        ]}
       />
 
       <p className="text-sm text-neutral-600 dark:text-neutral-400">
@@ -134,13 +137,14 @@ export function DiscoverBrands({ brands }: { brands: BrandEntry[] }) {
         anchor={sheet.anchor}
         title={t("screens.discover.filter")}
         resetLabel={t("screens.discover.resetFilters")}
-        onReset={() => setParam("niche", "")}
+        onReset={() => setParams({ niche: "", favorites: "" })}
         showLabel={
           filtered.length === 1
             ? t("screens.discover.showBrandsOne", { count: filtered.length })
             : t("screens.discover.showBrandsMany", { count: filtered.length })
         }
       >
+        <FavoritesFilter active={favorites === "1"} onToggle={() => setParam("favorites", favorites === "1" ? "" : "1")} label={t("screens.discover.favoritesChip")} />
         <FilterGroup label={t("screens.discover.niche")}>
           {NICHES.map((n) => (
             <FilterChip key={n} active={niches.includes(n)} onClick={() => toggleNiche(n)}>
