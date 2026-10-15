@@ -1,4 +1,5 @@
-import { PLATFORM_FEE_RATE, PLATFORMS, PRO_PLATFORM_FEE_RATE, PRO_SUBSCRIPTION_PRICE_CENTS, RELEASE_REVIEW_DAYS } from "@/lib/constants";
+import { PLATFORM_FEE_RATE, PLATFORMS, PRO_PLATFORM_FEE_RATE, PRO_PRICE_CENTS, RELEASE_REVIEW_DAYS } from "@/lib/constants";
+import { formatEuroNumber } from "@/lib/format";
 import type { UgcContent, UgcFaqItem, UgcNichePage } from "@/lib/ugc/types";
 
 // Dutch version of the UGC search landing pages. Same structure as the German source (src/lib/seo-pages.ts,
@@ -10,7 +11,8 @@ const NBSP = " ";
 // Dutch typography: percent sign attached to the number, currency sign first with a non-breaking space.
 const FEE = `${PLATFORM_FEE_RATE * 100}%`;
 const PRO_FEE = `${PRO_PLATFORM_FEE_RATE * 100}%`;
-const PRO_PRICE = `€${NBSP}${PRO_SUBSCRIPTION_PRICE_CENTS / 100}`;
+const PRO_PRICE_BRAND = `€${NBSP}${formatEuroNumber(PRO_PRICE_CENTS.brand, "nl")}`;
+const PRO_PRICE_CREATOR = `€${NBSP}${formatEuroNumber(PRO_PRICE_CENTS.creator, "nl")}`;
 
 // Questions every page answers the same way, because the answer is the same.
 function sharedFaqs(): UgcFaqItem[] {
@@ -21,7 +23,7 @@ function sharedFaqs(): UgcFaqItem[] {
     },
     {
       question: "Wat kost comtor?",
-      answer: `Aanmelden is gratis en er zijn geen vaste kosten. comtor houdt ${FEE} van elke betaling in. Die kosten gaan af van de uitbetaling aan de creator. Het merk betaalt precies het afgesproken bedrag. Merken en creators kunnen een optioneel Pro-abonnement nemen voor ${PRO_PRICE} per maand. Dan betaal je ${PRO_FEE} bij elke betaling waarbij een van beide kanten Pro heeft.`,
+      answer: `Aanmelden is gratis en er zijn geen vaste kosten. comtor houdt ${FEE} van elke betaling in. Die kosten gaan af van de uitbetaling aan de creator. Het merk betaalt precies het afgesproken bedrag. Merken kunnen een optioneel Pro-abonnement nemen voor ${PRO_PRICE_BRAND} per maand, creators voor ${PRO_PRICE_CREATOR}. Dan betaal je ${PRO_FEE} bij elke betaling waarbij een van beide kanten Pro heeft.`,
     },
     {
       question: "Moeten betaalde posts als reclame worden gemarkeerd?",

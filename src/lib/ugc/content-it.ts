@@ -1,4 +1,5 @@
-import { PLATFORM_FEE_RATE, PLATFORMS, PRO_PLATFORM_FEE_RATE, PRO_SUBSCRIPTION_PRICE_CENTS, RELEASE_REVIEW_DAYS } from "@/lib/constants";
+import { PLATFORM_FEE_RATE, PLATFORMS, PRO_PLATFORM_FEE_RATE, PRO_PRICE_CENTS, RELEASE_REVIEW_DAYS } from "@/lib/constants";
+import { formatEuroNumber } from "@/lib/format";
 import type { UgcCard, UgcContent, UgcCreatorPage, UgcFaqItem, UgcNichePage } from "@/lib/ugc/types";
 
 // Italian UGC search pages. Same structure as the German source (src/lib/seo-pages.ts, content-de.ts). No
@@ -7,7 +8,8 @@ import type { UgcCard, UgcContent, UgcCreatorPage, UgcFaqItem, UgcNichePage } fr
 const NBSP = " ";
 const FEE = `${PLATFORM_FEE_RATE * 100}%`;
 const PRO_FEE = `${PRO_PLATFORM_FEE_RATE * 100}%`;
-const PRO_PRICE = `${PRO_SUBSCRIPTION_PRICE_CENTS / 100}${NBSP}€`;
+const PRO_PRICE_BRAND = `${formatEuroNumber(PRO_PRICE_CENTS.brand, "it")}${NBSP}€`;
+const PRO_PRICE_CREATOR = `${formatEuroNumber(PRO_PRICE_CENTS.creator, "it")}${NBSP}€`;
 
 // Questions every page answers the same way, because the answer is the same.
 function sharedFaqs(): UgcFaqItem[] {
@@ -18,7 +20,7 @@ function sharedFaqs(): UgcFaqItem[] {
     },
     {
       question: "Quanto costa comtor?",
-      answer: `Iscriversi è gratis e non c’è nessun canone fisso. comtor trattiene il ${FEE} di ogni pagamento. La commissione viene detratta dal pagamento al creator. Il brand paga esattamente l’importo concordato. Brand e creator possono attivare un abbonamento Pro facoltativo a ${PRO_PRICE} al mese. Così la commissione scende al ${PRO_FEE} su ogni pagamento in cui almeno una delle due parti ha Pro.`,
+      answer: `Iscriversi è gratis e non c’è nessun canone fisso. comtor trattiene il ${FEE} di ogni pagamento. La commissione viene detratta dal pagamento al creator. Il brand paga esattamente l’importo concordato. I brand possono attivare un abbonamento Pro facoltativo a ${PRO_PRICE_BRAND} al mese, i creator a ${PRO_PRICE_CREATOR}. Così la commissione scende al ${PRO_FEE} su ogni pagamento in cui almeno una delle due parti ha Pro.`,
     },
     {
       question: "I post a pagamento vanno segnalati come pubblicità?",

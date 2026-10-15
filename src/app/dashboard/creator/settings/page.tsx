@@ -102,6 +102,7 @@ export default async function CreatorSettingsPage() {
           proSince={creator.proSince}
           foundingNumber={creator.foundingNumber}
           hasSubscription={!!creator.stripeSubscriptionId}
+          subscriptionPriceCents={creator.proPriceCents}
           canWithdraw={creator.isPro && !!creator.stripeSubscriptionId && canWithdrawPro(creator.proSince)}
           canPurchase={await canSellProSubscription()}
         />

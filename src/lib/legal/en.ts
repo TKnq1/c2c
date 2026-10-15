@@ -1,4 +1,4 @@
-import { FOUNDING_BRAND_LIMIT, FOUNDING_CREATOR_LIMIT, PLATFORM_FEE_RATE, PRO_PLATFORM_FEE_RATE, PRO_SUBSCRIPTION_PRICE_CENTS, RELEASE_REVIEW_DAYS } from "@/lib/constants";
+import { FOUNDING_BRAND_LIMIT, FOUNDING_CREATOR_LIMIT, PLATFORM_FEE_RATE, PRO_PLATFORM_FEE_RATE, PRO_PRICE_CENTS, RELEASE_REVIEW_DAYS } from "@/lib/constants";
 import { formatCents } from "@/lib/format";
 import type { LegalContent, LegalSection } from "@/lib/legal/types";
 
@@ -44,7 +44,7 @@ function enTerms(): LegalSection[] {
   {
     title: "Fees",
     body: [
-      `We charge a ${PLATFORM_FEE_RATE * 100}% platform fee on every payment made through comtor. Brands and creators can subscribe to Pro for ${formatCents(PRO_SUBSCRIPTION_PRICE_CENTS)}/month. While Pro is active, the fee is ${PRO_PLATFORM_FEE_RATE * 100}% on every payment where the brand or the creator has Pro. Pro renews each month until you cancel it in Settings. Cancelling stops the next renewal. There is no listing fee. The first ${FOUNDING_BRAND_LIMIT} brands (founding brands) and the first ${FOUNDING_CREATOR_LIMIT} creators (founding creators) that signed up with comtor get Pro for free for as long as their account exists. That Pro has no monthly price, can't be transferred and ends with the account. We can take it away if someone breaks these terms.`,
+      `We charge a ${PLATFORM_FEE_RATE * 100}% platform fee on every payment made through comtor. Brands can subscribe to Pro for ${formatCents(PRO_PRICE_CENTS.brand)}/month, creators for ${formatCents(PRO_PRICE_CENTS.creator)}/month. While Pro is active, the fee is ${PRO_PLATFORM_FEE_RATE * 100}% on every payment where the brand or the creator has Pro. Pro renews each month until you cancel it in Settings. Cancelling stops the next renewal. There is no listing fee. The first ${FOUNDING_BRAND_LIMIT} brands (founding brands) and the first ${FOUNDING_CREATOR_LIMIT} creators (founding creators) that signed up with comtor get Pro for free for as long as their account exists. That Pro has no monthly price, can't be transferred and ends with the account. We can take it away if someone breaks these terms.`,
       "The platform fee is kept only when a payment is released to the creator. If a held payment is refunded, the brand gets that payment back and we don't keep a fee on it.",
     ],
   },

@@ -2,7 +2,6 @@ import Link from "next/link";
 import { FiActivity, FiCreditCard, FiDollarSign, FiFileText, FiFilter, FiFlag, FiMessageSquare, FiPercent, FiStar, FiTarget, FiUsers } from "react-icons/fi";
 import { prisma } from "@/lib/prisma";
 import { formatCents } from "@/lib/format";
-import { PRO_SUBSCRIPTION_PRICE_CENTS } from "@/lib/constants";
 import { orderedTiles, type AdminPrefs, type TileKey } from "@/lib/admin-prefs";
 import { loadDashboard } from "@/lib/admin-dashboard";
 import { loadMoney, runwayText } from "@/lib/admin-money";
@@ -83,7 +82,7 @@ export async function HeuteDetails({ prefs, now }: { prefs: AdminPrefs; now: Dat
           label="Pro-Abos"
           icon={FiStar}
           value={data.pro.paying.toLocaleString("de-DE")}
-          hint={`${formatCents(data.pro.paying * PRO_SUBSCRIPTION_PRICE_CENTS)} im Monat · ${data.pro.founding} mit Founding-Platz`}
+          hint={`${formatCents(data.pro.mrrCents)} im Monat · ${data.pro.founding} mit Founding-Platz`}
           href="/admin/users?role=STARTUP&pro=1"
         />
       </div>

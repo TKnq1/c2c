@@ -1,4 +1,4 @@
-import { FOUNDING_BRAND_LIMIT, FOUNDING_CREATOR_LIMIT, PLATFORM_FEE_RATE, PRO_PLATFORM_FEE_RATE, PRO_SUBSCRIPTION_PRICE_CENTS, RELEASE_REVIEW_DAYS } from "@/lib/constants";
+import { FOUNDING_BRAND_LIMIT, FOUNDING_CREATOR_LIMIT, PLATFORM_FEE_RATE, PRO_PLATFORM_FEE_RATE, PRO_PRICE_CENTS, RELEASE_REVIEW_DAYS } from "@/lib/constants";
 import { formatCents } from "@/lib/format";
 import type { LegalContent, LegalSection } from "@/lib/legal/types";
 
@@ -44,7 +44,7 @@ function plTerms(): LegalSection[] {
   {
     title: "Opłaty",
     body: [
-      `Pobieramy prowizję platformy w wysokości ${PLATFORM_FEE_RATE * 100}% od każdej płatności dokonanej przez comtor. Marki i twórcy mogą wykupić Pro za ${formatCents(PRO_SUBSCRIPTION_PRICE_CENTS)}/miesiąc. Gdy Pro jest aktywne, prowizja wynosi ${PRO_PLATFORM_FEE_RATE * 100}% od każdej płatności, w której marka lub twórca ma Pro. Pro odnawia się co miesiąc, dopóki nie anulujesz go w Ustawieniach. Anulowanie zatrzymuje następne odnowienie. Nie ma opłaty za publikację zleceń. Pierwsze marki (marki założycielskie; limit: ${FOUNDING_BRAND_LIMIT}) i pierwsi twórcy (twórcy założyciele; limit: ${FOUNDING_CREATOR_LIMIT}), którzy zarejestrowali się w comtor, dostają Pro bezpłatnie, dopóki istnieje ich konto. To Pro nie ma ceny miesięcznej, nie może być przeniesione i wygasa wraz z kontem. Możemy je odebrać, jeśli ktoś naruszy ten regulamin.`,
+      `Pobieramy prowizję platformy w wysokości ${PLATFORM_FEE_RATE * 100}% od każdej płatności dokonanej przez comtor. Marki mogą wykupić Pro za ${formatCents(PRO_PRICE_CENTS.brand)}/miesiąc, a twórcy za ${formatCents(PRO_PRICE_CENTS.creator)}/miesiąc. Gdy Pro jest aktywne, prowizja wynosi ${PRO_PLATFORM_FEE_RATE * 100}% od każdej płatności, w której marka lub twórca ma Pro. Pro odnawia się co miesiąc, dopóki nie anulujesz go w Ustawieniach. Anulowanie zatrzymuje następne odnowienie. Nie ma opłaty za publikację zleceń. Pierwsze marki (marki założycielskie; limit: ${FOUNDING_BRAND_LIMIT}) i pierwsi twórcy (twórcy założyciele; limit: ${FOUNDING_CREATOR_LIMIT}), którzy zarejestrowali się w comtor, dostają Pro bezpłatnie, dopóki istnieje ich konto. To Pro nie ma ceny miesięcznej, nie może być przeniesione i wygasa wraz z kontem. Możemy je odebrać, jeśli ktoś naruszy ten regulamin.`,
       "Prowizję platformy zatrzymujemy tylko wtedy, gdy płatność zostaje zwolniona na rzecz twórcy. Jeśli wstrzymana płatność zostanie zwrócona, marka dostaje tę płatność z powrotem i nie zatrzymujemy od niej prowizji.",
     ],
   },

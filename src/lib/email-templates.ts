@@ -4,9 +4,10 @@ import {
   FOUNDING_CREATOR_LIMIT,
   PLATFORM_FEE_RATE,
   PRO_PLATFORM_FEE_RATE,
-  PRO_SUBSCRIPTION_PRICE_CENTS,
+  PRO_PRICE_CENTS,
   RELEASE_REVIEW_DAYS,
 } from "@/lib/constants";
+import { formatEuroNumber } from "@/lib/format";
 import { createT } from "@/lib/i18n/catalogs";
 import { DEFAULT_LOCALE, type Locale } from "@/lib/i18n/locales";
 
@@ -162,10 +163,11 @@ export function marketingWelcomeEmail(
   const note = reason ? t("emails.marketingWelcome.noteWithReason", { reason }) : t("emails.marketingWelcome.note");
   const fee = Math.round(PLATFORM_FEE_RATE * 100);
   const proFee = Math.round(PRO_PLATFORM_FEE_RATE * 100);
-  const price = PRO_SUBSCRIPTION_PRICE_CENTS / 100;
+  // Each side reads its own Pro price, in its own number notation (the texts add the € sign).
+  const priceFor = (side: keyof typeof PRO_PRICE_CENTS) => formatEuroNumber(PRO_PRICE_CENTS[side], locale);
   const hint = t("emails.marketingWelcome.hint");
   if (role === "CREATOR") {
-    const vars = { keep: 100 - fee, proKeep: 100 - proFee, price, days: RELEASE_REVIEW_DAYS };
+    const vars = { keep: 100 - fee, proKeep: 100 - proFee, price: priceFor("creator"), days: RELEASE_REVIEW_DAYS };
     return render({
       locale,
       subject,
@@ -203,7 +205,7 @@ export function marketingWelcomeEmail(
       optOut,
     });
   }
-  const vars = { fee, proFee, price };
+  const vars = { fee, proFee, price: priceFor("brand") };
   return render({
     locale,
     subject,

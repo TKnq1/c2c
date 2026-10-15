@@ -1,4 +1,5 @@
-import { PLATFORM_FEE_RATE, PLATFORMS, PRO_PLATFORM_FEE_RATE, PRO_SUBSCRIPTION_PRICE_CENTS, RELEASE_REVIEW_DAYS } from "@/lib/constants";
+import { PLATFORM_FEE_RATE, PLATFORMS, PRO_PLATFORM_FEE_RATE, PRO_PRICE_CENTS, RELEASE_REVIEW_DAYS } from "@/lib/constants";
+import { formatEuroNumber } from "@/lib/format";
 import type { UgcContent, UgcFaqItem, UgcNichePage } from "@/lib/ugc/types";
 
 // Spanish version of the UGC search pages (/es/ugc ...). Same structure as content-de.ts / seo-pages.ts:
@@ -9,7 +10,8 @@ import type { UgcContent, UgcFaqItem, UgcNichePage } from "@/lib/ugc/types";
 const NBSP = " ";
 const FEE = `${PLATFORM_FEE_RATE * 100}${NBSP}%`;
 const PRO_FEE = `${PRO_PLATFORM_FEE_RATE * 100}${NBSP}%`;
-const PRO_PRICE = `${PRO_SUBSCRIPTION_PRICE_CENTS / 100}${NBSP}€`;
+const PRO_PRICE_BRAND = `${formatEuroNumber(PRO_PRICE_CENTS.brand, "es")}${NBSP}€`;
+const PRO_PRICE_CREATOR = `${formatEuroNumber(PRO_PRICE_CENTS.creator, "es")}${NBSP}€`;
 
 const PLATFORM_LIST = `${PLATFORMS.slice(0, -1).join(", ")} y ${PLATFORMS[PLATFORMS.length - 1]}`;
 
@@ -22,7 +24,7 @@ function sharedFaqs(): UgcFaqItem[] {
     },
     {
       question: "¿Cuánto cuesta comtor?",
-      answer: `Registrarse es gratis y no hay cuota fija. comtor se queda ${FEE} de cada pago. La comisión se descuenta del cobro del creador. La marca paga exactamente el importe acordado. Marcas y creadores pueden contratar un plan Pro opcional por ${PRO_PRICE} al mes. Entonces la comisión es de ${PRO_FEE} en cada pago en el que una de las dos partes tenga Pro.`,
+      answer: `Registrarse es gratis y no hay cuota fija. comtor se queda ${FEE} de cada pago. La comisión se descuenta del cobro del creador. La marca paga exactamente el importe acordado. Las marcas pueden contratar un plan Pro opcional por ${PRO_PRICE_BRAND} al mes, y los creadores por ${PRO_PRICE_CREATOR}. Entonces la comisión es de ${PRO_FEE} en cada pago en el que una de las dos partes tenga Pro.`,
     },
     {
       question: "¿Hay que marcar los posts de pago como publicidad?",

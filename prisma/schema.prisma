@@ -354,6 +354,9 @@ model StartupProfile {
   // source of truth for actually managing the subscription itself.
   isPro                Boolean   @default(false)
   proSince             DateTime?
+  // What this profile's Pro subscription costs a month, as Stripe charges it (the price it started with; see
+  // PRO_PRICE_CENTS). Null without a subscription.
+  proPriceCents        Int?
   stripeCustomerId     String?
   stripeSubscriptionId String?
   // The first brands (FOUNDING_BRAND_LIMIT) get Pro for as long as the account exists: number 1..N, no
@@ -432,6 +435,9 @@ model CreatorProfile {
   // customer for the subscription, not the Connect account above.
   isPro                Boolean   @default(false)
   proSince             DateTime?
+  // What this profile's Pro subscription costs a month, as Stripe charges it (the price it started with; see
+  // PRO_PRICE_CENTS). Null without a subscription.
+  proPriceCents        Int?
   stripeCustomerId     String?
   stripeSubscriptionId String?
   // The first creators (FOUNDING_CREATOR_LIMIT) get Pro for as long as the account exists, numbered on their

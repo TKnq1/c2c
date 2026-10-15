@@ -96,6 +96,7 @@ export const extras = {
     enrollAgain: "Start enrollment again.",
     codeMismatch: "That code didn't match. Check your app and try again.",
     proNotInApp: "Pro isn't available in the app.",
+    proUnavailable: "Pro can't be booked right now. Please try again later.",
     alreadyPro: "You're already on Pro.",
     cannotWithdrawPro: "Pro can't be withdrawn right now.",
     withdrawWindowPassed: "The 14 days to withdraw have passed. You can still cancel Pro.",

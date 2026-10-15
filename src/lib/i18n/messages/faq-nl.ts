@@ -7,7 +7,8 @@ export const faqNl: DeepString<typeof faq> = {
     description: "Zo werken matching, betalingen en beoordelingen bij comtor.",
   },
   proOffer:
-    " Neem Pro voor {price} per maand en de kosten dalen naar {proFee}%. Dat geldt voor elke betaling waarbij een van beide kanten Pro heeft.",
+    " Neem Pro ({price} per maand) en de kosten dalen naar {proFee}%. Dat geldt voor elke betaling waarbij een van beide kanten Pro heeft.",
+  perSide: "{brand} voor merken en {creator} voor creators",
   items: {
     matching: {
       question: "Hoe werkt matching?",
@@ -27,7 +28,7 @@ export const faqNl: DeepString<typeof faq> = {
     pro: {
       question: "Wat is het Pro-abonnement?",
       answer:
-        "Een optioneel maandabonnement voor merken en creators ({price} per maand). Het verlaagt de kosten van {fee}% naar {proFee}% bij elke betaling. Het merk of de creator heeft Pro nodig, niet allebei. Pro verdient zich terug zodra ongeveer {breakEven} per maand via je account loopt. Stripe rekent maandelijks af. Beheer of zeg het op in Instellingen. De eerste {foundingBrands} merken en de eerste {foundingCreators} creators krijgen Pro gratis, zolang hun account bestaat.",
+        "Een optioneel maandabonnement: {price} per maand. Het verlaagt de kosten van {fee}% naar {proFee}% bij elke betaling. Het merk of de creator heeft Pro nodig, niet allebei. Pro verdient zich terug zodra ongeveer {breakEven} per maand via je account loopt. Stripe rekent maandelijks af. Beheer of zeg het op in Instellingen. De eerste {foundingBrands} merken en de eerste {foundingCreators} creators krijgen Pro gratis, zolang hun account bestaat.",
     },
     noPost: {
       question: "Wat als de creator nooit post?",

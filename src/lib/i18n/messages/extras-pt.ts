@@ -95,6 +95,7 @@ export const extrasPt: DeepString<typeof extras> = {
     enrollAgain: "Começa o registo de novo.",
     codeMismatch: "Esse código não corresponde. Verifica a tua app e tenta de novo.",
     proNotInApp: "O Pro não está disponível na app.",
+    proUnavailable: "De momento não é possível subscrever o Pro. Tenta de novo mais tarde.",
     alreadyPro: "Já tens o Pro.",
     cannotWithdrawPro: "Não é possível retratar o Pro agora.",
     withdrawWindowPassed: "Os 14 dias para retratar já passaram. Ainda podes cancelar o Pro.",

@@ -1,4 +1,4 @@
-import { FOUNDING_BRAND_LIMIT, FOUNDING_CREATOR_LIMIT, PLATFORM_FEE_RATE, PRO_PLATFORM_FEE_RATE, PRO_SUBSCRIPTION_PRICE_CENTS, RELEASE_REVIEW_DAYS } from "@/lib/constants";
+import { FOUNDING_BRAND_LIMIT, FOUNDING_CREATOR_LIMIT, PLATFORM_FEE_RATE, PRO_PLATFORM_FEE_RATE, PRO_PRICE_CENTS, RELEASE_REVIEW_DAYS } from "@/lib/constants";
 import { formatCents } from "@/lib/format";
 import type { LegalContent, LegalSection } from "@/lib/legal/types";
 
@@ -44,7 +44,7 @@ function esTerms(): LegalSection[] {
   {
     title: "Tarifas",
     body: [
-      `Cobramos una comisión de plataforma del ${PLATFORM_FEE_RATE * 100} % en cada pago realizado a través de comtor. Las marcas y los creadores pueden suscribirse a Pro por ${formatCents(PRO_SUBSCRIPTION_PRICE_CENTS)}/mes. Mientras Pro esté activo, la comisión es del ${PRO_PLATFORM_FEE_RATE * 100} % en cada pago en el que la marca o el creador tenga Pro. Pro se renueva cada mes hasta que lo canceles en Ajustes. Al cancelarlo se detiene la siguiente renovación. No hay tarifa por publicar. Las primeras ${FOUNDING_BRAND_LIMIT} marcas (marcas fundadoras) y los primeros ${FOUNDING_CREATOR_LIMIT} creadores (creadores fundadores) que se registraron en comtor tienen Pro gratis mientras exista su cuenta. Ese Pro no tiene precio mensual, no se puede transferir y termina con la cuenta. Podemos retirarlo si alguien incumple estas condiciones.`,
+      `Cobramos una comisión de plataforma del ${PLATFORM_FEE_RATE * 100} % en cada pago realizado a través de comtor. Las marcas pueden suscribirse a Pro por ${formatCents(PRO_PRICE_CENTS.brand)}/mes y los creadores por ${formatCents(PRO_PRICE_CENTS.creator)}/mes. Mientras Pro esté activo, la comisión es del ${PRO_PLATFORM_FEE_RATE * 100} % en cada pago en el que la marca o el creador tenga Pro. Pro se renueva cada mes hasta que lo canceles en Ajustes. Al cancelarlo se detiene la siguiente renovación. No hay tarifa por publicar. Las primeras ${FOUNDING_BRAND_LIMIT} marcas (marcas fundadoras) y los primeros ${FOUNDING_CREATOR_LIMIT} creadores (creadores fundadores) que se registraron en comtor tienen Pro gratis mientras exista su cuenta. Ese Pro no tiene precio mensual, no se puede transferir y termina con la cuenta. Podemos retirarlo si alguien incumple estas condiciones.`,
       "La comisión de plataforma solo se retiene cuando un pago se libera al creador. Si se reembolsa un pago retenido, la marca recupera ese pago y no retenemos ninguna comisión sobre él.",
     ],
   },

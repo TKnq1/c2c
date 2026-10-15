@@ -8,6 +8,13 @@ export function formatCents(cents: number): string {
   return (cents / 100).toLocaleString("de-DE", { style: "currency", currency: "EUR" });
 }
 
+// A euro amount as a bare number in the reader's notation, for texts that put the € sign themselves ("{price} €",
+// "€{price}"): 8,99 in German, 8.99 in English, whole amounts without decimals (10).
+export function formatEuroNumber(cents: number, locale: string): string {
+  const whole = cents % 100 === 0;
+  return (cents / 100).toLocaleString(locale, { minimumFractionDigits: whole ? 0 : 2, maximumFractionDigits: 2 });
+}
+
 // Follower counts drift constantly, so public displays show a rounded-down
 // "orientation" figure (e.g. "12K+") rather than a false-precision exact
 // number. Floors (never rounds up) so the "+" is always honest.

@@ -63,7 +63,7 @@ Einschränkungen, die man kennen muss:
 ## Datenmodell
 
 - `StartupProfile.plan`: `FREE | PRO | INSIGHTS` (Name offen); `isPro` bleibt als „hat die niedrige Gebühr“ und gilt für PRO und
-  INSIGHTS. Stripe-Preis je Tarif (`STRIPE_PRO_PRICE_ID`, neu `STRIPE_INSIGHTS_PRICE_ID`); der Webhook setzt den Tarif aus dem
+  INSIGHTS. Stripe-Preis je Tarif (`STRIPE_PRO_BRAND_PRICE_ID`, neu `STRIPE_INSIGHTS_PRICE_ID`); der Webhook setzt den Tarif aus dem
   Preis des Abos.
 - `SocialConnection`: Creator, Plattform, Konto-ID, Token verschlüsselt (wie die TOTP-Geheimnisse), Berechtigungen, Ablauf,
   gelöst am.
@@ -84,10 +84,10 @@ Einschränkungen, die man kennen muss:
 
 Blockierend:
 
-1. **Neuer Pro-Preis in Stripe** (vor der Umstellung auf 29,99 €): Stripe Dashboard → Produkte → Pro → „Preis hinzufügen“,
-   29,99 € monatlich, wiederkehrend. Die neue Preis-ID (`price_…`) kommt in Vercel als `STRIPE_PRO_PRICE_ID` (Production und
-   Preview), dann neu deployen. Preise in Stripe lassen sich nicht ändern, nur neu anlegen. Ohne: Checkout verlangt weiter 10 €,
-   während die App 29,99 € anzeigt.
+1. **Neue Pro-Preise in Stripe** (seit 15.10. gebaut): Stripe Dashboard → Produkte → Pro → „Preis hinzufügen“, zweimal:
+   29,99 € und 8,99 € monatlich, wiederkehrend, „inklusive Steuern“. Die IDs (`price_…`) kommen in Vercel als
+   `STRIPE_PRO_BRAND_PRICE_ID` und `STRIPE_PRO_CREATOR_PRICE_ID` (Production und Preview), dann neu deployen. Ohne sie lässt sich
+   Pro nicht buchen (der Checkout prüft, dass der Stripe-Preis zum angezeigten passt); laufende Abos laufen weiter.
 2. **Preis für das Statistik-Paket** (vor Stufe 1): gleiches Produkt oder neues Produkt „comtor Insights“, 89,99 € monatlich,
    ID in Vercel als `STRIPE_INSIGHTS_PRICE_ID`.
 

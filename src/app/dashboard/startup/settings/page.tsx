@@ -96,6 +96,7 @@ export default async function StartupSettingsPage() {
           proSince={startup.proSince}
           foundingNumber={startup.foundingNumber}
           hasSubscription={!!startup.stripeSubscriptionId}
+          subscriptionPriceCents={startup.proPriceCents}
           canWithdraw={startup.isPro && !!startup.stripeSubscriptionId && canWithdrawPro(startup.proSince)}
           canPurchase={await canSellProSubscription()}
         />

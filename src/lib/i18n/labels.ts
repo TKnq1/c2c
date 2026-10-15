@@ -84,6 +84,7 @@ const ERROR_KEYS: Record<string, MessageKey> = {
   "Start enrollment again.": "extras.errors.enrollAgain",
   "That code didn't match. Check your app and try again.": "extras.errors.codeMismatch",
   "Pro isn't available in the app.": "extras.errors.proNotInApp",
+  "Pro can't be booked right now. Please try again later.": "extras.errors.proUnavailable",
   "You're already on Pro.": "extras.errors.alreadyPro",
   "Pro can't be withdrawn right now.": "extras.errors.cannotWithdrawPro",
   "The 14 days to withdraw have passed. You can still cancel Pro.": "extras.errors.withdrawWindowPassed",

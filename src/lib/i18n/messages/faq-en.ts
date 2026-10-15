@@ -1,6 +1,6 @@
 // The FAQ page (/faq). Numbers come from src/lib/constants.ts and are filled in as {placeholders}:
-// {days} review days, {fee} standard fee %, {proFee} Pro fee %, {price} Pro price per month,
-// {breakEven} monthly volume where Pro pays for itself, {foundingBrands} / {foundingCreators} founding places.
+// {days} review days, {fee} standard fee %, {proFee} Pro fee %, {price} Pro price per month (per side, see perSide),
+// {breakEven} monthly volume where Pro pays for itself (per side), {foundingBrands} / {foundingCreators} founding places.
 export const faq = {
   meta: {
     title: "FAQ",
@@ -8,7 +8,9 @@ export const faq = {
   },
   // Appended to the payments answer. Left out inside the store apps, which can't sell Pro.
   proOffer:
-    " Subscribe to Pro for {price} a month and the fee drops to {proFee}%. It applies to every payment where either side has Pro.",
+    " Subscribe to Pro ({price} a month) and the fee drops to {proFee}%. It applies to every payment where either side has Pro.",
+  // {price} and {breakEven} name both sides, e.g. "29,99 € for brands and 8,99 € for creators".
+  perSide: "{brand} for brands and {creator} for creators",
   items: {
     matching: {
       question: "How does matching work?",
@@ -28,7 +30,7 @@ export const faq = {
     pro: {
       question: "What's the Pro plan?",
       answer:
-        "An optional monthly subscription for brands and creators ({price} a month). It lowers the fee from {fee}% to {proFee}% on every payment. The brand or the creator needs Pro, not both. Pro pays for itself once about {breakEven} a month goes through your account. Stripe bills you monthly. Manage or cancel it in Settings. The first {foundingBrands} brands and the first {foundingCreators} creators get Pro free for as long as their account exists.",
+        "An optional monthly subscription: {price} a month. It lowers the fee from {fee}% to {proFee}% on every payment. The brand or the creator needs Pro, not both. Pro pays for itself once about {breakEven} a month goes through your account. Stripe bills you monthly. Manage or cancel it in Settings. The first {foundingBrands} brands and the first {foundingCreators} creators get Pro free for as long as their account exists.",
     },
     noPost: {
       question: "What if the creator never posts?",

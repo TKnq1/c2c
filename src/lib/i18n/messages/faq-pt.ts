@@ -7,7 +7,8 @@ export const faqPt: DeepString<typeof faq> = {
     description: "Como funcionam as correspondências, os pagamentos e as avaliações na comtor.",
   },
   proOffer:
-    " Subscreve o Pro por {price} por mês e a comissão desce para {proFee}%. Aplica-se a todos os pagamentos em que um dos lados tenha Pro.",
+    " Subscreve o Pro ({price} por mês) e a comissão desce para {proFee}%. Aplica-se a todos os pagamentos em que um dos lados tenha Pro.",
+  perSide: "{brand} para marcas e {creator} para criadores",
   items: {
     matching: {
       question: "Como funcionam as correspondências?",
@@ -27,7 +28,7 @@ export const faqPt: DeepString<typeof faq> = {
     pro: {
       question: "O que é o plano Pro?",
       answer:
-        "Uma subscrição mensal opcional para marcas e criadores ({price} por mês). Baixa a comissão de {fee}% para {proFee}% em cada pagamento. A marca ou o criador precisa de Pro, não os dois. O Pro compensa quando passam cerca de {breakEven} por mês pela tua conta. A Stripe cobra todos os meses. Gere ou cancela nas Definições. As primeiras {foundingBrands} marcas e os primeiros {foundingCreators} criadores têm o Pro grátis, enquanto a conta existir.",
+        "Uma subscrição mensal opcional: {price} por mês. Baixa a comissão de {fee}% para {proFee}% em cada pagamento. A marca ou o criador precisa de Pro, não os dois. O Pro compensa quando passam cerca de {breakEven} por mês pela tua conta. A Stripe cobra todos os meses. Gere ou cancela nas Definições. As primeiras {foundingBrands} marcas e os primeiros {foundingCreators} criadores têm o Pro grátis, enquanto a conta existir.",
     },
     noPost: {
       question: "E se o criador nunca publicar?",

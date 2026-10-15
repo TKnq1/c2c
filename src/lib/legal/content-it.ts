@@ -1,4 +1,4 @@
-import { FOUNDING_BRAND_LIMIT, FOUNDING_CREATOR_LIMIT, PLATFORM_FEE_RATE, PRO_PLATFORM_FEE_RATE, PRO_SUBSCRIPTION_PRICE_CENTS, RELEASE_REVIEW_DAYS } from "@/lib/constants";
+import { FOUNDING_BRAND_LIMIT, FOUNDING_CREATOR_LIMIT, PLATFORM_FEE_RATE, PRO_PLATFORM_FEE_RATE, PRO_PRICE_CENTS, RELEASE_REVIEW_DAYS } from "@/lib/constants";
 import { formatCents } from "@/lib/format";
 import type { LegalContent, LegalSection } from "@/lib/legal/types";
 
@@ -44,7 +44,7 @@ function itTerms(): LegalSection[] {
   {
     title: "Commissioni",
     body: [
-      `Applichiamo una commissione di piattaforma del ${PLATFORM_FEE_RATE * 100}% su ogni pagamento effettuato tramite comtor. I brand e i creator possono abbonarsi a Pro per ${formatCents(PRO_SUBSCRIPTION_PRICE_CENTS)}/mese. Finché Pro è attivo, la commissione è del ${PRO_PLATFORM_FEE_RATE * 100}% su ogni pagamento per cui il brand o il creator ha Pro. Pro si rinnova ogni mese finché non lo disdici nelle Impostazioni. La disdetta interrompe il rinnovo successivo. Non c’è alcuna commissione per la pubblicazione. I primi ${FOUNDING_BRAND_LIMIT} brand (brand fondatori) e i primi ${FOUNDING_CREATOR_LIMIT} creator (creator fondatori) che si sono registrati su comtor ottengono Pro gratuitamente per tutto il tempo in cui esiste il loro account. Questo Pro non ha un prezzo mensile, non è trasferibile e termina con l’account. Possiamo revocarlo se qualcuno viola queste condizioni.`,
+      `Applichiamo una commissione di piattaforma del ${PLATFORM_FEE_RATE * 100}% su ogni pagamento effettuato tramite comtor. I brand possono abbonarsi a Pro per ${formatCents(PRO_PRICE_CENTS.brand)}/mese, i creator per ${formatCents(PRO_PRICE_CENTS.creator)}/mese. Finché Pro è attivo, la commissione è del ${PRO_PLATFORM_FEE_RATE * 100}% su ogni pagamento per cui il brand o il creator ha Pro. Pro si rinnova ogni mese finché non lo disdici nelle Impostazioni. La disdetta interrompe il rinnovo successivo. Non c’è alcuna commissione per la pubblicazione. I primi ${FOUNDING_BRAND_LIMIT} brand (brand fondatori) e i primi ${FOUNDING_CREATOR_LIMIT} creator (creator fondatori) che si sono registrati su comtor ottengono Pro gratuitamente per tutto il tempo in cui esiste il loro account. Questo Pro non ha un prezzo mensile, non è trasferibile e termina con l’account. Possiamo revocarlo se qualcuno viola queste condizioni.`,
       "La commissione di piattaforma viene trattenuta solo quando un pagamento è liberato al creator. Se un pagamento trattenuto viene rimborsato, il brand riceve indietro quell’importo e noi non tratteniamo alcuna commissione su di esso.",
     ],
   },

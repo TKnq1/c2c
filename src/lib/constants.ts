@@ -42,7 +42,10 @@ export const PLATFORM_FEE_RATE = 0.1;
 // and a payment gets the reduced rate when either side has Pro (see
 // src/lib/payment-math.ts).
 export const PRO_PLATFORM_FEE_RATE = 0.03;
-export const PRO_SUBSCRIPTION_PRICE_CENTS = 1000; // €10/month — must match STRIPE_PRO_PRICE_ID's actual price
+// The monthly price of a new Pro subscription, per side. Each must match its Stripe price (STRIPE_PRO_BRAND_PRICE_ID,
+// STRIPE_PRO_CREATOR_PRICE_ID): checkout refuses to start when it doesn't. A subscription keeps the price it started
+// with (proPriceCents on the profile, set from Stripe), so older ones stay at the €10 they were sold at.
+export const PRO_PRICE_CENTS = { brand: 2999, creator: 899 } as const;
 // The first brands and the first creators get Pro for as long as their account exists (see src/lib/founding.ts).
 export const FOUNDING_BRAND_LIMIT = 50;
 export const FOUNDING_CREATOR_LIMIT = 100;

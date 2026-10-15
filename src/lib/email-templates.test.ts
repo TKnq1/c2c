@@ -165,8 +165,8 @@ describe("marketingWelcomeEmail", () => {
     expect(creator.text).toContain("Signing up is on the page.");
     expect(brand.text).toContain("Creators in your niche swipe right.");
     expect(brand.text).toContain("No base fee:");
-    expect(brand.text).toContain("3% with Pro (€10 a month).");
-    expect(creator.text).toContain("With Pro (€10 a month) you keep 97%.");
+    expect(brand.text).toContain("3% with Pro (€29.99 a month).");
+    expect(creator.text).toContain("With Pro (€8.99 a month) you keep 97%.");
     expect(creator.html).toContain("/email/band-mark.jpg");
     expect(creator.html).not.toContain("mark-white.png");
     expect(creator.html).not.toContain("Button not working");
@@ -278,7 +278,7 @@ describe("German emails", () => {
     expect(creator.text).toContain("Du behältst 90 %.");
     expect(brand.text).toContain("Bring deine Marke mit Creatorn voran.");
     expect(brand.text).toContain("1 Creator ist schon dabei");
-    expect(brand.text).toContain("comtor behält 10 % jeder Zahlung, mit Pro (10 € im Monat) nur 3 %.");
+    expect(brand.text).toContain("comtor behält 10 % jeder Zahlung, mit Pro (29,99 € im Monat) nur 3 %.");
   });
 
   it("tells the recipient why they get it, and how to stop, in German", () => {

@@ -5,7 +5,8 @@ import { createProCheckoutSessionAction, cancelProAction, withdrawProAction } fr
 import { ConfirmActionButton } from "@/components/confirm-action-button";
 import { LocalDate } from "@/components/local-date";
 import { formatCents } from "@/lib/format";
-import { PLATFORM_FEE_RATE, PRO_PLATFORM_FEE_RATE, PRO_SUBSCRIPTION_PRICE_CENTS } from "@/lib/constants";
+import { PLATFORM_FEE_RATE, PRO_PLATFORM_FEE_RATE } from "@/lib/constants";
+import { proBreakEvenCents, proPriceCents } from "@/lib/pro-price";
 import { useI18n } from "@/components/i18n-provider";
 import type { FoundingSide } from "@/lib/founding-limits";
 import { localizeError } from "@/lib/i18n/labels";
@@ -18,6 +19,7 @@ export function ProPlanCard({
   proSince,
   foundingNumber,
   hasSubscription,
+  subscriptionPriceCents,
   canWithdraw,
   canPurchase,
 }: {
@@ -28,6 +30,8 @@ export function ProPlanCard({
   // src/lib/founding.ts). Nothing to cancel or withdraw unless the account also pays for one.
   foundingNumber: number | null;
   hasSubscription: boolean;
+  // What the running subscription costs (it keeps the price it was sold at); null without one.
+  subscriptionPriceCents: number | null;
   canWithdraw: boolean;
   // False in the store apps (see canSellProSubscription): shows the current
   // plan without any upgrade offer.
@@ -37,6 +41,9 @@ export function ProPlanCard({
   const creator = side === "creator";
   const pro = PRO_PLATFORM_FEE_RATE * 100;
   const standard = PLATFORM_FEE_RATE * 100;
+  // A new subscription is sold at this side's current price; a running one shows what it really costs.
+  const listPrice = proPriceCents(side);
+  const paidPrice = subscriptionPriceCents ?? listPrice;
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -72,7 +79,7 @@ export function ProPlanCard({
             : t("screens.settings.proFee", {
                 pro: PRO_PLATFORM_FEE_RATE * 100,
                 standard: PLATFORM_FEE_RATE * 100,
-                price: formatCents(PRO_SUBSCRIPTION_PRICE_CENTS),
+                price: formatCents(paidPrice),
               })}
           {!founding && proSince && (
             <>
@@ -89,7 +96,7 @@ export function ProPlanCard({
             successMessage={t("screens.settings.proWithdrawn")}
             title={t("screens.settings.withdrawProTitle")}
             description={t("screens.settings.withdrawProBody", {
-              price: formatCents(PRO_SUBSCRIPTION_PRICE_CENTS),
+              price: formatCents(paidPrice),
               rate: PLATFORM_FEE_RATE * 100,
             })}
             confirmLabel={t("screens.settings.withdrawPro")}
@@ -138,12 +145,12 @@ export function ProPlanCard({
       </div>
       <p className="text-sm text-neutral-600 dark:text-neutral-400">
         {t(creator ? "screens.settings.proPitchCreator" : "screens.settings.proPitch", {
-          price: formatCents(PRO_SUBSCRIPTION_PRICE_CENTS),
+          price: formatCents(listPrice),
           standard,
           pro,
           keep: 100 - standard,
           keepPro: 100 - pro,
-          breakEven: formatCents(Math.round(PRO_SUBSCRIPTION_PRICE_CENTS / (PLATFORM_FEE_RATE - PRO_PLATFORM_FEE_RATE))),
+          breakEven: formatCents(proBreakEvenCents(listPrice)),
         })}
       </p>
       <button
@@ -152,7 +159,7 @@ export function ProPlanCard({
         disabled={pending}
         className="mt-1 w-full rounded-full bg-ink px-4 py-2.5 text-sm font-medium text-paper transition hover:bg-graphite disabled:opacity-50 sm:w-auto sm:self-start"
       >
-        {pending ? t("screens.settings.redirecting") : t("screens.settings.goPro", { price: formatCents(PRO_SUBSCRIPTION_PRICE_CENTS) })}
+        {pending ? t("screens.settings.redirecting") : t("screens.settings.goPro", { price: formatCents(listPrice) })}
       </button>
       {error && <p className="text-sm text-ink">{localizeError(error, t)}</p>}
     </div>

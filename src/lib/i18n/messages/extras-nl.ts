@@ -95,6 +95,7 @@ export const extrasNl: DeepString<typeof extras> = {
     enrollAgain: "Begin de activering opnieuw.",
     codeMismatch: "Die code klopt niet. Controleer je app en probeer het opnieuw.",
     proNotInApp: "Pro is niet beschikbaar in de app.",
+    proUnavailable: "Pro kan nu niet worden afgesloten. Probeer het later opnieuw.",
     alreadyPro: "Je hebt al Pro.",
     cannotWithdrawPro: "Pro kan nu niet worden herroepen.",
     withdrawWindowPassed: "De 14 dagen om te herroepen zijn voorbij. Je kunt Pro nog wel opzeggen.",

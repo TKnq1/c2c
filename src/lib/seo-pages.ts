@@ -1,5 +1,6 @@
 import type { UgcNichePage } from "@/lib/ugc/types";
-import { PLATFORM_FEE_RATE, PLATFORMS, PRO_PLATFORM_FEE_RATE, PRO_SUBSCRIPTION_PRICE_CENTS, RELEASE_REVIEW_DAYS } from "@/lib/constants";
+import { PLATFORM_FEE_RATE, PLATFORMS, PRO_PLATFORM_FEE_RATE, PRO_PRICE_CENTS, RELEASE_REVIEW_DAYS } from "@/lib/constants";
+import { formatEuroNumber } from "@/lib/format";
 
 // The German search landing pages (/ugc and /ugc/<slug>). One page per niche, each with its own text: a
 // page only earns its place in search if it says something the others don't. Add a niche by adding an entry
@@ -12,7 +13,8 @@ export type { UgcNichePage };
 const NBSP = " ";
 const FEE = `${PLATFORM_FEE_RATE * 100}${NBSP}%`;
 const PRO_FEE = `${PRO_PLATFORM_FEE_RATE * 100}${NBSP}%`;
-const PRO_PRICE = `${PRO_SUBSCRIPTION_PRICE_CENTS / 100}${NBSP}€`;
+const PRO_PRICE_BRAND = `${formatEuroNumber(PRO_PRICE_CENTS.brand, "de-DE")}${NBSP}€`;
+const PRO_PRICE_CREATOR = `${formatEuroNumber(PRO_PRICE_CENTS.creator, "de-DE")}${NBSP}€`;
 
 // Questions every page answers the same way, because the answer is the same.
 function sharedFaqs(): { question: string; answer: string }[] {
@@ -23,7 +25,7 @@ function sharedFaqs(): { question: string; answer: string }[] {
     },
     {
       question: "Was kostet comtor?",
-      answer: `Die Anmeldung ist kostenlos und es gibt keine Grundgebühr. comtor behält ${FEE} jeder Zahlung. Die Gebühr wird von der Auszahlung des Creators abgezogen. Die Marke zahlt genau den vereinbarten Betrag. Marken und Creator können ein optionales Pro-Abo für ${PRO_PRICE} im Monat buchen. Dann sind es ${PRO_FEE} bei jeder Zahlung, bei der eine der beiden Seiten Pro hat.`,
+      answer: `Die Anmeldung ist kostenlos und es gibt keine Grundgebühr. comtor behält ${FEE} jeder Zahlung. Die Gebühr wird von der Auszahlung des Creators abgezogen. Die Marke zahlt genau den vereinbarten Betrag. Marken können ein optionales Pro-Abo für ${PRO_PRICE_BRAND} im Monat buchen, Creator für ${PRO_PRICE_CREATOR}. Dann sind es ${PRO_FEE} bei jeder Zahlung, bei der eine der beiden Seiten Pro hat.`,
     },
     {
       question: "Müssen bezahlte Posts als Werbung gekennzeichnet werden?",

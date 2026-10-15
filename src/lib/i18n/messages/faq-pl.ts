@@ -7,7 +7,8 @@ export const faqPl: DeepString<typeof faq> = {
     description: "Jak działają dopasowania, płatności i opinie na comtor.",
   },
   proOffer:
-    " Wykup Pro za {price} miesięcznie, a prowizja spadnie do {proFee}%. Dotyczy każdej płatności, w której którakolwiek strona ma Pro.",
+    " Wykup Pro ({price} miesięcznie), a prowizja spadnie do {proFee}%. Dotyczy każdej płatności, w której którakolwiek strona ma Pro.",
+  perSide: "{brand} dla marek i {creator} dla twórców",
   items: {
     matching: {
       question: "Jak działają dopasowania?",
@@ -27,7 +28,7 @@ export const faqPl: DeepString<typeof faq> = {
     pro: {
       question: "Czym jest plan Pro?",
       answer:
-        "To opcjonalna miesięczna subskrypcja dla marek i twórców ({price} miesięcznie). Obniża prowizję z {fee}% do {proFee}% przy każdej płatności. Pro musi mieć marka albo twórca, nie obie strony. Pro zwraca się, gdy przez twoje konto przechodzi około {breakEven} miesięcznie. Stripe rozlicza cię co miesiąc. Zarządzasz subskrypcją i anulujesz ją w Ustawieniach. Pierwsi na liście dostają Pro za darmo, dopóki istnieje ich konto. Miejsca dla marek: {foundingBrands}, dla twórców: {foundingCreators}.",
+        "To opcjonalna miesięczna subskrypcja: {price} miesięcznie. Obniża prowizję z {fee}% do {proFee}% przy każdej płatności. Pro musi mieć marka albo twórca, nie obie strony. Pro zwraca się, gdy przez twoje konto przechodzi około {breakEven} miesięcznie. Stripe rozlicza cię co miesiąc. Zarządzasz subskrypcją i anulujesz ją w Ustawieniach. Pierwsi na liście dostają Pro za darmo, dopóki istnieje ich konto. Miejsca dla marek: {foundingBrands}, dla twórców: {foundingCreators}.",
     },
     noPost: {
       question: "Co, jeśli twórca nie opublikuje posta?",

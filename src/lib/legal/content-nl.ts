@@ -1,4 +1,4 @@
-import { FOUNDING_BRAND_LIMIT, FOUNDING_CREATOR_LIMIT, PLATFORM_FEE_RATE, PRO_PLATFORM_FEE_RATE, PRO_SUBSCRIPTION_PRICE_CENTS, RELEASE_REVIEW_DAYS } from "@/lib/constants";
+import { FOUNDING_BRAND_LIMIT, FOUNDING_CREATOR_LIMIT, PLATFORM_FEE_RATE, PRO_PLATFORM_FEE_RATE, PRO_PRICE_CENTS, RELEASE_REVIEW_DAYS } from "@/lib/constants";
 import { formatCents } from "@/lib/format";
 import type { LegalContent, LegalSection } from "@/lib/legal/types";
 
@@ -44,7 +44,7 @@ function nlTerms(): LegalSection[] {
   {
     title: "Kosten",
     body: [
-      `Wij rekenen ${PLATFORM_FEE_RATE * 100}% platformkosten op elke betaling die via comtor loopt. Merken en creators kunnen Pro nemen voor ${formatCents(PRO_SUBSCRIPTION_PRICE_CENTS)}/maand. Zolang Pro actief is, zijn de kosten ${PRO_PLATFORM_FEE_RATE * 100}% op elke betaling waarbij het merk of de creator Pro heeft. Pro wordt elke maand verlengd totdat je het opzegt in de Instellingen. Opzeggen stopt de eerstvolgende verlenging. Er zijn geen kosten voor het plaatsen van een verzoek. De eerste ${FOUNDING_BRAND_LIMIT} merken (founding brands) en de eerste ${FOUNDING_CREATOR_LIMIT} creators (founding creators) die zich bij comtor hebben aangemeld, krijgen Pro gratis zolang hun account bestaat. Die Pro heeft geen maandprijs, is niet overdraagbaar en eindigt met het account. Wij kunnen het intrekken als iemand deze voorwaarden schendt.`,
+      `Wij rekenen ${PLATFORM_FEE_RATE * 100}% platformkosten op elke betaling die via comtor loopt. Merken kunnen Pro nemen voor ${formatCents(PRO_PRICE_CENTS.brand)}/maand, creators voor ${formatCents(PRO_PRICE_CENTS.creator)}/maand. Zolang Pro actief is, zijn de kosten ${PRO_PLATFORM_FEE_RATE * 100}% op elke betaling waarbij het merk of de creator Pro heeft. Pro wordt elke maand verlengd totdat je het opzegt in de Instellingen. Opzeggen stopt de eerstvolgende verlenging. Er zijn geen kosten voor het plaatsen van een verzoek. De eerste ${FOUNDING_BRAND_LIMIT} merken (founding brands) en de eerste ${FOUNDING_CREATOR_LIMIT} creators (founding creators) die zich bij comtor hebben aangemeld, krijgen Pro gratis zolang hun account bestaat. Die Pro heeft geen maandprijs, is niet overdraagbaar en eindigt met het account. Wij kunnen het intrekken als iemand deze voorwaarden schendt.`,
       "De platformkosten worden alleen ingehouden wanneer een betaling aan de creator wordt vrijgegeven. Als een vastgehouden betaling wordt terugbetaald, krijgt het merk die betaling terug en houden wij daarover geen kosten in.",
     ],
   },
