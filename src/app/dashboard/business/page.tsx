@@ -87,7 +87,7 @@ export default async function BusinessPage() {
       </div>
       {role === "CREATOR" && (
         <p className="text-sm text-neutral-500 dark:text-neutral-400">
-          {u("business.payout")} <Link href="/dashboard/creator/payments" className="underline">→</Link>
+          {u("business.payout")} <Link href="/dashboard/creator/settings#payouts" className="underline">→</Link>
         </p>
       )}
     </div>

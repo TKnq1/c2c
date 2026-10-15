@@ -599,8 +599,9 @@ export async function createCheckoutSessionAction(interestId: string): Promise<{
       ],
       // Names the interest so the page knows which row to wait on while the
       // webhook catches up (see CheckoutReturn).
-      success_url: `${SITE_URL}/dashboard/startup/payments?checkout=success&interest=${interest.id}`,
-      cancel_url: `${SITE_URL}/dashboard/startup/payments?checkout=cancelled`,
+      // A deal returns to its own page; an older collab to Payments, which forwards to Deals where brand deals are on.
+      success_url: deal ? `${SITE_URL}/dashboard/deals/${deal.id}?checkout=success` : `${SITE_URL}/dashboard/startup/payments?checkout=success&interest=${interest.id}`,
+      cancel_url: deal ? `${SITE_URL}/dashboard/deals/${deal.id}?checkout=cancelled` : `${SITE_URL}/dashboard/startup/payments?checkout=cancelled`,
       metadata: { interestId: interest.id, ...(deal ? { dealId: deal.id } : {}) },
     },
     { idempotencyKey: `checkout-${interest.id}-${totalCents}-${previousSessionId ?? "none"}` },

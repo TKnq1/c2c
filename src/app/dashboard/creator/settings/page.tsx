@@ -24,7 +24,13 @@ import { PageTitle } from "@/components/page-title";
 import { ProPlanCard } from "@/components/pro-plan-card";
 import { canWithdrawPro } from "@/lib/pro-withdrawal";
 import { canSellProSubscription } from "@/lib/native-app-server";
-import { getT } from "@/lib/i18n/server";
+import { getLocale, getT } from "@/lib/i18n/server";
+import { canUseDeals } from "@/lib/deals/queries";
+import { dealLocale } from "@/lib/deals/copy";
+import { uiText } from "@/lib/deals/ui-copy";
+import { businessReadiness } from "@/lib/tax/business";
+import { hasErrors } from "@/lib/deals/issues";
+import { BUSINESS_HREF } from "@/lib/nav-links";
 
 export default async function CreatorSettingsPage() {
   const t = await getT();
@@ -52,6 +58,13 @@ export default async function CreatorSettingsPage() {
       },
     }),
   ]);
+  // Business details (for contracts and invoices) belong to brand deals; they are kept here rather than under Deals.
+  const business = (await canUseDeals(session.user.id, "CREATOR"))
+    ? {
+        u: uiText(dealLocale(await getLocale())),
+        ready: !hasErrors(businessReadiness(await prisma.businessProfile.findUnique({ where: { userId: session.user.id } }), "CREATOR")),
+      }
+    : null;
 
   return (
     // A centered reading-width column from md, like a document, instead of
@@ -139,6 +152,16 @@ export default async function CreatorSettingsPage() {
           />
         </div>
       </SettingsSection>
+
+      {business && (
+        <SettingsSection id="business" title={business.u("deals.businessLink")}>
+          <SettingsRow label={business.u(business.ready ? "settings.business.complete" : "settings.business.missing")} hint={business.u("settings.business.hint")}>
+            <Link href={BUSINESS_HREF} className="shrink-0 text-sm font-medium underline">
+              {business.u("settings.business.edit")}
+            </Link>
+          </SettingsRow>
+        </SettingsSection>
+      )}
 
       <SettingsSection id="appearance" title={t("settings.appearance")}>
         <AppearanceSettings />

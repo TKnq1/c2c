@@ -24,7 +24,13 @@ import { OnboardingChecklist } from "@/components/onboarding-checklist";
 import { MarketingConsentSettings } from "@/components/marketing-consent-settings";
 import { canSellProSubscription } from "@/lib/native-app-server";
 import { PageTitle } from "@/components/page-title";
-import { getT } from "@/lib/i18n/server";
+import { getLocale, getT } from "@/lib/i18n/server";
+import { canUseDeals } from "@/lib/deals/queries";
+import { dealLocale } from "@/lib/deals/copy";
+import { uiText } from "@/lib/deals/ui-copy";
+import { businessReadiness } from "@/lib/tax/business";
+import { hasErrors } from "@/lib/deals/issues";
+import { BUSINESS_HREF } from "@/lib/nav-links";
 
 export default async function StartupSettingsPage() {
   const t = await getT();
@@ -53,6 +59,13 @@ export default async function StartupSettingsPage() {
     }),
     prisma.request.count({ where: { startup: { userId: session.user.id }, status: { not: "DRAFT" } } }),
   ]);
+  // Business details (for contracts and invoices) belong to brand deals; they are kept here rather than under Deals.
+  const business = (await canUseDeals(session.user.id, "STARTUP"))
+    ? {
+        u: uiText(dealLocale(await getLocale())),
+        ready: !hasErrors(businessReadiness(await prisma.businessProfile.findUnique({ where: { userId: session.user.id } }), "STARTUP")),
+      }
+    : null;
 
   return (
     // A centered reading-width column from md, like a document, instead of
@@ -101,6 +114,16 @@ export default async function StartupSettingsPage() {
           canPurchase={await canSellProSubscription()}
         />
       </SettingsSection>
+
+      {business && (
+        <SettingsSection id="business" title={business.u("deals.businessLink")}>
+          <SettingsRow label={business.u(business.ready ? "settings.business.complete" : "settings.business.missing")} hint={business.u("settings.business.hint")}>
+            <Link href={BUSINESS_HREF} className="shrink-0 text-sm font-medium underline">
+              {business.u("settings.business.edit")}
+            </Link>
+          </SettingsRow>
+        </SettingsSection>
+      )}
 
       <SettingsSection id="appearance" title={t("settings.appearance")}>
         <AppearanceSettings />

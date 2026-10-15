@@ -13,7 +13,7 @@ export type NavLink = {
   badge: number;
   // Where the link goes when that is not `href` itself (the Deals tab opens the list of deals that wait for you).
   target?: string;
-  // Further paths that belong to this destination (the Deals tab also covers its Payments and Invoices pages).
+  // Further paths that belong to this destination (the Deals tab also covers its Invoices page).
   covers?: string[];
 };
 
@@ -28,11 +28,13 @@ export const BUSINESS_HREF = "/dashboard/business";
 
 const homeOf = (role: Role) => (role === "STARTUP" ? "/dashboard/startup" : "/dashboard/creator");
 export const paymentsHrefOf = (role: Role) => `${homeOf(role)}/payments`;
+const PAYMENTS_HREFS = [paymentsHrefOf("STARTUP"), paymentsHrefOf("CREATOR")] as const;
 const settingsHrefOf = (role: Role) => `${homeOf(role)}/settings`;
 export const discoverHrefOf = (role: Role) => `${homeOf(role)}/discover`;
 
-// Everything the app offers, in sidebar order. Where brand deals are on, the money badges collapse into the one on Deals: it
-// counts what waits for this person, deals and payments alike, and Payments itself carries none.
+// Everything the app offers, in sidebar order. Where brand deals are on, the money lives under Deals (the Payments page
+// forwards there) and its badge counts what waits for this person, deals and payments alike; without them Payments is
+// where the money is. The business details belong to the settings.
 export function appLinks(role: Role, showDeals: boolean, counts: NavCounts, label: Labels): NavLink[] {
   const { unreadMessages, pendingPayments, dealsToDo = 0, offersToDo = 0 } = counts;
   const link = (href: string, id: NavId, badge: number): NavLink => ({ href, id, label: label(id), badge });
@@ -41,8 +43,8 @@ export function appLinks(role: Role, showDeals: boolean, counts: NavCounts, labe
     link(discoverHrefOf(role), "discover", 0),
     link("/dashboard/messages", "messages", unreadMessages),
     ...(showDeals ? [dealsLink(dealsToDo + pendingPayments, dealsToDo + offersToDo, label)] : []),
-    link(paymentsHrefOf(role), "payments", showDeals ? 0 : pendingPayments),
-    link(settingsHrefOf(role), "settings", 0),
+    ...(showDeals ? [] : [link(paymentsHrefOf(role), "payments", pendingPayments)]),
+    { ...link(settingsHrefOf(role), "settings", 0), covers: [BUSINESS_HREF] },
   ];
 }
 
@@ -54,19 +56,19 @@ function dealsLink(badge: number, onDealsList: number, label: Labels): NavLink {
     badge,
     // With a deal or an offer waiting the link opens straight onto it.
     target: onDealsList > 0 ? `${DEALS_HREF}?filter=mine` : undefined,
-    covers: [INVOICES_HREF, BUSINESS_HREF],
+    covers: [INVOICES_HREF, PAYMENTS_HREFS[0], PAYMENTS_HREFS[1]],
   };
 }
 
-// The phone's tab bar, five tabs either way: home, Discover, messages, then deals and account where brand deals are on (Payments and
-// Invoices are tabs on the Deals pages then, see DealsTabs), or Payments and settings where they are not.
+// The phone's tab bar, five tabs either way: home, Discover, messages, then deals and account where brand deals are on (Invoices
+// is a tab on the Deals pages then, see DealsTabs), or Payments and settings where they are not.
 export function tabLinks(role: Role, showDeals: boolean, counts: NavCounts, label: Labels): NavLink[] {
   const all = appLinks(role, showDeals, counts, label);
   if (!showDeals) return all;
   const tabs = all.filter((l) => l.id === "requests" || l.id === "feed" || l.id === "discover" || l.id === "messages" || l.id === "deals");
   return [
-    ...tabs.map((l) => (l.id === "deals" ? { ...l, covers: [...(l.covers ?? []), paymentsHrefOf(role)] } : l)),
-    { href: settingsHrefOf(role), id: "account", label: label("account"), badge: 0 },
+    ...tabs,
+    { href: settingsHrefOf(role), id: "account", label: label("account"), badge: 0, covers: [BUSINESS_HREF] },
   ];
 }
 

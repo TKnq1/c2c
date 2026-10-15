@@ -256,7 +256,7 @@ export function Nav() {
 
   return (
     <>
-      {role !== "ADMIN" && <CommandPalette role={role} />}
+      {role !== "ADMIN" && <CommandPalette role={role} showDeals={showDeals} />}
       {/* Phones only: it floats over <main>, which runs up under it (see
           --header-h in globals.css), so the page scrolls on under the
           frosted bar the way it does in an iOS app. From md up the
@@ -407,8 +407,9 @@ function Sidebar({
 
   return (
     <aside className="app-sidebar fixed inset-y-0 left-0 z-30 hidden w-[var(--sidebar-w)] flex-col border-r border-ink/10 bg-background px-3 pb-5 pt-[calc(var(--safe-top)+20px)] no-print md:flex">
-      <Link href={base} onNavigate={onNavigate} className="mb-6 flex h-10 shrink-0 items-center justify-center lg:justify-start lg:px-3">
+      <Link href={base} onNavigate={onNavigate} className="mb-6 flex h-12 shrink-0 items-center justify-center gap-3 lg:justify-start lg:px-2">
         <Logo small />
+        <span className="hidden font-display text-title-3 font-black tracking-tight lg:inline">comtor</span>
       </Link>
 
       <button

@@ -16,8 +16,9 @@ function groupsFor(role: Role): Group[] {
     { id: "profile", label: "settingsNav.profile", sections: ["profile"] },
     // Both sides have a plan (Pro); payouts only creators — brands pay out,
     // they don't receive.
-    { id: "plan", label: "settingsNav.plan", sections: ["plan"] },
-    ...(role === "STARTUP" ? [] : [{ id: "payouts", label: "settingsNav.payouts" as const, sections: ["payouts"] }]),
+    // The business details (where brand deals are on) sit with the money: after the plan, or after a creator's payouts.
+    { id: "plan", label: "settingsNav.plan", sections: role === "STARTUP" ? ["plan", "business"] : ["plan"] },
+    ...(role === "STARTUP" ? [] : [{ id: "payouts", label: "settingsNav.payouts" as const, sections: ["payouts", "business"] }]),
     { id: "appearance", label: "settingsNav.appearance", sections: ["appearance"] },
     { id: "password", label: "settingsNav.security", sections: ["password", "two-factor", "logins"] },
     { id: "push", label: "settingsNav.notifications", sections: ["push", "news"] },
