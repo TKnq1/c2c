@@ -30,8 +30,9 @@ describe("the tab bar", () => {
       ["deals", 3],
       ["account", 0],
     ]);
-    // Payments, wherever it is still listed, carries nothing.
-    expect(appLinks("CREATOR", true, counts({ pendingPayments: 1 }), label).find((l) => l.id === "payments")?.badge).toBe(0);
+    // The sidebar lists no Payments page then: the money lives under Deals.
+    expect(ids(appLinks("CREATOR", true, counts({ pendingPayments: 1 }), label))).not.toContain("payments");
+    expect(ids(appLinks("CREATOR", false, counts(), label))).toContain("payments");
   });
 
   it("opens the Deals tab on the deals that wait for you, and plainly when none do", () => {
@@ -49,12 +50,16 @@ describe("the current destination", () => {
   const tabs = tabLinks("CREATOR", true, counts(), label);
   const all = appLinks("CREATOR", true, counts(), label);
 
-  it("treats the Payments and Invoices pages as part of Deals", () => {
+  it("treats the Invoices page (and the old Payments address) as part of Deals", () => {
     expect(activeHrefFor(tabs, "/dashboard/deals")).toBe("/dashboard/deals");
     expect(activeHrefFor(tabs, "/dashboard/deals/abc")).toBe("/dashboard/deals");
     expect(activeHrefFor(tabs, "/dashboard/creator/payments")).toBe("/dashboard/deals");
     expect(activeHrefFor(tabs, "/dashboard/invoices/xyz")).toBe("/dashboard/deals");
-    expect(activeHrefFor(tabs, "/dashboard/business")).toBe("/dashboard/deals");
+  });
+
+  it("puts the business details under the account", () => {
+    expect(activeHrefFor(tabs, "/dashboard/business")).toBe("/dashboard/creator/settings");
+    expect(activeHrefFor(all, "/dashboard/business")).toBe("/dashboard/creator/settings");
   });
 
   it("keeps the other tabs apart", () => {
@@ -67,8 +72,7 @@ describe("the current destination", () => {
   it("lets the longer path win, so Discover is not mistaken for home", () => {
     expect(activeHrefFor(all, "/dashboard/creator/discover/abc")).toBe("/dashboard/creator/discover");
     expect(activeHrefFor(all, "/dashboard/creator/matches")).toBe("/dashboard/creator");
-    // The sidebar has a Payments entry of its own, which stays the current one on that page.
-    expect(activeHrefFor(all, "/dashboard/creator/payments")).toBe("/dashboard/creator/payments");
+    expect(activeHrefFor(appLinks("CREATOR", false, counts(), label), "/dashboard/creator/payments")).toBe("/dashboard/creator/payments");
     expect(activeHrefFor(all, "/dashboard/invoices")).toBe("/dashboard/deals");
   });
 

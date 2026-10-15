@@ -13,6 +13,7 @@ import { planPanels, stepAction, type PanelSlot } from "@/lib/deals/page-plan";
 import { loadDealPage } from "@/lib/deals/queries";
 import { parseTerms } from "@/lib/deals/terms";
 import { uiText } from "@/lib/deals/ui-copy";
+import { CheckoutReturn } from "@/components/checkout-return";
 
 export default async function DealPage(props: PageProps<"/dashboard/deals/[id]">) {
   const { id } = await props.params;
@@ -75,8 +76,13 @@ export default async function DealPage(props: PageProps<"/dashboard/deals/[id]">
   const slots = planPanels(data.status, terms.workflow.draftRequired);
   const contract = <ContractPanel ctx={ctx} clashes={clashes} bare />;
 
+  // Stripe's return from paying this deal: until the webhook has moved the money into escrow the page refreshes itself.
+  const checkoutParam = (await props.searchParams).checkout;
+  const checkout = Array.isArray(checkoutParam) ? checkoutParam[0] : checkoutParam;
+
   return (
     <div className="mx-auto flex w-full max-w-2xl flex-col gap-6 pb-8">
+      <CheckoutReturn status={checkout} waiting={checkout === "success" && data.status === "AWAITING_ESCROW"} />
       <DealHeader {...ctx} />
       <Stepper data={data} u={u} />
 
@@ -90,7 +96,7 @@ export default async function DealPage(props: PageProps<"/dashboard/deals/[id]">
           </a>
         )}
         {step.key === "next.payoutBlocked" && (
-          <Link href="/dashboard/creator/payments" className="w-fit rounded-full bg-ink px-4 py-2 text-sm font-medium text-paper transition hover:bg-graphite">
+          <Link href="/dashboard/creator/settings#payouts" className="w-fit rounded-full bg-ink px-4 py-2 text-sm font-medium text-paper transition hover:bg-graphite">
             {u("next.setupPayouts")}
           </Link>
         )}

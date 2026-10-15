@@ -1,0 +1,384 @@
+import { cache } from "react";
+import Link from "next/link";
+import { IoCardOutline, IoCheckmarkCircle, IoDownloadOutline, IoWalletOutline } from "react-icons/io5";
+import { prisma } from "@/lib/prisma";
+import { ChatLink, PaymentRow, PaymentSection, PaymentStats } from "@/components/payment-row";
+import { PaymentStatusBadge } from "@/components/payment-status-badge";
+import { paymentStage } from "@/lib/payment-stage";
+import { DepositStatusBadge } from "@/components/deposit-status-badge";
+import { ReviewForm } from "@/components/review-form";
+import { PrintButton } from "@/components/print-button";
+import { SubmitPostButton, SubmitPostForm } from "@/components/submit-post";
+import { ConnectStripeButton } from "@/components/connect-stripe-button";
+import { ActionButton } from "@/components/action-button";
+import { OfferResponseButtons } from "@/components/chat-offer";
+import { LocalDate } from "@/components/local-date";
+import { EmptyState } from "@/components/empty-state";
+import { ProFeeBar } from "@/components/pro-fee-bar";
+import { OpenDealLink } from "@/components/deals/open-deal-link";
+import { primaryButton as primaryButtonBase, quietButton } from "@/components/deals/ui";
+import { payDepositAction } from "@/lib/actions/deposits";
+import { withdrawOfferAction } from "@/lib/actions/payments";
+import { formatCents, isWithinLastWeek } from "@/lib/format";
+import { DEPOSITS_ENABLED, RELEASE_REVIEW_DAYS, RELEASE_REVIEW_MS } from "@/lib/constants";
+import { getT } from "@/lib/i18n/server";
+import { uiText } from "@/lib/deals/ui-copy";
+import type { DealLocale } from "@/lib/deals/copy";
+
+// A creator's money, in the same places as a brand's (see brand-payments.tsx): the summary on the Invoices page, the
+// collabs outside a deal and the payout account on the Deals page, and all of it on the Payments page without brand deals.
+
+const primaryButton = `${primaryButtonBase} mt-3 w-full sm:w-auto`;
+const pillLink =
+  "inline-flex items-center gap-1.5 rounded-full border border-neutral-300 px-3 py-1.5 text-sm font-medium transition hover:border-neutral-400 dark:border-neutral-700";
+
+const loadCreatorMoney = cache(async (userId: string) => {
+  const [creator, allInterests] = await Promise.all([
+    prisma.creatorProfile.findUniqueOrThrow({ where: { userId } }),
+    prisma.interest.findMany({
+      where: { creator: { userId } },
+      // Both sides' reviews: the creator's own prefills their review form, the brands' make up the rating in the summary.
+      include: { request: { include: { startup: true } }, reviews: true, deal: { select: { id: true } } },
+    }),
+  ]);
+  const byDesc = <T,>(key: (i: T) => Date | null) => (a: T, b: T) => (key(b)?.getTime() ?? 0) - (key(a)?.getTime() ?? 0);
+  return {
+    creator,
+    allInterests,
+    payments: allInterests
+      .filter((i) => i.paymentStatus === "HELD" || i.paymentStatus === "RELEASED" || i.paymentStatus === "REFUNDED")
+      .sort(byDesc((i) => i.paidAt)),
+    pendingOffers: allInterests.filter((i) => i.paymentStatus === "OFFERED").sort(byDesc((i) => i.offeredAt)),
+    // A deal waits for its payment on its own page.
+    awaitingPayment: allInterests.filter((i) => i.paymentStatus === "ACCEPTED" && !i.deal).sort(byDesc((i) => i.acceptedAt)),
+    deposits: DEPOSITS_ENABLED ? allInterests.filter((i) => i.depositStatus !== null).sort(byDesc((i) => i.depositRequestedAt)) : [],
+  };
+});
+
+export async function CreatorMoneySummary({ userId }: { userId: string }) {
+  const t = await getT();
+  const { creator, allInterests, payments } = await loadCreatorMoney(userId);
+
+  const earnedCents = payments.filter((p) => p.paymentStatus === "RELEASED").reduce((sum, p) => sum + p.payoutCents!, 0);
+  // Not withdrawable: it's still the brand's money until the work is posted and released, which is why this isn't
+  // labelled as a balance.
+  const inEscrowCents = payments.filter((p) => p.paymentStatus === "HELD").reduce((sum, p) => sum + p.payoutCents!, 0);
+  // Same definition Discover uses: a released payment is a finished collab.
+  const completedCount = payments.filter((p) => p.paymentStatus === "RELEASED").length;
+  const inProgressCount = allInterests.filter((i) => i.paymentStatus === "OFFERED" || i.paymentStatus === "ACCEPTED" || i.paymentStatus === "HELD").length;
+  const ratings = allInterests.flatMap((i) => i.reviews.filter((r) => r.authorRole === "STARTUP").map((r) => r.rating));
+  const averageRating = ratings.length > 0 ? ratings.reduce((sum, r) => sum + r, 0) / ratings.length : null;
+
+  return (
+    <>
+      <PaymentStats
+        stats={[
+          { label: t("screens.payments.earned"), value: formatCents(earnedCents), hint: t("screens.payments.paidOut") },
+          { label: t("screens.payments.inEscrow"), value: formatCents(inEscrowCents), hint: t("screens.payments.releasedOnApproval") },
+        ]}
+        counts={[
+          { label: t("screens.payments.completed"), value: String(completedCount) },
+          { label: t("screens.payments.inProgress"), value: String(inProgressCount) },
+          { label: t("screens.payments.rating"), value: averageRating === null ? "–" : `${averageRating.toFixed(1)} ★` },
+        ]}
+      />
+      <ProFeeBar side="creator" isPro={creator.isPro} foundingNumber={creator.foundingNumber} hasSubscription={!!creator.stripeSubscriptionId} />
+    </>
+  );
+}
+
+// Where the payouts go. On the Payments page it always shows; on the Deals page only while it still has to be set up
+// (once connected it is managed in the settings).
+async function PayoutAccount({ onboarded, accountId, always }: { onboarded: boolean; accountId: string | null; always: boolean }) {
+  const t = await getT();
+  if (onboarded) {
+    if (!always) return null;
+    return (
+      <div className="flex items-center justify-between gap-3 rounded bg-fog px-4 py-3 no-print">
+        <p className="flex min-w-0 items-center gap-2 text-sm text-neutral-700 dark:text-neutral-300">
+          <IoCheckmarkCircle className="h-5 w-5 shrink-0 text-ink" />
+          {t("screens.payments.copy.payoutsConnected")}
+        </p>
+        <Link href="/dashboard/creator/settings#payouts" className="shrink-0 text-sm font-medium underline">
+          {t("screens.payments.manage")}
+        </Link>
+      </div>
+    );
+  }
+  return (
+    <div className="rounded bg-fog p-4 no-print">
+      <div className="flex items-start gap-3">
+        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-paper">
+          <IoWalletOutline className="h-5 w-5" />
+        </span>
+        {/* A Stripe account without the flag means setup was started and not finished (or Stripe is still checking it):
+            pick up from there rather than pitching it like a fresh start. */}
+        <div className="min-w-0">
+          <p className="font-medium">{accountId ? t("screens.payments.copy.finishPayouts") : t("screens.payments.copy.setupPayouts")}</p>
+          <p className="mt-0.5 text-sm text-neutral-600 dark:text-neutral-400">
+            {accountId ? t("screens.payments.copy.finishPayoutsBody") : t("screens.payments.copy.setupPayoutsBody")}
+          </p>
+        </div>
+      </div>
+      <div className="mt-3">
+        <ConnectStripeButton isOnboarded={false} label={accountId ? t("screens.payments.copy.continueSetup") : undefined} embedClassName="mt-1" />
+      </div>
+    </div>
+  );
+}
+
+// "page": the Payments page without brand deals. "deals": on the Deals page, the payout account while it is missing and
+// the collabs that run outside a deal; nothing when there is neither.
+export async function CreatorPaymentSections({ userId, view, locale }: { userId: string; view: "page" | "deals"; locale: DealLocale }) {
+  const t = await getT();
+  const u = uiText(locale);
+  const money = await loadCreatorMoney(userId);
+  const { creator, pendingOffers, awaitingPayment, deposits } = money;
+  const onPage = view === "page";
+  // On the Deals page a deal's payment shows on the deal itself.
+  const payments = onPage ? money.payments : money.payments.filter((p) => !p.deal);
+  const isEmpty = money.payments.length === 0 && pendingOffers.length === 0 && awaitingPayment.length === 0 && deposits.length === 0;
+
+  return (
+    <>
+      <PayoutAccount onboarded={creator.stripeOnboarded} accountId={creator.stripeAccountId} always={onPage} />
+
+      {onPage && isEmpty && (
+        <EmptyState
+          icon={IoCardOutline}
+          title={t("screens.payments.noneCreator")}
+          description={t("screens.payments.copy.noneCreatorHistory")}
+          action={{ label: t("screens.payments.browseFeed"), href: "/dashboard/creator" }}
+        />
+      )}
+
+      {onPage && pendingOffers.length > 0 && (
+        <PaymentSection title={t("screens.payments.offers")} count={pendingOffers.length} className="no-print">
+          {pendingOffers.map((o) => {
+            const brand = o.request.startup.companyName;
+            const theirs = o.offerRole === "STARTUP";
+            return (
+              <PaymentRow
+                key={o.id}
+                avatarUrl={o.request.startup.avatarUrl}
+                name={brand}
+                title={o.request.title}
+                headerAction={<ChatLink interestId={o.id} name={brand} />}
+                badge={<PaymentStatusBadge status="OFFERED" />}
+                amount={formatCents(o.amountCents!)}
+                detail={
+                  theirs
+                    ? t("screens.payments.copy.youdGetEscrow", { payout: formatCents(o.payoutCents!) })
+                    : t("screens.payments.copy.counterWaiting", { name: brand })
+                }
+              >
+                {theirs ? (
+                  <OfferResponseButtons interestId={o.id} otherPartyName={brand} amountCents={o.amountCents ?? 0} />
+                ) : (
+                  <div className="mt-2">
+                    <ActionButton action={withdrawOfferAction.bind(null, o.id)} successMessage={t("screens.payments.copy.counterWithdrawn")} className={quietButton}>
+                      {t("screens.payments.copy.withdrawCounter")}
+                    </ActionButton>
+                  </div>
+                )}
+              </PaymentRow>
+            );
+          })}
+        </PaymentSection>
+      )}
+
+      {awaitingPayment.length > 0 && (
+        <PaymentSection title={t("screens.payments.waiting")} count={awaitingPayment.length} className="no-print">
+          {awaitingPayment.map((i) => (
+            <PaymentRow
+              key={i.id}
+              avatarUrl={i.request.startup.avatarUrl}
+              name={i.request.startup.companyName}
+              title={i.request.title}
+              headerAction={<ChatLink interestId={i.id} name={i.request.startup.companyName} />}
+              badge={<PaymentStatusBadge status="ACCEPTED" />}
+              amount={formatCents(i.amountCents!)}
+              detail={t("screens.payments.copy.acceptedBrandPays", { name: i.request.startup.companyName, payout: formatCents(i.payoutCents!) })}
+            />
+          ))}
+        </PaymentSection>
+      )}
+
+      {payments.length > 0 && (
+        <PaymentSection
+          title={onPage ? t("screens.payments.payments") : u("deals.olderCollabs")}
+          count={payments.length}
+          action={
+            onPage && (
+              <div className="flex shrink-0 items-center gap-2 no-print">
+                <a href="/api/payments/export" aria-label={t("screens.payments.copy.exportCsv")} className={pillLink}>
+                  <IoDownloadOutline className="h-4 w-4" />
+                  CSV
+                </a>
+                <PrintButton />
+              </div>
+            )
+          }
+        >
+          {payments.map((p) => {
+            const brand = p.request.startup.companyName;
+            const myReview = p.reviews.find((r) => r.authorRole === "CREATOR");
+            const stage = paymentStage({ paymentStatus: p.paymentStatus!, proofSubmittedAt: p.proofSubmittedAt, disputedAt: p.disputedAt });
+            const payout = formatCents(p.payoutCents!);
+            return (
+              <PaymentRow
+                key={p.id}
+                avatarUrl={p.request.startup.avatarUrl}
+                name={brand}
+                title={p.request.title}
+                headerAction={<ChatLink interestId={p.id} name={brand} />}
+                badge={<PaymentStatusBadge status={stage} />}
+                amount={formatCents(p.amountCents!)}
+                detail={
+                  <>
+                    {stage === "HELD" &&
+                      (p.deal
+                        ? u("deals.heldInDeal")
+                        : creator.stripeOnboarded
+                          ? t("screens.payments.copy.postThenSubmit", { name: brand, days: RELEASE_REVIEW_DAYS, payout })
+                          : t("screens.payments.copy.payoutWaitingSetup", { payout }))}
+                    {stage === "SUBMITTED" && (
+                      <>
+                        {t("screens.payments.copy.waitingApproveBy", { name: brand })}
+                        <LocalDate ms={p.proofSubmittedAt!.getTime() + RELEASE_REVIEW_MS} />
+                        {t("screens.payments.copy.autoReleaseRest", { payout })}
+                      </>
+                    )}
+                    {stage === "DISPUTED" && t("screens.payments.copy.brandReported", { name: brand, reason: p.disputeReason ?? "" })}
+                    {stage === "RELEASED" && t("screens.payments.copy.youReceived", { payout })}
+                    {/* A release moves the money to the creator's Stripe balance, not their bank yet: for the first week,
+                        say when to expect it rather than leave them checking their account the same afternoon. */}
+                    {stage === "RELEASED" && p.releasedAt && isWithinLastWeek(p.releasedAt.getTime()) && t("screens.payments.copy.stripeBank")}
+                    {stage === "REFUNDED" && t("screens.payments.copy.brandCancelled", { name: brand })}
+                    {stage !== "HELD" && stage !== "REFUNDED" && p.proofUrl && (
+                      <>
+                        {" "}
+                        <a href={p.proofUrl} target="_blank" rel="noopener noreferrer" className="underline">
+                          {t("screens.payments.copy.viewPost")}
+                        </a>
+                      </>
+                    )}
+                  </>
+                }
+                meta={
+                  <>
+                    {t("screens.payments.copy.paid")} <LocalDate ms={p.paidAt!.getTime()} />
+                    {p.proofSubmittedAt && (
+                      <>
+                        {" · "}
+                        {t("screens.payments.copy.posted")} <LocalDate ms={p.proofSubmittedAt.getTime()} />
+                      </>
+                    )}
+                    {p.releasedAt && (
+                      <>
+                        {" · "}
+                        {t("screens.payments.copy.releasedOn")} <LocalDate ms={p.releasedAt.getTime()} />
+                      </>
+                    )}
+                    {p.refundedAt && (
+                      <>
+                        {" · "}
+                        {t("screens.payments.copy.refundedOn")} <LocalDate ms={p.refundedAt.getTime()} />
+                      </>
+                    )}
+                  </>
+                }
+              >
+                {p.deal && <OpenDealLink dealId={p.deal.id} label={u("deals.open")} />}
+                {stage === "HELD" && creator.stripeOnboarded && !p.deal && <SubmitPostForm interestId={p.id} brandName={brand} />}
+                {stage === "SUBMITTED" && (
+                  <div className="mt-2">
+                    <SubmitPostButton
+                      interestId={p.id}
+                      brandName={brand}
+                      defaultUrl={p.proofUrl ?? undefined}
+                      label={t("screens.payments.copy.wrongLink")}
+                      className={quietButton}
+                    />
+                  </div>
+                )}
+                {stage === "RELEASED" && (
+                  <ReviewForm
+                    key={`${myReview?.rating}-${myReview?.comment}`}
+                    interestId={p.id}
+                    initial={myReview ? { rating: myReview.rating, comment: myReview.comment } : undefined}
+                  />
+                )}
+              </PaymentRow>
+            );
+          })}
+        </PaymentSection>
+      )}
+
+      {deposits.length > 0 && (
+        <PaymentSection title={t("screens.payments.deposits")} count={deposits.length} description={t("screens.payments.copy.depositsCreatorHint")}>
+          {deposits.map((d) => {
+            const brand = d.request.startup.companyName;
+            return (
+              <PaymentRow
+                key={d.id}
+                avatarUrl={d.request.startup.avatarUrl}
+                name={brand}
+                title={d.request.title}
+                headerAction={<ChatLink interestId={d.id} name={brand} />}
+                badge={<DepositStatusBadge status={d.depositStatus!} />}
+                amount={formatCents(d.depositCents!)}
+                detail={
+                  <>
+                    {d.depositStatus === "REQUESTED" && t("screens.payments.copy.depositAsk", { name: brand })}
+                    {d.depositStatus === "HELD" && t("screens.payments.copy.depositHeldUntil", { name: brand })}
+                    {d.depositStatus === "RELEASED" && t("screens.payments.copy.depositReturnedFull")}
+                    {d.depositStatus === "FORFEITED" && t("screens.payments.copy.depositForfeitedBrand", { name: brand })}
+                  </>
+                }
+                meta={
+                  <>
+                    {t("screens.payments.copy.requested")} <LocalDate ms={d.depositRequestedAt!.getTime()} />
+                    {d.depositPaidAt && (
+                      <>
+                        {" · "}
+                        {t("screens.payments.copy.paid")} <LocalDate ms={d.depositPaidAt.getTime()} />
+                      </>
+                    )}
+                    {d.depositReleasedAt && (
+                      <>
+                        {" · "}
+                        {t("screens.payments.copy.returned")} <LocalDate ms={d.depositReleasedAt.getTime()} />
+                      </>
+                    )}
+                    {d.depositForfeitedAt && (
+                      <>
+                        {" · "}
+                        {t("screens.payments.copy.kept")} <LocalDate ms={d.depositForfeitedAt.getTime()} />
+                      </>
+                    )}
+                  </>
+                }
+              >
+                {d.depositStatus === "REQUESTED" && (
+                  <ActionButton
+                    action={payDepositAction.bind(null, d.id)}
+                    successMessage={t("screens.payments.copy.depositPaidToast")}
+                    pendingChildren={t("screens.payments.copy.paying")}
+                    className={`${primaryButton} no-print`}
+                  >
+                    {t("screens.payments.copy.payDeposit", { amount: formatCents(d.depositCents!) })}
+                  </ActionButton>
+                )}
+              </PaymentRow>
+            );
+          })}
+        </PaymentSection>
+      )}
+    </>
+  );
+}
+
+export async function creatorHasPayments(userId: string): Promise<boolean> {
+  return (await loadCreatorMoney(userId)).payments.length > 0;
+}

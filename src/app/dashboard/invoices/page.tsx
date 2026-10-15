@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
-import { IoDocumentTextOutline } from "react-icons/io5";
+import { IoDocumentTextOutline, IoDownloadOutline } from "react-icons/io5";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { getLocale } from "@/lib/i18n/server";
@@ -13,6 +13,8 @@ import { formatDealDate } from "@/lib/deals/notices";
 import { uiText } from "@/lib/deals/ui-copy";
 import { canUseDeals } from "@/lib/deals/queries";
 import { formatCents } from "@/lib/format";
+import { BrandMoneySummary, brandHasPayments } from "@/components/payments/brand-payments";
+import { CreatorMoneySummary, creatorHasPayments } from "@/components/payments/creator-payments";
 
 export default async function InvoicesPage() {
   const session = await auth();
@@ -20,17 +22,30 @@ export default async function InvoicesPage() {
   if (!(await canUseDeals(session.user.id, session.user.role))) notFound();
   const locale = dealLocale(await getLocale());
   const u = uiText(locale);
+  const userId = session.user.id;
+  const brand = session.user.role === "STARTUP";
 
-  const invoices = await prisma.invoice.findMany({
+  const [invoices, hasPayments] = await Promise.all([
+    prisma.invoice.findMany({
     where: { recipientUserId: session.user.id },
     orderBy: { issuedAt: "desc" },
     select: { id: true, number: true, kind: true, status: true, grossCents: true, issuedAt: true, dealId: true, cancelsInvoiceId: true },
-  });
+    }),
+    brand ? brandHasPayments(userId) : creatorHasPayments(userId),
+  ]);
 
   return (
     <div className="page-wide flex flex-col gap-6 pb-8">
       <PageTitle description={u("invoices.listDescription")}>{u("invoices.listTitle")}</PageTitle>
-      <DealsTabs current="invoices" userId={session.user.id} role={session.user.role} locale={locale} />
+      <DealsTabs current="invoices" userId={userId} role={session.user.role} locale={locale} />
+      {/* The money at a glance (what used to open the Payments page) above the documents behind it. */}
+      {brand ? <BrandMoneySummary userId={userId} /> : <CreatorMoneySummary userId={userId} />}
+      {hasPayments && (
+        <a href="/api/payments/export" className="inline-flex w-fit items-center gap-1.5 px-1 text-sm font-medium underline">
+          <IoDownloadOutline className="h-4 w-4" aria-hidden />
+          {u("invoices.paymentsCsv")}
+        </a>
+      )}
       {invoices.length === 0 ? (
         <EmptyState icon={IoDocumentTextOutline} title={u("invoices.empty")} description={u("invoices.none")} />
       ) : (

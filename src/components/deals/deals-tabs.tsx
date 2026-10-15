@@ -3,32 +3,32 @@ import type { Role } from "@prisma/client";
 import type { DealLocale } from "@/lib/deals/copy";
 import { canUseDeals, getDealActionCount } from "@/lib/deals/queries";
 import { uiText } from "@/lib/deals/ui-copy";
-import { getBrandPendingPaymentActionCount, getOfferActionCount, getPendingPaymentActionCount } from "@/lib/payments";
-import { DEALS_HREF, INVOICES_HREF, paymentsHrefOf } from "@/lib/nav-links";
+import { getBrandPendingPaymentActionCount, getPendingPaymentActionCount } from "@/lib/payments";
+import { DEALS_HREF, INVOICES_HREF } from "@/lib/nav-links";
 
-export type DealsTab = "active" | "payments" | "invoices";
+export type DealsTab = "active" | "invoices";
 
-// The three pages behind the Deals tab: the deals themselves, the payments page and the invoices. The tab bar has one entry for
-// all of them (see tabLinks), so this is how they reach each other. Only where brand deals are available.
+// The two pages behind the Deals tab: the deals themselves (with offers and the collabs from before deals) and the
+// invoices with the money summary. The tab bar has one entry for both (see tabLinks), so this is how they reach each
+// other. Only where brand deals are available.
 export async function DealsTabs({ current, userId, role, locale }: { current: DealsTab; userId: string; role: Role; locale: DealLocale }) {
   if (role !== "STARTUP" && role !== "CREATOR") return null;
   if (!(await canUseDeals(userId, role))) return null;
   const u = uiText(locale);
-  // Offers to answer sit on the Deals list, so they count there; Payments keeps what is left on its page.
-  const [payments, offers, deals] = await Promise.all([
+  // Everything that waits for this person sits on the Deals list: deals, offers (counted in the payment actions) and the
+  // collabs from before deals.
+  const [payments, deals] = await Promise.all([
     role === "CREATOR" ? getPendingPaymentActionCount(userId) : getBrandPendingPaymentActionCount(userId),
-    getOfferActionCount(userId, role),
     getDealActionCount(userId, role),
   ]);
 
   const tabs: { id: DealsTab; href: string; label: string; badge: number }[] = [
-    { id: "active", href: DEALS_HREF, label: u("deals.tab.active"), badge: deals + offers },
-    { id: "payments", href: paymentsHrefOf(role), label: u("deals.tab.payments"), badge: payments - offers },
+    { id: "active", href: DEALS_HREF, label: u("deals.tab.active"), badge: deals + payments },
     { id: "invoices", href: INVOICES_HREF, label: u("deals.tab.invoices"), badge: 0 },
   ];
 
   return (
-    <nav aria-label={u("deals.tabs")} className="grid w-full max-w-md grid-cols-3 rounded bg-fog p-1">
+    <nav aria-label={u("deals.tabs")} className="grid w-full max-w-xs grid-cols-2 rounded bg-fog p-1">
       {tabs.map((tab) => (
         <Link
           key={tab.id}

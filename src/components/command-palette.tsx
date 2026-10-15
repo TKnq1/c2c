@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { dealsEnabled } from "@/lib/deals/flag";
 import { useRouter } from "next/navigation";
 import type { IconType } from "react-icons";
 import {
@@ -53,7 +52,8 @@ const PAGES: Record<Role, { key: string; titleKey: MessageKey; href: string; ico
   ],
 };
 
-export function CommandPalette({ role }: { role: Role }) {
+// Deals where brand deals are on, Payments where they are not: the same page set as the sidebar (see appLinks).
+export function CommandPalette({ role, showDeals }: { role: Role; showDeals: boolean }) {
   const { t } = useI18n();
   const router = useRouter();
   const [open, setOpen] = useState(false);
@@ -113,7 +113,7 @@ export function CommandPalette({ role }: { role: Role }) {
   const groups = useMemo<Group[]>(() => {
     const q = query.trim().toLowerCase();
     const pages = PAGES[role]
-      .filter((p) => p.key !== "p-deals" || dealsEnabled())
+      .filter((p) => (p.key === "p-deals" ? showDeals : p.key === "p-payments" ? !showDeals : true))
       .map((p) => ({ key: p.key, title: t(p.titleKey), href: p.href, icon: p.icon }))
       .filter((p) => !q || p.title.toLowerCase().includes(q));
     // Short queries don't search; stale results from a longer one don't show.
@@ -134,7 +134,7 @@ export function CommandPalette({ role }: { role: Role }) {
       { label: t("nav.requests"), items: byKind("request") },
       { label: t("screens.search.pages"), items: pages },
     ].filter((g) => g.items.length > 0);
-  }, [query, results, role, t]);
+  }, [query, results, role, showDeals, t]);
 
   const flat = groups.flatMap((g) => g.items);
   const current = Math.min(active, Math.max(flat.length - 1, 0));
