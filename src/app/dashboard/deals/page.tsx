@@ -22,8 +22,6 @@ import { uiText } from "@/lib/deals/ui-copy";
 import { businessReadiness } from "@/lib/tax/business";
 import { hasErrors } from "@/lib/deals/issues";
 import { formatCents } from "@/lib/format";
-import { BrandPaymentSections } from "@/components/payments/brand-payments";
-import { CreatorPaymentSections } from "@/components/payments/creator-payments";
 
 export default async function DealsPage(props: PageProps<"/dashboard/deals">) {
   const session = await auth();
@@ -43,10 +41,7 @@ export default async function DealsPage(props: PageProps<"/dashboard/deals">) {
   const needsBusiness = hasErrors(businessReadiness(profile, role));
 
   // ?filter=mine|active|done narrows the list (see list-filter.ts); anything else shows every deal.
-  const searchParams = await props.searchParams;
-  const filter = parseDealFilter(searchParams.filter);
-  // Stripe's return from paying a collab from before deals (forwarded from the old Payments address).
-  const first = (v: string | string[] | undefined) => (Array.isArray(v) ? v[0] : v);
+  const filter = parseDealFilter((await props.searchParams).filter);
   const shown = filterDeals(deals, filter, role);
   const mine = shown.filter((d) => !isTerminal(d.status) && isMyTurn(d, role));
   const running = shown.filter((d) => !isTerminal(d.status) && !isMyTurn(d, role));
@@ -74,15 +69,6 @@ export default async function DealsPage(props: PageProps<"/dashboard/deals">) {
           </Link>
         </div>
       )}
-
-      {/* Collabs from before deals (and a creator's missing payout account): they need doing, so they stand above the
-          list, and drop out under the filters that look at deals only. */}
-      {(filter === null || filter === "mine") &&
-        (role === "STARTUP" ? (
-          <BrandPaymentSections userId={session.user.id} view="deals" checkout={first(searchParams.checkout)} paidInterestId={first(searchParams.interest)} locale={locale} />
-        ) : (
-          <CreatorPaymentSections userId={session.user.id} view="deals" locale={locale} />
-        ))}
 
       {total > 0 && <DealsFilter current={filter} counts={dealCounts(deals, role, offers, interested.length)} u={u} />}
 

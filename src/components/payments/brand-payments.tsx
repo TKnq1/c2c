@@ -18,6 +18,7 @@ import { LocalDate } from "@/components/local-date";
 import { EmptyState } from "@/components/empty-state";
 import { ProFeeBar } from "@/components/pro-fee-bar";
 import { OpenDealLink } from "@/components/deals/open-deal-link";
+import { OffersMovedNote } from "@/components/deals/offers-moved-note";
 import { primaryButton, quietButton, secondaryButton } from "@/components/deals/ui";
 import { refundPaymentAction, withdrawOfferAction } from "@/lib/actions/payments";
 import { releaseDepositAction, forfeitDepositAction } from "@/lib/actions/deposits";
@@ -28,9 +29,9 @@ import { getT } from "@/lib/i18n/server";
 import { uiText } from "@/lib/deals/ui-copy";
 import type { DealLocale } from "@/lib/deals/copy";
 
-// A brand's money, in two places: the summary (what was spent, what is held, the fee line) on the Invoices page, and the
-// collabs that run outside a deal (from before brand deals) on the Deals page. Without brand deals both make up the
-// Payments page instead, which then also carries the offers and the interested creators.
+// A brand's Payments page, in two parts: the summary (what was spent, what is held, the fee line) and the sections below it
+// (posts to approve, collabs to pay, payment history, deposits). Where brand deals are on, the page is a tab under Deals and
+// the offers and interested creators live on the Deals list instead (a one-line note points there).
 
 // One query per request however many of the parts below render (cache), and the lists are filtered views over it.
 const loadBrandMoney = cache(async (userId: string) => {
@@ -124,28 +125,25 @@ export async function BrandMoneySummary({ userId }: { userId: string }) {
   );
 }
 
-// "page": the Payments page without brand deals, everything that has to do with money. "deals": on the Deals page, only
-// the collabs that run outside a deal; it renders nothing when there are none.
 export async function BrandPaymentSections({
   userId,
-  view,
   checkout,
   paidInterestId,
+  moved,
   locale,
 }: {
   userId: string;
-  view: "page" | "deals";
   checkout?: string;
   paidInterestId?: string;
+  // Offers and interested creators sit on the Deals list (brand deals are on).
+  moved: boolean;
   locale: DealLocale;
 }) {
   const t = await getT();
   const u = uiText(locale);
   const money = await loadBrandMoney(userId);
   const { startup, allInterests, toApprove, pendingOffers, awaitingPayment, interested, deposits } = money;
-  const onPage = view === "page";
-  // On the Deals page a deal's payment shows on the deal itself.
-  const history = onPage ? money.history : money.history.filter((p) => !p.deal);
+  const history = money.history;
   // Paid on Stripe, but the webhook that moves it into escrow hasn't landed yet: that row says so instead of offering
   // "Pay" a second time.
   const confirmingId = checkout === "success" && awaitingPayment.some((i) => i.id === paidInterestId) ? paidInterestId! : null;
@@ -154,12 +152,21 @@ export async function BrandPaymentSections({
     <>
       <CheckoutReturn status={checkout} waiting={confirmingId !== null} />
 
-      {onPage && allInterests.length === 0 && (
+      {allInterests.length === 0 && (
         <EmptyState
           icon={IoCardOutline}
           title={t("screens.payments.noneBrand")}
           description={t("screens.payments.noneBrandBody")}
           action={{ label: t("screens.payments.postRequest"), href: "/dashboard/startup/new" }}
+        />
+      )}
+
+      {moved && (
+        <OffersMovedNote
+          count={pendingOffers.length + interested.length}
+          brand
+          anchor={pendingOffers.length > 0 ? "offers" : "interested"}
+          u={u}
         />
       )}
 
@@ -207,7 +214,7 @@ export async function BrandPaymentSections({
         </PaymentSection>
       )}
 
-      {onPage && pendingOffers.length > 0 && (
+      {!moved && pendingOffers.length > 0 && (
         <PaymentSection id="offers" title={t("screens.payments.offers")} count={pendingOffers.length} className="no-print">
           {pendingOffers.map((i) => {
             const creator = i.creator.displayName;
@@ -274,7 +281,7 @@ export async function BrandPaymentSections({
         </PaymentSection>
       )}
 
-      {onPage && interested.length > 0 && (
+      {!moved && interested.length > 0 && (
         <PaymentSection id="interested" title={t("screens.payments.interested")} count={interested.length} className="no-print">
           {interested.map((i) => (
             <PaymentRow
@@ -303,22 +310,20 @@ export async function BrandPaymentSections({
 
       {history.length > 0 && (
         <PaymentSection
-          title={onPage ? t("screens.payments.payments") : u("deals.olderCollabs")}
+          title={t("screens.payments.payments")}
           count={history.length}
           action={
-            onPage && (
-              <div className="flex shrink-0 items-center gap-2 no-print">
-                <a
-                  href="/api/payments/export"
-                  aria-label={t("screens.payments.copy.exportCsv")}
-                  className="inline-flex items-center gap-1.5 rounded-full border border-neutral-300 px-3 py-1.5 text-sm font-medium transition hover:border-neutral-400 dark:border-neutral-700"
-                >
-                  <IoDownloadOutline className="h-4 w-4" />
-                  CSV
-                </a>
-                <PrintButton />
-              </div>
-            )
+            <div className="flex shrink-0 items-center gap-2 no-print">
+              <a
+                href="/api/payments/export"
+                aria-label={t("screens.payments.copy.exportCsv")}
+                className="inline-flex items-center gap-1.5 rounded-full border border-neutral-300 px-3 py-1.5 text-sm font-medium transition hover:border-neutral-400 dark:border-neutral-700"
+              >
+                <IoDownloadOutline className="h-4 w-4" />
+                CSV
+              </a>
+              <PrintButton />
+            </div>
           }
         >
           {history.map((p) => {
@@ -490,9 +495,4 @@ export async function BrandPaymentSections({
       )}
     </>
   );
-}
-
-// Whether the brand has anything paid at all: the Invoices page offers the CSV of its payments only then.
-export async function brandHasPayments(userId: string): Promise<boolean> {
-  return (await loadBrandMoney(userId)).payments.length > 0;
 }

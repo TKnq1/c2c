@@ -31,7 +31,6 @@ import { useI18n } from "@/components/i18n-provider";
 import type { MessageKey } from "@/lib/i18n/translate";
 import { FeedHeaderToggle, FeedScopeTabs } from "@/components/feed-scope-tabs";
 import { Logo } from "@/components/logo";
-import { FavoritesOnlyToggle } from "@/components/favorites-only-toggle";
 import { SidebarTooltip } from "@/components/sidebar-tooltip";
 import { NotificationsPanelButton } from "@/components/notifications-panel";
 import { CommandPalette, OPEN_COMMAND_PALETTE } from "@/components/command-palette";
@@ -285,12 +284,6 @@ export function Nav() {
           )}
 
           <div className="flex items-center gap-4 justify-self-end max-[360px]:gap-3">
-            {/* On Discover the saved-only star sits up here, not in the page. */}
-            {pathname === discoverHref && (
-              <Suspense fallback={null}>
-                <FavoritesOnlyToggle variant="header" />
-              </Suspense>
-            )}
             {showMatchesLink && <MatchesLink onNavigate={onNavigate} />}
             {discoverInHeader && !pathname.startsWith(discoverHref) && <DiscoverLink href={discoverHref} onNavigate={onNavigate} />}
             <NotificationsLink unreadCount={unreadCount} onNavigate={onNavigate} />

@@ -16,6 +16,7 @@ import { LocalDate } from "@/components/local-date";
 import { EmptyState } from "@/components/empty-state";
 import { ProFeeBar } from "@/components/pro-fee-bar";
 import { OpenDealLink } from "@/components/deals/open-deal-link";
+import { OffersMovedNote } from "@/components/deals/offers-moved-note";
 import { primaryButton as primaryButtonBase, quietButton } from "@/components/deals/ui";
 import { payDepositAction } from "@/lib/actions/deposits";
 import { withdrawOfferAction } from "@/lib/actions/payments";
@@ -25,8 +26,8 @@ import { getT } from "@/lib/i18n/server";
 import { uiText } from "@/lib/deals/ui-copy";
 import type { DealLocale } from "@/lib/deals/copy";
 
-// A creator's money, in the same places as a brand's (see brand-payments.tsx): the summary on the Invoices page, the
-// collabs outside a deal and the payout account on the Deals page, and all of it on the Payments page without brand deals.
+// A creator's Payments page, built like a brand's (see brand-payments.tsx): the summary, then the payout account and the
+// sections below it. Where brand deals are on, the page is a tab under Deals and open offers sit on the Deals list.
 
 const primaryButton = `${primaryButtonBase} mt-3 w-full sm:w-auto`;
 const pillLink =
@@ -87,12 +88,10 @@ export async function CreatorMoneySummary({ userId }: { userId: string }) {
   );
 }
 
-// Where the payouts go. On the Payments page it always shows; on the Deals page only while it still has to be set up
-// (once connected it is managed in the settings).
-async function PayoutAccount({ onboarded, accountId, always }: { onboarded: boolean; accountId: string | null; always: boolean }) {
+// Where the payouts go: either connected (with the way to the settings) or the step that still has to be done.
+async function PayoutAccount({ onboarded, accountId }: { onboarded: boolean; accountId: string | null }) {
   const t = await getT();
   if (onboarded) {
-    if (!always) return null;
     return (
       <div className="flex items-center justify-between gap-3 rounded bg-fog px-4 py-3 no-print">
         <p className="flex min-w-0 items-center gap-2 text-sm text-neutral-700 dark:text-neutral-300">
@@ -127,23 +126,19 @@ async function PayoutAccount({ onboarded, accountId, always }: { onboarded: bool
   );
 }
 
-// "page": the Payments page without brand deals. "deals": on the Deals page, the payout account while it is missing and
-// the collabs that run outside a deal; nothing when there is neither.
-export async function CreatorPaymentSections({ userId, view, locale }: { userId: string; view: "page" | "deals"; locale: DealLocale }) {
+export async function CreatorPaymentSections({ userId, moved, locale }: { userId: string; moved: boolean; locale: DealLocale }) {
   const t = await getT();
   const u = uiText(locale);
   const money = await loadCreatorMoney(userId);
   const { creator, pendingOffers, awaitingPayment, deposits } = money;
-  const onPage = view === "page";
-  // On the Deals page a deal's payment shows on the deal itself.
-  const payments = onPage ? money.payments : money.payments.filter((p) => !p.deal);
+  const payments = money.payments;
   const isEmpty = money.payments.length === 0 && pendingOffers.length === 0 && awaitingPayment.length === 0 && deposits.length === 0;
 
   return (
     <>
-      <PayoutAccount onboarded={creator.stripeOnboarded} accountId={creator.stripeAccountId} always={onPage} />
+      <PayoutAccount onboarded={creator.stripeOnboarded} accountId={creator.stripeAccountId} />
 
-      {onPage && isEmpty && (
+      {isEmpty && (
         <EmptyState
           icon={IoCardOutline}
           title={t("screens.payments.noneCreator")}
@@ -152,7 +147,9 @@ export async function CreatorPaymentSections({ userId, view, locale }: { userId:
         />
       )}
 
-      {onPage && pendingOffers.length > 0 && (
+      {moved && <OffersMovedNote count={pendingOffers.length} brand={false} u={u} />}
+
+      {!moved && pendingOffers.length > 0 && (
         <PaymentSection title={t("screens.payments.offers")} count={pendingOffers.length} className="no-print">
           {pendingOffers.map((o) => {
             const brand = o.request.startup.companyName;
@@ -206,18 +203,16 @@ export async function CreatorPaymentSections({ userId, view, locale }: { userId:
 
       {payments.length > 0 && (
         <PaymentSection
-          title={onPage ? t("screens.payments.payments") : u("deals.olderCollabs")}
+          title={t("screens.payments.payments")}
           count={payments.length}
           action={
-            onPage && (
-              <div className="flex shrink-0 items-center gap-2 no-print">
-                <a href="/api/payments/export" aria-label={t("screens.payments.copy.exportCsv")} className={pillLink}>
-                  <IoDownloadOutline className="h-4 w-4" />
-                  CSV
-                </a>
-                <PrintButton />
-              </div>
-            )
+            <div className="flex shrink-0 items-center gap-2 no-print">
+              <a href="/api/payments/export" aria-label={t("screens.payments.copy.exportCsv")} className={pillLink}>
+                <IoDownloadOutline className="h-4 w-4" />
+                CSV
+              </a>
+              <PrintButton />
+            </div>
           }
         >
           {payments.map((p) => {
@@ -377,8 +372,4 @@ export async function CreatorPaymentSections({ userId, view, locale }: { userId:
       )}
     </>
   );
-}
-
-export async function creatorHasPayments(userId: string): Promise<boolean> {
-  return (await loadCreatorMoney(userId)).payments.length > 0;
 }

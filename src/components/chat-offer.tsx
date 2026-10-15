@@ -44,7 +44,7 @@ export type ChatOffer = {
   payoutCents: number | null;
   viewerRole: Role;
   otherPartyName: string;
-  paymentsHref: string | null;
+  paymentsHref: string;
   feeRatePercent: number;
   // The approval step while the money is HELD (see paymentStage).
   proofUrl: string | null;
@@ -302,7 +302,7 @@ export function ChatOfferCard({
         {detail && <p className="mt-1 text-xs text-neutral-600 dark:text-neutral-400">{detail}</p>}
         {actions}
         <div className="mt-2 flex items-center justify-between gap-2">
-          {offer.status !== "OFFERED" && offer.paymentsHref ? (
+          {offer.status !== "OFFERED" ? (
             <Link href={offer.paymentsHref} className="text-xs text-neutral-500 hover:underline dark:text-neutral-400">
               {t("screens.payments.copy.viewInPayments")}
             </Link>

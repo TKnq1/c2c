@@ -17,7 +17,6 @@ import { DEPOSITS_ENABLED } from "@/lib/constants";
 import { feeRatePercent as feeRateFor } from "@/lib/payment-math";
 import { ChatInfoPanel } from "@/components/chat-info-panel";
 import { getT } from "@/lib/i18n/server";
-import { canUseDeals } from "@/lib/deals/queries";
 
 export default async function MessageThreadPage({ params }: { params: Promise<{ interestId: string }> }) {
   const { interestId } = await params;
@@ -86,8 +85,7 @@ export default async function MessageThreadPage({ params }: { params: Promise<{ 
           payoutCents: interest.payoutCents,
           viewerRole: session.user.role,
           otherPartyName: other.name,
-          // Only without brand deals: with them the deal (or the Deals list) carries the money and the card links there.
-          paymentsHref: (await canUseDeals(session.user.id, session.user.role)) ? null : isStartup ? "/dashboard/startup/payments" : "/dashboard/creator/payments",
+          paymentsHref: isStartup ? "/dashboard/startup/payments" : "/dashboard/creator/payments",
           feeRatePercent,
           proofUrl: interest.proofUrl,
           proofSubmittedAt: interest.proofSubmittedAt?.getTime() ?? null,

@@ -32,9 +32,9 @@ const PAYMENTS_HREFS = [paymentsHrefOf("STARTUP"), paymentsHrefOf("CREATOR")] as
 const settingsHrefOf = (role: Role) => `${homeOf(role)}/settings`;
 export const discoverHrefOf = (role: Role) => `${homeOf(role)}/discover`;
 
-// Everything the app offers, in sidebar order. Where brand deals are on, the money lives under Deals (the Payments page
-// forwards there) and its badge counts what waits for this person, deals and payments alike; without them Payments is
-// where the money is. The business details belong to the settings.
+// Everything the app offers, in sidebar order. Where brand deals are on, the money lives under Deals (Payments is a tab there, so
+// the sidebar lists no entry of its own) and its badge counts what waits for this person, deals and payments alike; without them
+// Payments is where the money is. The business details belong to the settings.
 export function appLinks(role: Role, showDeals: boolean, counts: NavCounts, label: Labels): NavLink[] {
   const { unreadMessages, pendingPayments, dealsToDo = 0, offersToDo = 0 } = counts;
   const link = (href: string, id: NavId, badge: number): NavLink => ({ href, id, label: label(id), badge });

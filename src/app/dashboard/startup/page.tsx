@@ -40,7 +40,7 @@ export default async function StartupDashboardPage(props: PageProps<"/dashboard/
       omit: { imageUrl: true },
       orderBy: { createdAt: "desc" },
     }),
-    // Same groups as the sections the tiles link to (on Deals where brand deals are on, else on Payments).
+    // Same groups as the Payments page's sections the tiles link to.
     prisma.interest.count({ where: { ...mine, initiatedBy: "CREATOR", paymentStatus: null } }),
     prisma.interest.count({ where: { ...mine, initiatedBy: "CREATOR", paymentStatus: null, createdAt: { gte: weekAgo } } }),
     getUnreadMessageCount(session.user.id, "STARTUP"),
@@ -106,7 +106,7 @@ export default async function StartupDashboardPage(props: PageProps<"/dashboard/
             label: t("screens.requests.postsToApprove"),
             value: toApprove,
             hint: toApprove > 0 ? t("screens.requests.autoRelease") : t("screens.requests.nothingToReview"),
-            href: showDeals ? "/dashboard/deals#to-approve" : "/dashboard/startup/payments#to-approve",
+            href: "/dashboard/startup/payments#to-approve",
             icon: IoCheckmarkCircleOutline,
           },
           {
@@ -118,7 +118,7 @@ export default async function StartupDashboardPage(props: PageProps<"/dashboard/
                 : offersToAnswer > 0
                   ? t("screens.requests.counterOffers")
                   : t("screens.requests.nothingOutstanding"),
-            href: toPay > 0 ? (showDeals ? "/dashboard/deals#to-pay" : "/dashboard/startup/payments#to-pay") : offersHref,
+            href: toPay > 0 ? "/dashboard/startup/payments#to-pay" : offersHref,
             icon: IoWalletOutline,
           },
         ]}
