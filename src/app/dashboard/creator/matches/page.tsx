@@ -90,7 +90,7 @@ export default async function CreatorMatchesPage() {
 
   return (
     <div className="page-wide flex flex-col gap-6">
-      <h1 className="font-display text-title-1 font-bold">{t("screens.matches.title")}</h1>
+      <h1 className="max-md:sr-only font-display text-title-1 font-bold">{t("screens.matches.title")}</h1>
 
       {interests.length === 0 ? (
         <EmptyState

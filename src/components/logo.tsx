@@ -1,9 +1,9 @@
 import Image from "next/image";
 
-// Two sizes only, not an open className override — the navbar (inline,
-// small) and standalone pages like auth screens or 404 (the logo acts as
-// a hero/branding moment there, not just a nav icon). No per-page picking
-// beyond that one deliberate distinction.
+// Three sizes only, not an open className override — the app's sidebar
+// (small: it marks the corner, the page names itself in the content), inline
+// marks like the landing header, and standalone pages like auth screens or
+// 404 (the logo acts as a hero/branding moment there, not just a nav icon).
 //
 // Sized larger than the old wordmark was: that version was a wide strip,
 // so the same pixel height read as much bigger on screen. This mark is a
@@ -14,8 +14,8 @@ import Image from "next/image";
 // 2000x2000/45KB at a 38-64px display height on every load added up
 // across the whole site. next/image generates a properly-downsized,
 // modern-format asset instead.
-export function Logo({ large = false }: { large?: boolean }) {
-  const size = large ? 64 : 38;
+export function Logo({ large = false, small = false }: { large?: boolean; small?: boolean }) {
+  const size = large ? 64 : small ? 28 : 38;
   return (
     <Image
       src="/logo.png"

@@ -8,6 +8,7 @@ import { computeResponseTimeMs, formatResponseTime } from "@/lib/response-time";
 import { DiscoverCreators } from "@/components/discover-creators";
 import { FavoritesOnlyToggle } from "@/components/favorites-only-toggle";
 import { SkeletonTileGrid } from "@/components/skeleton";
+import { PageTitle } from "@/components/page-title";
 import { getT } from "@/lib/i18n/server";
 
 export default async function DiscoverCreatorsPage() {
@@ -104,13 +105,9 @@ export default async function DiscoverCreatorsPage() {
 
   return (
     <div className="page-wide flex flex-col gap-6">
-      <div className="flex items-start justify-between gap-4">
-        <div>
-          <h1 className="font-display text-title-1 font-bold">{t("screens.discover.creators")}</h1>
-          <p className="text-sm text-neutral-600 mt-1 dark:text-neutral-400">
-            {t("extras.misc.creatorsHint")}
-          </p>
-        </div>
+      <div className="flex items-start justify-between gap-4 max-md:justify-end">
+        {/* On phones the header names the page (see pageTitleKey in nav.tsx). */}
+        <PageTitle description={t("extras.misc.creatorsHint")}>{t("screens.discover.creators")}</PageTitle>
         <FavoritesOnlyToggle />
       </div>
       <Suspense fallback={<SkeletonTileGrid />}>

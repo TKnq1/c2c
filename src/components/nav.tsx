@@ -65,17 +65,24 @@ function wantsNav(pathname: string) {
   return pathname.startsWith("/dashboard") || pathname === "/dev-swipe-demo";
 }
 
-// Shown next to the logo on mobile, iOS-navbar-title style (see the
+// The page's name in the phone header, iOS-navbar-title style (see the
 // text-headline size below — deliberately modest, not the big page-level
-// heading size). Exact-match only — /dashboard/creator/discover/[id] falls
-// through to null and shows the startup's own name instead, same as any
-// other route without an entry here.
+// heading size): the header has no logo, so every page that has a name says
+// it here. Exact-match only — /dashboard/creator/discover/[id] falls through
+// to null, same as any other route without an entry here.
 function pageTitleKey(pathname: string): MessageKey | null {
   if (pathname === "/dashboard/creator" || pathname === "/dev-swipe-demo") return "nav.feed";
-  if (pathname === "/dashboard/creator/discover") return "nav.discover";
+  if (pathname === "/dashboard/startup") return "nav.requests";
+  if (pathname === "/dashboard/creator/discover") return "screens.discover.brands";
+  if (pathname === "/dashboard/startup/discover") return "screens.discover.creators";
+  if (pathname === "/dashboard/creator/matches") return "nav.matches";
   if (pathname === "/dashboard/messages") return "nav.messages";
+  if (pathname === "/dashboard/notifications") return "nav.notifications";
   if (pathname === "/dashboard/deals") return "nav.deals";
+  if (/^\/dashboard\/deals\/[^/]+$/.test(pathname)) return "nav.deal";
   if (pathname === "/dashboard/creator/payments" || pathname === "/dashboard/startup/payments") return "nav.payments";
+  if (pathname === "/dashboard/invoices" || /^\/dashboard\/invoices\/[^/]+$/.test(pathname)) return "nav.invoices";
+  if (pathname === "/dashboard/business") return "nav.business";
   if (pathname === "/dashboard/startup/new") return "nav.newRequest";
   if (/^\/dashboard\/startup\/requests\/[^/]+\/edit$/.test(pathname)) return "nav.editRequest";
   if (pathname === "/dashboard/creator/settings" || pathname === "/dashboard/startup/settings") return "nav.settings";
@@ -259,29 +266,21 @@ export function Nav() {
         {/* The Feed's bar is a grid with the switch in the middle column: centered where the sides leave room, pushed left (never over the
             icons) on narrow phones, where an absolutely centered switch ran under the Matches heart. */}
         <div
-          className={`relative max-w-5xl mx-auto items-center px-6 py-3 ${isFeedHeader ? "grid grid-cols-[1fr_auto_1fr]" : "flex justify-between"}`}
+          className={`relative max-w-5xl mx-auto min-h-[62px] items-center gap-3 px-6 py-3 ${isFeedHeader ? "grid grid-cols-[1fr_auto_1fr]" : "flex justify-between"}`}
         >
-          <Link href={base} onNavigate={onNavigate} className="shrink-0 justify-self-start">
-            <Logo />
-          </Link>
           {isFeedHeader ? (
-            // The Feed title's spot: For you / All.
-            <span>
-              <Suspense fallback={<FeedScopeTabs scope="forYou" variant="header" />}>
-                <FeedHeaderToggle />
-              </Suspense>
-            </span>
-          ) : (
-            pageTitle && (
-              // Centered on the bar itself, not just in the leftover space
-              // next to the logo — absolute + left-1/2/-translate-x-1/2 so
-              // it's dead-center regardless of how wide the logo or the
-              // icons on the other side are, instead of drifting off-center
-              // the way it would inside the same flex row as either side.
-              <span className="absolute left-1/2 -translate-x-1/2 whitespace-nowrap font-display text-headline font-bold">
-                {pageTitle}
+            // The Feed's title spot is the switch: For you / All, in the middle column.
+            <>
+              <span aria-hidden="true" />
+              <span>
+                <Suspense fallback={<FeedScopeTabs scope="forYou" variant="header" />}>
+                  <FeedHeaderToggle />
+                </Suspense>
               </span>
-            )
+            </>
+          ) : (
+            // No logo: the page's name leads the bar, left-aligned like an app's large title, and gives way to the icons on narrow phones.
+            <span className="min-w-0 truncate font-display text-headline font-bold">{pageTitle}</span>
           )}
 
           <div className="flex items-center gap-4 justify-self-end max-[360px]:gap-3">
@@ -402,7 +401,7 @@ function Sidebar({
   return (
     <aside className="app-sidebar fixed inset-y-0 left-0 z-30 hidden w-[var(--sidebar-w)] flex-col border-r border-ink/10 bg-background px-3 pb-5 pt-[calc(var(--safe-top)+20px)] no-print md:flex">
       <Link href={base} onNavigate={onNavigate} className="mb-6 flex h-10 shrink-0 items-center justify-center lg:justify-start lg:px-3">
-        <Logo />
+        <Logo small />
       </Link>
 
       <button
