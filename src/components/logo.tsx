@@ -1,7 +1,7 @@
 import Image from "next/image";
 
 // Three sizes only, not an open className override — the app's sidebar
-// (small: the corner mark, with the name beside it from lg up, see the sidebar in nav.tsx), inline
+// (small: the corner mark, as wide as the 76px sidebar rail leaves room for, with the page's name beside it from lg up, see the sidebar in nav.tsx), inline
 // marks like the landing header, and standalone pages like auth screens or
 // 404 (the logo acts as a hero/branding moment there, not just a nav icon).
 //
@@ -15,7 +15,7 @@ import Image from "next/image";
 // across the whole site. next/image generates a properly-downsized,
 // modern-format asset instead.
 export function Logo({ large = false, small = false }: { large?: boolean; small?: boolean }) {
-  const size = large ? 64 : small ? 40 : 38;
+  const size = large ? 64 : small ? 52 : 38;
   return (
     <Image
       src="/logo.png"

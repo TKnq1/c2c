@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { IoChevronDown, IoClose, IoOptionsOutline } from "react-icons/io5";
+import { IoChevronDown, IoClose, IoOptionsOutline, IoStar, IoStarOutline } from "react-icons/io5";
 import { Dialog } from "@/components/dialog";
 
 // One look for every filter in the app, brand and creator side alike: status filters as a row of pills (Deals,
@@ -207,5 +207,17 @@ export function AppliedFilters({ items, removeLabel }: { items: { key: string; l
         </li>
       ))}
     </ul>
+  );
+}
+
+// "Saved only" among the filters, the same switch as the star in the page header. Spans both columns of a wide sheet.
+export function FavoritesFilter({ active, onToggle, label }: { active: boolean; onToggle: () => void; label: string }) {
+  return (
+    <div className="flex md:col-span-2">
+      <FilterChip active={active} onClick={onToggle}>
+        {active ? <IoStar className="h-4 w-4" aria-hidden /> : <IoStarOutline className="h-4 w-4" aria-hidden />}
+        {label}
+      </FilterChip>
+    </div>
   );
 }

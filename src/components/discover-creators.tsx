@@ -10,7 +10,7 @@ import { useUrlState } from "@/lib/use-url-state";
 import { SearchInput } from "@/components/search-input";
 import { CreatorCard } from "@/components/creator-card";
 import { EmptyState } from "@/components/empty-state";
-import { AppliedFilters, FilterButton, FilterChip, FilterGroup, FilterSheet, searchFieldClass, useFilterSheet } from "@/components/filters";
+import { AppliedFilters, FavoritesFilter, FilterButton, FilterChip, FilterGroup, FilterSheet, searchFieldClass, useFilterSheet } from "@/components/filters";
 import { computeRelevanceScore } from "@/lib/relevance";
 import { useI18n } from "@/components/i18n-provider";
 import { contentLanguageLabel, nicheLabel } from "@/lib/i18n/labels";
@@ -75,7 +75,7 @@ export function DiscoverCreators({ creators, requests }: { creators: CreatorEntr
   const platformFilters = useMemo(() => splitList(platform), [platform]);
   const languages = useMemo(() => splitList(language), [language]);
   const activeRequest = requests.find((r) => r.id === requestId) ?? null;
-  const filterCount = activeFilterCount({ niche, platform, language, minFollowers });
+  const filterCount = activeFilterCount({ niche, platform, language, minFollowers }) + (favorites === "1" ? 1 : 0);
   const sheet = useFilterSheet();
 
   // Mirrors each FavoriteButton's own optimistic state, updated the instant
@@ -129,7 +129,7 @@ export function DiscoverCreators({ creators, requests }: { creators: CreatorEntr
   }
 
   const clearAll = () => setParams(Object.fromEntries(FILTER_KEYS.map((k) => [k, ""])));
-  const resetFilters = () => setParams({ niche: "", platform: "", language: "", minFollowers: "", sort: "" });
+  const resetFilters = () => setParams({ niche: "", platform: "", language: "", minFollowers: "", sort: "", favorites: "" });
 
   const minCount = Number(minFollowers) || 0;
   const countLabel =
@@ -188,6 +188,7 @@ export function DiscoverCreators({ creators, requests }: { creators: CreatorEntr
       <AppliedFilters
         removeLabel={t("common.remove")}
         items={[
+          ...(favorites === "1" ? [{ key: "favorites", label: t("screens.discover.favoritesChip"), onRemove: () => setParam("favorites", "") }] : []),
           ...nicheFilters.map((n) => ({ key: `niche-${n}`, label: nicheLabel(t, n), onRemove: () => toggleIn("niche", nicheFilters, n) })),
           ...platformFilters.map((p) => ({ key: `platform-${p}`, label: p, onRemove: () => toggleIn("platform", platformFilters, p) })),
           ...(minCount > 0 ? [{ key: "followers", label: `${formatFollowers(minCount)}+ ${t("screens.discover.followers")}`, onRemove: () => setParam("minFollowers", "") }] : []),
@@ -265,6 +266,7 @@ export function DiscoverCreators({ creators, requests }: { creators: CreatorEntr
             : t("screens.discover.showResultsMany", { count: filtered.length })
         }
       >
+        <FavoritesFilter active={favorites === "1"} onToggle={() => setParam("favorites", favorites === "1" ? "" : "1")} label={t("screens.discover.favoritesChip")} />
         <FilterGroup label={t("screens.discover.niche")} span>
           {NICHES.map((n) => (
             <FilterChip key={n} active={nicheFilters.includes(n)} onClick={() => toggleIn("niche", nicheFilters, n)}>
