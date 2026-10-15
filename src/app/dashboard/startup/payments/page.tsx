@@ -27,14 +27,11 @@ import { DealsTabs } from "@/components/deals/deals-tabs";
 import { ProFeeBar } from "@/components/pro-fee-bar";
 import { getLocale, getT } from "@/lib/i18n/server";
 import { OpenDealLink } from "@/components/deals/open-deal-link";
+import { OffersMovedNote } from "@/components/deals/offers-moved-note";
+import { primaryButton, quietButton, secondaryButton } from "@/components/deals/ui";
+import { canUseDeals } from "@/lib/deals/queries";
 import { dealLocale } from "@/lib/deals/copy";
 import { uiText } from "@/lib/deals/ui-copy";
-
-const primaryButton =
-  "rounded-full bg-ink px-4 py-2.5 text-sm font-medium text-paper transition hover:bg-graphite disabled:opacity-50";
-const secondaryButton =
-  "inline-flex items-center justify-center gap-1.5 rounded-full border border-neutral-300 px-4 py-2.5 text-sm font-medium transition hover:border-neutral-400 dark:border-neutral-700";
-const quietButton = "text-xs text-neutral-500 transition hover:text-ink disabled:opacity-50 dark:text-neutral-400";
 
 export default async function StartupPaymentsPage(props: PageProps<"/dashboard/startup/payments">) {
   const session = await auth();
@@ -55,7 +52,7 @@ export default async function StartupPaymentsPage(props: PageProps<"/dashboard/s
   // filtered/sorted views over the same startup's interests, so it's
   // cheaper to fetch them all once and split/sort in JS than to round-trip
   // to Neon once per list for the same underlying rows.
-  const [startup, allInterests] = await Promise.all([
+  const [startup, allInterests, showDeals] = await Promise.all([
     prisma.startupProfile.findUniqueOrThrow({ where: { userId: session.user.id } }),
     prisma.interest.findMany({
       where: { request: { startup: { userId: session.user.id } } },
@@ -63,6 +60,7 @@ export default async function StartupPaymentsPage(props: PageProps<"/dashboard/s
       // creators' make up the rating in the summary.
       include: { request: true, creator: true, reviews: true, deal: { select: { id: true } } },
     }),
+    canUseDeals(session.user.id, "STARTUP"),
   ]);
   const byDesc = <T,>(key: (i: T) => Date | null) => (a: T, b: T) => (key(b)?.getTime() ?? 0) - (key(a)?.getTime() ?? 0);
 
@@ -73,12 +71,13 @@ export default async function StartupPaymentsPage(props: PageProps<"/dashboard/s
   // top — they run on a deadline, after which they're released without
   // anyone having looked. Soonest deadline first.
   const toApprove = payments
-    .filter((p) => p.paymentStatus === "HELD" && p.proofSubmittedAt && !p.disputedAt)
+    .filter((p) => p.paymentStatus === "HELD" && p.proofSubmittedAt && !p.disputedAt && !p.deal)
     .sort((a, b) => a.proofSubmittedAt!.getTime() - b.proofSubmittedAt!.getTime());
   const history = payments.filter((p) => !toApprove.includes(p));
   const interested = allInterests.filter((i) => i.paymentStatus === null).sort(byDesc((i) => i.createdAt));
   const pendingOffers = allInterests.filter((i) => i.paymentStatus === "OFFERED").sort(byDesc((i) => i.offeredAt));
-  const awaitingPayment = allInterests.filter((i) => i.paymentStatus === "ACCEPTED").sort(byDesc((i) => i.acceptedAt));
+  // A deal is paid on its own page, so only collabs from before deals are paid here.
+  const awaitingPayment = allInterests.filter((i) => i.paymentStatus === "ACCEPTED" && !i.deal).sort(byDesc((i) => i.acceptedAt));
   const deposits = DEPOSITS_ENABLED
     ? allInterests.filter((i) => i.depositStatus !== null).sort(byDesc((i) => i.depositRequestedAt))
     : [];
@@ -168,6 +167,15 @@ export default async function StartupPaymentsPage(props: PageProps<"/dashboard/s
         />
       )}
 
+      {showDeals && (
+        <OffersMovedNote
+          count={pendingOffers.length + interested.length}
+          brand
+          anchor={pendingOffers.length > 0 ? "offers" : "interested"}
+          u={u}
+        />
+      )}
+
       {toApprove.length > 0 && (
         <PaymentSection id="to-approve" title={t("screens.payments.toApprove")} count={toApprove.length} className="no-print">
           {toApprove.map((p) => {
@@ -215,7 +223,7 @@ export default async function StartupPaymentsPage(props: PageProps<"/dashboard/s
         </PaymentSection>
       )}
 
-      {pendingOffers.length > 0 && (
+      {!showDeals && pendingOffers.length > 0 && (
         <PaymentSection id="offers" title={t("screens.payments.offers")} count={pendingOffers.length} className="no-print">
           {pendingOffers.map((i) => {
             const creator = i.creator.displayName;
@@ -285,12 +293,9 @@ export default async function StartupPaymentsPage(props: PageProps<"/dashboard/s
                     })
               }
             >
-              {i.id !== confirmingId &&
-                (i.deal ? (
-                  <OpenDealLink dealId={i.deal.id} label={u("deals.open")} />
-                ) : (
-                  <CompletePaymentButton interestId={i.id} label={t("screens.payments.copy.payAmount", { amount: formatCents(i.amountCents!) })} />
-                ))}
+              {i.id !== confirmingId && (
+                <CompletePaymentButton interestId={i.id} label={t("screens.payments.copy.payAmount", { amount: formatCents(i.amountCents!) })} />
+              )}
               {DEPOSITS_ENABLED && i.depositStatus === null && (
                 <div className="mt-3">
                   <RequestDepositButton interestId={i.id} />
@@ -301,7 +306,7 @@ export default async function StartupPaymentsPage(props: PageProps<"/dashboard/s
         </PaymentSection>
       )}
 
-      {interested.length > 0 && (
+      {!showDeals && interested.length > 0 && (
         <PaymentSection id="interested" title={t("screens.payments.interested")} count={interested.length} className="no-print">
           {interested.map((i) => (
             <PaymentRow
@@ -321,7 +326,7 @@ export default async function StartupPaymentsPage(props: PageProps<"/dashboard/s
                   className={`${primaryButton} inline-flex items-center justify-center gap-1.5`}
                 />
                 {DEPOSITS_ENABLED && i.depositStatus === null && (
-                  <RequestDepositButton interestId={i.id} className={secondaryButton} />
+                  <RequestDepositButton interestId={i.id} className={`${secondaryButton} inline-flex items-center justify-center gap-1.5`} />
                 )}
               </div>
             </PaymentRow>

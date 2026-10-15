@@ -14,7 +14,7 @@ export function ChatLink({ interestId, name }: { interestId: string; name: strin
       href={`/dashboard/messages/${interestId}`}
       transitionTypes={["nav-forward"]}
       aria-label={t("screens.messages.chatWith", { name })}
-      className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-neutral-300 transition hover:border-neutral-400 no-print dark:border-neutral-700"
+      className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-neutral-300 transition hover:border-neutral-400 no-print dark:border-neutral-700"
     >
       <IoChatbubbleOutline className="h-5 w-5" />
     </Link>
@@ -74,6 +74,8 @@ export function PaymentRow({
   amount,
   detail,
   meta,
+  highlight = false,
+  compact = false,
   children,
 }: {
   avatarUrl: string | null;
@@ -85,10 +87,14 @@ export function PaymentRow({
   amount?: string;
   detail?: React.ReactNode;
   meta?: React.ReactNode;
+  // Outlined like a deal card that waits for you.
+  highlight?: boolean;
+  // The amount at the size of a deal card, for rows that sit among deals on the Deals list.
+  compact?: boolean;
   children?: React.ReactNode;
 }) {
   return (
-    <div className="rounded bg-fog p-4">
+    <div className={`rounded bg-fog p-4 ${highlight ? "ring-1 ring-ink" : ""}`}>
       <div className="flex items-center gap-3">
         <Avatar src={avatarUrl} name={name} size={40} />
         <div className="min-w-0 flex-1">
@@ -109,7 +115,7 @@ export function PaymentRow({
       </div>
       {amount && (
         <div className="mt-3 flex items-center justify-between gap-3">
-          <p className="text-xl font-bold tabular-nums">{amount}</p>
+          <p className={`${compact ? "" : "text-xl "}font-bold tabular-nums`}>{amount}</p>
           {badge}
         </div>
       )}

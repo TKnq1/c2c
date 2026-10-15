@@ -233,7 +233,7 @@ export function SwipeCardStack({
               disabled={!topCard}
               aria-label={topIsFavorited ? t("screens.feed.unsaveBrand") : t("screens.feed.saveBrand")}
               aria-pressed={topIsFavorited}
-              className={`flex h-10 w-10 shrink-0 items-center justify-center justify-self-center rounded-full border transition-colors disabled:opacity-40 ${
+              className={`flex h-11 w-11 shrink-0 items-center justify-center justify-self-center rounded-full border transition-colors disabled:opacity-40 ${
                 topIsFavorited
                   ? "border-amber-400 bg-amber-400 text-white"
                   : `border-ink/10 text-neutral-400 hover:border-ink hover:text-ink dark:hover:text-white ${GLASS}`
@@ -254,7 +254,7 @@ export function SwipeCardStack({
               onClick={undoLastPass}
               disabled={!lastPassed}
               aria-label={t("screens.feed.undo")}
-              className={`flex h-10 w-10 shrink-0 items-center justify-center justify-self-center rounded-full border border-ink/10 text-neutral-400 transition-colors hover:border-ink hover:text-ink disabled:opacity-40 disabled:hover:border-ink/10 disabled:hover:text-neutral-400 dark:hover:text-white ${GLASS}`}
+              className={`flex h-11 w-11 shrink-0 items-center justify-center justify-self-center rounded-full border border-ink/10 text-neutral-400 transition-colors hover:border-ink hover:text-ink disabled:opacity-40 disabled:hover:border-ink/10 disabled:hover:text-neutral-400 dark:hover:text-white ${GLASS}`}
             >
               <FiRotateCcw className="h-4 w-4" />
             </button>

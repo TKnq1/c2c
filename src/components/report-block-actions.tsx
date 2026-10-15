@@ -104,7 +104,7 @@ export function ReportBlockActions({
         aria-haspopup="menu"
         aria-expanded={menuOpen}
         aria-label={t("screens.requests.moreActions")}
-        className={`flex h-10 w-10 items-center justify-center rounded-full text-graphite transition hover:text-ink ${
+        className={`flex h-11 w-11 items-center justify-center rounded-full text-graphite transition hover:text-ink ${
           bordered ? "border border-neutral-300 hover:border-neutral-400 dark:border-neutral-700" : "hover:bg-fog"
         }`}
       >

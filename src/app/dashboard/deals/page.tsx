@@ -9,12 +9,14 @@ import { PageTitle } from "@/components/page-title";
 import { Badge, Section, cardClass } from "@/components/deals/ui";
 import { DealsFilter } from "@/components/deals/deals-filter";
 import { DealsTabs } from "@/components/deals/deals-tabs";
+import { InterestedCards, OfferCards } from "@/components/deals/offer-cards";
 import { dealLocale } from "@/lib/deals/copy";
-import { getLocale } from "@/lib/i18n/server";
+import { getLocale, getT } from "@/lib/i18n/server";
 import { nextStepForListItem } from "@/lib/deals/list-next-step";
 import { formatDealDate } from "@/lib/deals/notices";
 import { canUseDeals, isMyTurn, listDealsForUser, type DealListItem } from "@/lib/deals/queries";
-import { GROUP_BY_CAMPAIGN_FROM, dealCounts, filterDeals, groupByCampaign, parseDealFilter } from "@/lib/deals/list-filter";
+import { GROUP_BY_CAMPAIGN_FROM, dealCounts, filterDeals, filterOffers, groupByCampaign, parseDealFilter } from "@/lib/deals/list-filter";
+import { listInterestedWithoutOffer, listOpenOffers } from "@/lib/deals/offers";
 import { isTerminal } from "@/lib/deals/status";
 import { uiText } from "@/lib/deals/ui-copy";
 import { businessReadiness } from "@/lib/tax/business";
@@ -28,10 +30,13 @@ export default async function DealsPage(props: PageProps<"/dashboard/deals">) {
   if (!(await canUseDeals(session.user.id, role))) notFound();
   const locale = dealLocale(await getLocale());
   const u = uiText(locale);
+  const t = await getT();
 
-  const [deals, profile] = await Promise.all([
+  const [deals, profile, offers, interested] = await Promise.all([
     listDealsForUser(session.user.id, role),
     prisma.businessProfile.findUnique({ where: { userId: session.user.id } }),
+    listOpenOffers(session.user.id, role),
+    role === "STARTUP" ? listInterestedWithoutOffer(session.user.id) : Promise.resolve([]),
   ]);
   const needsBusiness = hasErrors(businessReadiness(profile, role));
 
@@ -41,6 +46,11 @@ export default async function DealsPage(props: PageProps<"/dashboard/deals">) {
   const mine = shown.filter((d) => !isTerminal(d.status) && isMyTurn(d, role));
   const running = shown.filter((d) => !isTerminal(d.status) && !isMyTurn(d, role));
   const finished = shown.filter((d) => isTerminal(d.status));
+  // What comes before a deal: open offers under the same filters, interested creators only in the full list.
+  const shownOffers = filterOffers(offers, filter, role);
+  const shownInterested = filter ? [] : interested;
+  const total = deals.length + offers.length + interested.length;
+  const shownTotal = shown.length + shownOffers.length + shownInterested.length;
   // A brand with many deals sees them grouped by campaign.
   const byCampaign = role === "STARTUP" && deals.length >= GROUP_BY_CAMPAIGN_FROM;
 
@@ -60,11 +70,11 @@ export default async function DealsPage(props: PageProps<"/dashboard/deals">) {
         </div>
       )}
 
-      {deals.length > 0 && <DealsFilter current={filter} counts={dealCounts(deals, role)} u={u} />}
+      {total > 0 && <DealsFilter current={filter} counts={dealCounts(deals, role, offers, interested.length)} u={u} />}
 
-      {deals.length === 0 ? (
+      {total === 0 ? (
         <EmptyState icon={IoBriefcaseOutline} title={u("deals.empty")} description={role === "STARTUP" ? u("deals.emptyBrand") : u("deals.emptyCreator")} />
-      ) : shown.length === 0 ? (
+      ) : shownTotal === 0 ? (
         <div className={`${cardClass} flex flex-col items-start gap-2 text-sm`}>
           <p>{u("deals.filterEmpty")}</p>
           <Link href="/dashboard/deals" className="underline">
@@ -74,7 +84,17 @@ export default async function DealsPage(props: PageProps<"/dashboard/deals">) {
       ) : (
         <>
           {mine.length > 0 && <DealGroup title={u("deals.yourTurn")} deals={mine} role={role} locale={locale} campaigns={byCampaign} highlight />}
+          {shownOffers.length > 0 && (
+            <Section id="offers" title={`${t("screens.payments.offers")} · ${shownOffers.length}`}>
+              <OfferCards offers={shownOffers} role={role} />
+            </Section>
+          )}
           {running.length > 0 && <DealGroup title={u("deals.running")} deals={running} role={role} locale={locale} campaigns={byCampaign} />}
+          {shownInterested.length > 0 && (
+            <Section id="interested" title={`${t("screens.payments.interested")} · ${shownInterested.length}`}>
+              <InterestedCards interested={shownInterested} />
+            </Section>
+          )}
           {finished.length > 0 && <DealGroup title={u("deals.finished")} deals={finished} role={role} locale={locale} campaigns={byCampaign} />}
         </>
       )}

@@ -12,10 +12,11 @@ export type ProProfile = {
   proSince: Date | null;
   stripeCustomerId: string | null;
   stripeSubscriptionId: string | null;
+  proPriceCents: number | null;
   foundingNumber: number | null;
 };
 
-export type ProUpdate = Partial<Pick<ProProfile, "isPro" | "proSince" | "stripeCustomerId" | "stripeSubscriptionId">>;
+export type ProUpdate = Partial<Pick<ProProfile, "isPro" | "proSince" | "stripeCustomerId" | "stripeSubscriptionId" | "proPriceCents">>;
 
 const SELECT = {
   id: true,
@@ -23,6 +24,7 @@ const SELECT = {
   proSince: true,
   stripeCustomerId: true,
   stripeSubscriptionId: true,
+  proPriceCents: true,
   foundingNumber: true,
 } as const;
 

@@ -1,4 +1,5 @@
-import { PLATFORM_FEE_RATE, PLATFORMS, PRO_PLATFORM_FEE_RATE, PRO_SUBSCRIPTION_PRICE_CENTS, RELEASE_REVIEW_DAYS } from "@/lib/constants";
+import { PLATFORM_FEE_RATE, PLATFORMS, PRO_PLATFORM_FEE_RATE, PRO_PRICE_CENTS, RELEASE_REVIEW_DAYS } from "@/lib/constants";
+import { formatEuroNumber } from "@/lib/format";
 import type { UgcContent, UgcCreatorPage, UgcFaqItem, UgcNichePage } from "@/lib/ugc/types";
 
 // English version of the UGC search pages (/en/ugc/...). Same structure as the German source in
@@ -8,7 +9,8 @@ import type { UgcContent, UgcCreatorPage, UgcFaqItem, UgcNichePage } from "@/lib
 
 const FEE = `${PLATFORM_FEE_RATE * 100}%`;
 const PRO_FEE = `${PRO_PLATFORM_FEE_RATE * 100}%`;
-const PRO_PRICE = `€${PRO_SUBSCRIPTION_PRICE_CENTS / 100}`;
+const PRO_PRICE_BRAND = `€${formatEuroNumber(PRO_PRICE_CENTS.brand, "en")}`;
+const PRO_PRICE_CREATOR = `€${formatEuroNumber(PRO_PRICE_CENTS.creator, "en")}`;
 
 // Questions every page answers the same way, because the answer is the same.
 function sharedFaqs(): UgcFaqItem[] {
@@ -19,7 +21,7 @@ function sharedFaqs(): UgcFaqItem[] {
     },
     {
       question: "What does comtor cost?",
-      answer: `Signing up is free and there is no base fee. comtor keeps ${FEE} of each payment. The fee is deducted from the creator's payout. The brand pays exactly the agreed amount. Brands and creators can book an optional Pro plan for ${PRO_PRICE} a month. Then the fee is ${PRO_FEE} on every payment where either side has Pro.`,
+      answer: `Signing up is free and there is no base fee. comtor keeps ${FEE} of each payment. The fee is deducted from the creator's payout. The brand pays exactly the agreed amount. Brands can book an optional Pro plan for ${PRO_PRICE_BRAND} a month, creators for ${PRO_PRICE_CREATOR}. Then the fee is ${PRO_FEE} on every payment where either side has Pro.`,
     },
     {
       question: "Do paid posts have to be labelled as advertising?",

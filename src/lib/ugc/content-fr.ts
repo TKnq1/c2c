@@ -1,4 +1,5 @@
-import { PLATFORM_FEE_RATE, PLATFORMS, PRO_PLATFORM_FEE_RATE, PRO_SUBSCRIPTION_PRICE_CENTS, RELEASE_REVIEW_DAYS } from "@/lib/constants";
+import { PLATFORM_FEE_RATE, PLATFORMS, PRO_PLATFORM_FEE_RATE, PRO_PRICE_CENTS, RELEASE_REVIEW_DAYS } from "@/lib/constants";
+import { formatEuroNumber } from "@/lib/format";
 import type { UgcContent, UgcFaqItem, UgcNichePage } from "@/lib/ugc/types";
 
 // French UGC search landing pages. Same structure as the German source (src/lib/seo-pages.ts and
@@ -8,7 +9,8 @@ import type { UgcContent, UgcFaqItem, UgcNichePage } from "@/lib/ugc/types";
 const NBSP = "\u00A0";
 const FEE = `${PLATFORM_FEE_RATE * 100}${NBSP}%`;
 const PRO_FEE = `${PRO_PLATFORM_FEE_RATE * 100}${NBSP}%`;
-const PRO_PRICE = `${PRO_SUBSCRIPTION_PRICE_CENTS / 100}${NBSP}€`;
+const PRO_PRICE_BRAND = `${formatEuroNumber(PRO_PRICE_CENTS.brand, "fr")}${NBSP}€`;
+const PRO_PRICE_CREATOR = `${formatEuroNumber(PRO_PRICE_CENTS.creator, "fr")}${NBSP}€`;
 
 const PLATFORM_LIST = `${PLATFORMS.slice(0, -1).join(", ")} et ${PLATFORMS[PLATFORMS.length - 1]}`;
 
@@ -21,7 +23,7 @@ function sharedFaqs(): UgcFaqItem[] {
     },
     {
       question: "Combien coûte comtor ?",
-      answer: `L’inscription est gratuite et il n’y a pas d’abonnement obligatoire. comtor retient ${FEE} de chaque paiement. La commission est déduite du versement du créateur. La marque paie exactement le montant convenu. Marques et créateurs peuvent souscrire un abonnement Pro optionnel à ${PRO_PRICE} par mois. La commission passe alors à ${PRO_FEE} sur chaque paiement dont l’une des deux parties a Pro.`,
+      answer: `L’inscription est gratuite et il n’y a pas d’abonnement obligatoire. comtor retient ${FEE} de chaque paiement. La commission est déduite du versement du créateur. La marque paie exactement le montant convenu. Les marques peuvent souscrire un abonnement Pro optionnel à ${PRO_PRICE_BRAND} par mois, les créateurs à ${PRO_PRICE_CREATOR}. La commission passe alors à ${PRO_FEE} sur chaque paiement dont l’une des deux parties a Pro.`,
     },
     {
       question: "Faut-il signaler les posts payants comme publicité ?",

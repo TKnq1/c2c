@@ -143,6 +143,10 @@ With `BRAND_DEALS_ENABLED` off nothing below shows; for a person who already has
 - **Navigation.** On the phone the tab bar has four entries where deals are on: home (Feed / Requests), Messages, Deals, Account.
   Discover is a magnifier in the header; Payments and Invoices are tabs on the Deals pages. One badge per tab: Messages counts
   unread, Deals everything that waits for the person (deals and payments), and then opens `?filter=mine`.
+- **Offers on the Deals list.** Open offers (and a brand's interested creators without an offer) sit on `/dashboard/deals`
+  (`#offers`, `#interested`, `src/lib/deals/offers.ts`). The Payments tab keeps the money: totals, history, export, payout account,
+  deposits, and approve / pay only for collabs without a deal. On the Deals pages' own tab bar, Deals counts deals and offers to
+  answer, Payments the rest.
 - **Deal page.** `planPanels` puts the part the deal is in right under the "next step" card (with a button to its form), folds the
   parts behind the deal to one-line summaries and keeps everything open in a dispute or after a cancellation. The stepper is one
   line with a bar on phones. Report-a-problem and cancel live in a menu in the header. The contract shows a short form (rows with

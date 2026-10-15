@@ -1,5 +1,6 @@
 import Image from "next/image";
-import { PLATFORM_FEE_RATE, PRO_PLATFORM_FEE_RATE, PRO_SUBSCRIPTION_PRICE_CENTS } from "@/lib/constants";
+import { PLATFORM_FEE_RATE, PRO_PLATFORM_FEE_RATE, PRO_PRICE_CENTS } from "@/lib/constants";
+import { formatEuroNumber } from "@/lib/format";
 import { FiCheck, FiChevronLeft, FiExternalLink } from "react-icons/fi";
 import { Avatar } from "@/components/avatar";
 import { PlatformIcon } from "@/components/platform-icons";
@@ -15,7 +16,7 @@ import type { TFunction } from "@/lib/i18n/translate";
 
 type Feature = { icon: string; title: string; body: string; mockup: React.ReactNode };
 type Example = ReturnType<typeof deck>[number];
-type Ctx = { t: TFunction; odd: Example; kiez: Example };
+type Ctx = { t: TFunction; odd: Example; kiez: Example; locale: string };
 
 // The deal from each side, in the order it happens. The money lines follow
 // src/lib/constants.ts and the FAQ: 10% fee (3% for Pro brands), 3 days
@@ -45,7 +46,7 @@ function creatorFeatures(c: Ctx): Feature[] {
       icon: "money-wings",
       title: t("landing.features.creator4Title"),
       body: t("landing.features.creator4Body", {
-        price: PRO_SUBSCRIPTION_PRICE_CENTS / 100,
+        price: formatEuroNumber(PRO_PRICE_CENTS.creator, c.locale),
         keepPro: 100 - Math.round(PRO_PLATFORM_FEE_RATE * 100),
       }),
       mockup: <PayoutMock {...c} />,
@@ -80,7 +81,7 @@ function brandFeatures(c: Ctx): Feature[] {
       body: t("landing.features.brand4Body", {
         standard: Math.round(PLATFORM_FEE_RATE * 100),
         pro: Math.round(PRO_PLATFORM_FEE_RATE * 100),
-        price: PRO_SUBSCRIPTION_PRICE_CENTS / 100,
+        price: formatEuroNumber(PRO_PRICE_CENTS.brand, c.locale),
       }),
       mockup: <ApproveMock {...c} />,
     },
@@ -89,8 +90,9 @@ function brandFeatures(c: Ctx): Feature[] {
 
 export async function FeatureGrid() {
   const t = await getT();
-  const [odd, kiez] = deck(0, await getLocale());
-  const ctx: Ctx = { t, odd, kiez };
+  const locale = await getLocale();
+  const [odd, kiez] = deck(0, locale);
+  const ctx: Ctx = { t, odd, kiez, locale };
   return (
     <section id="how-it-works" className="scroll-mt-24 bg-paper px-4 py-20 md:py-28">
       <div className="mx-auto max-w-6xl">

@@ -44,6 +44,9 @@ export const fr: Catalog = {
     searchTooltip: "Recherche  ⌘K",
     newRequest: "Nouvelle demande",
     editRequest: "Modifier la demande",
+    invoices: "Factures",
+    business: "Infos entreprise",
+    deal: "Deal",
     yourMatches: "Tes matchs",
     leaveUnsaved: "Tu as des modifications non enregistrées. Partir sans enregistrer ?",
     main: "Principal",
@@ -229,7 +232,7 @@ export const fr: Catalog = {
     payout: {
       title: "Où est-ce qu’on envoie l’argent ?",
       description: "Ajoute tes infos de paiement maintenant, pour que le premier oui puisse être payé.",
-      point1: "Une marque paie en séquestre avant que tu crées quoi que ce soit.",
+      point1: "Une marque paie avant que tu crées quoi que ce soit, et l’argent est retenu jusqu’à ta publication.",
       point2: "L’argent t’est versé une fois la publication en ligne.",
       point3: "La configuration prend environ deux minutes. La première marque qui te choisit peut payer tout de suite.",
       setup: "Configurer les virements",

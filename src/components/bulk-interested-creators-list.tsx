@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import type { PaymentStatus, DepositStatus } from "@prisma/client";
 import { bulkSendOfferAction } from "@/lib/actions/payments";
 import { InterestedCreatorRow } from "@/components/interested-creator-row";
+import { SelectionBar } from "@/components/selection-bar";
 import type { PaymentStage } from "@/components/payment-status-badge";
 import { toast } from "@/lib/toast";
 import { errorMessage } from "@/lib/error-message";
@@ -74,49 +75,6 @@ export function BulkInterestedCreatorsList({
 
   return (
     <div className="flex flex-col gap-3">
-      {selected.size > 0 && (
-        <form
-          action={handleBulkOffer}
-          className="no-print flex flex-col gap-2 rounded bg-ink/10 px-4 py-3"
-        >
-          <div className="flex items-center gap-3">
-            <p className="text-sm font-medium flex-1">{t("screens.requests.selected", { count: selected.size })}</p>
-            <button
-              type="button"
-              onClick={() => setSelected(new Set())}
-              className="text-sm text-neutral-500 hover:text-neutral-900 transition dark:text-neutral-400 dark:hover:text-neutral-100"
-            >
-              {t("screens.requests.clearSelection")}
-            </button>
-          </div>
-          <p className="text-xs text-neutral-500 dark:text-neutral-400">
-            {creatorProNote
-              ? t("screens.requests.bulkOfferHintCreatorPro", { fee: feeRatePercent, pro: PRO_PLATFORM_FEE_RATE * 100 })
-              : t("screens.requests.bulkOfferHint", { fee: feeRatePercent })}
-          </p>
-          <div className="flex items-center gap-2 flex-wrap">
-            <span className="text-sm text-neutral-600 dark:text-neutral-400">€</span>
-            <input
-              name="amount"
-              type="number"
-              step="0.01"
-              min="1"
-              placeholder="250.00"
-              aria-label={t("screens.requests.offerAmount")}
-              required
-              className="rounded border border-neutral-300 bg-paper px-3 py-2.5 w-32 dark:border-neutral-700"
-            />
-            <button
-              type="submit"
-              disabled={sending}
-              className="rounded-full bg-ink text-paper px-4 py-2 text-sm font-medium hover:bg-graphite transition disabled:opacity-50 shrink-0 whitespace-nowrap"
-            >
-              {sending ? t("screens.requests.sendingOffers") : t("screens.requests.sendOfferTo", { count: selected.size })}
-            </button>
-          </div>
-        </form>
-      )}
-
       {offerable > 1 && (
         <button
           type="button"
@@ -139,6 +97,38 @@ export function BulkInterestedCreatorsList({
           />
         ))}
       </div>
+      {selected.size > 0 && (
+        <SelectionBar label={t("screens.requests.selected", { count: selected.size })} onClear={() => setSelected(new Set())}>
+          <form action={handleBulkOffer} className="flex w-full items-center gap-2 pl-3 md:w-auto md:pl-0">
+            <label className="flex min-h-11 flex-1 items-center gap-1.5 rounded border border-neutral-300 px-3 md:w-36 md:flex-none dark:border-neutral-700">
+              <span className="text-sm text-neutral-600 dark:text-neutral-400">€</span>
+              <input
+                name="amount"
+                type="number"
+                inputMode="decimal"
+                step="0.01"
+                min="1"
+                placeholder="250"
+                aria-label={t("screens.requests.offerAmount")}
+                required
+                className="w-full min-w-0 bg-transparent text-base outline-none md:text-sm"
+              />
+            </label>
+            <button
+              type="submit"
+              disabled={sending}
+              className="min-h-11 shrink-0 whitespace-nowrap rounded-full bg-ink px-4 text-sm font-medium text-paper transition hover:bg-graphite disabled:opacity-50"
+            >
+              {sending ? t("screens.requests.sendingOffers") : t("screens.requests.sendOfferTo", { count: selected.size })}
+            </button>
+          </form>
+          <p className="w-full pl-3 text-xs text-neutral-600 dark:text-neutral-400">
+            {creatorProNote
+              ? t("screens.requests.bulkOfferHintCreatorPro", { fee: feeRatePercent, pro: PRO_PLATFORM_FEE_RATE * 100 })
+              : t("screens.requests.bulkOfferHint", { fee: feeRatePercent })}
+          </p>
+        </SelectionBar>
+      )}
     </div>
   );
 }

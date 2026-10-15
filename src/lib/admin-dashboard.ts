@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { proMrrCents } from "@/lib/pro-mrr";
 import { dailySeries, windowStart } from "@/lib/admin-stats";
 import type { DailyPoint } from "@/components/admin/daily-bar-chart";
 
@@ -67,6 +68,7 @@ export async function loadDashboard(now = new Date()) {
     funnelOnboarded,
     funnelActive,
     funnelPaid,
+    proMrr,
   ] = await Promise.all([
     prisma.user.count({ where: { ...people, role: "STARTUP" } }),
     prisma.user.count({ where: { ...people, role: "CREATOR" } }),
@@ -113,6 +115,7 @@ export async function loadDashboard(now = new Date()) {
         ],
       },
     }),
+    proMrrCents(),
   ]);
 
   const totalUsers = brands + creators;
@@ -143,7 +146,7 @@ export async function loadDashboard(now = new Date()) {
       heldCents: feeHeld._sum.platformFeeCents ?? 0,
       monthCents: feeMonth._sum.platformFeeCents ?? 0,
     },
-    pro: { paying: payingBrands + payingCreators, founding: foundingBrands + foundingCreators },
+    pro: { paying: payingBrands + payingCreators, mrrCents: proMrr, founding: foundingBrands + foundingCreators },
     founding: { brands: foundingBrands, creators: foundingCreators },
     market: {
       liquidity: requests30 > 0 ? Math.round((requestsWithInterest30 / requests30) * 100) : null,

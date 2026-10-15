@@ -44,6 +44,9 @@ export const pt: Catalog = {
     searchTooltip: "Pesquisar  ⌘K",
     newRequest: "Novo pedido",
     editRequest: "Editar pedido",
+    invoices: "Faturas",
+    business: "Dados da empresa",
+    deal: "Acordo",
     yourMatches: "As tuas correspondências",
     leaveUnsaved: "Tens alterações por guardar. Sair sem guardar?",
     main: "Principal",
@@ -229,7 +232,7 @@ export const pt: Catalog = {
     payout: {
       title: "Para onde mandamos o dinheiro?",
       description: "Adiciona os dados de recebimento agora, para o primeiro sim poder ser pago.",
-      point1: "Uma marca paga para uma conta de garantia antes de criares o que quer que seja.",
+      point1: "Uma marca paga antes de criares o que quer que seja, e o dinheiro fica retido até publicares.",
       point2: "O dinheiro é libertado quando a publicação fica online.",
       point3: "Configurar agora demora cerca de dois minutos. A primeira marca que te escolher pode pagar logo.",
       setup: "Configurar recebimentos",

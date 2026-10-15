@@ -9,6 +9,8 @@ import { SITE_URL } from "@/lib/site";
 import { canSellProSubscription } from "@/lib/native-app-server";
 import { canWithdrawPro } from "@/lib/pro-withdrawal";
 import { findProProfile, planPath, updateProProfile } from "@/lib/pro-profile";
+import { proPriceCents, proStripePriceId } from "@/lib/pro-price";
+import type { FoundingSide } from "@/lib/founding-limits";
 
 // Stripe Tax on the Pro plan, off unless STRIPE_AUTOMATIC_TAX=1. It needs the head office address and an active
 // registration in Stripe (Tax → Locations) first; without one Stripe collects nothing and the customer only gets an
@@ -23,6 +25,23 @@ function proTaxParams(): Partial<Stripe.Checkout.SessionCreateParams> {
     customer_update: { address: "auto", name: "auto" },
     tax_id_collection: { enabled: true },
   };
+}
+
+async function checkedProPriceId(side: FoundingSide): Promise<string | null> {
+  const priceId = proStripePriceId(side);
+  if (!priceId) {
+    console.error(`Pro checkout: no Stripe price set for ${side} (STRIPE_PRO_${side === "brand" ? "BRAND" : "CREATOR"}_PRICE_ID).`);
+    return null;
+  }
+  const price = await stripe.prices.retrieve(priceId);
+  const expected = proPriceCents(side);
+  // With Stripe Tax on, an exclusive price would add VAT on top of the advertised amount.
+  const taxOk = process.env.STRIPE_AUTOMATIC_TAX !== "1" || price.tax_behavior === "inclusive";
+  if (!price.active || price.unit_amount !== expected || price.currency !== "eur" || price.recurring?.interval !== "month" || !taxOk) {
+    console.error(`Pro checkout: Stripe price ${priceId} is ${price.unit_amount} ${price.currency}/${price.recurring?.interval ?? "once"}, tax ${price.tax_behavior}; the app sells ${side} Pro at ${expected} eur/month, tax-inclusive.`);
+    return null;
+  }
+  return priceId;
 }
 
 function revalidateSubscriptionPaths() {
@@ -48,6 +67,10 @@ export async function createProCheckoutSessionAction(): Promise<{ url: string } 
   if (!(await canSellProSubscription())) return { error: "Pro isn't available in the app." };
   if (profile.isPro) return { error: "You're already on Pro." };
 
+  // The Stripe price must charge exactly what the app shows: a missing or mismatched price would sell Pro at another amount.
+  const priceId = await checkedProPriceId(profile.side);
+  if (!priceId) return { error: "Pro can't be booked right now. Please try again later." };
+
   let customerId = profile.stripeCustomerId;
   if (!customerId) {
     const customer = await stripe.customers.create({
@@ -65,7 +88,7 @@ export async function createProCheckoutSessionAction(): Promise<{ url: string } 
   const checkoutSession = await stripe.checkout.sessions.create({
     mode: "subscription",
     customer: customerId,
-    line_items: [{ price: process.env.STRIPE_PRO_PRICE_ID!, quantity: 1 }],
+    line_items: [{ price: priceId, quantity: 1 }],
     ...proTaxParams(),
     success_url: `${SITE_URL}${planPath(profile.side)}`,
     cancel_url: `${SITE_URL}${planPath(profile.side)}`,
@@ -88,7 +111,7 @@ export async function cancelProAction() {
   // The customer.subscription.deleted webhook will also flip isPro false,
   // but updating it here too means the UI reflects it immediately instead
   // of waiting on webhook delivery. A founding place's Pro doesn't depend on the subscription.
-  await updateProProfile(profile, { isPro: profile.foundingNumber !== null, stripeSubscriptionId: null });
+  await updateProProfile(profile, { isPro: profile.foundingNumber !== null, stripeSubscriptionId: null, proPriceCents: null });
 
   revalidateSubscriptionPaths();
 }
@@ -115,10 +138,10 @@ export async function withdrawProAction(): Promise<{ error?: string }> {
     const withdrawal = { amountCents: refund.amount, stripeRefundId: refund.id };
     await prisma.$transaction(async (tx) => {
       if (profile.side === "brand") {
-        await tx.startupProfile.update({ where: { id: profile.id }, data: { isPro, stripeSubscriptionId: null } });
+        await tx.startupProfile.update({ where: { id: profile.id }, data: { isPro, stripeSubscriptionId: null, proPriceCents: null } });
         await tx.proWithdrawal.create({ data: { ...withdrawal, startupId: profile.id } });
       } else {
-        await tx.creatorProfile.update({ where: { id: profile.id }, data: { isPro, stripeSubscriptionId: null } });
+        await tx.creatorProfile.update({ where: { id: profile.id }, data: { isPro, stripeSubscriptionId: null, proPriceCents: null } });
         await tx.proWithdrawal.create({ data: { ...withdrawal, creatorId: profile.id } });
       }
     });

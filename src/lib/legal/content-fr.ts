@@ -1,4 +1,4 @@
-import { FOUNDING_BRAND_LIMIT, FOUNDING_CREATOR_LIMIT, PLATFORM_FEE_RATE, PRO_PLATFORM_FEE_RATE, PRO_SUBSCRIPTION_PRICE_CENTS, RELEASE_REVIEW_DAYS } from "@/lib/constants";
+import { FOUNDING_BRAND_LIMIT, FOUNDING_CREATOR_LIMIT, PLATFORM_FEE_RATE, PRO_PLATFORM_FEE_RATE, PRO_PRICE_CENTS, RELEASE_REVIEW_DAYS } from "@/lib/constants";
 import { formatCents } from "@/lib/format";
 import type { LegalContent, LegalSection } from "@/lib/legal/types";
 
@@ -46,7 +46,7 @@ function frTerms(): LegalSection[] {
   {
     title: "Frais",
     body: [
-      `Nous prélevons des frais de plateforme de ${PLATFORM_FEE_RATE * 100} % sur chaque paiement effectué via comtor. Les marques et les créateurs peuvent s’abonner à Pro pour ${formatCents(PRO_SUBSCRIPTION_PRICE_CENTS)}/mois. Tant que Pro est actif, les frais sont de ${PRO_PLATFORM_FEE_RATE * 100} % sur chaque paiement pour lequel la marque ou le créateur a Pro. Pro se renouvelle chaque mois jusqu’à ce que tu le résilies dans les Réglages. La résiliation arrête le prochain renouvellement. Il n’y a pas de frais de publication. Les ${FOUNDING_BRAND_LIMIT} premières marques (marques fondatrices, « founding brands ») et les ${FOUNDING_CREATOR_LIMIT} premiers créateurs (créateurs fondateurs, « founding creators ») inscrits sur comtor bénéficient de Pro gratuitement tant que leur compte existe. Ce Pro n’a pas de prix mensuel, n’est pas transférable et prend fin avec le compte. Nous pouvons le retirer si quelqu’un enfreint ces conditions.`,
+      `Nous prélevons des frais de plateforme de ${PLATFORM_FEE_RATE * 100} % sur chaque paiement effectué via comtor. Les marques peuvent s’abonner à Pro pour ${formatCents(PRO_PRICE_CENTS.brand)}/mois, les créateurs pour ${formatCents(PRO_PRICE_CENTS.creator)}/mois. Tant que Pro est actif, les frais sont de ${PRO_PLATFORM_FEE_RATE * 100} % sur chaque paiement pour lequel la marque ou le créateur a Pro. Pro se renouvelle chaque mois jusqu’à ce que tu le résilies dans les Réglages. La résiliation arrête le prochain renouvellement. Il n’y a pas de frais de publication. Les ${FOUNDING_BRAND_LIMIT} premières marques (marques fondatrices, « founding brands ») et les ${FOUNDING_CREATOR_LIMIT} premiers créateurs (créateurs fondateurs, « founding creators ») inscrits sur comtor bénéficient de Pro gratuitement tant que leur compte existe. Ce Pro n’a pas de prix mensuel, n’est pas transférable et prend fin avec le compte. Nous pouvons le retirer si quelqu’un enfreint ces conditions.`,
       "Les frais de plateforme ne sont conservés que lorsqu’un paiement est versé au créateur. Si un paiement retenu est remboursé, la marque récupère ce paiement et nous ne conservons aucun frais dessus.",
     ],
   },

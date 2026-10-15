@@ -9,6 +9,9 @@
   --fog: #f2f2f2;
   --stone: #a2a2a9;
   --graphite: #797979;
+  /* Tailwind's neutral-500 (#737373) is the grey of most hint texts and missed 4.5:1 on --fog (4.2). One step darker passes
+     on fog and on white; in dark mode one step lighter passes on --fog and --paper. */
+  --neutral-500: #6b6b6b;
 
   --background: var(--paper);
   --foreground: var(--ink);
@@ -28,6 +31,7 @@
   --fog: #2d2d2d;
   --stone: #797979;
   --graphite: #a2a2a9;
+  --neutral-500: #949494;
 
   --background: var(--paper);
   --foreground: var(--ink);
@@ -108,6 +112,7 @@
   --color-fog: var(--fog);
   --color-stone: var(--stone);
   --color-graphite: var(--graphite);
+  --color-neutral-500: var(--neutral-500);
 
   /* The admin dashboard's accent (see src/lib/admin-theme.ts), set per admin on .admin-shell. The fallbacks are the
      blue default, for anything rendered outside the shell. */
@@ -430,6 +435,28 @@ main:has(.chat-thread) > .dashboard-banners {
      it would leave a gap between the composer and the keys. */
   html.keyboard-open .chat-composer {
     padding-bottom: 8px;
+  }
+}
+
+/* A selection bar coming up from below when the first row is ticked (see SelectionBar). */
+@keyframes bar-up {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-bar-in {
+  animation: bar-up 200ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-bar-in {
+    animation: none;
   }
 }
 

@@ -22,7 +22,7 @@ const CORE_WORDS = {
 
   // ----- deals list
   "deals.title": { en: "Deals", de: "Deals" },
-  "deals.description": { en: "Every sponsored collaboration from the contract to the payout.", de: "Jede bezahlte Kooperation vom Vertrag bis zur Auszahlung." },
+  "deals.description": { en: "Every sponsored collaboration from the offer to the payout.", de: "Jede bezahlte Kooperation vom Angebot bis zur Auszahlung." },
   "deals.paymentsDescription": { en: "The money of your deals: held, paid out and still open.", de: "Das Geld deiner Deals: hinterlegt, ausgezahlt und noch offen." },
   "deals.tabs": { en: "Deals sections", de: "Bereiche der Deals" },
   "deals.tab.active": { en: "Deals", de: "Deals" },
@@ -36,6 +36,9 @@ const CORE_WORDS = {
   "deals.emptyCreator": { en: "A deal starts when a brand accepts your offer (or you accept theirs).", de: "Ein Deal entsteht, sobald eine Marke dein Angebot annimmt (oder du ihres)." },
   "deals.businessBanner": { en: "Your business details are missing. You need them before you can confirm a deal.", de: "Deine Geschäftsdaten fehlen. Du brauchst sie, bevor du einen Deal bestätigen kannst." },
   "deals.businessAction": { en: "Add business details", de: "Geschäftsdaten ergänzen" },
+  "deals.offersMoved": { en: "Open offers and interested creators are now under Deals.", de: "Offene Angebote und Interessenten stehen jetzt unter Deals." },
+  "deals.offersMovedCreator": { en: "Open offers are now under Deals.", de: "Offene Angebote stehen jetzt unter Deals." },
+  "deals.offersMovedAction": { en: "Open ({count})", de: "Öffnen ({count})" },
   "deals.heldInDeal": { en: "Held safely. The work, the checks and the payout run on the deal page.", de: "Sicher hinterlegt. Arbeit, Prüfungen und Auszahlung laufen auf der Deal-Seite." },
   "chat.acceptedDeal": { en: "Offer accepted. Open the deal to read and confirm the contract.", de: "Angebot angenommen. Öffne den Deal, um den Vertrag zu lesen und zu bestätigen." },
   "chat.heldDeal": { en: "Held safely. The work, the checks and the payout run on the deal page.", de: "Sicher hinterlegt. Arbeit, Prüfungen und Auszahlung laufen auf der Deal-Seite." },

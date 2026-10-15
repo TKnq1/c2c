@@ -1,7 +1,7 @@
 import type { FixedCost } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { windowStart } from "@/lib/admin-stats";
-import { PRO_SUBSCRIPTION_PRICE_CENTS } from "@/lib/constants";
+import { proMrrCents } from "@/lib/pro-mrr";
 
 // What the fixed costs come to in a month: yearly ones are spread over twelve; switched-off ones do not count.
 export function monthlyCents(costs: Pick<FixedCost, "amountCents" | "interval" | "active">[]): number {
@@ -45,7 +45,7 @@ export async function loadMoney(now = new Date()) {
   const since30 = windowStart(30, now);
   const months = lastMonths(now, 6);
   const monthStart = months[months.length - 1].start;
-  const [costs, settings, snapshots, releasedRows, ads30, adsMonth, escrow, paidOut, refunded, volume, countAll, countRefunded, payingBrands, payingCreators] = await Promise.all([
+  const [costs, settings, snapshots, releasedRows, ads30, adsMonth, escrow, paidOut, refunded, volume, countAll, countRefunded, payingBrands, payingCreators, proMrr] = await Promise.all([
     prisma.fixedCost.findMany({ orderBy: [{ active: "desc" }, { createdAt: "asc" }] }),
     prisma.adminSettings.findUnique({ where: { id: 1 } }),
     prisma.cashSnapshot.findMany({ orderBy: { at: "asc" }, take: 36 }),
@@ -60,6 +60,7 @@ export async function loadMoney(now = new Date()) {
     prisma.interest.count({ where: { paymentStatus: "REFUNDED" } }),
     prisma.startupProfile.count({ where: { isPro: true, stripeSubscriptionId: { not: null } } }),
     prisma.creatorProfile.count({ where: { isPro: true, stripeSubscriptionId: { not: null } } }),
+    proMrrCents(),
   ]);
 
   const feeByMonth = months.map((m) => ({
@@ -68,7 +69,6 @@ export async function loadMoney(now = new Date()) {
   }));
   const feeMonth = feeByMonth[feeByMonth.length - 1].value;
   const feeLast30 = releasedRows.filter((r) => r.releasedAt && r.releasedAt >= since30).reduce((sum, r) => sum + (r.platformFeeCents ?? 0), 0);
-  const proMrr = (payingBrands + payingCreators) * PRO_SUBSCRIPTION_PRICE_CENTS;
   const fixedMonthly = monthlyCents(costs);
   const adsLast30 = ads30._sum.spendCents ?? 0;
   const adsThisMonth = adsMonth._sum.spendCents ?? 0;

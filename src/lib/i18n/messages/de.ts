@@ -44,6 +44,9 @@ export const de: Catalog = {
     searchTooltip: "Suche  ⌘K",
     newRequest: "Neue Anfrage",
     editRequest: "Anfrage bearbeiten",
+    invoices: "Rechnungen",
+    business: "Geschäftsdaten",
+    deal: "Deal",
     yourMatches: "Deine Matches",
     leaveUnsaved: "Du hast ungespeicherte Änderungen. Trotzdem verlassen?",
     main: "Hauptnavigation",
@@ -229,7 +232,7 @@ export const de: Catalog = {
     payout: {
       title: "Wohin soll das Geld?",
       description: "Hinterleg deine Auszahlung, dann kann das erste Ja sofort bezahlt werden.",
-      point1: "Eine Marke zahlt auf ein Treuhandkonto, bevor du etwas erstellst.",
+      point1: "Eine Marke zahlt, bevor du etwas erstellst, und das Geld bleibt sicher hinterlegt, bis du gepostet hast.",
       point2: "Das Geld wird freigegeben, sobald der Beitrag live ist.",
       point3: "Die Einrichtung dauert etwa zwei Minuten. Die erste Marke, die dich auswählt, kann sofort zahlen.",
       setup: "Auszahlung einrichten",

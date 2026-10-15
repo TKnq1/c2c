@@ -19,13 +19,32 @@ export function filterDeals<T extends TurnInput>(deals: T[], filter: DealFilter 
   return filter === "active" ? open : open.filter((d) => isMyTurn(d, role));
 }
 
-// How many deals each filter shows, for the numbers on the filter bar.
-export function dealCounts<T extends TurnInput>(deals: T[], role: Role): Record<"all" | DealFilter, number> {
+// An open offer waits for the side that did not make it.
+export type OfferTurnInput = { offerRole: Role | null };
+
+export function isOfferMyTurn(offer: OfferTurnInput, role: Role): boolean {
+  return offer.offerRole !== null && offer.offerRole !== role;
+}
+
+// Open offers under the same filters: they are running, the ones to answer wait for the person, none is finished.
+export function filterOffers<T extends OfferTurnInput>(offers: T[], filter: DealFilter | null, role: Role): T[] {
+  if (filter === "done") return [];
+  return filter === "mine" ? offers.filter((o) => isOfferMyTurn(o, role)) : offers;
+}
+
+// How many entries each filter shows, for the numbers on the filter bar. Interested creators without an offer only show under "all".
+export function dealCounts<T extends TurnInput, O extends OfferTurnInput>(
+  deals: T[],
+  role: Role,
+  offers: O[] = [],
+  interested = 0,
+): Record<"all" | DealFilter, number> {
+  const count = (filter: DealFilter) => filterDeals(deals, filter, role).length + filterOffers(offers, filter, role).length;
   return {
-    all: deals.length,
-    mine: filterDeals(deals, "mine", role).length,
-    active: filterDeals(deals, "active", role).length,
-    done: filterDeals(deals, "done", role).length,
+    all: deals.length + offers.length + interested,
+    mine: count("mine"),
+    active: count("active"),
+    done: count("done"),
   };
 }
 

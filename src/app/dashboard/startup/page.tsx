@@ -16,6 +16,7 @@ import { OverviewTiles } from "@/components/overview-tiles";
 import { DealsWaitingCard } from "@/components/deals/deals-waiting-card";
 import { windowStart } from "@/lib/admin-stats";
 import { getT } from "@/lib/i18n/server";
+import { canUseDeals } from "@/lib/deals/queries";
 
 export default async function StartupDashboardPage(props: PageProps<"/dashboard/startup">) {
   const t = await getT();
@@ -31,7 +32,7 @@ export default async function StartupDashboardPage(props: PageProps<"/dashboard/
   // round-trip instead of two.
   const mine = { request: { startup: { userId: session.user.id } } };
   const weekAgo = windowStart(7);
-  const [startup, allRequests, interested, interestedThisWeek, unreadMessages, toApprove, offersToAnswer, toPay] = await Promise.all([
+  const [startup, allRequests, interested, interestedThisWeek, unreadMessages, toApprove, offersToAnswer, toPay, showDeals] = await Promise.all([
     prisma.startupProfile.findUniqueOrThrow({ where: { userId: session.user.id } }),
     prisma.request.findMany({
       where: { startup: { userId: session.user.id } },
@@ -43,11 +44,16 @@ export default async function StartupDashboardPage(props: PageProps<"/dashboard/
     prisma.interest.count({ where: { ...mine, initiatedBy: "CREATOR", paymentStatus: null } }),
     prisma.interest.count({ where: { ...mine, initiatedBy: "CREATOR", paymentStatus: null, createdAt: { gte: weekAgo } } }),
     getUnreadMessageCount(session.user.id, "STARTUP"),
-    prisma.interest.count({ where: { ...mine, paymentStatus: "HELD", proofSubmittedAt: { not: null }, disputedAt: null } }),
+    prisma.interest.count({ where: { ...mine, paymentStatus: "HELD", proofSubmittedAt: { not: null }, disputedAt: null, deal: { is: null } } }),
     prisma.interest.count({ where: { ...mine, paymentStatus: "OFFERED", offerRole: "CREATOR" } }),
-    prisma.interest.count({ where: { ...mine, paymentStatus: "ACCEPTED" } }),
+    // A deal waiting for its payment is in the deals card above, not here a second time.
+    prisma.interest.count({ where: { ...mine, paymentStatus: "ACCEPTED", deal: { is: null } } }),
+    canUseDeals(session.user.id, "STARTUP"),
   ]);
   const openPayments = offersToAnswer + toPay;
+  // Where the Deals screens are open, offers and interested creators sit on the Deals list.
+  const offersHref = showDeals ? "/dashboard/deals#offers" : "/dashboard/startup/payments#offers";
+  const interestedHref = showDeals ? "/dashboard/deals#interested" : "/dashboard/startup/payments#interested";
 
   const hasAnyRequests = allRequests.length > 0;
   const hasDrafts = allRequests.some((r) => r.status === "DRAFT");
@@ -86,7 +92,7 @@ export default async function StartupDashboardPage(props: PageProps<"/dashboard/
             label: t("screens.requests.interestedCreators"),
             value: interested,
             hint: interestedThisWeek > 0 ? t("screens.requests.newThisWeek", { count: interestedThisWeek }) : t("screens.requests.waitingOffer"),
-            href: "/dashboard/startup/payments#interested",
+            href: interestedHref,
             icon: IoPeopleOutline,
           },
           {
@@ -112,7 +118,7 @@ export default async function StartupDashboardPage(props: PageProps<"/dashboard/
                 : offersToAnswer > 0
                   ? t("screens.requests.counterOffers")
                   : t("screens.requests.nothingOutstanding"),
-            href: toPay > 0 ? "/dashboard/startup/payments#to-pay" : "/dashboard/startup/payments#offers",
+            href: toPay > 0 ? "/dashboard/startup/payments#to-pay" : offersHref,
             icon: IoWalletOutline,
           },
         ]}

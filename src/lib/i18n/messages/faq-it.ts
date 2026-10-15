@@ -7,7 +7,8 @@ export const faqIt: DeepString<typeof faq> = {
     description: "Come funzionano match, pagamenti e recensioni su comtor.",
   },
   proOffer:
-    " Abbonati a Pro per {price} al mese e la commissione scende al {proFee}%. Vale per ogni pagamento in cui almeno una delle parti ha Pro.",
+    " Abbonati a Pro ({price} al mese) e la commissione scende al {proFee}%. Vale per ogni pagamento in cui almeno una delle parti ha Pro.",
+  perSide: "{brand} per i brand e {creator} per i creator",
   items: {
     matching: {
       question: "Come funziona il matching?",
@@ -27,7 +28,7 @@ export const faqIt: DeepString<typeof faq> = {
     pro: {
       question: "Cos’è il piano Pro?",
       answer:
-        "Un abbonamento mensile facoltativo per brand e creator ({price} al mese). Abbassa la commissione dal {fee}% al {proFee}% su ogni pagamento. Basta che abbia Pro il brand o il creator, non entrambi. Pro si ripaga quando passano dal tuo account circa {breakEven} al mese. Stripe addebita ogni mese. Gestiscilo o annullalo nelle Impostazioni. I primi {foundingBrands} brand e i primi {foundingCreators} creator hanno Pro gratis finché il loro account esiste.",
+        "Un abbonamento mensile facoltativo: {price} al mese. Abbassa la commissione dal {fee}% al {proFee}% su ogni pagamento. Basta che abbia Pro il brand o il creator, non entrambi. Pro si ripaga quando passano dal tuo account circa {breakEven} al mese. Stripe addebita ogni mese. Gestiscilo o annullalo nelle Impostazioni. I primi {foundingBrands} brand e i primi {foundingCreators} creator hanno Pro gratis finché il loro account esiste.",
     },
     noPost: {
       question: "E se il creator non pubblica?",

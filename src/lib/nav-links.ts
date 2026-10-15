@@ -17,7 +17,8 @@ export type NavLink = {
   covers?: string[];
 };
 
-export type NavCounts = { unreadCount: number; unreadMessages: number; pendingPayments: number; dealsToDo?: number; dealsVisible?: boolean };
+// pendingPayments includes offersToDo: the offers that wait for an answer, which sit on the Deals list where there is one.
+export type NavCounts = { unreadCount: number; unreadMessages: number; pendingPayments: number; dealsToDo?: number; offersToDo?: number; dealsVisible?: boolean };
 
 type Labels = (id: NavId) => string;
 
@@ -33,26 +34,26 @@ export const discoverHrefOf = (role: Role) => `${homeOf(role)}/discover`;
 // Everything the app offers, in sidebar order. Where brand deals are on, the money badges collapse into the one on Deals: it
 // counts what waits for this person, deals and payments alike, and Payments itself carries none.
 export function appLinks(role: Role, showDeals: boolean, counts: NavCounts, label: Labels): NavLink[] {
-  const { unreadMessages, pendingPayments, dealsToDo = 0 } = counts;
+  const { unreadMessages, pendingPayments, dealsToDo = 0, offersToDo = 0 } = counts;
   const link = (href: string, id: NavId, badge: number): NavLink => ({ href, id, label: label(id), badge });
   return [
     link(homeOf(role), role === "STARTUP" ? "requests" : "feed", 0),
     link(discoverHrefOf(role), "discover", 0),
     link("/dashboard/messages", "messages", unreadMessages),
-    ...(showDeals ? [dealsLink(dealsToDo + pendingPayments, dealsToDo, label)] : []),
+    ...(showDeals ? [dealsLink(dealsToDo + pendingPayments, dealsToDo + offersToDo, label)] : []),
     link(paymentsHrefOf(role), "payments", showDeals ? 0 : pendingPayments),
     link(settingsHrefOf(role), "settings", 0),
   ];
 }
 
-function dealsLink(badge: number, dealsToDo: number, label: Labels): NavLink {
+function dealsLink(badge: number, onDealsList: number, label: Labels): NavLink {
   return {
     href: DEALS_HREF,
     id: "deals",
     label: label("deals"),
     badge,
-    // With something waiting the link opens straight onto it.
-    target: dealsToDo > 0 ? `${DEALS_HREF}?filter=mine` : undefined,
+    // With a deal or an offer waiting the link opens straight onto it.
+    target: onDealsList > 0 ? `${DEALS_HREF}?filter=mine` : undefined,
     covers: [INVOICES_HREF, BUSINESS_HREF],
   };
 }

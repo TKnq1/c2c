@@ -39,6 +39,8 @@ describe("the tab bar", () => {
     expect(waiting?.target).toBe("/dashboard/deals?filter=mine");
     const idle = tabLinks("STARTUP", true, counts({ pendingPayments: 4 }), label).find((l) => l.id === "deals");
     expect(idle?.target).toBeUndefined();
+    const offer = tabLinks("CREATOR", true, counts({ pendingPayments: 1, offersToDo: 1 }), label).find((l) => l.id === "deals");
+    expect(offer?.target).toBe("/dashboard/deals?filter=mine");
     expect(idle?.badge).toBe(4);
   });
 });

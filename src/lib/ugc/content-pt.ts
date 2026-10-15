@@ -1,4 +1,5 @@
-import { PLATFORM_FEE_RATE, PLATFORMS, PRO_PLATFORM_FEE_RATE, PRO_SUBSCRIPTION_PRICE_CENTS, RELEASE_REVIEW_DAYS } from "@/lib/constants";
+import { PLATFORM_FEE_RATE, PLATFORMS, PRO_PLATFORM_FEE_RATE, PRO_PRICE_CENTS, RELEASE_REVIEW_DAYS } from "@/lib/constants";
+import { formatEuroNumber } from "@/lib/format";
 import type { UgcContent, UgcFaqItem, UgcNichePage } from "@/lib/ugc/types";
 
 // Portuguese (Portugal) version of the UGC search pages. Same structure as the German source in
@@ -8,7 +9,8 @@ import type { UgcContent, UgcFaqItem, UgcNichePage } from "@/lib/ugc/types";
 const NBSP = " ";
 const FEE = `${PLATFORM_FEE_RATE * 100}${NBSP}%`;
 const PRO_FEE = `${PRO_PLATFORM_FEE_RATE * 100}${NBSP}%`;
-const PRO_PRICE = `${PRO_SUBSCRIPTION_PRICE_CENTS / 100}${NBSP}€`;
+const PRO_PRICE_BRAND = `${formatEuroNumber(PRO_PRICE_CENTS.brand, "pt")}${NBSP}€`;
+const PRO_PRICE_CREATOR = `${formatEuroNumber(PRO_PRICE_CENTS.creator, "pt")}${NBSP}€`;
 
 // Questions every page answers the same way, because the answer is the same.
 function sharedFaqs(): UgcFaqItem[] {
@@ -19,7 +21,7 @@ function sharedFaqs(): UgcFaqItem[] {
     },
     {
       question: "Quanto custa o comtor?",
-      answer: `O registo é gratuito e não há mensalidade. O comtor fica com ${FEE} de cada pagamento. A comissão é descontada do valor que o criador recebe. A marca paga exatamente o valor combinado. Marcas e criadores podem subscrever o Pro, opcional, por ${PRO_PRICE} por mês. Então a comissão é de ${PRO_FEE} em cada pagamento em que um dos dois lados tenha Pro.`,
+      answer: `O registo é gratuito e não há mensalidade. O comtor fica com ${FEE} de cada pagamento. A comissão é descontada do valor que o criador recebe. A marca paga exatamente o valor combinado. As marcas podem subscrever o Pro, opcional, por ${PRO_PRICE_BRAND} por mês, e os criadores por ${PRO_PRICE_CREATOR}. Então a comissão é de ${PRO_FEE} em cada pagamento em que um dos dois lados tenha Pro.`,
     },
     {
       question: "As publicações pagas têm de ser identificadas como publicidade?",

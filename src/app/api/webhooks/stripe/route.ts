@@ -42,8 +42,10 @@ export async function POST(req: Request) {
         if (!customerId || !subscriptionId) break;
 
         await recordProEvent("STARTED", customerId, subscriptionId);
+        // The price it was sold at stays with the subscription (older ones keep theirs when the list price changes).
+        const proPriceCents = subscriptionPriceCents(await stripe.subscriptions.retrieve(subscriptionId));
         // A brand's or a creator's: a Stripe customer belongs to exactly one profile, so at most one matches.
-        const data = { isPro: true, proSince: new Date(), stripeSubscriptionId: subscriptionId };
+        const data = { isPro: true, proSince: new Date(), stripeSubscriptionId: subscriptionId, proPriceCents };
         await prisma.startupProfile.updateMany({ where: { stripeCustomerId: customerId }, data });
         await prisma.creatorProfile.updateMany({ where: { stripeCustomerId: customerId }, data });
         break;
@@ -153,6 +155,10 @@ export async function POST(req: Request) {
       const data = { isPro: subscription.status === "active" || subscription.status === "trialing" };
       await prisma.startupProfile.updateMany({ where, data });
       await prisma.creatorProfile.updateMany({ where, data });
+      // A price changed in Stripe (e.g. moved to the current one) is what the subscriber pays from then on, founding place or not.
+      const priced = { where: { stripeCustomerId: customerId, stripeSubscriptionId: subscription.id }, data: { proPriceCents: subscriptionPriceCents(subscription) } };
+      await prisma.startupProfile.updateMany(priced);
+      await prisma.creatorProfile.updateMany(priced);
       break;
     }
 
@@ -162,9 +168,9 @@ export async function POST(req: Request) {
       if (!customerId) break;
 
       await recordProEvent("ENDED", customerId);
-      const ended = { where: { stripeCustomerId: customerId, foundingNumber: null }, data: { isPro: false, stripeSubscriptionId: null } };
+      const ended = { where: { stripeCustomerId: customerId, foundingNumber: null }, data: { isPro: false, stripeSubscriptionId: null, proPriceCents: null } };
       // Founding places keep isPro; only the ended subscription is forgotten.
-      const founding = { where: { stripeCustomerId: customerId, foundingNumber: { not: null } }, data: { stripeSubscriptionId: null } };
+      const founding = { where: { stripeCustomerId: customerId, foundingNumber: { not: null } }, data: { stripeSubscriptionId: null, proPriceCents: null } };
       await prisma.startupProfile.updateMany(ended);
       await prisma.startupProfile.updateMany(founding);
       await prisma.creatorProfile.updateMany(ended);
@@ -177,4 +183,9 @@ export async function POST(req: Request) {
   }
 
   return NextResponse.json({ received: true });
+}
+
+// The monthly amount a Pro subscription charges: its (single) item's price.
+function subscriptionPriceCents(subscription: Stripe.Subscription): number | null {
+  return subscription.items.data[0]?.price.unit_amount ?? null;
 }

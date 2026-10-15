@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { formatCents } from "@/lib/format";
 import { canSellProSubscription } from "@/lib/native-app-server";
-import { PLATFORM_FEE_RATE, PRO_PLATFORM_FEE_RATE, PRO_SUBSCRIPTION_PRICE_CENTS } from "@/lib/constants";
+import { PLATFORM_FEE_RATE, PRO_PLATFORM_FEE_RATE } from "@/lib/constants";
+import { proPriceCents } from "@/lib/pro-price";
 import type { FoundingSide } from "@/lib/founding-limits";
 import { getT } from "@/lib/i18n/server";
 
@@ -33,7 +34,7 @@ export async function ProFeeBar({
       ? t(side === "brand" ? "founding.feeLine" : "founding.creator.feeLine", { n: foundingNumber, pro, standard })
       : t("screens.payments.proFeeLine", { pro, standard })
     : showProOffer
-      ? t("screens.payments.proOfferLine", { standard, pro, price: formatCents(PRO_SUBSCRIPTION_PRICE_CENTS) })
+      ? t("screens.payments.proOfferLine", { standard, pro, price: formatCents(proPriceCents(side)) })
       : t(side === "brand" ? "screens.payments.standardFeeLine" : "screens.payments.standardFeeLineCreator", { rate: standard, pro });
 
   return (

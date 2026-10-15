@@ -6,8 +6,10 @@ import { prisma } from "@/lib/prisma";
 import { getMutualBlockedUserIds } from "@/lib/moderation";
 import { computeResponseTimeMs, formatResponseTime } from "@/lib/response-time";
 import { DiscoverCreators } from "@/components/discover-creators";
-import { FavoritesOnlyToggle } from "@/components/favorites-only-toggle";
 import { SkeletonTileGrid } from "@/components/skeleton";
+import { PageTitle } from "@/components/page-title";
+import { formatInfo, isPostFormat } from "@/lib/social/platforms";
+import type { DiscoverRequest } from "@/lib/discover-filter";
 import { getT } from "@/lib/i18n/server";
 
 export default async function DiscoverCreatorsPage() {
@@ -33,7 +35,7 @@ export default async function DiscoverCreatorsPage() {
   // by the same notIn-blockedUserIds condition (via the creator relation)
   // rather than by creators' ids, specifically so it doesn't have to wait
   // on the creators query above to know what to ask for.
-  const [creators, ratingGroups, completedGroups, interestsForResponseTime] = await Promise.all([
+  const [creators, ratingGroups, completedGroups, interestsForResponseTime, openRequests] = await Promise.all([
     prisma.creatorProfile.findMany({
       // Suspended accounts (see /admin/users) drop out of Discover entirely.
       where: { userId: { notIn: blockedUserIds }, user: { suspendedAt: null } },
@@ -71,7 +73,36 @@ export default async function DiscoverCreatorsPage() {
       where: { creator: { userId: { notIn: blockedUserIds } } },
       select: { creatorId: true, messages: { orderBy: { createdAt: "asc" }, select: { senderRole: true, createdAt: true } } },
     }),
+    // The brand's open requests: picking one sets the filters, and its existing chats turn "Invite" into "Open chat".
+    prisma.request.findMany({
+      where: { startupId: startup.id, status: "OPEN" },
+      orderBy: { createdAt: "desc" },
+      select: {
+        id: true,
+        title: true,
+        niche: true,
+        languages: true,
+        minFollowers: true,
+        platform: true,
+        briefing: { select: { contentFormats: true } },
+        interests: { select: { id: true, creatorId: true } },
+      },
+    }),
   ]);
+  const requests: DiscoverRequest[] = openRequests.map((r) => {
+    // The briefing's formats name the platforms; a request from before briefings has its one platform.
+    const fromFormats = (r.briefing?.contentFormats ?? []).filter(isPostFormat).map((f) => formatInfo(f).platform as string);
+    const platforms = fromFormats.length > 0 ? [...new Set(fromFormats)] : r.platform ? [r.platform] : [];
+    return {
+      id: r.id,
+      title: r.title,
+      niche: r.niche,
+      languages: r.languages,
+      minFollowers: r.minFollowers,
+      platforms,
+      chats: Object.fromEntries(r.interests.map((i) => [i.creatorId, i.id])),
+    };
+  });
   const ratingByCreatorId = new Map(
     ratingGroups.map((g) => [g.creatorId, { average: g._avg.rating ?? 0, count: g._count._all }]),
   );
@@ -103,18 +134,11 @@ export default async function DiscoverCreatorsPage() {
   });
 
   return (
-    <div className="page-wide flex flex-col gap-6">
-      <div className="flex items-start justify-between gap-4">
-        <div>
-          <h1 className="font-display text-title-1 font-bold">{t("screens.discover.creators")}</h1>
-          <p className="text-sm text-neutral-600 mt-1 dark:text-neutral-400">
-            {t("extras.misc.creatorsHint")}
-          </p>
-        </div>
-        <FavoritesOnlyToggle />
-      </div>
+    <div className="page-wide flex flex-col gap-5">
+      {/* On phones the header names the page (see pageTitleKey in nav.tsx). */}
+      <PageTitle description={t("extras.misc.creatorsHint")}>{t("screens.discover.creators")}</PageTitle>
       <Suspense fallback={<SkeletonTileGrid />}>
-        <DiscoverCreators creators={creatorsWithRatings} />
+        <DiscoverCreators creators={creatorsWithRatings} requests={requests} />
       </Suspense>
     </div>
   );

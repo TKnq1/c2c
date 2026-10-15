@@ -1,4 +1,4 @@
-import { FOUNDING_BRAND_LIMIT, FOUNDING_CREATOR_LIMIT, PLATFORM_FEE_RATE, PRO_PLATFORM_FEE_RATE, PRO_SUBSCRIPTION_PRICE_CENTS, RELEASE_REVIEW_DAYS } from "@/lib/constants";
+import { FOUNDING_BRAND_LIMIT, FOUNDING_CREATOR_LIMIT, PLATFORM_FEE_RATE, PRO_PLATFORM_FEE_RATE, PRO_PRICE_CENTS, RELEASE_REVIEW_DAYS } from "@/lib/constants";
 import { formatCents } from "@/lib/format";
 import type { LegalContent, LegalSection } from "@/lib/legal/types";
 
@@ -44,7 +44,7 @@ function ptTerms(): LegalSection[] {
   {
     title: "Taxas",
     body: [
-      `Cobramos uma comissão de plataforma de ${PLATFORM_FEE_RATE * 100}% sobre cada pagamento feito através da comtor. As marcas e os criadores podem subscrever o Pro por ${formatCents(PRO_SUBSCRIPTION_PRICE_CENTS)}/mês. Enquanto o Pro estiver ativo, a comissão é de ${PRO_PLATFORM_FEE_RATE * 100}% em cada pagamento em que a marca ou o criador tenha Pro. O Pro renova-se todos os meses até o cancelares nas Definições. O cancelamento impede a renovação seguinte. Não há taxa de publicação. As primeiras ${FOUNDING_BRAND_LIMIT} marcas (founding brands) e os primeiros ${FOUNDING_CREATOR_LIMIT} criadores (founding creators) que se registaram na comtor recebem o Pro gratuitamente enquanto a sua conta existir. Esse Pro não tem preço mensal, não é transmissível e termina com a conta. Podemos retirá-lo se alguém violar estes termos.`,
+      `Cobramos uma comissão de plataforma de ${PLATFORM_FEE_RATE * 100}% sobre cada pagamento feito através da comtor. As marcas podem subscrever o Pro por ${formatCents(PRO_PRICE_CENTS.brand)}/mês e os criadores por ${formatCents(PRO_PRICE_CENTS.creator)}/mês. Enquanto o Pro estiver ativo, a comissão é de ${PRO_PLATFORM_FEE_RATE * 100}% em cada pagamento em que a marca ou o criador tenha Pro. O Pro renova-se todos os meses até o cancelares nas Definições. O cancelamento impede a renovação seguinte. Não há taxa de publicação. As primeiras ${FOUNDING_BRAND_LIMIT} marcas (founding brands) e os primeiros ${FOUNDING_CREATOR_LIMIT} criadores (founding creators) que se registaram na comtor recebem o Pro gratuitamente enquanto a sua conta existir. Esse Pro não tem preço mensal, não é transmissível e termina com a conta. Podemos retirá-lo se alguém violar estes termos.`,
       "A comissão de plataforma só é retida quando um pagamento é libertado ao criador. Se um pagamento retido for reembolsado, a marca recebe esse pagamento de volta e não retemos qualquer comissão sobre ele.",
     ],
   },

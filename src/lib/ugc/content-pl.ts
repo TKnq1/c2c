@@ -2,9 +2,10 @@ import {
   PLATFORM_FEE_RATE,
   PLATFORMS,
   PRO_PLATFORM_FEE_RATE,
-  PRO_SUBSCRIPTION_PRICE_CENTS,
+  PRO_PRICE_CENTS,
   RELEASE_REVIEW_DAYS,
 } from "@/lib/constants";
+import { formatEuroNumber } from "@/lib/format";
 import type { UgcContent, UgcFaqItem } from "@/lib/ugc/types";
 
 // Polish UGC landing pages. Same structure as the German source (src/lib/seo-pages.ts, content-de.ts); the
@@ -14,7 +15,8 @@ import type { UgcContent, UgcFaqItem } from "@/lib/ugc/types";
 const NBSP = " ";
 const FEE = `${PLATFORM_FEE_RATE * 100}%`;
 const PRO_FEE = `${PRO_PLATFORM_FEE_RATE * 100}%`;
-const PRO_PRICE = `${PRO_SUBSCRIPTION_PRICE_CENTS / 100}${NBSP}€`;
+const PRO_PRICE_BRAND = `${formatEuroNumber(PRO_PRICE_CENTS.brand, "pl")}${NBSP}€`;
+const PRO_PRICE_CREATOR = `${formatEuroNumber(PRO_PRICE_CENTS.creator, "pl")}${NBSP}€`;
 
 const PLATFORM_LIST = `${PLATFORMS.slice(0, -1).join(", ")} i ${PLATFORMS[PLATFORMS.length - 1]}`;
 
@@ -27,7 +29,7 @@ function sharedFaqs(): UgcFaqItem[] {
     },
     {
       question: "Ile kosztuje comtor?",
-      answer: `Rejestracja jest darmowa i nie ma opłaty stałej. comtor pobiera ${FEE} każdej płatności. Opłata jest potrącana z wypłaty twórcy. Marka płaci dokładnie ustaloną kwotę. Marki i twórcy mogą wykupić opcjonalny abonament Pro za ${PRO_PRICE} miesięcznie. Wtedy opłata wynosi ${PRO_FEE} przy każdej płatności, w której Pro ma jedna ze stron.`,
+      answer: `Rejestracja jest darmowa i nie ma opłaty stałej. comtor pobiera ${FEE} każdej płatności. Opłata jest potrącana z wypłaty twórcy. Marka płaci dokładnie ustaloną kwotę. Marki mogą wykupić opcjonalny abonament Pro za ${PRO_PRICE_BRAND} miesięcznie, a twórcy za ${PRO_PRICE_CREATOR}. Wtedy opłata wynosi ${PRO_FEE} przy każdej płatności, w której Pro ma jedna ze stron.`,
     },
     {
       question: "Czy płatne posty trzeba oznaczać jako reklamę?",

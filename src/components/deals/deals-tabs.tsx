@@ -1,9 +1,9 @@
 import Link from "next/link";
 import type { Role } from "@prisma/client";
 import type { DealLocale } from "@/lib/deals/copy";
-import { canUseDeals } from "@/lib/deals/queries";
+import { canUseDeals, getDealActionCount } from "@/lib/deals/queries";
 import { uiText } from "@/lib/deals/ui-copy";
-import { getBrandPendingPaymentActionCount, getPendingPaymentActionCount } from "@/lib/payments";
+import { getBrandPendingPaymentActionCount, getOfferActionCount, getPendingPaymentActionCount } from "@/lib/payments";
 import { DEALS_HREF, INVOICES_HREF, paymentsHrefOf } from "@/lib/nav-links";
 
 export type DealsTab = "active" | "payments" | "invoices";
@@ -14,11 +14,16 @@ export async function DealsTabs({ current, userId, role, locale }: { current: De
   if (role !== "STARTUP" && role !== "CREATOR") return null;
   if (!(await canUseDeals(userId, role))) return null;
   const u = uiText(locale);
-  const waiting = role === "CREATOR" ? await getPendingPaymentActionCount(userId) : await getBrandPendingPaymentActionCount(userId);
+  // Offers to answer sit on the Deals list, so they count there; Payments keeps what is left on its page.
+  const [payments, offers, deals] = await Promise.all([
+    role === "CREATOR" ? getPendingPaymentActionCount(userId) : getBrandPendingPaymentActionCount(userId),
+    getOfferActionCount(userId, role),
+    getDealActionCount(userId, role),
+  ]);
 
   const tabs: { id: DealsTab; href: string; label: string; badge: number }[] = [
-    { id: "active", href: DEALS_HREF, label: u("deals.tab.active"), badge: 0 },
-    { id: "payments", href: paymentsHrefOf(role), label: u("deals.tab.payments"), badge: waiting },
+    { id: "active", href: DEALS_HREF, label: u("deals.tab.active"), badge: deals + offers },
+    { id: "payments", href: paymentsHrefOf(role), label: u("deals.tab.payments"), badge: payments - offers },
     { id: "invoices", href: INVOICES_HREF, label: u("deals.tab.invoices"), badge: 0 },
   ];
 

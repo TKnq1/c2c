@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
-import { FOUNDING_BRAND_LIMIT, FOUNDING_CREATOR_LIMIT, PLATFORM_FEE_RATE, PRO_PLATFORM_FEE_RATE, PRO_SUBSCRIPTION_PRICE_CENTS, RELEASE_REVIEW_DAYS } from "@/lib/constants";
+import { FOUNDING_BRAND_LIMIT, FOUNDING_CREATOR_LIMIT, PLATFORM_FEE_RATE, PRO_PLATFORM_FEE_RATE, RELEASE_REVIEW_DAYS, PRO_PRICE_CENTS } from "@/lib/constants";
+import { proBreakEvenCents } from "@/lib/pro-price";
 import { formatCents } from "@/lib/format";
 import { canSellProSubscription } from "@/lib/native-app-server";
 import { getLocale, getT } from "@/lib/i18n/server";
@@ -25,8 +26,12 @@ function faqsFor(t: TFunction, inStoreApp: boolean): { question: string; answer:
     days: RELEASE_REVIEW_DAYS,
     fee: PLATFORM_FEE_RATE * 100,
     proFee: PRO_PLATFORM_FEE_RATE * 100,
-    price: formatCents(PRO_SUBSCRIPTION_PRICE_CENTS),
-    breakEven: formatCents(Math.round(PRO_SUBSCRIPTION_PRICE_CENTS / (PLATFORM_FEE_RATE - PRO_PLATFORM_FEE_RATE))),
+    // Brands and creators pay different prices for Pro: both are named.
+    price: t("faq.perSide", { brand: formatCents(PRO_PRICE_CENTS.brand), creator: formatCents(PRO_PRICE_CENTS.creator) }),
+    breakEven: t("faq.perSide", {
+      brand: formatCents(proBreakEvenCents(PRO_PRICE_CENTS.brand)),
+      creator: formatCents(proBreakEvenCents(PRO_PRICE_CENTS.creator)),
+    }),
     foundingBrands: FOUNDING_BRAND_LIMIT,
     foundingCreators: FOUNDING_CREATOR_LIMIT,
   };

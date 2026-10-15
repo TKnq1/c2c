@@ -8,7 +8,8 @@ export const faqFr: DeepString<typeof faq> = {
     description: "Comment fonctionnent le matching, les paiements et les avis sur comtor.",
   },
   proOffer:
-    " Abonne-toi à Pro pour {price} par mois, et les frais passent à {proFee} %. Ça vaut pour chaque paiement où l’une des deux parties a Pro.",
+    " Abonne-toi à Pro ({price} par mois), et les frais passent à {proFee} %. Ça vaut pour chaque paiement où l’une des deux parties a Pro.",
+  perSide: "{brand} pour les marques et {creator} pour les créateurs",
   items: {
     matching: {
       question: "Comment fonctionne le matching ?",
@@ -28,7 +29,7 @@ export const faqFr: DeepString<typeof faq> = {
     pro: {
       question: "C’est quoi la formule Pro ?",
       answer:
-        "Un abonnement mensuel optionnel pour les marques et les créateurs ({price} par mois). Il baisse les frais de {fee} % à {proFee} % sur chaque paiement. La marque ou le créateur a besoin de Pro, pas les deux. Pro est rentable dès qu’environ {breakEven} par mois passent par ton compte. Stripe te facture chaque mois. Gère ou annule l’abonnement dans les réglages. Les {foundingBrands} premières marques et les {foundingCreators} premiers créateurs ont Pro gratuit tant que leur compte existe.",
+        "Un abonnement mensuel optionnel : {price} par mois. Il baisse les frais de {fee} % à {proFee} % sur chaque paiement. La marque ou le créateur a besoin de Pro, pas les deux. Pro est rentable dès qu’environ {breakEven} par mois passent par ton compte. Stripe te facture chaque mois. Gère ou annule l’abonnement dans les réglages. Les {foundingBrands} premières marques et les {foundingCreators} premiers créateurs ont Pro gratuit tant que leur compte existe.",
     },
     noPost: {
       question: "Et si le créateur ne publie jamais ?",
