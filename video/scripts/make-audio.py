@@ -475,41 +475,96 @@ def make_ad_bed(grid, audience):
 
 
 # ---------------------------------------------------------------------------------------------------------------
-# The launch video (src/launch): after the reference's music, measured with librosa (108 BPM, B flat minor, nearly
-# one chord with a turn to G flat, pads and synths well over the drums, a syncopated kick under sixteenth hats).
-# Quiet and dark under the opening lines, the groove from the turn on, filtered down under the money held, one
-# last swell under the logo, dark again under the call to action. Its own tempo, so its own beat.
+# The launch video (src/launch): after the reference's music, measured with librosa from the track itself: 108 BPM,
+# B flat minor with a turn to G flat; a plucked arpeggio (notes ringing ~0.3 s) on a pedal F with B flat, D flat, C and
+# high C accents; warm pads underneath (the harmonic floor sits only ~6 dB under the peaks); a bass walking B flat and F;
+# a soft, round kick around 86 Hz, snaps rather than claps, quiet sixteenth hats and a swell of air every two beats;
+# fairly narrow stereo, little reverb. Clean and quiet like an Apple keynote: nothing distorted, nothing big.
 
 LAUNCH_BPM = 108
 LBEAT = 60 / LAUNCH_BPM
 BBM9 = ([58, 61, 65, 72], 34)  # B flat minor 9
 GBMAJ7 = ([54, 58, 61, 65], 30)  # G flat major 7
 LAUNCH_CHORDS = [BBM9, BBM9, GBMAJ7, BBM9]
-# One bar of sixteenths: the reference's syncopated kick, claps on 2 and 4, an arpeggio walking the chord.
-KICK_STEPS = (0, 6, 10)
-CLAP_STEPS = (4, 12)
-ARP16 = [0, 2, 3, 1, 2, 3, 0, 2, 3, 1, 2, 0, 3, 2, 1, 3]
+# The reference's arpeggio, one bar of sixteenths (MIDI): a pedal F with B flat, D flat, C and high C on top.
+ARP_NOTES = [65, 65, 65, 65, 70, 61, 61, 84, 60, 70, 84, 60, 70, 65, 65, 65]
+# Over G flat the D flat and C move to D flat and B flat, so nothing clashes.
+ARP_NOTES_GB = [65, 65, 65, 65, 70, 61, 61, 82, 58, 70, 82, 58, 70, 65, 65, 65]
+KICK_STEPS = (0, 7, 10)
+SNAP_STEPS = (4, 12)
 
 
 def lt(beat):
     return beat * LBEAT
 
 
-def shaker(gain=1.0):
-    """The air on top of the reference's groove: a very short, very bright noise tick."""
-    t = axis(0.05)
-    return declick(band(noise(0.05), 8000, None) * np.exp(-t / 0.008) * gain)
+def soft_kick(gain=1.0):
+    """Round and short, its body around 86 Hz like the reference's, no click on top."""
+    t = axis(0.32)
+    freq = 87.3 + 14 * np.exp(-t / 0.015)  # settles on F2, the key's fifth
+    body = np.sin(2 * np.pi * np.cumsum(freq) / SR) * np.exp(-t / 0.14)
+    return declick(body * np.minimum(1, t / 0.002) * gain)
+
+
+def snap(gain=1.0):
+    """A finger snap: a very short burst between 2 and 7 kHz with a little tone in it."""
+    t = axis(0.12)
+    burst = band(noise(0.12), 2000, 7000) * np.exp(-t / 0.02)
+    tone = np.sin(2 * np.pi * 1850 * t) * np.exp(-t / 0.02) * 0.25
+    return declick((burst + tone) * gain)
+
+
+def tick_hat(gain=1.0):
+    """A soft shaker more than a hat: noise above 6 kHz with a short swell, so the sixteenths carry without spiking."""
+    t = axis(0.09)
+    return declick(band(noise(0.09), 6000, None) * np.minimum(1, t / 0.004) * np.exp(-t / 0.022) * gain)
+
+
+def air_swell(dur, gain=1.0):
+    """Air rising into the next beat, the reference's swell every two beats."""
+    t = axis(dur)
+    return declick(band(noise(dur), 5000, 14000) * (t / dur) ** 3 * gain)
+
+
+def kalimba(note, dur=0.6, bright=1.0):
+    """A clean plucked tone, bright like the reference's: the fundamental ringing ~0.3 s, upper partials (2, 3, 4, 6)
+    dying faster, so the attack is glassy and the tail soft."""
+    t = axis(dur)
+    f = midi(note)
+    out = np.sin(2 * np.pi * f * t) * np.exp(-t / 0.16)
+    for ratio, amp, decay in ((2.0, 0.45, 0.09), (3.01, 0.35, 0.05), (4.02, 0.22, 0.035), (6.03, 0.12, 0.02)):
+        out += bright * amp * np.sin(2 * np.pi * f * ratio * t) * np.exp(-t / decay)
+    out += bright * 0.15 * band(noise(dur), 3000, 12000) * np.exp(-t / 0.004)
+    return declick(out * np.minimum(1, t / 0.002))
+
+
+def warm_pad(note, dur, cutoff=2600, spread=0.002):
+    """Two detuned triangles and a sine, slow in and out. Each call starts at its own phase, so two voices with a
+    different `spread` panned apart make the pad wide."""
+    t = axis(dur)
+    f = midi(note)
+    phase = rng.uniform(0, 2 * np.pi, 3)
+    tri = lambda fr, ph: (2 / np.pi) * np.arcsin(np.sin(2 * np.pi * fr * t + ph))
+    voice = 0.5 * tri(f * (1 - spread), phase[0]) + 0.5 * tri(f * (1 + spread), phase[1]) + 0.6 * np.sin(2 * np.pi * f * t + phase[2])
+    return declick(band(voice, None, cutoff) * adsr(t, dur, 0.6, 0.8))
+
+
+def round_bass(note, dur):
+    t = axis(dur)
+    f = midi(note)
+    body = np.sin(2 * np.pi * f * t) + 0.2 * np.sin(2 * np.pi * 2 * f * t) * np.exp(-t / 0.15)
+    return declick(body * adsr(t, dur, 0.008, 0.06, decay=0.25, sustain=0.55))
 
 
 def make_launch_bed(grid):
     at = grid["scenes"]
     end = grid["end"]
-    turn, reveal, claim, match, swipe_line, swipe, held, paid, brands, brief, diff, logo, cta = (
-        at[k] for k in ("L02", "L03", "L04", "L05", "L06", "L07", "L08", "L09", "L10", "L11", "L12", "L13", "L14")
+    turn, reveal, claim, match, swipe_line, swipe, deal, paid, brands, brief, discover, diff, logo, cta = (
+        at[k] for k in ("L02", "L03", "L04", "L05", "L06", "L07", "L08", "L09", "L10", "L11", "L12", "L13", "L14", "L15")
     )
     length = int(lt(end + 2) * SR)
-    music = np.zeros((length, 2))  # pads, plucks, bass
-    dark = np.zeros((length, 2))  # the same, low-passed hard afterwards (opening, money held, call to action)
+    music = np.zeros((length, 2))
+    dark = np.zeros((length, 2))  # low-passed afterwards: the opening and the call to action
     drums = np.zeros((length, 2))
     fx = np.zeros((length, 2))
     kicks = []
@@ -517,112 +572,106 @@ def make_launch_bed(grid):
     def chord(beat):
         return LAUNCH_CHORDS[int(beat // 4) % len(LAUNCH_CHORDS)]
 
-    def pad_bar(buf, beat, beats, cutoff, gain):
+    def pads(buf, beat, beats, cutoff, gain):
         notes, _ = chord(beat)
         for k, note in enumerate(notes):
-            place(buf, lt(beat), pad_note(note, lt(beats) + 0.3, cutoff), pan=(k - 1.5) / 2.5, gain=gain)
+            for side, spread in ((-1, 0.002), (1, 0.0033)):
+                place(buf, lt(beat), warm_pad(note, lt(beats) + 0.6, cutoff, spread), pan=side * 0.6 + (k - 1.5) / 8, gain=gain * 0.75)
 
-    # Opening: a dark pad and the sub, a quiet arpeggio from the second line, hats creeping in, a riser into the turn.
+    def arp(buf, start, stop, gain, every=1):
+        for step in range(int(start * 4), int(stop * 4)):
+            if step % every:
+                continue
+            beat = step / 4
+            s16 = step % 16
+            notes = ARP_NOTES_GB if chord(beat) is GBMAJ7 else ARP_NOTES
+            note = notes[s16]
+            accent = 1.0 if s16 in (0, 4, 8, 12) else 0.75
+            high = note >= 80
+            place(buf, lt(beat), kalimba(note, 0.7, 0.8 if high else 1.0), pan=0.55 if step % 2 else -0.55, gain=gain * accent * (0.7 if high else 1.0))
+
+    # Opening: pad and arpeggio low-passed and quiet, no drums; air rising into the turn.
     for bar in range(0, int(turn), 4):
-        pad_bar(dark, bar, min(4, turn - bar), 900, 0.2)
-        place(dark, lt(bar), bass(chord(bar)[1], lt(min(4, turn - bar))), gain=0.32)
-    for step in range(16, int(turn) * 4):
-        beat = step / 4
-        if step % 2:
-            continue
-        notes, _ = chord(beat)
-        place(dark, lt(beat), pluck(notes[ARP16[step % 16]] + 12, 0.5, 0.8), pan=0.35 if step % 4 else -0.35, gain=0.06 + 0.06 * beat / turn)
-    for step in range(32, int(turn) * 4, 2):
-        place(drums, lt(step / 4), hat(gain=0.05 + 0.05 * step / (turn * 4)), pan=0.3)
-    place(fx, lt(turn - 4), riser(lt(4)), gain=0.5)
+        pads(dark, bar, min(4, turn - bar), 1000, 0.16)
+    arp(dark, 4, turn, 0.11, every=2)
+    place(dark, 0, round_bass(BBM9[1] + 12, lt(turn)), gain=0.25)
+    place(fx, lt(turn - 2), air_swell(lt(2), 0.5))
 
     def groove(start, stop, lift=False, sparse=False):
         for step in range(int(start * 4), int(stop * 4)):
             beat = step / 4
             s16 = step % 16
             notes, root = chord(beat)
-            if s16 in KICK_STEPS and not sparse:
-                place(drums, lt(beat), kick(1.0 if s16 == 0 else 0.85))
+            if not sparse and s16 in KICK_STEPS:
+                place(drums, lt(beat), soft_kick(0.75 if s16 == 0 else 0.6))
                 kicks.append(lt(beat))
-                place(music, lt(beat), bass(root, LBEAT * (1.4 if s16 == 0 else 0.9)), gain=0.5)
             if sparse and s16 == 0:
-                place(drums, lt(beat), kick(0.8))
-                kicks.append(lt(beat))
-            if s16 in CLAP_STEPS and not sparse:
-                place(drums, lt(beat), clap(0.7), pan=-0.05)
-            hat_gain = 0.28 if s16 % 4 == 2 else 0.13
-            place(drums, lt(beat), hat(open_=s16 == 14, gain=hat_gain * (0.6 if sparse else 1)), pan=0.25 if s16 % 2 else -0.15)
-            if not sparse:
-                place(drums, lt(beat), shaker(0.09 if s16 % 2 else 0.05), pan=-0.35)
+                place(drums, lt(beat), soft_kick(0.6))
+            if not sparse and s16 in SNAP_STEPS:
+                place(drums, lt(beat), snap(0.85), pan=0.12)
+            place(drums, lt(beat), tick_hat(0.3 if s16 % 4 == 2 else 0.16), pan=0.6 if s16 % 2 else -0.6)
+            if s16 in (6, 14):
+                place(fx, lt(beat), air_swell(lt(0.5), 0.45), pan=-0.5 if s16 == 6 else 0.5)
             if s16 == 0:
-                pad_bar(dark if sparse else music, beat, 4, 1100 if sparse else 2400, 0.15 if sparse else 0.12)
-            note = notes[ARP16[s16]] + 12
-            if not sparse or s16 % 4 == 0:
-                place(dark if sparse else music, lt(beat), pluck(note, 0.4, 2.4), pan=0.45 if step % 2 else -0.45, gain=0.14)
-            if lift and s16 in (3, 11):
-                place(music, lt(beat), pluck(notes[3] + 24, 0.9, 0.9), pan=0.1, gain=0.08)
+                pads(music, beat, 4, 2600 if not sparse else 1200, 0.21)
+            # Bass: B flat (or G flat) on the one, the fifth below on the and of two, back on three.
+            if s16 in (0, 6, 8):
+                bass_note = root + 12 - (5 if s16 == 6 else 0)
+                place(music, lt(beat), round_bass(bass_note, LBEAT * (1.4 if s16 == 0 else 0.7)), gain=0.21)
+        arp(music, start, stop, 0.15 if not sparse else 0.1)
+        if lift:
+            for step in range(int(start * 4), int(stop * 4), 8):
+                notes, _ = chord(step / 4)
+                place(music, lt(step / 4) + 0.01, kalimba(notes[3] + 12, 1.2, 0.5), pan=0.3, gain=0.06)
 
-    def hit(beat, gain=0.8):
-        place(fx, lt(beat), impact(), gain=gain)
-        place(fx, lt(beat), crash(0.35), pan=0.2)
+    def accent(beat, gain=0.3):
+        place(fx, lt(beat) - lt(1), air_swell(lt(1), gain))
 
-    def fill(beat):
-        for k, step in enumerate(np.arange(beat - 1, beat, 0.25)):
-            place(drums, lt(step), clap(0.18 + 0.08 * k))
-
-    # The turn: the groove starts and runs through the product, the matching and the swipe.
-    hit(turn, 0.9)
     groove(turn, swipe_line)
-    for accent in (reveal, claim, match):
-        place(fx, lt(accent), crash(0.3), pan=-0.2)
-    # "Ein Swipe": two beats of stop-time under the words slamming in, then a fill back into the groove.
-    groove(swipe_line + 2, held, lift=True)
-    fill(swipe)
-    place(fx, lt(swipe), crash(0.3), pan=0.2)
-    # Money held: filtered down to a pulse, a riser into the payout.
-    groove(held, paid, sparse=True)
-    place(fx, lt(paid - 4), riser(lt(4)), gain=0.5)
-    # Payout, brands, briefing, the difference: the full groove with the top line.
-    hit(paid, 0.85)
-    groove(paid, logo, lift=True)
-    hit(brands, 0.6)
-    fill(brief)
-    place(fx, lt(brief), crash(0.3), pan=-0.2)
-    fill(diff)
-    place(fx, lt(diff), crash(0.35), pan=0.2)
-    place(fx, lt(logo - 2), riser(lt(2)), gain=0.35)
+    for b in (reveal, claim, match):
+        accent(b)
+    # "Ein Swipe": a bar of only the arpeggio under the words, then back in.
+    arp(music, swipe_line, swipe, 0.12)
+    groove(swipe, deal, lift=True)
+    groove(deal, paid, lift=True)
+    accent(paid, 0.4)
+    groove(paid, brands, lift=True)
+    # Brands: the groove thins to a pulse for the switch, then comes back for the briefing and Discover.
+    groove(brands, brief, sparse=True)
+    accent(brief, 0.35)
+    groove(brief, diff, lift=True)
+    accent(diff, 0.35)
+    groove(diff, logo, lift=True)
+    accent(logo, 0.4)
 
-    # Logo: drums out on one last hit, G flat to B flat minor held wide with a bell on each.
-    place(drums, lt(logo), kick(1.0))
-    hit(logo, 0.55)
+    # Logo: drums out, G flat to B flat minor held, a high pluck on each.
     for chord_at, (notes, root) in ((logo, GBMAJ7), (logo + 4, BBM9)):
         for k, note in enumerate(notes):
-            place(music, lt(chord_at), pad_note(note, lt(4) + 0.4, 1800), pan=(k - 1.5) / 2.5, gain=0.13)
-            place(music, lt(chord_at) + k * 0.07, pluck(note + 12, 1.4, 0.7), pan=(k - 1.5) / 2.5, gain=0.1)
-        place(music, lt(chord_at), bass(root, lt(4)), gain=0.4)
+            place(music, lt(chord_at), warm_pad(note, lt(4) + 0.8, 1800), pan=(k - 1.5) / 5, gain=0.12)
+            place(music, lt(chord_at) + k * 0.08, kalimba(note + 12, 1.2, 0.6), pan=(k - 1.5) / 5, gain=0.08)
+        place(music, lt(chord_at), round_bass(root + 12, lt(4)), gain=0.35)
 
-    # Call to action: dark again, the pad and the sub under the typing, a soft pulse so it doesn't stall.
+    # Call to action: dark again, the pad, the pedal F ticking softly under the typing.
     tail = end + 2 - cta
     notes, root = BBM9
     for k, note in enumerate(notes):
-        place(dark, lt(cta), pad_note(note, lt(tail), 900), pan=(k - 1.5) / 2.5, gain=0.2)
-    place(dark, lt(cta), bass(root, lt(tail)), gain=0.4)
-    for beat in range(int(cta), int(end)):
-        place(drums, lt(beat + 0.5), hat(gain=0.05), pan=0.25)
+        place(dark, lt(cta), warm_pad(note, lt(tail), 900), pan=(k - 1.5) / 5, gain=0.18)
+    place(dark, lt(cta), round_bass(root + 12, lt(tail)), gain=0.3)
+    for step in range(int(cta * 2), int(end * 2)):
+        place(dark, lt(step / 2), kalimba(65, 0.5, 0.5), pan=0.15, gain=0.05)
 
-    # Sidechain: the music ducks under each kick.
+    # A gentle sidechain, so the kick sits in the pads without pumping.
     t = np.arange(length) / SR
     duck = np.ones(length)
     for start in kicks:
         i = int(start * SR)
-        seg = t[i : i + int(0.4 * SR)] - start
-        duck[i : i + len(seg)] = np.minimum(duck[i : i + len(seg)], 1 - 0.5 * np.exp(-seg / 0.11))
+        seg = t[i : i + int(0.3 * SR)] - start
+        duck[i : i + len(seg)] = np.minimum(duck[i : i + len(seg)], 1 - 0.25 * np.exp(-seg / 0.09))
     music *= duck[:, None]
-    dark = np.stack([band(dark[:, ch], None, 750, order=3) for ch in range(2)], axis=1) * duck[:, None]
+    dark = np.stack([band(dark[:, ch], None, 800, order=3) for ch in range(2)], axis=1)
 
-    # The drums sit higher than in the other beds: the reference's groove is clearly audible under its pads.
-    mix = reverb(music + dark, wet=0.32) * 0.75 + reverb(drums, seconds=1.0, decay=0.25, wet=0.08) * 1.25 + reverb(fx, seconds=3.0, decay=0.9, wet=0.35)
-    mix = np.tanh(mix / np.max(np.abs(mix)) * 1.6) / np.tanh(1.6)
+    mix = reverb(music + dark, seconds=1.6, decay=0.4, wet=0.26) + reverb(drums, seconds=0.6, decay=0.15, wet=0.08) * 3.2 + reverb(fx, seconds=1.8, decay=0.5, wet=0.2)
+    mix = np.tanh(mix / np.max(np.abs(mix)) * 1.15) / np.tanh(1.15)
     fade = int(1.6 * SR)
     mix[-fade:] *= np.linspace(1, 0, fade)[:, None] ** 1.5
     return mix
@@ -761,41 +810,38 @@ def sfx_hit():
 
 
 def sfx_key(pitch, heavy=False):
-    """A mechanical key: the press, the bottom-out a few milliseconds later, a short thock under both."""
-    t = axis(0.09)
-    out = np.zeros_like(t)
-    for at, amp in ((0.0, 1.0), (0.011 + rng.uniform(0, 0.004), 0.55)):
-        th = np.maximum(t - at, 0)
-        on = t >= at
-        out += on * amp * band(noise(0.09), 2500, 10000) * np.exp(-th / 0.0015)
-        out += on * amp * 0.5 * band(noise(0.09), 500, 2500) * np.exp(-th / 0.005)
-    out += np.sin(2 * np.pi * pitch * t) * np.exp(-t / (0.02 if heavy else 0.012)) * (0.8 if heavy else 0.55)
+    """A light key: a bright, short click (the reference's typing centres around 4.4 kHz, ~40 ms) and the faintest
+    bottom-out after it."""
+    t = axis(0.06)
+    out = band(noise(0.06), 2500, 11000) * np.exp(-t / 0.0022)
+    at = 0.008 + rng.uniform(0, 0.004)
+    th = np.maximum(t - at, 0)
+    out += (t >= at) * 0.35 * band(noise(0.06), 3000, 9000) * np.exp(-th / 0.0015)
+    out += np.sin(2 * np.pi * pitch * 4 * t) * np.exp(-t / 0.006) * (0.25 if heavy else 0.12)
     return declick(out)
 
 
-def sfx_whip(dur=0.6):
-    """The whip into a word: air rising all the way and stopping at its peak, on the cut."""
+def sfx_whip(dur=0.5):
+    """The whip into a word: a soft rush of air rising to the cut, quieter and smoother than a whoosh."""
     t = axis(dur)
     raw = noise(dur)
     out = np.zeros_like(t)
-    for k in range(12):
-        centre = 200 * (9000 / 200) ** (k / 11)
-        weight = np.exp(-(((t / dur) - k / 11) ** 2) / 0.015)
-        out += band(raw, centre * 0.6, centre * 1.6) * weight
-    env = (t / dur) ** 2.5
-    tail = np.clip((dur - t) / 0.03, 0, 1)
-    return declick(out * env * tail)
+    for k in range(10):
+        centre = 400 * (10000 / 400) ** (k / 9)
+        weight = np.exp(-(((t / dur) - k / 9) ** 2) / 0.02)
+        out += band(raw, centre * 0.7, centre * 1.4) * weight
+    return declick(out * (t / dur) ** 2 * np.clip((dur - t) / 0.05, 0, 1))
 
 
 def sfx_slam():
-    """A word slamming in: a short rush of air into a soft, low thump."""
-    rush_len = 0.12
+    """A word landing: a short breath of air and a soft, low touch, felt more than heard."""
+    rush_len = 0.08
     t = axis(rush_len)
-    rush = band(noise(rush_len), 800, 7000) * (t / rush_len) ** 2 * 0.6
-    t2 = axis(0.45)
-    freq = 50 + 90 * np.exp(-t2 / 0.04)
-    thump = np.sin(2 * np.pi * np.cumsum(freq) / SR) * np.exp(-t2 / 0.14) + band(noise(0.45), 300, 3000) * np.exp(-t2 / 0.02) * 0.3
-    return declick(np.concatenate([rush, thump]))
+    rush = band(noise(rush_len), 1500, 9000) * (t / rush_len) ** 2 * 0.35
+    t2 = axis(0.3)
+    freq = 70 + 60 * np.exp(-t2 / 0.03)
+    touch = np.sin(2 * np.pi * np.cumsum(freq) / SR) * np.exp(-t2 / 0.08) * 0.8
+    return declick(np.concatenate([rush, touch]))
 
 
 def sfx_select():

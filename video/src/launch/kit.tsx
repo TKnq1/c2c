@@ -31,9 +31,72 @@ export const SOFT_SHADOW = "0 60px 140px rgba(7,7,7,0.16), 0 14px 34px rgba(7,7,
 // ---------------------------------------------------------------------------------------------------------------
 // Motion
 
-// 0 → 1 that lands fast and settles without overshoot: for type slamming in.
+// Springs with different characters, so not everything moves alike: some snap, some swing past and settle, some
+// glide in slowly. Values over 1 are the overshoot.
+export const SPRINGS = {
+  snap: { damping: 14, stiffness: 260, mass: 0.7 },
+  swing: { damping: 10, stiffness: 120, mass: 1 },
+  glide: { damping: 22, stiffness: 50, mass: 1.1 },
+  land: { damping: 16, stiffness: 160, mass: 0.85 },
+} as const;
+
+export function spr(frame: number, at: number, kind: keyof typeof SPRINGS) {
+  return spring({ frame: frame - at, fps: FPS, config: SPRINGS[kind] });
+}
+
+// 0 → 1 that lands fast and rebounds a touch: for type slamming in.
 export function slam(frame: number, at: number) {
-  return spring({ frame: frame - at, fps: FPS, config: { damping: 26, stiffness: 150, mass: 0.9 } });
+  return spr(frame, at, "land");
+}
+
+// Something flying in from an offset (and a tilt, and a size), carried past its place by the spring and settling.
+export function flyIn(p: number, from: { x?: number; y?: number; r?: number; s?: number }): CSSProperties {
+  return {
+    opacity: Math.min(1, Math.max(0, p) * 2.5),
+    transform: `translate(${(1 - p) * (from.x ?? 0)}px, ${(1 - p) * (from.y ?? 0)}px) rotate(${(1 - p) * (from.r ?? 0)}deg) scale(${mix(p, from.s ?? 1, 1)})`,
+  };
+}
+
+// Leaving: accelerating away towards an edge (0 → 1, eased in).
+export function flyOut(frame: number, at: number, dur: number, to: { x?: number; y?: number; r?: number }): CSSProperties {
+  const q = interpolate(frame, [at, at + dur], [0, 1], { extrapolateLeft: "clamp", extrapolateRight: "clamp", easing: Easing.in(Easing.cubic) });
+  if (q <= 0) return {};
+  return { opacity: 1 - q * q, transform: `translate(${q * (to.x ?? 0)}px, ${q * (to.y ?? 0)}px) rotate(${q * (to.r ?? 0)}deg)` };
+}
+
+// When each letter of a line appears: about `every` frames apart, uneven like real typing, with a little pause after
+// a space and a longer one after punctuation. Deterministic, so a scene and its key sounds agree.
+export function typingTimes(text: string, start: number, every = 2): number[] {
+  const times: number[] = [];
+  let t = start;
+  for (let i = 0; i < text.length; i++) {
+    const jitter = (((Math.sin((i + 1) * 12.9898 + text.length * 78.233) * 43758.5453) % 1) + 1) % 1;
+    const prev = text[i - 1] ?? "";
+    t += every * (0.55 + jitter * 0.9) + (text[i] === " " ? every * 0.6 : 0) + (/[.,!?:]/.test(prev) ? every * 2.5 : 0);
+    times.push(Math.round(t));
+  }
+  return times;
+}
+
+export function typedCount(frame: number, times: number[]) {
+  let n = 0;
+  while (n < times.length && times[n] <= frame) n++;
+  return n;
+}
+
+// A hand on a mouse: from `from` to `to` starting at `at`, along a gentle arc, quick in the middle and settling onto the
+// target with a small overshoot. `speed` scales the spring (bigger is quicker).
+export function pointer(frame: number, at: number, from: { x: number; y: number }, to: { x: number; y: number }, speed = 1, bend = 0.16) {
+  const p = spring({ frame: frame - at, fps: FPS, config: { damping: 15, stiffness: 70 * speed * speed, mass: 1 } });
+  const q = Math.min(1, Math.max(0, p));
+  const dx = to.x - from.x;
+  const dy = to.y - from.y;
+  const c = { x: (from.x + to.x) / 2 - dy * bend, y: (from.y + to.y) / 2 + dx * bend };
+  const bx = (1 - q) * (1 - q) * from.x + 2 * (1 - q) * q * c.x + q * q * to.x;
+  const by = (1 - q) * (1 - q) * from.y + 2 * (1 - q) * q * c.y + q * q * to.y;
+  // Past 1 the spring overshoots along the last direction of travel.
+  const over = p - q;
+  return { x: bx + over * dx * 0.6, y: by + over * dy * 0.6 };
 }
 
 // A word arriving from far too big and out of focus, the reference's "Meet" and "And".
@@ -91,10 +154,31 @@ function background(light: Light, t: number) {
   ].join(", ");
 }
 
-export const Backdrop: React.FC<{ light: Light; children?: ReactNode }> = ({ light, children }) => {
+// The reference's thin lines: a few very large circles, of which only a sweep of each crosses the frame, drifting and
+// turning slowly. `seed` sets them differently per scene.
+export const Arcs: React.FC<{ dark?: boolean; seed?: number }> = ({ dark, seed = 0 }) => {
+  const frame = useFrame() + seed * 37;
+  const stroke = dark ? "rgba(255,255,255,0.1)" : "rgba(7,7,7,0.11)";
+  const s = seed % 3;
+  const arcs = [
+    { cx: -520 + 60 * Math.sin(frame / 110) + s * 120, cy: 260 + 40 * Math.cos(frame / 140), r: 1150 + s * 90, w: 1.6 },
+    { cx: 2480 - 50 * Math.cos(frame / 120) - s * 80, cy: 1420 + 50 * Math.sin(frame / 95), r: 1350, w: 1.3 },
+    { cx: 960 + 260 * Math.sin(frame / 210 + s), cy: -1720, r: 1950, w: 1.1 },
+  ];
+  return (
+    <svg width={LAUNCH_WIDTH} height={LAUNCH_HEIGHT} style={{ position: "absolute", inset: 0, pointerEvents: "none" }}>
+      {arcs.map((a, i) => (
+        <circle key={i} cx={a.cx} cy={a.cy} r={a.r} fill="none" stroke={stroke} strokeWidth={a.w} />
+      ))}
+    </svg>
+  );
+};
+
+export const Backdrop: React.FC<{ light: Light; lines?: number | false; children?: ReactNode }> = ({ light, lines = 0, children }) => {
   const frame = useFrame();
   return (
     <AbsoluteFill style={{ background: background(light, frame), color: light === "night" ? colors.paper : colors.ink, fontFamily: FONT, overflow: "hidden" }}>
+      {lines !== false && <Arcs dark={light === "night"} seed={lines} />}
       {children}
       {light === "night" && (
         <AbsoluteFill style={{ backgroundImage: `url(${staticFile("grain/dark.png")})`, backgroundSize: "cover", mixBlendMode: "screen", opacity: 0.8 }} />
@@ -342,6 +426,38 @@ export const DesktopApp: React.FC<{
     </div>
   );
 };
+
+// One part of the app in its own Mac window, without the sidebar: for close shots of a single panel (the chat).
+export const AppPanel: React.FC<{ width: number; height: number; scale?: number; style?: CSSProperties; children: ReactNode }> = ({ width, height, scale = 1, style, children }) => (
+  <div style={{ width: width * scale, height: (height + 44) * scale, ...style }}>
+    <div
+      style={{
+        width,
+        height: height + 44,
+        transform: `scale(${scale})`,
+        transformOrigin: "0 0",
+        borderRadius: 14,
+        overflow: "hidden",
+        backgroundColor: colors.paper,
+        color: colors.ink,
+        fontFamily: FONT,
+        boxShadow: SOFT_SHADOW + ", 0 0 0 1px rgba(7,7,7,0.08)",
+        display: "flex",
+        flexDirection: "column",
+      }}
+    >
+      <div style={{ height: 44, flexShrink: 0, backgroundColor: colors.fog, borderBottom: `1px solid ${colors.line}`, display: "flex", alignItems: "center", gap: 8, padding: "0 16px", position: "relative" }}>
+        {["#ff5f57", "#febc2e", "#28c840"].map((c) => (
+          <span key={c} style={{ width: 12, height: 12, borderRadius: 999, backgroundColor: c }} />
+        ))}
+        <span style={{ position: "absolute", left: "50%", transform: "translateX(-50%)", backgroundColor: "rgba(7,7,7,0.06)", borderRadius: 6, padding: "4px 56px", fontSize: 12, color: colors.graphite }}>
+          comtor.app
+        </span>
+      </div>
+      <div style={{ flex: 1, minHeight: 0, position: "relative" }}>{children}</div>
+    </div>
+  </div>
+);
 
 export const PageTitle: React.FC<{ children: ReactNode }> = ({ children }) => (
   <div style={{ fontSize: 28, fontWeight: 900, letterSpacing: -0.6 }}>{children}</div>

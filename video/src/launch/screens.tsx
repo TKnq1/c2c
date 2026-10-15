@@ -1,11 +1,11 @@
 import type { CSSProperties, ReactNode } from "react";
 import { FiCheck, FiHeart, FiRotateCcw, FiX } from "react-icons/fi";
-import { IoCheckmark, IoGiftOutline, IoLogoInstagram, IoLogoTiktok, IoLogoYoutube, IoStarOutline } from "react-icons/io5";
-import { NOKAR_HOODIE, RAW_AVATAR, RAW_HOODIE, VINTAGE_DROP, VS_AVATAR } from "../ads/brands";
+import { IoGiftOutline, IoLogoInstagram, IoLogoTiktok, IoStarOutline } from "react-icons/io5";
+import { RAW_AVATAR, RAW_HOODIE, VINTAGE_DROP, VS_AVATAR } from "../ads/brands";
 import { mix } from "../anim";
-import { Avatar, DealCard, type Deal, Photo } from "../components/ui";
+import { Avatar, DealCard, type Deal } from "../components/ui";
 import { colors } from "../theme";
-import { Chip, Field, SOFT_SHADOW } from "./kit";
+import { Chip, SOFT_SHADOW } from "./kit";
 
 // The app's screens and the fragments the launch video's scenes (scenes.tsx) are built from. Everything that moves
 // takes its state as props, so a scene drives it frame by frame.
@@ -233,75 +233,6 @@ export const CreatorFeed: React.FC<{ swipe?: SwipeState; next?: number; heart?: 
       <div style={{ position: "relative", zIndex: 1, opacity: details }}>
         <DetailsPanel details={RAW_DETAILS} style={{ opacity: 1 - next }} />
         <DetailsPanel details={VINTAGE_DETAILS} style={{ position: "absolute", top: 0, left: 0, opacity: next }} />
-      </div>
-    </div>
-  </div>
-);
-
-// The brand's New request (brand-desktop.tsx). `title` is what is typed into the title field so far.
-export const NEW_REQUEST_TITLE = "Nokar Hoodie, Drop-Teaser";
-
-export const NewRequest: React.FC<{ title?: string; caret?: boolean; published?: boolean; press?: number }> = ({ title = NEW_REQUEST_TITLE, caret, published, press = 0 }) => (
-  <div style={{ padding: "28px 36px", display: "flex", gap: 40 }}>
-    <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 20 }}>
-      <Field label="Titel" value={title} caret={caret} focused={caret} />
-      <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-        <div style={{ fontSize: 14, fontWeight: 700 }}>Fotos</div>
-        <div style={{ display: "flex", gap: 8 }}>
-          {(["nokarHoodie", "nokarPrint", "nokarBack"] as const).map((p, i) => (
-            <div key={p} style={{ width: 64, height: 64, borderRadius: 4, overflow: "hidden", outline: i === 0 ? `2px solid ${colors.ink}` : undefined, outlineOffset: 2 }}>
-              <Photo photo={p} />
-            </div>
-          ))}
-        </div>
-      </div>
-      <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-        <div style={{ fontSize: 14, fontWeight: 700 }}>Plattform</div>
-        <div style={{ display: "flex", gap: 8 }}>
-          <Chip on>
-            <IoLogoInstagram size={14} /> Instagram
-          </Chip>
-          <Chip>
-            <IoLogoTiktok size={14} /> TikTok
-          </Chip>
-          <Chip>
-            <IoLogoYoutube size={14} /> YouTube
-          </Chip>
-        </div>
-      </div>
-      <div style={{ display: "flex", gap: 16 }}>
-        <Field label="Inhalt" value="1 Reel" width={200} />
-        <Field label="Budget" value="300 €" width={160} />
-        <Field label="Min. Follower" value="1.000" width={160} />
-      </div>
-      <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-        <div style={{ fontSize: 14, fontWeight: 700 }}>Briefing</div>
-        <div style={{ borderRadius: 4, border: "1px solid #d4d4d4", padding: "10px 12px", fontSize: 14.5, lineHeight: 1.5, color: colors.ink, height: 96 }}>
-          Zeig den neuen Nokar Hoodie in einem Outfit-Reel, bevor der Drop startet. Wir schicken dir den Hoodie in deiner Größe.
-        </div>
-      </div>
-    </div>
-    <div style={{ width: 300, display: "flex", flexDirection: "column", gap: 14 }}>
-      <div style={{ fontSize: 13, fontWeight: 700, color: colors.graphite, textTransform: "uppercase", letterSpacing: 1 }}>So sehen Creator deine Anfrage</div>
-      <DealCard deal={{ ...NOKAR_HOODIE, title: title || NOKAR_HOODIE.title }} width={300} height={440} />
-      <div
-        style={{
-          height: 44,
-          borderRadius: 999,
-          backgroundColor: published ? colors.paper : colors.ink,
-          color: published ? colors.ink : colors.paper,
-          border: `1px solid ${colors.ink}`,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          gap: 8,
-          fontWeight: 700,
-          fontSize: 15,
-          transform: `scale(${1 - press * 0.05})`,
-        }}
-      >
-        {published && <IoCheckmark size={18} />}
-        {published ? "Veröffentlicht" : "Anfrage veröffentlichen"}
       </div>
     </div>
   </div>
