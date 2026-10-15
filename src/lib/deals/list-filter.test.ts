@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { DealStatus } from "@prisma/client";
-import { dealCounts, filterDeals, groupByCampaign, parseDealFilter } from "@/lib/deals/list-filter";
+import { dealCounts, filterDeals, filterOffers, groupByCampaign, isOfferMyTurn, parseDealFilter } from "@/lib/deals/list-filter";
 
 const deal = (status: DealStatus, brandSigned = true, creatorSigned = true) => ({
   status,
@@ -69,6 +69,32 @@ describe("dealCounts", () => {
     ];
     expect(dealCounts(deals, "STARTUP")).toEqual({ all: 3, mine: 1, active: 2, done: 1 });
     expect(dealCounts(deals, "CREATOR")).toEqual({ all: 3, mine: 1, active: 2, done: 1 });
+  });
+
+  it("adds open offers to the running entries and interested creators to all", () => {
+    const offers = [{ offerRole: "CREATOR" as const }, { offerRole: "STARTUP" as const }];
+    expect(dealCounts([], "STARTUP", offers, 4)).toEqual({ all: 6, mine: 1, active: 2, done: 0 });
+  });
+});
+
+describe("open offers", () => {
+  const brandOffer = { offerRole: "STARTUP" as const };
+  const counter = { offerRole: "CREATOR" as const };
+
+  it("waits for the side that did not make it", () => {
+    expect(isOfferMyTurn(brandOffer, "CREATOR")).toBe(true);
+    expect(isOfferMyTurn(brandOffer, "STARTUP")).toBe(false);
+    expect(isOfferMyTurn(counter, "STARTUP")).toBe(true);
+    expect(isOfferMyTurn({ offerRole: null }, "STARTUP")).toBe(false);
+  });
+
+  it("filters like deals: all running, the ones to answer under mine, none finished", () => {
+    const offers = [brandOffer, counter];
+    expect(filterOffers(offers, null, "STARTUP")).toEqual(offers);
+    expect(filterOffers(offers, "active", "STARTUP")).toEqual(offers);
+    expect(filterOffers(offers, "mine", "STARTUP")).toEqual([counter]);
+    expect(filterOffers(offers, "mine", "CREATOR")).toEqual([brandOffer]);
+    expect(filterOffers(offers, "done", "CREATOR")).toEqual([]);
   });
 });
 

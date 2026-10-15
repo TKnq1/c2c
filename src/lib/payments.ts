@@ -1,3 +1,4 @@
+import type { Role } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { DEPOSITS_ENABLED } from "@/lib/constants";
 
@@ -20,16 +21,31 @@ export async function getPendingPaymentActionCount(userId: string) {
 
 // The brand side of the same badge: a creator's counter-offer waiting on an
 // answer, an accepted offer that still has to be paid before anything is
-// held in escrow, or a submitted post waiting on approval.
+// held in escrow, or a submitted post waiting on approval. Collabs that run
+// as a deal are left out: their payment is a step of the deal and already
+// counted by getDealActionCount.
 export async function getBrandPendingPaymentActionCount(userId: string) {
   return prisma.interest.count({
     where: {
       request: { startup: { userId } },
       OR: [
         { paymentStatus: "OFFERED", offerRole: "CREATOR" },
-        { paymentStatus: "ACCEPTED" },
-        { paymentStatus: "HELD", proofSubmittedAt: { not: null }, disputedAt: null },
+        { paymentStatus: "ACCEPTED", deal: { is: null } },
+        { paymentStatus: "HELD", proofSubmittedAt: { not: null }, disputedAt: null, deal: { is: null } },
       ],
     },
   });
+}
+
+// The offers among those: proposed by the other side and waiting on this
+// person's answer. Where the Deals screens are open they sit on the Deals
+// list, so their share of the badge moves to the Deals tab.
+export async function getOfferActionCount(userId: string, role: Role) {
+  if (role === "STARTUP") {
+    return prisma.interest.count({ where: { request: { startup: { userId } }, paymentStatus: "OFFERED", offerRole: "CREATOR" } });
+  }
+  if (role === "CREATOR") {
+    return prisma.interest.count({ where: { creator: { userId }, paymentStatus: "OFFERED", offerRole: "STARTUP" } });
+  }
+  return 0;
 }

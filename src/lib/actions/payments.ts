@@ -55,6 +55,11 @@ function paymentsHref(role: Role) {
   return role === "STARTUP" ? "/dashboard/creator/payments" : "/dashboard/startup/payments";
 }
 
+// Where a notice about an offer leads the other side: the Deals list where offers sit with deals on, else their Payments page.
+function offersHref(role: Role) {
+  return dealsEnabled() ? "/dashboard/deals#offers" : paymentsHref(role);
+}
+
 // An offer is made (and accepted) under the request's campaign rules. A request without a briefing gets the German
 // defaults; one whose rules are unlawful or unworkable (no advertising label, a posting window in the past, ...) blocks
 // the offer until the brand fixes the briefing.
@@ -87,6 +92,7 @@ async function revalidateOfferPaths(requestId: string, interestId?: string) {
   revalidatePath(`/dashboard/startup/requests/${requestId}`);
   revalidatePath("/dashboard/startup/payments");
   revalidatePath("/dashboard/creator/payments");
+  revalidatePath("/dashboard/deals");
   if (interestId) {
     revalidatePath("/dashboard/messages");
     revalidatePath(`/dashboard/messages/${interestId}`);
@@ -156,7 +162,7 @@ export async function sendOfferAction(
   await notify(
     interest.creator.userId,
     `${startup.companyName} sent you an offer of ${formatCents(amountCents)} for "${interest.request.title}"`,
-    "/dashboard/creator/payments",
+    offersHref("STARTUP"),
     "payments",
   );
 
@@ -222,7 +228,7 @@ export async function bulkSendOfferAction(requestId: string, interestIds: string
       notify(
         interest.creator.userId,
         `${startup.companyName} sent you an offer of ${formatCents(amountCents)} for "${request.title}"`,
-        "/dashboard/creator/payments",
+        offersHref("STARTUP"),
         "payments",
       ),
     ),
@@ -282,7 +288,7 @@ export async function counterOfferAction(
   await notify(
     otherPartyUserId(interest, role),
     `${actorName(interest, role)} countered with ${formatCents(amountCents)} for "${interest.request.title}"`,
-    paymentsHref(role),
+    offersHref(role),
     "payments",
   );
 
@@ -428,7 +434,6 @@ export async function acceptOfferAction(interestId: string, expectedAmountCents:
   }
 
   await revalidateOfferPaths(interest.requestId, interestId);
-  if (dealId) revalidatePath("/dashboard/deals");
 }
 
 // The proposer of an open offer confirms it again under the briefing as it is now, after the briefing changed. The other

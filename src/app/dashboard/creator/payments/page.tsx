@@ -24,12 +24,13 @@ import { DealsTabs } from "@/components/deals/deals-tabs";
 import { ProFeeBar } from "@/components/pro-fee-bar";
 import { getLocale, getT } from "@/lib/i18n/server";
 import { OpenDealLink } from "@/components/deals/open-deal-link";
+import { OffersMovedNote } from "@/components/deals/offers-moved-note";
+import { primaryButton as primaryButtonBase, quietButton } from "@/components/deals/ui";
+import { canUseDeals } from "@/lib/deals/queries";
 import { dealLocale } from "@/lib/deals/copy";
 import { uiText } from "@/lib/deals/ui-copy";
 
-const primaryButton =
-  "mt-3 w-full rounded-full bg-ink px-4 py-2.5 text-sm font-medium text-paper transition hover:bg-graphite disabled:opacity-50 sm:w-auto";
-const quietButton = "text-xs text-neutral-500 transition hover:text-ink disabled:opacity-50 dark:text-neutral-400";
+const primaryButton = `${primaryButtonBase} mt-3 w-full sm:w-auto`;
 const pillLink =
   "inline-flex items-center gap-1.5 rounded-full border border-neutral-300 px-3 py-1.5 text-sm font-medium transition hover:border-neutral-400 dark:border-neutral-700";
 
@@ -44,7 +45,7 @@ export default async function CreatorPaymentsPage() {
   // rather than creator.id, so this doesn't have to wait on the fetch below
   // to know what to ask for. Also one query instead of four sequential ones
   // for the same reason the startup payments page's version is.
-  const [creator, allInterests] = await Promise.all([
+  const [creator, allInterests, showDeals] = await Promise.all([
     prisma.creatorProfile.findUniqueOrThrow({ where: { userId: session.user.id } }),
     prisma.interest.findMany({
       where: { creator: { userId: session.user.id } },
@@ -52,6 +53,7 @@ export default async function CreatorPaymentsPage() {
       // the brands' make up the rating in the summary.
       include: { request: { include: { startup: true } }, reviews: true, deal: { select: { id: true } } },
     }),
+    canUseDeals(session.user.id, "CREATOR"),
   ]);
   const byDesc = <T,>(key: (i: T) => Date | null) => (a: T, b: T) => (key(b)?.getTime() ?? 0) - (key(a)?.getTime() ?? 0);
 
@@ -59,7 +61,8 @@ export default async function CreatorPaymentsPage() {
     .filter((i) => i.paymentStatus === "HELD" || i.paymentStatus === "RELEASED" || i.paymentStatus === "REFUNDED")
     .sort(byDesc((i) => i.paidAt));
   const pendingOffers = allInterests.filter((i) => i.paymentStatus === "OFFERED").sort(byDesc((i) => i.offeredAt));
-  const awaitingPayment = allInterests.filter((i) => i.paymentStatus === "ACCEPTED").sort(byDesc((i) => i.acceptedAt));
+  // A deal waits for its payment on its own page.
+  const awaitingPayment = allInterests.filter((i) => i.paymentStatus === "ACCEPTED" && !i.deal).sort(byDesc((i) => i.acceptedAt));
   const deposits = DEPOSITS_ENABLED
     ? allInterests.filter((i) => i.depositStatus !== null).sort(byDesc((i) => i.depositRequestedAt))
     : [];
@@ -160,7 +163,9 @@ export default async function CreatorPaymentsPage() {
         />
       )}
 
-      {pendingOffers.length > 0 && (
+      {showDeals && <OffersMovedNote count={pendingOffers.length} brand={false} u={u} />}
+
+      {!showDeals && pendingOffers.length > 0 && (
         <PaymentSection title={t("screens.payments.offers")} count={pendingOffers.length} className="no-print">
           {pendingOffers.map((o) => {
             const brand = o.request.startup.companyName;
