@@ -1,7 +1,8 @@
 import type { ReactNode } from "react";
 import { FiHeart, FiRotateCcw, FiX } from "react-icons/fi";
 import { IoGiftOutline, IoLogoInstagram, IoLogoTiktok, IoLogoYoutube, IoStarOutline } from "react-icons/io5";
-import { Avatar, DealCard, KIEZ_GOODS, ODD_BLOOM, Photo } from "../components/ui";
+import { NOKAR_HOODIE, RAW_AVATAR, RAW_HOODIE, VINTAGE_DROP } from "../ads/brands";
+import { Avatar, DealCard, Photo } from "../components/ui";
 import { Cursor } from "../components/shared-scenes";
 import { colors } from "../theme";
 import {
@@ -101,15 +102,15 @@ const RoundButton: React.FC<{ size: number; filled?: boolean; children: ReactNod
 const DetailsPanel: React.FC = () => (
   <div style={{ width: 400, display: "flex", flexDirection: "column", gap: 18, fontSize: 15 }}>
     <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-      <Avatar name="Odd Bloom" size={44} />
+      <Avatar name="Raw Supplies" image={RAW_AVATAR} size={44} />
       <div>
-        <div style={{ fontWeight: 700 }}>Odd Bloom</div>
-        <div style={{ color: colors.graphite, fontSize: 13 }}>Beauty · Kosmetik</div>
+        <div style={{ fontWeight: 700 }}>Raw Supplies</div>
+        <div style={{ color: colors.graphite, fontSize: 13 }}>Fashion · Streetwear</div>
       </div>
     </div>
-    <div style={{ fontSize: 24, fontWeight: 900, letterSpacing: -0.5 }}>Serum-Launch, erste Eindrücke</div>
+    <div style={{ fontSize: 24, fontWeight: 900, letterSpacing: -0.5 }}>RAW Hoodie V2, erste Eindrücke</div>
     <div style={{ color: colors.graphite, lineHeight: 1.5 }}>
-      Zeig unser neues Glow-Serum in deiner Morgenroutine. Ehrliche erste Eindrücke bei Tageslicht, kein Skript. Wir schicken dir zwei Flaschen.
+      Zeig den RAW Hoodie V2 in deinem Alltag. Ehrliche erste Eindrücke, kein Skript. Wir schicken dir den Hoodie in deiner Größe.
     </div>
     <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
       <Chip>
@@ -139,8 +140,8 @@ const CreatorFeed: React.FC = () => (
     <div style={{ display: "flex", justifyContent: "center", gap: 48, alignItems: "flex-start" }}>
       <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 14 }}>
         <div style={{ position: "relative", width: 340, height: 500 }}>
-          <DealCard deal={KIEZ_GOODS} width={340} height={500} style={{ position: "absolute", transform: "translateY(14px) scale(0.94)", opacity: 0.6 }} />
-          <DealCard deal={ODD_BLOOM} width={340} height={500} style={{ position: "absolute" }} />
+          <DealCard deal={{ ...VINTAGE_DROP, photo: "vintageJacket", photoPosition: undefined }} width={340} height={500} style={{ position: "absolute", transform: "translateY(14px) scale(0.94)", opacity: 0.6 }} />
+          <DealCard deal={RAW_HOODIE} width={340} height={500} style={{ position: "absolute" }} />
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 22 }}>
           <RoundButton size={52}>
@@ -167,11 +168,11 @@ const NewRequest: React.FC<{ step?: number }> = ({ step = 4 }) => (
   <div style={{ padding: "28px 36px", display: "flex", gap: 40 }}>
     <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 20 }}>
       <PageTitle>Neue Anfrage</PageTitle>
-      <Field label="Titel" value="Serum-Launch, erste Eindrücke" />
+      <Field label="Titel" value="Nokar Hoodie, Drop-Teaser" />
       <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
         <div style={{ fontSize: 14, fontWeight: 700 }}>Fotos</div>
         <div style={{ display: "flex", gap: 8 }}>
-          {(["serum", "cream", "lotion"] as const).map((p, i) => (
+          {(["nokarHoodie", "nokarPrint", "nokarBack"] as const).map((p, i) => (
             <div key={p} style={{ width: 64, height: 64, borderRadius: 4, overflow: "hidden", outline: i === 0 ? `2px solid ${colors.ink}` : undefined, outlineOffset: 2 }}>
               <Photo photo={p} />
             </div>
@@ -181,10 +182,10 @@ const NewRequest: React.FC<{ step?: number }> = ({ step = 4 }) => (
       <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
         <div style={{ fontSize: 14, fontWeight: 700 }}>Plattform</div>
         <div style={{ display: "flex", gap: 8 }}>
-          <Chip>
+          <Chip on>
             <IoLogoInstagram size={14} /> Instagram
           </Chip>
-          <Chip on>
+          <Chip>
             <IoLogoTiktok size={14} /> TikTok
           </Chip>
           <Chip>
@@ -193,20 +194,20 @@ const NewRequest: React.FC<{ step?: number }> = ({ step = 4 }) => (
         </div>
       </div>
       <div style={{ display: "flex", gap: 16 }}>
-        <Field label="Inhalt" value="1 Video" width={200} />
-        <Field label="Budget" value="250 €" width={160} />
+        <Field label="Inhalt" value="1 Reel" width={200} />
+        <Field label="Budget" value="300 €" width={160} />
         <Field label="Min. Follower" value="1.000" width={160} />
       </div>
       <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
         <div style={{ fontSize: 14, fontWeight: 700 }}>Briefing</div>
         <div style={{ borderRadius: 4, border: "1px solid #d4d4d4", padding: "10px 12px", fontSize: 14.5, lineHeight: 1.5, color: colors.ink, height: 96 }}>
-          Zeig unser neues Glow-Serum in deiner Morgenroutine. Ehrliche erste Eindrücke bei Tageslicht, kein Skript. Wir schicken dir zwei Flaschen.
+          Zeig den neuen Nokar Hoodie in einem Outfit-Reel, bevor der Drop startet. Wir schicken dir den Hoodie in deiner Größe.
         </div>
       </div>
     </div>
     <div style={{ width: 300, display: "flex", flexDirection: "column", gap: 14 }}>
       <div style={{ fontSize: 13, fontWeight: 700, color: colors.graphite, textTransform: "uppercase", letterSpacing: 1 }}>So sehen Creator deine Anfrage</div>
-      <DealCard deal={ODD_BLOOM} width={300} height={440} />
+      <DealCard deal={NOKAR_HOODIE} width={300} height={440} />
       <div style={{ height: 44, borderRadius: 999, backgroundColor: step >= 4 ? colors.ink : colors.stone, color: colors.paper, display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 700, fontSize: 15 }}>
         Anfrage veröffentlichen
       </div>
@@ -314,7 +315,7 @@ export const L07: React.FC = () => (
 // 8 · Matching: the app on the left, the check running in the dark panel on the right.
 export const L08: React.FC = () => {
   const rows: [string, string][] = [
-    ["Nische passt", "Beauty"],
+    ["Nische passt", "Fashion"],
     ["Reichweite passt", "50.000 Follower"],
     ["Plattform passt", "TikTok"],
     ["Budget", "250 €"],
@@ -344,7 +345,7 @@ export const L08: React.FC = () => {
           fontSize: 28,
         }}
       >
-        <div style={{ fontSize: 20, color: colors.graphite, marginBottom: 6 }}>Anfrage · Odd Bloom</div>
+        <div style={{ fontSize: 20, color: colors.graphite, marginBottom: 6 }}>Anfrage · Raw Supplies</div>
         {rows.map(([label, value]) => (
           <div key={label} style={{ display: "flex", alignItems: "center", gap: 22, paddingBottom: 18, borderBottom: "1px solid rgba(255,255,255,0.1)" }}>
             <Tick size={30} dark />
@@ -401,8 +402,8 @@ export const L11: React.FC = () => (
     <Center style={{ gap: 60 }}>
       <WideWord size={190}>Ausgezahlt.</WideWord>
       <div style={{ display: "flex", alignItems: "center", gap: 22, borderRadius: 12, backgroundColor: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.14)", padding: "20px 30px", fontSize: 30 }}>
-        <Avatar name="Odd Bloom" size={48} />
-        <span style={{ color: colors.stone }}>Odd Bloom</span>
+        <Avatar name="Raw Supplies" image={RAW_AVATAR} size={48} />
+        <span style={{ color: colors.stone }}>Raw Supplies</span>
         <span style={{ fontWeight: 900 }}>+ 225,00 €</span>
       </div>
     </Center>
@@ -424,10 +425,10 @@ export const L12: React.FC = () => (
 export const L13: React.FC = () => (
   <Backdrop light="mist">
     <div style={{ position: "absolute", left: 150, top: 170, display: "flex", flexDirection: "column", gap: 90 }}>
-      <Field label="Titel" value="Serum-Launch, erste Eindr" caret focused size={84} width={2100} />
+      <Field label="Titel" value="Nokar Hoodie, Drop-Te" caret focused size={84} width={2100} />
       <div style={{ display: "flex", gap: 60, filter: "blur(7px)", opacity: 0.6 }}>
-        <Field label="Inhalt" value="1 Video" size={84} width={620} />
-        <Field label="Budget" value="250 €" size={84} width={520} />
+        <Field label="Inhalt" value="1 Reel" size={84} width={620} />
+        <Field label="Budget" value="300 €" size={84} width={520} />
       </div>
     </div>
     <SampleTag />

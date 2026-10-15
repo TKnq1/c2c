@@ -13,6 +13,7 @@ import {
   IoSearchOutline,
 } from "react-icons/io5";
 import { AbsoluteFill, Img, staticFile } from "remotion";
+import { NOKAR_AVATAR } from "../ads/brands";
 import { Avatar } from "../components/ui";
 import { colors, FONT } from "../theme";
 
@@ -207,8 +208,8 @@ export const Sidebar: React.FC<{ side: Side; active: string }> = ({ side, active
       </div>
     )}
     <div style={{ marginTop: "auto", display: "flex", alignItems: "center", gap: 12, padding: "8px 12px", fontSize: 14, fontWeight: 700 }}>
-      <Avatar name={side === "creator" ? "Mia Summers" : "Odd Bloom"} size={32} />
-      <span style={{ flex: 1 }}>{side === "creator" ? "Mia Summers" : "Odd Bloom"}</span>
+      <Avatar name={side === "creator" ? "Mia Summers" : "Nokar"} image={side === "creator" ? undefined : NOKAR_AVATAR} size={32} />
+      <span style={{ flex: 1 }}>{side === "creator" ? "Mia Summers" : "Nokar"}</span>
       <FiChevronDown size={16} color={colors.stone} />
     </div>
   </div>
