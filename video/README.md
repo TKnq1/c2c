@@ -50,7 +50,10 @@ and the sticker texts in `STORIES.md`.
 
 A launch video for the website, YouTube and LinkedIn, 1920 x 1080, modelled on the cut of a SaaS launch video: typed
 lines, statements set large, the web app's desktop view in 3D, three lights (white, grey mist, black). Sources in
-`src/launch/` (`kit.tsx` building blocks, `screens.tsx` the app's screens, `scenes.tsx` the scenes and their lengths).
+`src/launch/`: `kit.tsx` building blocks (springs, fly-ins, typing rhythm, pointer arcs, background arcs, app
+frames), `parts.tsx` shared pieces (typed lines, slamming words, key sounds), `screens.tsx` and `app-screens.tsx` the
+app's screens (offer card, chat, request form with its choice sheets, Discover), `scenes-creator.tsx` and
+`scenes-brand.tsx` the scenes, `scenes.tsx` their order and lengths.
 
 ```bash
 npm run launch:stills   # one still per scene (its keyframe) to out/launch/ and a contact sheet out/launch-stills.png
@@ -59,9 +62,13 @@ npm run launch:audio    # regenerate its music and sounds (needs python3, numpy,
 npm run launch:render   # with sound, mastered to -14 LUFS: out/launch-final.mp4
 ```
 
-The music follows the reference's, measured with librosa: 108 BPM, B flat minor (nearly one chord with a turn to
-G flat), pads and synths over a syncopated kick and sixteenth hats; dark and quiet under the opening lines, the
-groove from the turn on, filtered down under the money held, dark again under the call to action. Every scene lasts
+The music is synthesised after the reference's measured profile (librosa), none of it taken from the reference:
+108 BPM, B flat minor with a turn to G flat, a plucked arpeggio around a pedal F with high C accents, wide detuned
+pads, a bass on B flat and the F below, a soft kick tuned to F2, finger snaps, shaker sixteenths and a swell of air
+every two beats; bright and clean (spectral centroid ~2.5 kHz like the reference). Dark and quiet under the opening
+lines, the groove from the turn on, thinned under the switch to brands, drums out for the logo, dark again under the
+call to action. The effects stay minimal: key clicks, a soft whip and slam, a select tick; `SfxGain` (`src/audio.tsx`)
+sets their overall level. Every scene lasts
 whole beats (`beats` in `src/launch/scenes.tsx`), so every cut lands on a beat; `scripts/grid.ts` hands the starts
 to `scripts/make-audio.py --launch`. Change a scene's beats, then run `npm run launch:audio`. Typing, the whips into
 words, the slams, clicks, the swipe and the checks are the launch video's own sounds (`public/sfx/key-*.wav`,
