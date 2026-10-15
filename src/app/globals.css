@@ -9,6 +9,9 @@
   --fog: #f2f2f2;
   --stone: #a2a2a9;
   --graphite: #797979;
+  /* Tailwind's neutral-500 (#737373) is the grey of most hint texts and missed 4.5:1 on --fog (4.2). One step darker passes
+     on fog and on white; in dark mode one step lighter passes on --fog and --paper. */
+  --neutral-500: #6b6b6b;
 
   --background: var(--paper);
   --foreground: var(--ink);
@@ -28,6 +31,7 @@
   --fog: #2d2d2d;
   --stone: #797979;
   --graphite: #a2a2a9;
+  --neutral-500: #949494;
 
   --background: var(--paper);
   --foreground: var(--ink);
@@ -108,6 +112,7 @@
   --color-fog: var(--fog);
   --color-stone: var(--stone);
   --color-graphite: var(--graphite);
+  --color-neutral-500: var(--neutral-500);
 
   /* The admin dashboard's accent (see src/lib/admin-theme.ts), set per admin on .admin-shell. The fallbacks are the
      blue default, for anything rendered outside the shell. */

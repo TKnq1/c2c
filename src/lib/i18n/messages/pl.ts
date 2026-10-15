@@ -229,7 +229,7 @@ export const pl: Catalog = {
     payout: {
       title: "Gdzie mamy wysłać pieniądze?",
       description: "Dodaj dane do wypłaty teraz, żeby pierwsze tak dało się opłacić.",
-      point1: "Marka wpłaca środki na rachunek powierniczy, zanim cokolwiek stworzysz.",
+      point1: "Marka płaci, zanim cokolwiek stworzysz, a środki są wstrzymane, aż opublikujesz.",
       point2: "Pieniądze są zwalniane, gdy post jest już opublikowany.",
       point3: "Konfiguracja zajmuje około dwóch minut. Pierwsza marka, która cię wybierze, może zapłacić od razu.",
       setup: "Skonfiguruj wypłaty",

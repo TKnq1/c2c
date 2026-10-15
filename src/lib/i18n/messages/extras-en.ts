@@ -62,7 +62,7 @@ export const extras = {
     offerNotAwaiting: "This offer isn't awaiting your response.",
     offerChanged: "The offer changed in the meantime. Please look at the new offer.",
     offerNotReady: "This offer isn't ready for payment.",
-    paymentProcessing: "This payment is already going through. It'll show as held in escrow shortly.",
+    paymentProcessing: "This payment is already going through. It'll show as held safely shortly.",
     paymentChanged: "This payment changed in the meantime. Reload the page.",
     paymentNotFound: "This payment could not be found.",
     postLocked: "A problem was reported on this collab. We're looking into it, so the link can't change right now.",

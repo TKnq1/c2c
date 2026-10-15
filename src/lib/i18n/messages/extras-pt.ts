@@ -61,7 +61,7 @@ export const extrasPt: DeepString<typeof extras> = {
     offerNotAwaiting: "Esta oferta não está à espera da tua resposta.",
     offerChanged: "A oferta mudou entretanto. Vê a oferta nova.",
     offerNotReady: "Esta oferta ainda não está pronta para pagamento.",
-    paymentProcessing: "Este pagamento já está a ser processado. Daqui a pouco aparece como em depósito.",
+    paymentProcessing: "Este pagamento já está a ser processado. Daqui a pouco aparece como retido.",
     paymentChanged: "Este pagamento mudou entretanto. Recarrega a página.",
     paymentNotFound: "Não encontrámos este pagamento.",
     postLocked: "Foi reportado um problema nesta collab. Estamos a ver o caso, por isso a ligação não pode mudar agora.",

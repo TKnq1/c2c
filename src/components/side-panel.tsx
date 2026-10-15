@@ -60,7 +60,7 @@ export function SidePanel({
             type="button"
             onClick={() => router.back()}
             aria-label={t("common.close")}
-            className="flex h-10 w-10 items-center justify-center rounded-full transition hover:bg-fog"
+            className="flex h-11 w-11 items-center justify-center rounded-full transition hover:bg-fog"
           >
             <IoClose className="h-5 w-5" aria-hidden />
           </button>

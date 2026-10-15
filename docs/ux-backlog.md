@@ -16,7 +16,13 @@ Alles hängt am Schalter `BRAND_DEALS_ENABLED`: ohne ihn bleibt die Oberfläche 
    echten Nutzern.
 3. **Ein Badge statt drei** ✓: Nachrichten zeigt Ungelesenes, Deals alles, was auf dich wartet (Deals und Zahlungen zusammen) und
    öffnet dann direkt `?filter=mine`; „Zahlungen“ trägt kein eigenes Badge mehr, wo es „Deals“ gibt.
-4. **Alte Zahlungsseite für Deals abbauen** offen: sie bleibt für Anfragen ohne Deal; bei Deal-Collabs verweist sie mit einem Satz auf die Deal-Seite.
+4. **Alte Zahlungsseite für Deals abbauen** ✓ (15.10.): Wo die Deals-Seiten offen sind, stehen offene Angebote und (bei der Marke)
+   Interessenten in der Deals-Liste (`OfferCards`, `InterestedCards`, Abschnitte `#offers` und `#interested`; Angebote zählen in den
+   Filtern mit, Interessenten nur unter „Alle“). „Zahlungen“ ist dann die Geld-Übersicht: Summen, Pro-Leiste, Auszahlungskonto,
+   Verlauf mit CSV/Drucken, Kautionen, dazu Freigabe und Bezahlen nur noch für Collabs ohne Deal; eine Zeile führt zu den
+   Angeboten unter Deals. Ohne Deals bleibt die Seite wie vorher. Badges: Reiter „Deals“ zählt Deals und Angebote, „Zahlungen“
+   den Rest; Deal-Collabs zählen nicht mehr doppelt (vorher kamen bezahlte oder offene Deal-Zahlungen zusätzlich in den
+   Zahlungs-Zähler). Hinweise zu neuen Angeboten führen zu `/dashboard/deals#offers`.
 
 ## B. Deal-Seite
 
@@ -77,9 +83,10 @@ Alles hängt am Schalter `BRAND_DEALS_ENABLED`: ohne ihn bleibt die Oberfläche 
     die Deals einer Marke nach Kampagne gruppiert (Überschrift nur, wo eine Kampagne mehrere Deals hat).
 25. **Karte auf der Startseite** ✓: „3 Deals warten auf dich“ mit Direktlink, bei Marke und Creator.
 26. **Weniger Fachwörter im Hauptfluss** ✓ (auf den Deal-Seiten und in den Hinweisen): „Treuhandkonto“ / „Escrow“ heißt
-    „sicher hinterlegt“ bzw. „held safely“, der Abschnitt „Zahlung“. Steuerzeilen liegen unter „Alle Bedingungen“. *Offen:* die
-    alte Zahlungsseite und die Admin-Bereiche sagen noch „Treuhand“; der Vertragstext (`contract.ts`) bleibt wegen der
-    rechtlichen Prüfung unverändert.
+    „sicher hinterlegt“ bzw. „held safely“, der Abschnitt „Zahlung“. Steuerzeilen liegen unter „Alle Bedingungen“. Die alte
+    Zahlungsseite, ihre Hinweise und der CSV-Export sagen seit 15.10. auch „sicher hinterlegt“ (in den anderen Sprachen das Wort
+    der Startseite: retenido, retenu, trattenuto, vastgehouden, wstrzymane, retido). *Offen:* Admin-Bereiche; der Vertragstext
+    (`contract.ts`) bleibt wegen der rechtlichen Prüfung unverändert.
 
 ## Offen aus der Prüfung
 
@@ -106,8 +113,8 @@ Alles hängt am Schalter `BRAND_DEALS_ENABLED`: ohne ihn bleibt die Oberfläche 
 - **Termine:** Datum und Uhrzeit getrennt, mit Schnellwahl („Morgen“, „In 3 Tagen“, „Jetzt“, „Gestern“).
 - **Admin mobil:** Reiterleisten zentrieren die aktuelle Seite und blenden den Rand aus, hinter dem noch mehr liegt; die vier
   Zahlen stehen zu zweit nebeneinander.
-- *Nicht angefasst:* Installations-Hinweis (steht weiter auf jeder Seite oben), Kontrast der grauen Hilfstexte, Touch-Flächen im
-  Feed (40 px), Smoke-Tests in der CI, Doppelung von Deals-Karte und Kachel „Offene Zahlungen“ auf der Marken-Startseite.
+- *Nicht angefasst:* Smoke-Tests in der CI. (Installations-Hinweis, Kontrast, Touch-Flächen und die Doppelung auf der
+  Marken-Startseite: siehe Durchgang vom 15.10.)
 - **Untere Leiste (Handy):** eine lange, runde Pille, die über dem unteren Rand schwebt (`--pill-bottom`, `--tabbar-space` in
   `globals.css`), mit Schatten und Glas; der aktuelle Eintrag liegt auf einer eigenen Pille. Fünf Einträge: Start, **Entdecken
   (Lupe)**, Nachrichten, Deals, Konto (ohne Deals: Zahlungen und Einstellungen). Die Lupe oben in der Kopfzeile entfällt dafür.
@@ -132,3 +139,16 @@ Alles hängt am Schalter `BRAND_DEALS_ENABLED`: ohne ihn bleibt die Oberfläche 
   im Badge am Deals-Tab, im Filter „Wartet auf mich“ und in der Fortschrittszeile als Zug der Marke (`waitingFor` mit
   `proofPending`, `listDealsForUser` und `getDealActionCount` lesen den offenen Beleg). Vorher stand dort „Warten auf das System“.
   Der Header `Permissions-Policy` ohne `bluetooth=()` (Chromium kennt es nicht und warnte bei jeder Seite).
+
+## Durchgang vom 15.10.
+
+- **Zahlungen und Deals:** siehe A4. Die Kachel „Offene Zahlungen“ auf der Marken-Startseite zählt keine Deal-Zahlungen mehr
+  (die stehen in der Deals-Karte darüber), „Interessierte Creator“ und „Offene Zahlungen“ führen mit Deals in die Deals-Liste.
+- **Ein Stil:** die Zahlungsseiten nehmen die Knöpfe aus `components/deals/ui.tsx`; `PaymentStatusBadge` und `DepositStatusBadge`
+  haben dieselbe Form wie `Badge` (Höhe, Abstand), „Angeboten“ in `neutral-500` statt `graphite` (Kontrast).
+- **Installations-Hinweis:** nur noch auf den Startseiten (`/dashboard`, `/dashboard/startup`, `/dashboard/creator`) und erst ab
+  dem zweiten Besuch (gezählt je Browser-Sitzung); das ✕ hat 44 px Fläche.
+- **Kontrast:** `neutral-500` ist ein Token (`--neutral-500` in `globals.css`): hell `#6b6b6b` (4,8:1 auf `--fog`, vorher 4,2:1),
+  dunkel `#949494` (4,5:1 auf `--fog`, 5,5:1 auf `--paper`).
+- **Touch-Flächen:** Merken und Rückgängig im Feed, Chat-Knopf in den Zahlungs- und Angebotszeilen, Schließen im Seitenpanel,
+  Zurück im Chat, die „⋯“-Menüs (Anfrage, Deal-Seite) von 40 auf 44 px.

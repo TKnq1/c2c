@@ -61,7 +61,7 @@ export const extrasNl: DeepString<typeof extras> = {
     offerNotAwaiting: "Dit voorstel wacht niet op jouw antwoord.",
     offerChanged: "Het voorstel is intussen aangepast. Bekijk het nieuwe voorstel.",
     offerNotReady: "Dit voorstel is nog niet klaar voor betaling.",
-    paymentProcessing: "Deze betaling wordt al verwerkt. Straks staat ze in escrow.",
+    paymentProcessing: "Deze betaling wordt al verwerkt. Straks staat ze als vastgehouden.",
     paymentChanged: "Deze betaling is intussen veranderd. Laad de pagina opnieuw.",
     paymentNotFound: "Deze betaling is niet gevonden.",
     postLocked: "Er is een probleem gemeld bij deze collab. We kijken ernaar, dus de link kan nu niet veranderen.",

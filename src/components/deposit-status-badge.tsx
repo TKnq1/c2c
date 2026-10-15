@@ -23,7 +23,7 @@ const STYLES: Record<DepositStatus, string> = {
 export function DepositStatusBadge({ status }: { status: DepositStatus }) {
   const { t } = useI18n();
   return (
-    <span className={`text-xs rounded-full px-2.5 py-1 whitespace-nowrap font-medium ${STYLES[status]}`}>
+    <span className={`inline-flex shrink-0 items-center whitespace-nowrap rounded-full px-2.5 py-0.5 text-xs font-medium ${STYLES[status]}`}>
       {t(LABELS[status])}
     </span>
   );

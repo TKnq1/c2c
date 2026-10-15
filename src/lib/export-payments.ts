@@ -19,7 +19,7 @@ export type PaymentRow = {
   refundId: string | null;
 };
 
-const STATUS: Record<string, string> = { OFFERED: "Angeboten", ACCEPTED: "Angenommen", HELD: "Im Treuhand", RELEASED: "Ausgezahlt", REFUNDED: "Erstattet" };
+const STATUS: Record<string, string> = { OFFERED: "Angeboten", ACCEPTED: "Angenommen", HELD: "Sicher hinterlegt", RELEASED: "Ausgezahlt", REFUNDED: "Erstattet" };
 export const paymentStatusLabel = (status: string | null) => (status ? (STATUS[status] ?? status) : "");
 
 // The offset of Berlin from UTC at an instant, in minutes (60 in winter, 120 in summer).

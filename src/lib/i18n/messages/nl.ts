@@ -229,7 +229,7 @@ export const nl: Catalog = {
     payout: {
       title: "Waar mogen we het geld heen sturen?",
       description: "Voeg je uitbetaling nu toe, zodat de eerste ja meteen betaald kan worden.",
-      point1: "Een merk betaalt op een tussenrekening voordat je iets maakt.",
+      point1: "Een merk betaalt voordat je iets maakt, en het geld wordt vastgehouden tot je hebt geplaatst.",
       point2: "Het geld komt vrij zodra de post live is.",
       point3: "Instellen duurt ongeveer twee minuten. Het eerste merk dat je kiest, kan meteen betalen.",
       setup: "Uitbetaling instellen",

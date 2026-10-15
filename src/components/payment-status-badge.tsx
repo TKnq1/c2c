@@ -22,7 +22,7 @@ const LABELS: Record<PaymentStage, MessageKey> = {
 // is the one
 // dashed outline: on hold, neither moving forward nor closed.
 const STYLES: Record<PaymentStage, string> = {
-  OFFERED: "border border-ink/20 text-graphite",
+  OFFERED: "border border-ink/20 text-neutral-500",
   ACCEPTED: "border border-ink/40 text-ink",
   HELD: "border border-ink text-ink",
   SUBMITTED: "border border-ink bg-ink/10 text-ink",
@@ -34,7 +34,7 @@ const STYLES: Record<PaymentStage, string> = {
 export function PaymentStatusBadge({ status }: { status: PaymentStage }) {
   const { t } = useI18n();
   return (
-    <span className={`text-xs rounded-full px-2.5 py-1 whitespace-nowrap font-medium ${STYLES[status]}`}>
+    <span className={`inline-flex shrink-0 items-center whitespace-nowrap rounded-full px-2.5 py-0.5 text-xs font-medium ${STYLES[status]}`}>
       {t(LABELS[status])}
     </span>
   );

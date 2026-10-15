@@ -229,7 +229,7 @@ export const es: Catalog = {
     payout: {
       title: "¿Adónde te mandamos el dinero?",
       description: "Añade tus datos de cobro ahora, para que el primer sí se pueda pagar.",
-      point1: "Una marca paga en depósito antes de que crees nada.",
+      point1: "Una marca paga antes de que crees nada, y el dinero queda retenido hasta que publiques.",
       point2: "El dinero se libera cuando la publicación está en línea.",
       point3: "Configurarlo ahora lleva unos dos minutos. La primera marca que te elija puede pagar al momento.",
       setup: "Configurar cobros",

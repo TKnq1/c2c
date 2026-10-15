@@ -7,7 +7,7 @@ export default function Loading() {
   return (
     <div className="chat-thread flex h-full flex-col">
       <div className="flex shrink-0 items-center gap-2 border-b border-ink/10 px-2 pb-2 pt-[calc(var(--safe-top)+8px)] md:px-0 md:pb-3 md:pt-0">
-        <div className="flex h-10 w-10 items-center justify-center">
+        <div className="flex h-11 w-11 items-center justify-center">
           <Skeleton className="h-5 w-5 rounded-full" />
         </div>
         <Skeleton className="h-10 w-10 rounded-full" />

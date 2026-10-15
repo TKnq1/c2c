@@ -604,7 +604,7 @@ export function DealMenu({ dealId, canDispute, canCancel, funded }: { dealId: st
         aria-expanded={open}
         aria-label={u("deal.menu")}
         onClick={() => setOpen((value) => !value)}
-        className="flex h-10 w-10 items-center justify-center rounded-full text-neutral-500 transition hover:bg-fog hover:text-ink"
+        className="flex h-11 w-11 items-center justify-center rounded-full text-neutral-500 transition hover:bg-fog hover:text-ink"
       >
         <IoEllipsisHorizontal className="h-5 w-5" aria-hidden />
       </button>
