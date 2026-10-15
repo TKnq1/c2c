@@ -1,7 +1,9 @@
 "use client";
 
 import { useEffect, useId, useRef, type ReactNode } from "react";
+import { IoClose } from "react-icons/io5";
 import { useExitAnimation } from "@/lib/use-exit-animation";
+import { useI18n } from "@/components/i18n-provider";
 
 // Native <dialog> + showModal() gets focus trapping, the page behind going
 // inert, and top-layer stacking (above the fixed nav and toasts) for free.
@@ -23,6 +25,7 @@ export function Dialog({
   media?: ReactNode;
   children: ReactNode;
 }) {
+  const { t } = useI18n();
   const ref = useRef<HTMLDialogElement>(null);
   const titleId = useId();
   const { present, closing, onExitEnd } = useExitAnimation(open);
@@ -64,9 +67,20 @@ export function Dialog({
         <div className="flex max-h-[85dvh] flex-col">
           {media}
           <div className="flex min-h-0 flex-col gap-4 overflow-y-auto p-5 pb-[max(var(--safe-bottom),20px)] md:pb-5">
-            <h2 id={titleId} className="font-semibold">
-              {title}
-            </h2>
+            {/* A visible way out: tapping beside a sheet or Escape isn't obvious on a phone. */}
+            <div className="-mr-2 -mt-2 flex items-center justify-between gap-3">
+              <h2 id={titleId} className="min-w-0 font-semibold">
+                {title}
+              </h2>
+              <button
+                type="button"
+                onClick={onClose}
+                aria-label={t("common.close")}
+                className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-neutral-600 transition hover:bg-fog hover:text-ink dark:text-neutral-400"
+              >
+                <IoClose className="h-5 w-5" aria-hidden />
+              </button>
+            </div>
             {children}
           </div>
         </div>

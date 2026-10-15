@@ -5,6 +5,8 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { IoChevronDown, IoChevronUp } from "react-icons/io5";
 import { bulkCloseRequestsAction } from "@/lib/actions/requests";
+import { SelectionBar } from "@/components/selection-bar";
+import { SelectCheckbox } from "@/components/select-checkbox";
 import { toast } from "@/lib/toast";
 import { errorMessage } from "@/lib/error-message";
 import { LocalDate } from "@/components/local-date";
@@ -30,9 +32,6 @@ type Sort = { key: SortKey; dir: "asc" | "desc" } | null;
 
 // A draft isn't a request yet: it opens in the form, where it can be finished and posted.
 const hrefFor = (r: RequestEntry) => (r.status === "DRAFT" ? `/dashboard/startup/requests/${r.id}/edit` : `/dashboard/startup/requests/${r.id}`);
-
-const CHECKBOX =
-  "h-4 w-4 shrink-0 appearance-none rounded border border-neutral-300 bg-white checked:border-neutral-900 checked:bg-neutral-900 transition dark:border-neutral-600 dark:bg-neutral-800 dark:checked:border-white dark:checked:bg-white";
 
 const COMPARE: Record<SortKey, (a: RequestEntry, b: RequestEntry) => number> = {
   title: (a, b) => a.title.localeCompare(b.title),
@@ -125,27 +124,6 @@ export function BulkRequestsList({ requests }: { requests: RequestEntry[] }) {
 
   return (
     <div className="flex flex-col gap-3">
-      {selected.size > 0 && (
-        <div className="no-print flex items-center gap-3 rounded bg-ink/10 px-4 py-3">
-          <p className="text-sm font-medium flex-1">{t("screens.requests.selected", { count: selected.size })}</p>
-          <button
-            type="button"
-            onClick={() => setSelected(new Set())}
-            className="text-sm text-neutral-500 hover:text-neutral-900 transition dark:text-neutral-400 dark:hover:text-neutral-100"
-          >
-            {t("screens.requests.clearSelection")}
-          </button>
-          <button
-            type="button"
-            onClick={handleBulkClose}
-            disabled={closing}
-            className="rounded-full bg-ink text-paper px-4 py-2 text-sm font-medium hover:bg-graphite transition disabled:opacity-50"
-          >
-            {closing ? t("screens.requests.closing") : t("screens.requests.closeSelected")}
-          </button>
-        </div>
-      )}
-
       {/* Phones: one grey group, a row per request. */}
       <div className="divide-y divide-ink/10 overflow-hidden rounded bg-fog md:hidden">
         {sorted.map((r) => (
@@ -154,19 +132,13 @@ export function BulkRequestsList({ requests }: { requests: RequestEntry[] }) {
             className={`flex items-stretch gap-1 transition hover:bg-ink/5 ${r.status === "CLOSED" ? "opacity-60 hover:opacity-100" : ""}`}
           >
             {r.status === "OPEN" && (
-              <div className="flex items-center pl-4">
-                <input
-                  type="checkbox"
-                  checked={selected.has(r.id)}
-                  onChange={() => toggle(r.id)}
-                  aria-label={t("screens.requests.select", { title: r.title })}
-                  className={CHECKBOX}
-                />
+              <div className="flex items-center pl-1.5">
+                <SelectCheckbox checked={selected.has(r.id)} onChange={() => toggle(r.id)} label={t("screens.requests.select", { title: r.title })} />
               </div>
             )}
             <Link
               href={hrefFor(r)}
-              className={`flex min-w-0 flex-1 items-center gap-3 py-3 pr-4 ${r.status === "OPEN" ? "pl-3" : "pl-4"}`}
+              className={`flex min-w-0 flex-1 items-center gap-3 py-3 pr-4 ${r.status === "OPEN" ? "pl-0.5" : "pl-4"}`}
             >
               {r.coverUrl && (
                 // Served by our own image route; nothing for next/image to do.
@@ -202,15 +174,14 @@ export function BulkRequestsList({ requests }: { requests: RequestEntry[] }) {
         <table className="w-full table-fixed text-sm">
           <thead className="border-b border-ink/10 text-footnote text-neutral-500 dark:text-neutral-400">
             <tr>
-              <th scope="col" className="w-10 py-2.5 pl-4">
-                <input
-                  type="checkbox"
-                  checked={allOpenSelected}
-                  disabled={openIds.length === 0}
-                  onChange={() => setSelected(allOpenSelected ? new Set() : new Set(openIds))}
-                  aria-label={t("screens.requests.selectAll")}
-                  className={CHECKBOX}
-                />
+              <th scope="col" className="w-14 py-0 pl-1.5">
+                {openIds.length > 0 && (
+                  <SelectCheckbox
+                    checked={allOpenSelected}
+                    onChange={() => setSelected(allOpenSelected ? new Set() : new Set(openIds))}
+                    label={t("screens.requests.selectAll")}
+                  />
+                )}
               </th>
               {header("title", t("screens.requests.request"), "left")}
               {header("status", t("screens.requests.status"), "left", "w-28")}
@@ -226,15 +197,9 @@ export function BulkRequestsList({ requests }: { requests: RequestEntry[] }) {
                 onClick={() => router.push(hrefFor(r))}
                 className={`cursor-pointer transition hover:bg-ink/5 ${r.status === "CLOSED" ? "text-neutral-500 dark:text-neutral-400" : ""}`}
               >
-                <td className="py-3 pl-4" onClick={(e) => e.stopPropagation()}>
+                <td className="py-0 pl-1.5" onClick={(e) => e.stopPropagation()}>
                   {r.status === "OPEN" && (
-                    <input
-                      type="checkbox"
-                      checked={selected.has(r.id)}
-                      onChange={() => toggle(r.id)}
-                      aria-label={t("screens.requests.select", { title: r.title })}
-                      className={CHECKBOX}
-                    />
+                    <SelectCheckbox checked={selected.has(r.id)} onChange={() => toggle(r.id)} label={t("screens.requests.select", { title: r.title })} />
                   )}
                 </td>
                 <td className="px-3 py-3">
@@ -278,6 +243,18 @@ export function BulkRequestsList({ requests }: { requests: RequestEntry[] }) {
           </tbody>
         </table>
       </div>
+      {selected.size > 0 && (
+        <SelectionBar label={t("screens.requests.selected", { count: selected.size })} onClear={() => setSelected(new Set())}>
+          <button
+            type="button"
+            onClick={handleBulkClose}
+            disabled={closing}
+            className="min-h-11 shrink-0 rounded-full bg-ink px-5 text-sm font-medium text-paper transition hover:bg-graphite disabled:opacity-50"
+          >
+            {closing ? t("screens.requests.closing") : t("screens.requests.closeSelected")}
+          </button>
+        </SelectionBar>
+      )}
     </div>
   );
 }

@@ -4,6 +4,7 @@ import Link from "next/link";
 import type { PaymentStatus, DepositStatus } from "@prisma/client";
 import { rejectInterestAction } from "@/lib/actions/requests";
 import { Avatar } from "@/components/avatar";
+import { SelectCheckbox } from "@/components/select-checkbox";
 import { PlatformIcon } from "@/components/platform-icons";
 import { CollabStatus } from "@/components/collab-status";
 import type { PaymentStage } from "@/components/payment-status-badge";
@@ -55,13 +56,7 @@ export function InterestedCreatorRow({
   return (
     <div className="flex gap-3 px-4 py-3">
       {onToggleSelect && paymentStatus === null && (
-        <input
-          type="checkbox"
-          checked={!!selected}
-          onChange={onToggleSelect}
-          aria-label={t("screens.requests.select", { title: displayName })}
-          className="h-4 w-4 mt-1 shrink-0 appearance-none rounded border border-neutral-300 bg-white checked:border-neutral-900 checked:bg-neutral-900 transition dark:border-neutral-600 dark:bg-neutral-800 dark:checked:border-white dark:checked:bg-white"
-        />
+        <SelectCheckbox checked={!!selected} onChange={onToggleSelect} label={t("screens.requests.select", { title: displayName })} className="-my-1.5 -ml-3" />
       )}
       <Avatar src={avatarUrl} name={displayName} size={40} />
       <div className="flex-1 min-w-0">
