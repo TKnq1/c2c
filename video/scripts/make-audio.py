@@ -5,6 +5,8 @@
     video/public/music/brand-bed.mp3     music for the brand video (120 BPM)
     video/public/music/ads/<ID>.mp3      music for each 15 s ad (src/ads), with --ads only these
     video/public/sfx/*.wav               UI sounds (pop, click, swipe, coin, ...)
+    video/public/music/launch-bed.mp3    music for the 16:9 launch video (108 BPM), with --launch only this and
+                                         the launch video's own sounds (keys, whip, slam, select)
 
 Everything is synthesised from code (oscillators and filtered noise, no samples, nothing third-party), so it
 carries no licence of its own, like public/sounds/success.mp3 (scripts/make-success-sound.py). Needs numpy and
@@ -473,6 +475,160 @@ def make_ad_bed(grid, audience):
 
 
 # ---------------------------------------------------------------------------------------------------------------
+# The launch video (src/launch): after the reference's music, measured with librosa (108 BPM, B flat minor, nearly
+# one chord with a turn to G flat, pads and synths well over the drums, a syncopated kick under sixteenth hats).
+# Quiet and dark under the opening lines, the groove from the turn on, filtered down under the money held, one
+# last swell under the logo, dark again under the call to action. Its own tempo, so its own beat.
+
+LAUNCH_BPM = 108
+LBEAT = 60 / LAUNCH_BPM
+BBM9 = ([58, 61, 65, 72], 34)  # B flat minor 9
+GBMAJ7 = ([54, 58, 61, 65], 30)  # G flat major 7
+LAUNCH_CHORDS = [BBM9, BBM9, GBMAJ7, BBM9]
+# One bar of sixteenths: the reference's syncopated kick, claps on 2 and 4, an arpeggio walking the chord.
+KICK_STEPS = (0, 6, 10)
+CLAP_STEPS = (4, 12)
+ARP16 = [0, 2, 3, 1, 2, 3, 0, 2, 3, 1, 2, 0, 3, 2, 1, 3]
+
+
+def lt(beat):
+    return beat * LBEAT
+
+
+def shaker(gain=1.0):
+    """The air on top of the reference's groove: a very short, very bright noise tick."""
+    t = axis(0.05)
+    return declick(band(noise(0.05), 8000, None) * np.exp(-t / 0.008) * gain)
+
+
+def make_launch_bed(grid):
+    at = grid["scenes"]
+    end = grid["end"]
+    turn, reveal, claim, match, swipe_line, swipe, held, paid, brands, brief, diff, logo, cta = (
+        at[k] for k in ("L02", "L03", "L04", "L05", "L06", "L07", "L08", "L09", "L10", "L11", "L12", "L13", "L14")
+    )
+    length = int(lt(end + 2) * SR)
+    music = np.zeros((length, 2))  # pads, plucks, bass
+    dark = np.zeros((length, 2))  # the same, low-passed hard afterwards (opening, money held, call to action)
+    drums = np.zeros((length, 2))
+    fx = np.zeros((length, 2))
+    kicks = []
+
+    def chord(beat):
+        return LAUNCH_CHORDS[int(beat // 4) % len(LAUNCH_CHORDS)]
+
+    def pad_bar(buf, beat, beats, cutoff, gain):
+        notes, _ = chord(beat)
+        for k, note in enumerate(notes):
+            place(buf, lt(beat), pad_note(note, lt(beats) + 0.3, cutoff), pan=(k - 1.5) / 2.5, gain=gain)
+
+    # Opening: a dark pad and the sub, a quiet arpeggio from the second line, hats creeping in, a riser into the turn.
+    for bar in range(0, int(turn), 4):
+        pad_bar(dark, bar, min(4, turn - bar), 900, 0.2)
+        place(dark, lt(bar), bass(chord(bar)[1], lt(min(4, turn - bar))), gain=0.32)
+    for step in range(16, int(turn) * 4):
+        beat = step / 4
+        if step % 2:
+            continue
+        notes, _ = chord(beat)
+        place(dark, lt(beat), pluck(notes[ARP16[step % 16]] + 12, 0.5, 0.8), pan=0.35 if step % 4 else -0.35, gain=0.06 + 0.06 * beat / turn)
+    for step in range(32, int(turn) * 4, 2):
+        place(drums, lt(step / 4), hat(gain=0.05 + 0.05 * step / (turn * 4)), pan=0.3)
+    place(fx, lt(turn - 4), riser(lt(4)), gain=0.5)
+
+    def groove(start, stop, lift=False, sparse=False):
+        for step in range(int(start * 4), int(stop * 4)):
+            beat = step / 4
+            s16 = step % 16
+            notes, root = chord(beat)
+            if s16 in KICK_STEPS and not sparse:
+                place(drums, lt(beat), kick(1.0 if s16 == 0 else 0.85))
+                kicks.append(lt(beat))
+                place(music, lt(beat), bass(root, LBEAT * (1.4 if s16 == 0 else 0.9)), gain=0.5)
+            if sparse and s16 == 0:
+                place(drums, lt(beat), kick(0.8))
+                kicks.append(lt(beat))
+            if s16 in CLAP_STEPS and not sparse:
+                place(drums, lt(beat), clap(0.7), pan=-0.05)
+            hat_gain = 0.28 if s16 % 4 == 2 else 0.13
+            place(drums, lt(beat), hat(open_=s16 == 14, gain=hat_gain * (0.6 if sparse else 1)), pan=0.25 if s16 % 2 else -0.15)
+            if not sparse:
+                place(drums, lt(beat), shaker(0.09 if s16 % 2 else 0.05), pan=-0.35)
+            if s16 == 0:
+                pad_bar(dark if sparse else music, beat, 4, 1100 if sparse else 2400, 0.15 if sparse else 0.12)
+            note = notes[ARP16[s16]] + 12
+            if not sparse or s16 % 4 == 0:
+                place(dark if sparse else music, lt(beat), pluck(note, 0.4, 2.4), pan=0.45 if step % 2 else -0.45, gain=0.14)
+            if lift and s16 in (3, 11):
+                place(music, lt(beat), pluck(notes[3] + 24, 0.9, 0.9), pan=0.1, gain=0.08)
+
+    def hit(beat, gain=0.8):
+        place(fx, lt(beat), impact(), gain=gain)
+        place(fx, lt(beat), crash(0.35), pan=0.2)
+
+    def fill(beat):
+        for k, step in enumerate(np.arange(beat - 1, beat, 0.25)):
+            place(drums, lt(step), clap(0.18 + 0.08 * k))
+
+    # The turn: the groove starts and runs through the product, the matching and the swipe.
+    hit(turn, 0.9)
+    groove(turn, swipe_line)
+    for accent in (reveal, claim, match):
+        place(fx, lt(accent), crash(0.3), pan=-0.2)
+    # "Ein Swipe": two beats of stop-time under the words slamming in, then a fill back into the groove.
+    groove(swipe_line + 2, held, lift=True)
+    fill(swipe)
+    place(fx, lt(swipe), crash(0.3), pan=0.2)
+    # Money held: filtered down to a pulse, a riser into the payout.
+    groove(held, paid, sparse=True)
+    place(fx, lt(paid - 4), riser(lt(4)), gain=0.5)
+    # Payout, brands, briefing, the difference: the full groove with the top line.
+    hit(paid, 0.85)
+    groove(paid, logo, lift=True)
+    hit(brands, 0.6)
+    fill(brief)
+    place(fx, lt(brief), crash(0.3), pan=-0.2)
+    fill(diff)
+    place(fx, lt(diff), crash(0.35), pan=0.2)
+    place(fx, lt(logo - 2), riser(lt(2)), gain=0.35)
+
+    # Logo: drums out on one last hit, G flat to B flat minor held wide with a bell on each.
+    place(drums, lt(logo), kick(1.0))
+    hit(logo, 0.55)
+    for chord_at, (notes, root) in ((logo, GBMAJ7), (logo + 4, BBM9)):
+        for k, note in enumerate(notes):
+            place(music, lt(chord_at), pad_note(note, lt(4) + 0.4, 1800), pan=(k - 1.5) / 2.5, gain=0.13)
+            place(music, lt(chord_at) + k * 0.07, pluck(note + 12, 1.4, 0.7), pan=(k - 1.5) / 2.5, gain=0.1)
+        place(music, lt(chord_at), bass(root, lt(4)), gain=0.4)
+
+    # Call to action: dark again, the pad and the sub under the typing, a soft pulse so it doesn't stall.
+    tail = end + 2 - cta
+    notes, root = BBM9
+    for k, note in enumerate(notes):
+        place(dark, lt(cta), pad_note(note, lt(tail), 900), pan=(k - 1.5) / 2.5, gain=0.2)
+    place(dark, lt(cta), bass(root, lt(tail)), gain=0.4)
+    for beat in range(int(cta), int(end)):
+        place(drums, lt(beat + 0.5), hat(gain=0.05), pan=0.25)
+
+    # Sidechain: the music ducks under each kick.
+    t = np.arange(length) / SR
+    duck = np.ones(length)
+    for start in kicks:
+        i = int(start * SR)
+        seg = t[i : i + int(0.4 * SR)] - start
+        duck[i : i + len(seg)] = np.minimum(duck[i : i + len(seg)], 1 - 0.5 * np.exp(-seg / 0.11))
+    music *= duck[:, None]
+    dark = np.stack([band(dark[:, ch], None, 750, order=3) for ch in range(2)], axis=1) * duck[:, None]
+
+    # The drums sit higher than in the other beds: the reference's groove is clearly audible under its pads.
+    mix = reverb(music + dark, wet=0.32) * 0.75 + reverb(drums, seconds=1.0, decay=0.25, wet=0.08) * 1.25 + reverb(fx, seconds=3.0, decay=0.9, wet=0.35)
+    mix = np.tanh(mix / np.max(np.abs(mix)) * 1.6) / np.tanh(1.6)
+    fade = int(1.6 * SR)
+    mix[-fade:] *= np.linspace(1, 0, fade)[:, None] ** 1.5
+    return mix
+
+
+# ---------------------------------------------------------------------------------------------------------------
 # Sound effects (mono)
 
 
@@ -604,13 +760,77 @@ def sfx_hit():
     return declick(np.tanh((sub + crack + body) * 1.5))
 
 
+def sfx_key(pitch, heavy=False):
+    """A mechanical key: the press, the bottom-out a few milliseconds later, a short thock under both."""
+    t = axis(0.09)
+    out = np.zeros_like(t)
+    for at, amp in ((0.0, 1.0), (0.011 + rng.uniform(0, 0.004), 0.55)):
+        th = np.maximum(t - at, 0)
+        on = t >= at
+        out += on * amp * band(noise(0.09), 2500, 10000) * np.exp(-th / 0.0015)
+        out += on * amp * 0.5 * band(noise(0.09), 500, 2500) * np.exp(-th / 0.005)
+    out += np.sin(2 * np.pi * pitch * t) * np.exp(-t / (0.02 if heavy else 0.012)) * (0.8 if heavy else 0.55)
+    return declick(out)
+
+
+def sfx_whip(dur=0.6):
+    """The whip into a word: air rising all the way and stopping at its peak, on the cut."""
+    t = axis(dur)
+    raw = noise(dur)
+    out = np.zeros_like(t)
+    for k in range(12):
+        centre = 200 * (9000 / 200) ** (k / 11)
+        weight = np.exp(-(((t / dur) - k / 11) ** 2) / 0.015)
+        out += band(raw, centre * 0.6, centre * 1.6) * weight
+    env = (t / dur) ** 2.5
+    tail = np.clip((dur - t) / 0.03, 0, 1)
+    return declick(out * env * tail)
+
+
+def sfx_slam():
+    """A word slamming in: a short rush of air into a soft, low thump."""
+    rush_len = 0.12
+    t = axis(rush_len)
+    rush = band(noise(rush_len), 800, 7000) * (t / rush_len) ** 2 * 0.6
+    t2 = axis(0.45)
+    freq = 50 + 90 * np.exp(-t2 / 0.04)
+    thump = np.sin(2 * np.pi * np.cumsum(freq) / SR) * np.exp(-t2 / 0.14) + band(noise(0.45), 300, 3000) * np.exp(-t2 / 0.02) * 0.3
+    return declick(np.concatenate([rush, thump]))
+
+
+def sfx_select():
+    """Text being selected: a soft tick with a short high blip."""
+    t = axis(0.12)
+    return declick(band(noise(0.12), 2000, 8000) * np.exp(-t / 0.003) * 0.6 + np.sin(2 * np.pi * 1320 * t) * np.exp(-t / 0.03) * 0.4)
+
+
 def seed(name):
     """Fresh noise per sound, so regenerating one never changes another."""
     global rng
     rng = np.random.default_rng(zlib.crc32(name.encode()))
 
 
+def main_launch():
+    seed("launch-bed.mp3")
+    write_mp3(ROOT / "music" / "launch-bed.mp3", make_launch_bed(GRID["launch"]), peak=0.8)
+    effects = {
+        "key-1": lambda: sfx_key(190),
+        "key-2": lambda: sfx_key(215),
+        "key-3": lambda: sfx_key(172),
+        "key-del": lambda: sfx_key(140, heavy=True),
+        "whip": sfx_whip,
+        "slam": sfx_slam,
+        "select": sfx_select,
+    }
+    for name, make in effects.items():
+        seed(name)
+        write(ROOT / "sfx" / f"{name}.wav", make(), peak=0.6)
+
+
 def main():
+    if "--launch" in sys.argv:
+        main_launch()
+        return
     for ad_id, grid in GRID.get("ads", {}).items():
         seed(f"ad-{ad_id}")
         write_mp3(ROOT / "music" / "ads" / f"{ad_id}.mp3", make_ad_bed(grid, "creator" if ad_id.startswith("AC") else "brand"), peak=0.8)

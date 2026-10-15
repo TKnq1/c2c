@@ -17,6 +17,14 @@ const FILES = {
   lock: "sfx/lock.wav",
   ding: "sfx/ding.wav",
   hit: "sfx/hit.wav",
+  // The launch video's (scripts/make-audio.py --launch).
+  "key-1": "sfx/key-1.wav",
+  "key-2": "sfx/key-2.wav",
+  "key-3": "sfx/key-3.wav",
+  "key-del": "sfx/key-del.wav",
+  whip: "sfx/whip.wav",
+  slam: "sfx/slam.wav",
+  select: "sfx/select.wav",
   success: "sounds/success.mp3",
 } as const;
 

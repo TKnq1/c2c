@@ -1,20 +1,20 @@
-import { AbsoluteFill, Easing, interpolate, Sequence } from "remotion";
+import { AbsoluteFill, Easing, Html5Audio, interpolate, Sequence, staticFile } from "remotion";
 import { mix, ramp } from "../anim";
+import { Sfx, SfxEnabled } from "../audio";
 import { useFrame } from "../frame";
-import { type LaunchScene, LAUNCH_SCENES } from "./scenes";
+import { LAUNCH_DURATION, LAUNCH_SCENES, OVERLAP, type TimedScene } from "./scenes";
 
-// The launch video (LAUNCH.md), 16:9: the scenes end to end. Each one comes in over the last OVERLAP frames of the
-// one before, out of a blur ("fade") or out of the previous scene's zoom ("zoom"); a scene with an `exit` leaves by
-// zooming hard into that point, the reference's whip into a word. No sound yet: this is the cut to judge the picture.
-const OVERLAP = 10;
+// The launch video (LAUNCH.md), 16:9: the scenes end to end on the music's beat grid. Each one comes in over the last
+// OVERLAP frames of the one before, out of a blur ("fade") or out of the previous scene's zoom ("zoom"); a scene with
+// an `exit` leaves by zooming hard into that point, the reference's whip into a word, with a whoosh under it.
+// The music (scripts/make-audio.py --launch) follows the same grid.
 // The exit zoom starts a little before the next scene does, so the two overlap.
 const EXIT = 14;
+const MUSIC_VOLUME = 0.62;
 
-const STARTS = LAUNCH_SCENES.reduce<number[]>((starts, _, i) => [...starts, i === 0 ? 0 : starts[i - 1] + LAUNCH_SCENES[i - 1].duration - OVERLAP], []);
+export { LAUNCH_DURATION };
 
-export const LAUNCH_DURATION = STARTS[STARTS.length - 1] + LAUNCH_SCENES[LAUNCH_SCENES.length - 1].duration;
-
-const Shell: React.FC<{ scene: LaunchScene; first: boolean; children: React.ReactNode }> = ({ scene, first, children }) => {
+const Shell: React.FC<{ scene: TimedScene; first: boolean; children: React.ReactNode }> = ({ scene, first, children }) => {
   const frame = useFrame();
   const p = first ? 1 : ramp(frame, 0, OVERLAP);
   const zoomIn = scene.enter === "zoom";
@@ -29,18 +29,25 @@ const Shell: React.FC<{ scene: LaunchScene; first: boolean; children: React.Reac
     }
   }
   return (
-    <AbsoluteFill style={{ opacity: p, transform, transformOrigin: scene.exit ?? "50% 50%", filter: blur > 0.05 ? `blur(${blur}px)` : undefined }}>{children}</AbsoluteFill>
+    <AbsoluteFill style={{ opacity: p, transform, transformOrigin: scene.exit ?? "50% 50%", filter: blur > 0.05 ? `blur(${blur}px)` : undefined }}>
+      {/* The whip peaks on the cut (the next scene's start), 18 frames after it starts. */}
+      {scene.exit && <Sfx name="whip" at={scene.duration - OVERLAP - 18} volume={0.55} />}
+      {children}
+    </AbsoluteFill>
   );
 };
 
-export const LaunchVideo: React.FC = () => (
+export const LaunchVideo: React.FC<{ music?: boolean; sfx?: boolean }> = ({ music = true, sfx = true }) => (
   <AbsoluteFill style={{ backgroundColor: "#070707" }}>
-    {LAUNCH_SCENES.map((scene, i) => (
-      <Sequence key={scene.id} from={STARTS[i]} durationInFrames={scene.duration} name={scene.id}>
-        <Shell scene={scene} first={i === 0}>
-          <scene.component />
-        </Shell>
-      </Sequence>
-    ))}
+    {music && <Html5Audio src={staticFile("music/launch-bed.mp3")} volume={MUSIC_VOLUME} />}
+    <SfxEnabled.Provider value={sfx}>
+      {LAUNCH_SCENES.map((scene, i) => (
+        <Sequence key={scene.id} from={scene.start} durationInFrames={scene.duration} name={scene.id}>
+          <Shell scene={scene} first={i === 0}>
+            <scene.component />
+          </Shell>
+        </Sequence>
+      ))}
+    </SfxEnabled.Provider>
   </AbsoluteFill>
 );

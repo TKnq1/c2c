@@ -54,5 +54,16 @@ lines, statements set large, the web app's desktop view in 3D, three lights (whi
 
 ```bash
 npm run launch:stills   # one still per scene (its keyframe) to out/launch/ and a contact sheet out/launch-stills.png
-npm run launch:raw      # the picture only, no sound yet: out/launch-raw.mp4
+npm run launch:raw      # the picture only: out/launch-raw.mp4
+npm run launch:audio    # regenerate its music and sounds (needs python3, numpy, ffmpeg)
+npm run launch:render   # with sound, mastered to -14 LUFS: out/launch-final.mp4
 ```
+
+The music follows the reference's, measured with librosa: 108 BPM, B flat minor (nearly one chord with a turn to
+G flat), pads and synths over a syncopated kick and sixteenth hats; dark and quiet under the opening lines, the
+groove from the turn on, filtered down under the money held, dark again under the call to action. Every scene lasts
+whole beats (`beats` in `src/launch/scenes.tsx`), so every cut lands on a beat; `scripts/grid.ts` hands the starts
+to `scripts/make-audio.py --launch`. Change a scene's beats, then run `npm run launch:audio`. Typing, the whips into
+words, the slams, clicks, the swipe and the checks are the launch video's own sounds (`public/sfx/key-*.wav`,
+`whip`, `slam`, `select`), synthesised like the rest. `LaunchVideo` takes `music` and `sfx` props to render either
+layer on its own.

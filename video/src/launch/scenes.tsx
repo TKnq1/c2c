@@ -3,6 +3,7 @@ import { AbsoluteFill } from "remotion";
 import { RAW_AVATAR, RAW_HOODIE } from "../ads/brands";
 import { focusIn } from "../ads/kit";
 import { ease, mix, path, pop, ramp } from "../anim";
+import { Sfx, type SfxName } from "../audio";
 import { Cursor, pressAt } from "../components/shared-scenes";
 import { Avatar, DealCard } from "../components/ui";
 import { useFrame } from "../frame";
@@ -26,7 +27,7 @@ import {
   SmearFilter,
   Tick,
 } from "./kit";
-import { CreatorFeed, DmThread, InvoiceSnippet, MailRow, MONO, NEW_REQUEST_TITLE, NewRequest, SheetSnippet, type SwipeState } from "./screens";
+import { CreatorFeed, DmThread, InvoiceSnippet, MailRow, MatchChecklist, NEW_REQUEST_TITLE, NewRequest, SheetSnippet, type SwipeState } from "./screens";
 
 // The scenes of the launch video (LAUNCH.md), cut after the reference: nothing ever stands still. Type slams in and
 // keeps drifting back, the camera pulls away as a line is typed, words spread apart before they leave, the app keeps
@@ -121,6 +122,21 @@ const Typed: React.FC<{ text: string; size: number; select?: [number, number]; c
 };
 
 // ---------------------------------------------------------------------------------------------------------------
+// Sound
+
+const KEYS: SfxName[] = ["key-1", "key-2", "key-3"];
+
+// A key click for every letter typed: `count` letters from `start`, one every `every` frames. Loud like the
+// reference's typing, a little uneven like real typing.
+const Keys: React.FC<{ start: number; count: number; every: number; del?: boolean; volume?: number }> = ({ start, count, every, del, volume = 0.55 }) => (
+  <>
+    {Array.from({ length: count }, (_, k) => (
+      <Sfx key={k} name={del ? "key-del" : KEYS[(k * 7 + 3) % 3]} at={Math.round(start + k * every)} volume={volume * (0.8 + 0.2 * Math.sin(k * 2.7))} />
+    ))}
+  </>
+);
+
+// ---------------------------------------------------------------------------------------------------------------
 // 1 · Opening: a line typed, selected, deleted, the next one typed. The camera pulls back as each line grows, the UI
 // floating behind it changes from DMs nobody answers to an invoice nobody pays.
 
@@ -155,6 +171,13 @@ const Opening: React.FC = () => {
   const ghosts = 1 + (camera - 1) * 0.25;
   return (
     <Backdrop light="paper">
+      <Keys start={OPEN.a + 2} count={A.length} every={2} />
+      <Keys start={OPEN.b + 2} count={B.length - 1} every={2} />
+      <Sfx name="select" at={OPEN.select[0]} volume={0.5} />
+      <Sfx name="key-del" at={OPEN.cut} volume={0.6} />
+      <Keys start={OPEN.erase + 1} count={12} every={2} del volume={0.45} />
+      <Keys start={OPEN.c + 2} count={C.length} every={2} />
+      <Sfx name="select" at={OPEN.selectC[0]} volume={0.5} />
       <AbsoluteFill style={{ transform: `scale(${ghosts})` }}>
         <Floating delay={0} until={150} dx={1} dy={0.4}>
           <Ghost x={110} y={90} blur={3} opacity={0.85} rotate={-3}>
@@ -215,6 +238,10 @@ const Turn: React.FC = () => {
   const spread = glide(frame, 66, 100);
   return (
     <Backdrop light="mist">
+      {[2, 10].map((at) => (
+        <Sfx key={at} name="slam" at={at} volume={0.55} />
+      ))}
+      <Sfx name="whoosh" at={64} volume={0.25} />
       <Center>
         <div style={{ transform: `scale(${drift(frame, 110, 1.08, 0.92)})` }}>
           <SlamWords
@@ -244,6 +271,10 @@ const Reveal: React.FC = () => {
   const size = mix(back, 400, 150);
   return (
     <Backdrop light="mist">
+      <Sfx name="hit" at={0} volume={0.7} />
+      <Sfx name="whoosh" at={44} volume={0.2} />
+      <Sfx name="pop" at={ICON_AT} volume={0.7} />
+      <Keys start={NAME_AT + 1} count={6} every={3} />
       <Center>
         <div style={{ display: "flex", alignItems: "center", transform: `scale(${drift(frame, 165, 1.06, 0.8)})` }}>
           <span style={{ fontSize: size, fontWeight: 900, letterSpacing: -size * 0.04, lineHeight: 1, whiteSpace: "nowrap", ...slamStyle(enter, 1.7, 40) }}>Das ist</span>
@@ -280,6 +311,11 @@ const ClaimProduct: React.FC = () => {
   const tilt = { x: mix(turn, 46, 8), y: mix(turn, -30, 4), z: mix(turn, 11, 0) };
   return (
     <Backdrop light="mist">
+      {CLAIM_WORDS.map((_, i) => (
+        <Sfx key={i} name="tick" at={4 + i * 7} volume={0.25} />
+      ))}
+      <Sfx name="whoosh" at={94} volume={0.45} />
+      <Sfx name="swipe" at={190} volume={0.18} />
       <Center>
         <div
           style={{
@@ -312,101 +348,59 @@ const ClaimProduct: React.FC = () => {
   );
 };
 
-// 5 · Matching: the card on the left with a scan line running over it, the check typing itself out in the dark panel
-// on the right, each line with its own progress bar.
+// 5 · Matching: the card on the left with a scan line running over it, on the right the reasons it lands in the
+// Feed, drawn like the app's checklist: each ring fills, the circle turns ink with its tick, the count goes up.
 const CHECKS: [string, string][] = [
   ["Nische passt", "Fashion"],
   ["Reichweite passt", "50.000 Follower"],
   ["Plattform passt", "TikTok"],
-  ["Budget", "250 €"],
+  ["Budget passt", "250 €"],
 ];
-const CHECK_START = 30;
-const CHECK_EVERY = 26;
-const CHECKED = CHECK_START + CHECKS.length * CHECK_EVERY + 4;
+const CHECK_START = 34;
+const CHECK_EVERY = 24;
+const CHECKED = CHECK_START + CHECKS.length * CHECK_EVERY;
 
 const Matching: React.FC = () => {
   const frame = useFrame();
-  const panel = ease(frame, 0, { stiffness: 70 });
-  const result = pop(frame, CHECKED);
+  const enter = ease(frame, 0, { stiffness: 60 });
+  const list = ease(frame, 8, { stiffness: 70 });
+  const result = ease(frame, CHECKED + 2, { stiffness: 120 });
   const scanning = frame < CHECKED;
   const scan = 0.5 - 0.5 * Math.cos(frame / 13);
-  const turnY = mix(glide(frame, 0, 200), 16, -14);
+  const turn = glide(frame, 0, 210);
+  const rows = CHECKS.map(([label, value], i) => {
+    const start = CHECK_START + i * CHECK_EVERY;
+    return { label, value, ring: ramp(frame, start, start + 16), done: frame >= start + 16 ? pop(frame, start + 16) : 0 };
+  });
   return (
     <Backdrop light="mist">
-      <AbsoluteFill style={{ transform: `scale(${drift(frame, 200, 1, 1.1)})`, transformOrigin: "70% 50%" }}>
-        <div style={{ position: "absolute", left: 260, top: 150, perspective: 1600, transform: `translateX(${(1 - panel) * 180}px)` }}>
-          <div style={{ transform: `rotateY(${turnY}deg) rotateX(6deg)`, position: "relative" }}>
+      <Sfx name="swipe" at={6} volume={0.3} />
+      {CHECKS.map((_, i) => (
+        <Sfx key={i} name="tick" at={CHECK_START + i * CHECK_EVERY + 16} volume={0.55} />
+      ))}
+      <Sfx name="ding" at={CHECKED + 2} volume={0.5} />
+      <AbsoluteFill style={{ transform: `scale(${drift(frame, 210, 1, 1.08)})`, transformOrigin: "60% 50%" }}>
+        <div style={{ position: "absolute", left: 230, top: 150, perspective: 1600, transform: `translateX(${(1 - enter) * -160}px)`, opacity: enter }}>
+          <div style={{ transform: `rotateY(${mix(turn, 18, -6)}deg) rotateX(6deg)`, position: "relative" }}>
             <DealCard deal={RAW_HOODIE} width={520} height={760} />
             {scanning && (
               <div style={{ position: "absolute", left: -30, right: -30, top: `${scan * 100}%`, height: 4, backgroundColor: colors.paper, boxShadow: "0 0 30px 12px rgba(255,255,255,0.75)", opacity: ramp(frame, 18, 26) }} />
             )}
-            <div style={{ position: "absolute", inset: 0, borderRadius: 14, boxShadow: `inset 0 0 0 ${mix(result, 0, 6)}px ${colors.paper}` }} />
+            <div style={{ position: "absolute", inset: 0, borderRadius: 14, boxShadow: `inset 0 0 0 ${mix(Math.min(1, result), 0, 6)}px ${colors.ink}` }} />
           </div>
         </div>
-        <div
-          style={{
-            position: "absolute",
-            right: 0,
-            top: 0,
-            bottom: 0,
-            width: 840,
-            transform: `translateX(${(1 - panel) * 840}px)`,
-            background: "linear-gradient(180deg, #0b0b0b 0%, #070707 60%, #1b1b1d 100%)",
-            color: colors.paper,
-            display: "flex",
-            flexDirection: "column",
-            justifyContent: "center",
-            gap: 30,
-            padding: "0 90px",
-            fontFamily: MONO,
-            fontSize: 28,
-          }}
-        >
-          <div style={{ fontSize: 20, color: colors.graphite, marginBottom: 6, opacity: ramp(frame, 14, 24) }}>Anfrage · Raw Supplies</div>
-          {CHECKS.map(([label, value], i) => {
-            const start = CHECK_START + i * CHECK_EVERY;
-            const chars = Math.max(0, Math.min(label.length, frame - start));
-            const bar = ramp(frame, start + 4, start + 20);
-            return (
-              <div key={label} style={{ display: "flex", flexDirection: "column", gap: 12, opacity: frame >= start ? 1 : 0 }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 22 }}>
-                  <span style={{ transform: `scale(${pop(frame, start + 20)})`, display: "inline-flex" }}>
-                    <Tick size={30} dark />
-                  </span>
-                  <span style={{ flex: 1, whiteSpace: "pre" }}>{label.slice(0, chars)}</span>
-                  <span style={{ color: colors.stone, opacity: ramp(frame, start + 20, start + 28) }}>{value}</span>
-                </div>
-                <div style={{ height: 3, backgroundColor: "rgba(255,255,255,0.1)", borderRadius: 2 }}>
-                  <div style={{ height: 3, width: `${bar * 100}%`, backgroundColor: bar >= 1 ? colors.graphite : colors.paper, borderRadius: 2 }} />
-                </div>
-              </div>
-            );
-          })}
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: 22,
-              backgroundColor: colors.paper,
-              color: colors.ink,
-              borderRadius: 6,
-              padding: "18px 22px",
-              fontWeight: 700,
-              opacity: Math.min(1, result * 1.5),
-              transform: `scale(${mix(Math.min(result, 1.2), 0.9, 1)})`,
-            }}
-          >
-            <Tick size={30} />
-            <span style={{ flex: 1 }}>Passt zu dir</span>
-            <span>Für dich</span>
-          </div>
-        </div>
-        {/* The connector between the card and the panel, a dot running along it while the check runs. */}
-        <div style={{ position: "absolute", left: 830, top: 538, width: 250, height: 2, backgroundColor: "rgba(7,7,7,0.18)", opacity: ramp(frame, 20, 30) }}>
+        {/* The connector between the card and the list, a dot running along it while the check runs. */}
+        <div style={{ position: "absolute", left: 800, top: 538, width: 190, height: 2, backgroundColor: "rgba(7,7,7,0.18)", opacity: ramp(frame, 20, 30) }}>
           {scanning && <div style={{ position: "absolute", top: -5, left: `${((frame * 2.2) % 100).toFixed(1)}%`, width: 12, height: 12, borderRadius: 99, backgroundColor: colors.ink }} />}
         </div>
+        <div style={{ position: "absolute", left: 1010, top: 210, perspective: 1800, opacity: list, transform: `translateX(${(1 - list) * 220}px)` }}>
+          <div style={{ transform: `rotateY(${mix(turn, -14, 4)}deg) rotateX(4deg)` }}>
+            <MatchChecklist rows={rows} k={2} result={result} />
+          </div>
+        </div>
       </AbsoluteFill>
-      <SampleTag dark />
+      <LightSweep from={CHECKED} to={CHECKED + 50} opacity={0.35} />
+      <SampleTag />
     </Backdrop>
   );
 };
@@ -420,6 +414,10 @@ const SwipeLine: React.FC = () => {
   const grow = glide(frame, 62, 100);
   return (
     <Backdrop light="paper">
+      {[2, 8, 14, 20].map((at) => (
+        <Sfx key={at} name="slam" at={at} volume={0.35} />
+      ))}
+      <Sfx name="lock" at={44} volume={0.45} />
       <Center style={{ gap: 30 }}>
         <div style={{ transform: `translateY(${-leave * 120}px) scale(${drift(frame, 110, 1.04, 0.94)})`, opacity: 1 - leave }}>
           <SlamWords size={88} start={2} stagger={6} gap={mix(leave, 0.25, 1)} parts={[{ text: "Ein Swipe nach rechts:" }]} />
@@ -480,6 +478,10 @@ const Swipe: React.FC = () => {
       : { x: grabAt.x + Math.min(x, 300) * s, y: grabAt.y - 24 * drag * s };
   return (
     <Backdrop light="mist">
+      <Sfx name="click" at={GRAB} volume={0.6} />
+      <Sfx name="swipe" at={LET_GO - 2} volume={0.65} />
+      <Sfx name="like" at={LET_GO + 2} volume={0.5} />
+      <Sfx name="whoosh" at={140} volume={0.2} />
       <DesktopApp side="creator" active="Feed" title="Feed" scale={s} tilt={{ x: back * 10, y: -back * 8, z: back * 1.5 }} style={{ position: "absolute", left, top }}>
         <CreatorFeed swipe={swipe} next={next} heart={heart} />
       </DesktopApp>
@@ -501,6 +503,10 @@ const Held: React.FC = () => {
   const squeeze = glide(frame, 150, 172);
   return (
     <Backdrop light="night">
+      <Sfx name="hit" at={0} volume={0.6} />
+      <Sfx name="whoosh" at={58} volume={0.25} />
+      <Sfx name="lock" at={84} volume={0.6} />
+      <Sfx name="stamp" at={170} volume={0.35} />
       <Center>
         <div style={{ transform: `scale(${drift(frame, 185, 1.1, 0.86)})`, display: "flex", flexDirection: "column", alignItems: "center" }}>
           <div style={{ transform: `translateY(${mix(up, 120, -40)}px) scale(${mix(up, 1, 0.45)})`, color: up > 0.5 ? colors.stone : colors.paper, opacity: 1 - squeeze }}>
@@ -529,6 +535,9 @@ const Paid: React.FC = () => {
   const out = glide(frame, 98, 125);
   return (
     <Backdrop light="night">
+      <Sfx name="whoosh" at={0} volume={0.5} />
+      <Sfx name="hit" at={8} volume={0.45} />
+      <Sfx name="coin" at={62} volume={0.55} />
       <SmearFilter id="paid-smear" amount={mix(whip, 70, 0)} />
       <Center style={{ gap: 60, opacity: 1 - out, filter: out > 0 ? `blur(${out * 20}px)` : undefined }}>
         <div style={{ transform: `scale(${drift(frame, 125, 1.06, 0.84)})` }}>
@@ -578,6 +587,8 @@ const ForBrands: React.FC = () => {
   const tighten = glide(frame, 50, 100);
   return (
     <Backdrop light="night">
+      <Sfx name="hit" at={0} volume={0.75} />
+      <Sfx name="whoosh" at={46} volume={0.2} />
       <Center>
         <div style={{ transform: `scale(${drift(frame, 125, 1.1, 0.86)})`, display: "flex", flexDirection: "column", alignItems: "center" }}>
           <div style={{ fontSize: 240, fontWeight: 900, letterSpacing: -9, lineHeight: 1, transform: `translateY(${mix(up, 60, -30)}px) scale(${mix(up, 1, 0.6)})`, ...slamStyle(slam(frame, 0), 2.2, 40) }}>Und</div>
@@ -625,6 +636,10 @@ const Briefing: React.FC = () => {
   const toast = ease(frame, PUBLISH + 8, { stiffness: 90 });
   return (
     <Backdrop light="mist">
+      <Keys start={TITLE_AT + TITLE_EVERY} count={NEW_REQUEST_TITLE.length} every={TITLE_EVERY} />
+      <Sfx name="whoosh" at={PULL[0]} volume={0.35} />
+      <Sfx name="click" at={PUBLISH} volume={0.65} />
+      <Sfx name="success" at={PUBLISH + 8} volume={0.5} />
       <AbsoluteFill style={{ transform: `scale(${mix(glide(frame, PULL[1], 310), 1, 1.12)})`, transformOrigin: "72% 52%" }}>
         <DesktopApp side="brand" active="Anfragen" title="Neue Anfrage" scale={s} tilt={tilt} style={{ position: "absolute", left: anchor.x - focus.x * s, top: anchor.y - focus.y * s }}>
           <NewRequest title={title} caret={frame < PULL[0] + 10 && caretOn(frame, TITLE_AT + NEW_REQUEST_TITLE.length * TITLE_EVERY)} published={frame >= PUBLISH + 2} press={pressed} />
@@ -667,6 +682,9 @@ const Difference: React.FC = () => {
   const back = glide(frame, 66, 92);
   return (
     <Backdrop light="mist">
+      <Sfx name="slam" at={2} volume={0.5} />
+      <Sfx name="whoosh" at={64} volume={0.2} />
+      <Sfx name="hit" at={82} volume={0.65} />
       <Center>
         <div style={{ position: "absolute", transform: `translateY(${-back * 150}px) scale(${drift(frame, 92, 1.04, 0.92) * mix(back, 1, 0.62)})`, opacity: mix(back, 1, 0.35), filter: back > 0 ? `blur(${back * 3}px)` : undefined }}>
           <SlamWords size={110} start={2} stagger={5} parts={[{ text: "Agenturen vermitteln Kontakte." }]} />
@@ -688,6 +706,8 @@ const EndCard: React.FC = () => {
   const letters = Math.max(0, Math.min(6, (frame - 34) / 4));
   return (
     <Backdrop light="mist">
+      <Sfx name="pop-low" at={4} volume={0.7} />
+      <Keys start={35} count={6} every={4} />
       <Center>
         <div style={{ display: "flex", alignItems: "center", gap: letters > 0 ? 44 : 0, transform: `scale(${drift(frame, 145, 1.12, 0.76)})` }}>
           <AppIcon size={184} style={{ transform: `scale(${icon})`, opacity: Math.min(1, icon * 2), filter: icon < 0.95 ? `blur(${(1 - Math.min(icon, 1)) * 12}px)` : undefined }} />
@@ -719,6 +739,9 @@ const Cta: React.FC = () => {
   const idle = frame >= 67 && frame < 96 ? 67 : frame >= 188 ? 188 : 9999;
   return (
     <Backdrop light="night">
+      <Keys start={11} count={CLAIM_LINE.length} every={1.5} volume={0.42} />
+      <Keys start={97} count={17} every={2} del volume={0.4} />
+      <Keys start={142} count={CTA_LINE.length} every={2} />
       <Center style={{ gap: 46 }}>
         <div style={{ transform: `scale(${fitScale(chars, 64, 1300, 1.9)})` }}>
           <Typed text={line} size={64} caret={caretOn(frame, idle)} dark />
@@ -741,30 +764,54 @@ const Cta: React.FC = () => {
 
 export type Enter = "fade" | "zoom";
 
+// The music runs at 108 BPM (the reference's tempo): every scene lasts whole beats, so every cut lands on a beat.
+// Scenes overlap by OVERLAP frames (the next one fades in over the end of this one); the music's grid
+// (scripts/grid.ts, scripts/make-audio.py --launch) reads the starts from here.
+export const LAUNCH_BPM = 108;
+export const FRAMES_PER_BEAT = (30 * 60) / LAUNCH_BPM;
+export const OVERLAP = 10;
+// The last scene holds this long after its last beat.
+const END_HOLD = 24;
+
 export type LaunchScene = {
   id: string;
   label: string;
   component: React.FC;
-  duration: number;
+  // Length in beats, up to the next scene's start.
+  beats: number;
   keyframe: number;
   enter?: Enter;
   // Leaves by zooming into this point of the frame (CSS transform-origin).
   exit?: string;
 };
 
-export const LAUNCH_SCENES: LaunchScene[] = [
-  { id: "L01", label: "1 · Kaltakquise und Geld", component: Opening, duration: 276, keyframe: 232, exit: "66% 50%" },
-  { id: "L02", label: "2 · Wendung", component: Turn, duration: 110, keyframe: 50, enter: "zoom" },
-  { id: "L03", label: "3 · Reveal comtor", component: Reveal, duration: 165, keyframe: 120 },
-  { id: "L04", label: "4 · Claim und Produkt", component: ClaimProduct, duration: 330, keyframe: 240, exit: "37% 57%" },
-  { id: "L05", label: "5 · Matching", component: Matching, duration: 200, keyframe: 180, enter: "zoom" },
-  { id: "L06", label: "6 · Ein Swipe", component: SwipeLine, duration: 110, keyframe: 50, exit: "50% 56%" },
-  { id: "L07", label: "7 · Swipe in der App", component: Swipe, duration: 220, keyframe: 98, enter: "zoom" },
-  { id: "L08", label: "8 · Geld zurückgehalten", component: Held, duration: 185, keyframe: 130, exit: "50% 52%" },
-  { id: "L09", label: "9 · Ausgezahlt", component: Paid, duration: 125, keyframe: 80, enter: "zoom" },
-  { id: "L10", label: "10 · Und für Marken", component: ForBrands, duration: 125, keyframe: 110 },
-  { id: "L11", label: "11 · Briefing", component: Briefing, duration: 310, keyframe: 70 },
-  { id: "L12", label: "12 · Abgrenzung", component: Difference, duration: 190, keyframe: 150 },
-  { id: "L13", label: "13 · Logo", component: EndCard, duration: 145, keyframe: 90 },
-  { id: "L14", label: "14 · CTA", component: Cta, duration: 250, keyframe: 230 },
+const SCENES: LaunchScene[] = [
+  { id: "L01", label: "1 · Kaltakquise und Geld", component: Opening, beats: 16, keyframe: 232, exit: "66% 50%" },
+  { id: "L02", label: "2 · Wendung", component: Turn, beats: 6, keyframe: 50, enter: "zoom" },
+  { id: "L03", label: "3 · Reveal comtor", component: Reveal, beats: 9, keyframe: 120 },
+  { id: "L04", label: "4 · Claim und Produkt", component: ClaimProduct, beats: 19, keyframe: 240, exit: "37% 57%" },
+  { id: "L05", label: "5 · Matching", component: Matching, beats: 12, keyframe: 160, enter: "zoom" },
+  { id: "L06", label: "6 · Ein Swipe", component: SwipeLine, beats: 6, keyframe: 50, exit: "50% 56%" },
+  { id: "L07", label: "7 · Swipe in der App", component: Swipe, beats: 13, keyframe: 98, enter: "zoom" },
+  { id: "L08", label: "8 · Geld zurückgehalten", component: Held, beats: 11, keyframe: 130, exit: "50% 52%" },
+  { id: "L09", label: "9 · Ausgezahlt", component: Paid, beats: 7, keyframe: 80, enter: "zoom" },
+  { id: "L10", label: "10 · Und für Marken", component: ForBrands, beats: 7, keyframe: 110 },
+  { id: "L11", label: "11 · Briefing", component: Briefing, beats: 18, keyframe: 70 },
+  { id: "L12", label: "12 · Abgrenzung", component: Difference, beats: 11, keyframe: 150 },
+  { id: "L13", label: "13 · Logo", component: EndCard, beats: 8, keyframe: 90 },
+  { id: "L14", label: "14 · CTA", component: Cta, beats: 15, keyframe: 230 },
 ];
+
+// Each scene with its start beat, its start frame and its length in frames (to the next start, plus the overlap).
+export const LAUNCH_SCENES = SCENES.map((scene, i) => {
+  const beat = SCENES.slice(0, i).reduce((n, s) => n + s.beats, 0);
+  const start = Math.round(beat * FRAMES_PER_BEAT);
+  const next = Math.round((beat + scene.beats) * FRAMES_PER_BEAT);
+  const last = i === SCENES.length - 1;
+  return { ...scene, beat, start, duration: next - start + (last ? END_HOLD : OVERLAP) };
+});
+
+export type TimedScene = (typeof LAUNCH_SCENES)[number];
+
+export const LAUNCH_DURATION = LAUNCH_SCENES[LAUNCH_SCENES.length - 1].start + LAUNCH_SCENES[LAUNCH_SCENES.length - 1].duration;
+export const LAUNCH_BEATS = SCENES.reduce((n, s) => n + s.beats, 0);

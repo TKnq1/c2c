@@ -11,6 +11,8 @@
     "styleframes": "node scripts/render-styleframes.mjs",
     "launch:stills": "node scripts/render-launch-stills.mjs",
     "launch:raw": "remotion render LaunchVideo out/launch-raw.mp4 --muted",
+    "launch:audio": "tsx scripts/grid.ts && python3 scripts/make-audio.py --launch",
+    "launch:render": "remotion render LaunchVideo out/launch.mp4 && python3 scripts/master.py out/launch.mp4",
     "posts": "node scripts/render-posts.mjs",
     "stories": "node scripts/render-stories.mjs",
     "audio": "tsx scripts/grid.ts && python3 scripts/make-audio.py",

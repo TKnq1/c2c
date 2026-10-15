@@ -1,5 +1,5 @@
 import type { CSSProperties, ReactNode } from "react";
-import { FiHeart, FiRotateCcw, FiX } from "react-icons/fi";
+import { FiCheck, FiHeart, FiRotateCcw, FiX } from "react-icons/fi";
 import { IoCheckmark, IoGiftOutline, IoLogoInstagram, IoLogoTiktok, IoLogoYoutube, IoStarOutline } from "react-icons/io5";
 import { NOKAR_HOODIE, RAW_AVATAR, RAW_HOODIE, VINTAGE_DROP, VS_AVATAR } from "../ads/brands";
 import { mix } from "../anim";
@@ -173,11 +173,12 @@ export const NO_SWIPE: SwipeState = { x: 0, y: 0, held: 0, like: 0, out: 0 };
 const CARD_W = 340;
 const CARD_H = 500;
 
+// Drawn above the details next to it, so a card swiped off to the right passes over them, as in the app.
 export const CardStack: React.FC<{ swipe?: SwipeState; next?: number; heart?: number; scan?: number }> = ({ swipe = NO_SWIPE, next = 0, heart = 1, scan }) => {
   const x = swipe.x + swipe.out * 1100;
   const rotate = x / 18;
   return (
-    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 14 }}>
+    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 14, position: "relative", zIndex: 2 }}>
       <div style={{ position: "relative", width: CARD_W, height: CARD_H }}>
         <DealCard
           deal={VINTAGE_JACKET}
@@ -229,7 +230,7 @@ export const CreatorFeed: React.FC<{ swipe?: SwipeState; next?: number; heart?: 
     <div style={{ display: "flex", justifyContent: "center", gap: 48, alignItems: "flex-start" }}>
       <CardStack swipe={swipe} next={next} heart={heart} />
       {/* The details follow the top card: once it is swiped away they cross over to the next one. */}
-      <div style={{ position: "relative", opacity: details }}>
+      <div style={{ position: "relative", zIndex: 1, opacity: details }}>
         <DetailsPanel details={RAW_DETAILS} style={{ opacity: 1 - next }} />
         <DetailsPanel details={VINTAGE_DETAILS} style={{ position: "absolute", top: 0, left: 0, opacity: next }} />
       </div>
@@ -305,3 +306,99 @@ export const NewRequest: React.FC<{ title?: string; caret?: boolean; published?:
     </div>
   </div>
 );
+
+// ---------------------------------------------------------------------------------------------------------------
+// Why a request lands in "Für dich", drawn like the app's checklist (onboarding-checklist.tsx): a fog box, a count,
+// round 20 px checks that fill ink with a white tick, text-sm. Everything at `k` times the app's size.
+
+export type CheckRow = { label: string; value: string; ring: number; done: number };
+
+export const MatchChecklist: React.FC<{ rows: CheckRow[]; k?: number; result?: number }> = ({ rows, k = 2, result = 0 }) => {
+  const doneCount = rows.filter((r) => r.done > 0.5).length;
+  return (
+    <div style={{ width: 380 * k, borderRadius: 14 * k * 0.6, backgroundColor: colors.paper, boxShadow: SOFT_SHADOW + ", 0 0 0 1px rgba(7,7,7,0.08)", padding: 20 * k, display: "flex", flexDirection: "column", gap: 16 * k }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 12 * k }}>
+        <Avatar name="Raw Supplies" image={RAW_AVATAR} size={40 * k} />
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ fontSize: 14 * k, fontWeight: 700 }}>RAW Hoodie V2, erste Eindrücke</div>
+          <div style={{ fontSize: 12 * k, color: colors.graphite }}>Raw Supplies</div>
+        </div>
+        <span
+          style={{
+            borderRadius: 999,
+            padding: `${2 * k}px ${10 * k}px`,
+            fontSize: 12 * k,
+            fontWeight: 700,
+            backgroundColor: result > 0.5 ? colors.ink : colors.fog,
+            color: result > 0.5 ? colors.paper : colors.graphite,
+            transform: `scale(${1 + 0.15 * Math.sin(Math.PI * Math.min(1, result))})`,
+          }}
+        >
+          Für dich
+        </span>
+      </div>
+      <div style={{ display: "flex", flexDirection: "column", gap: 12 * k, borderRadius: 4 * k, backgroundColor: colors.fog, padding: 16 * k }}>
+        <div style={{ fontSize: 14 * k, fontWeight: 700 }}>
+          Passt zu dir ({doneCount}/{rows.length})
+        </div>
+        <div style={{ display: "flex", flexDirection: "column", gap: 10 * k }}>
+          {rows.map((r) => (
+            <div key={r.label} style={{ display: "flex", alignItems: "center", gap: 8 * k, fontSize: 14 * k }}>
+              <span style={{ position: "relative", width: 20 * k, height: 20 * k, flexShrink: 0 }}>
+                {/* The ring filling while the line is checked, then the filled circle with its tick. */}
+                <span style={{ position: "absolute", inset: 0, borderRadius: 999, border: `${k}px solid #d4d4d4` }} />
+                <span
+                  style={{
+                    position: "absolute",
+                    inset: 0,
+                    borderRadius: 999,
+                    background: `conic-gradient(${colors.ink} ${r.ring * 360}deg, transparent 0deg)`,
+                    WebkitMask: `radial-gradient(circle, transparent ${9 * k - k * 1.2}px, #000 ${9 * k - k * 1.2 + 0.5}px)`,
+                    mask: `radial-gradient(circle, transparent ${9 * k - k * 1.2}px, #000 ${9 * k - k * 1.2 + 0.5}px)`,
+                    opacity: r.done > 0.5 ? 0 : 1,
+                  }}
+                />
+                <span
+                  style={{
+                    position: "absolute",
+                    inset: 0,
+                    borderRadius: 999,
+                    backgroundColor: colors.ink,
+                    color: colors.paper,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    transform: `scale(${r.done})`,
+                  }}
+                >
+                  <FiCheck size={12 * k} />
+                </span>
+              </span>
+              <span style={{ flex: 1, color: r.done > 0.5 ? colors.ink : "#404040" }}>{r.label}</span>
+              <span style={{ color: colors.graphite, opacity: Math.min(1, r.done) }}>{r.value}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+      <div
+        style={{
+          alignSelf: "flex-start",
+          display: "flex",
+          alignItems: "center",
+          gap: 8 * k,
+          borderRadius: 999,
+          backgroundColor: colors.ink,
+          color: colors.paper,
+          padding: `${10 * k}px ${16 * k}px`,
+          fontSize: 14 * k,
+          fontWeight: 700,
+          opacity: Math.min(1, result * 1.5),
+          transform: `translateY(${(1 - Math.min(1, result)) * 10 * k}px)`,
+        }}
+      >
+        <FiHeart size={14 * k} />
+        Liegt in deinem Feed
+      </div>
+    </div>
+  );
+};
