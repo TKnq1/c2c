@@ -10,7 +10,7 @@ import { useUrlState } from "@/lib/use-url-state";
 import { SearchInput } from "@/components/search-input";
 import { CreatorCard } from "@/components/creator-card";
 import { EmptyState } from "@/components/empty-state";
-import { FilterButton, FilterChip, FilterGroup, FilterSheet, searchFieldClass } from "@/components/filters";
+import { AppliedFilters, FilterButton, FilterChip, FilterGroup, FilterSheet, searchFieldClass, useFilterSheet } from "@/components/filters";
 import { computeRelevanceScore } from "@/lib/relevance";
 import { useI18n } from "@/components/i18n-provider";
 import { contentLanguageLabel, nicheLabel } from "@/lib/i18n/labels";
@@ -76,7 +76,7 @@ export function DiscoverCreators({ creators, requests }: { creators: CreatorEntr
   const languages = useMemo(() => splitList(language), [language]);
   const activeRequest = requests.find((r) => r.id === requestId) ?? null;
   const filterCount = activeFilterCount({ niche, platform, language, minFollowers });
-  const [sheetOpen, setSheetOpen] = useState(false);
+  const sheet = useFilterSheet();
 
   // Mirrors each FavoriteButton's own optimistic state, updated the instant
   // a star is clicked — not just once revalidatePath's background refetch
@@ -181,13 +181,21 @@ export function DiscoverCreators({ creators, requests }: { creators: CreatorEntr
           count={filterCount}
           label={t("screens.discover.filter")}
           activeLabel={t("screens.discover.filtersActive", { count: filterCount })}
-          onClick={() => setSheetOpen(true)}
+          onClick={sheet.show}
         />
       </div>
 
+      <AppliedFilters
+        removeLabel={t("common.remove")}
+        items={[
+          ...nicheFilters.map((n) => ({ key: `niche-${n}`, label: nicheLabel(t, n), onRemove: () => toggleIn("niche", nicheFilters, n) })),
+          ...platformFilters.map((p) => ({ key: `platform-${p}`, label: p, onRemove: () => toggleIn("platform", platformFilters, p) })),
+          ...(minCount > 0 ? [{ key: "followers", label: `${formatFollowers(minCount)}+ ${t("screens.discover.followers")}`, onRemove: () => setParam("minFollowers", "") }] : []),
+          ...languages.map((l) => ({ key: `language-${l}`, label: contentLanguageLabel(t, l), onRemove: () => toggleIn("language", languages, l) })),
+        ]}
+      />
+
       <p className="text-sm text-neutral-600 dark:text-neutral-400">{countLabel}</p>
-
-
 
       <div key={`${search}|${niche}|${platform}|${language}|${minFollowers}|${sort}|${favorites}|${requestId}`} className="discover-results-fade">
         {filtered.length === 0 ? (
@@ -244,8 +252,10 @@ export function DiscoverCreators({ creators, requests }: { creators: CreatorEntr
       </div>
 
       <FilterSheet
-        open={sheetOpen}
-        onClose={() => setSheetOpen(false)}
+        open={sheet.open}
+        onClose={sheet.hide}
+        anchor={sheet.anchor}
+        wide
         title={t("screens.discover.filter")}
         resetLabel={t("screens.discover.resetFilters")}
         onReset={resetFilters}
@@ -255,7 +265,7 @@ export function DiscoverCreators({ creators, requests }: { creators: CreatorEntr
             : t("screens.discover.showResultsMany", { count: filtered.length })
         }
       >
-        <FilterGroup label={t("screens.discover.niche")}>
+        <FilterGroup label={t("screens.discover.niche")} span>
           {NICHES.map((n) => (
             <FilterChip key={n} active={nicheFilters.includes(n)} onClick={() => toggleIn("niche", nicheFilters, n)}>
               {nicheLabel(t, n)}

@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { FiMessageSquare } from "react-icons/fi";
@@ -8,7 +8,7 @@ import { useUrlState } from "@/lib/use-url-state";
 import { useViewerTimeZone } from "@/lib/use-viewer-time-zone";
 import { formatMessageTimestamp } from "@/lib/format";
 import { SearchInput } from "@/components/search-input";
-import { FilterButton, FilterChip, FilterGroup, FilterSheet, searchFieldClass } from "@/components/filters";
+import { FilterButton, FilterChip, FilterGroup, FilterSheet, searchFieldClass, useFilterSheet } from "@/components/filters";
 import { Avatar } from "@/components/avatar";
 import { EmptyState } from "@/components/empty-state";
 import { useI18n } from "@/components/i18n-provider";
@@ -28,7 +28,7 @@ export function MessagesList({ conversations, compact = false }: { conversations
   const { t, locale } = useI18n();
   const pathname = usePathname();
   const [{ q: search, unread }, setParam, setParams] = useUrlState(["q", "unread"]);
-  const [sheetOpen, setSheetOpen] = useState(false);
+  const sheet = useFilterSheet();
   const activeFilterCount = unread === "1" ? 1 : 0;
   const timeZone = useViewerTimeZone();
 
@@ -59,13 +59,14 @@ export function MessagesList({ conversations, compact = false }: { conversations
           count={activeFilterCount}
           label={t("screens.discover.filter")}
           activeLabel={t("screens.discover.filtersActive", { count: activeFilterCount })}
-          onClick={() => setSheetOpen(true)}
+          onClick={sheet.show}
         />
       </div>
 
       <FilterSheet
-        open={sheetOpen}
-        onClose={() => setSheetOpen(false)}
+        open={sheet.open}
+        onClose={sheet.hide}
+        anchor={sheet.anchor}
         title={t("screens.messages.filter")}
         resetLabel={t("screens.discover.resetFilters")}
         onReset={() => setParam("unread", "")}

@@ -40,6 +40,8 @@ import type { Me } from "@/app/api/me/route";
 import { useNavigationBlocker } from "@/lib/navigation-blocker";
 import { isTextField, resetPageScroll } from "@/lib/keyboard";
 import { dealsEnabled } from "@/lib/deals/flag";
+import { dealLocale } from "@/lib/deals/copy";
+import { uiText } from "@/lib/deals/ui-copy";
 import { haptic } from "@/lib/haptics";
 import { activeHrefFor, appLinks, discoverHrefOf, tabLinks, type NavCounts, type NavId, type NavLink } from "@/lib/nav-links";
 
@@ -87,6 +89,17 @@ function pageTitleKey(pathname: string): MessageKey | null {
   if (pathname === "/dashboard/startup/new") return "nav.newRequest";
   if (/^\/dashboard\/startup\/requests\/[^/]+\/edit$/.test(pathname)) return "nav.editRequest";
   if (pathname === "/dashboard/creator/settings" || pathname === "/dashboard/startup/settings") return "nav.settings";
+  return null;
+}
+
+// The line under the page's name in the sidebar, for the pages that have one (the same text their heading carries).
+function pageDescription(pathname: string, t: (key: MessageKey) => string, locale: string): string | null {
+  const u = uiText(dealLocale(locale));
+  if (pathname === "/dashboard/creator/discover") return t("screens.discover.brandsHint");
+  if (pathname === "/dashboard/startup/discover") return t("extras.misc.creatorsHint");
+  if (pathname === "/dashboard/deals") return u("deals.description");
+  if (pathname === "/dashboard/invoices") return u("invoices.listDescription");
+  if (pathname === "/dashboard/business") return u("business.description");
   return null;
 }
 
@@ -392,7 +405,16 @@ function Sidebar({
   unreadCount: number;
   onNavigate: (e: { preventDefault: () => void }) => void;
 }) {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
+  // From lg the sidebar names the page beside the logo (title and, where there is one, its description). The page's own
+  // heading then steps aside, see PageTitle.
+  const titleKey = pageTitleKey(pathname);
+  const pageTitle = titleKey ? t(titleKey) : null;
+  const description = pageTitle ? pageDescription(pathname, t, locale) : null;
+  useLayoutEffect(() => {
+    document.body.toggleAttribute("data-sidebar-title", pageTitle !== null);
+    return () => document.body.removeAttribute("data-sidebar-title");
+  }, [pageTitle]);
   const [home, discover, ...rest] = links.filter((l) => l.id !== "settings");
   const settings = links.find((l) => l.id === "settings")!;
   const main: NavLink[] = [
@@ -407,9 +429,12 @@ function Sidebar({
 
   return (
     <aside className="app-sidebar fixed inset-y-0 left-0 z-30 hidden w-[var(--sidebar-w)] flex-col border-r border-ink/10 bg-background px-3 pb-5 pt-[calc(var(--safe-top)+20px)] no-print md:flex">
-      <Link href={base} onNavigate={onNavigate} className="mb-6 flex h-12 shrink-0 items-center justify-center gap-3 lg:justify-start lg:px-2">
+      <Link href={base} onNavigate={onNavigate} className="mb-6 flex min-h-12 shrink-0 items-center justify-center gap-3 lg:justify-start lg:px-2">
         <Logo small />
-        <span className="hidden font-display text-title-3 font-black tracking-tight lg:inline">comtor</span>
+        <span className="hidden min-w-0 flex-col lg:flex">
+          <span className="truncate font-display text-headline font-bold leading-tight">{pageTitle ?? "comtor"}</span>
+          {description && <span className="line-clamp-2 text-xs leading-snug text-neutral-600 dark:text-neutral-400">{description}</span>}
+        </span>
       </Link>
 
       <button
