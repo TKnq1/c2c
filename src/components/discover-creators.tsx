@@ -4,13 +4,13 @@ import { useMemo, useState } from "react";
 import Link from "next/link";
 import { useFormStatus } from "react-dom";
 import { FiSearch } from "react-icons/fi";
-import { IoChevronDown, IoOptionsOutline, IoStar, IoStarOutline } from "react-icons/io5";
+import { IoChevronDown } from "react-icons/io5";
 import { NICHES, PLATFORMS, LANGUAGES } from "@/lib/constants";
 import { useUrlState } from "@/lib/use-url-state";
 import { SearchInput } from "@/components/search-input";
 import { CreatorCard } from "@/components/creator-card";
 import { EmptyState } from "@/components/empty-state";
-import { Dialog } from "@/components/dialog";
+import { FilterButton, FilterChip, FilterGroup, FilterSheet, searchFieldClass } from "@/components/filters";
 import { computeRelevanceScore } from "@/lib/relevance";
 import { useI18n } from "@/components/i18n-provider";
 import { contentLanguageLabel, nicheLabel } from "@/lib/i18n/labels";
@@ -19,7 +19,6 @@ import { formatFollowers } from "@/lib/format";
 import { startConversationAsStartupAction } from "@/lib/actions/requests";
 import {
   FOLLOWER_STEPS,
-  QUICK_PLATFORMS,
   activeFilterCount,
   filtersForRequest,
   matchReasons,
@@ -61,19 +60,12 @@ const REASON_KEYS: Record<MatchReason, MessageKey> = {
 
 const FILTER_KEYS = ["q", "niche", "platform", "language", "minFollowers", "sort", "favorites", "request"];
 
-const chip = (active: boolean) =>
-  `inline-flex min-h-10 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full px-3.5 text-sm font-medium transition ${
-    active
-      ? "bg-ink text-paper"
-      : "border border-neutral-300 text-neutral-700 hover:border-neutral-400 dark:border-neutral-700 dark:text-neutral-300"
-  }`;
-
 function maxFollowers(c: CreatorEntry) {
   return c.platforms.reduce((max, p) => Math.max(max, p.followerCount), 0);
 }
 
 // Brand Discover: an open request can set the filters (and each card then says why the creator fits and invites them
-// to it), a search with the filters behind one button, quick chips for the common ones, and everything else in a sheet.
+// to it), and a search with every filter behind one Filter button, in a sheet. Saved creators: the star in the header.
 export function DiscoverCreators({ creators, requests }: { creators: CreatorEntry[]; requests: DiscoverRequest[] }) {
   const { t } = useI18n();
   const [values, setParam, setParams] = useUrlState(FILTER_KEYS);
@@ -139,12 +131,6 @@ export function DiscoverCreators({ creators, requests }: { creators: CreatorEntr
   const clearAll = () => setParams(Object.fromEntries(FILTER_KEYS.map((k) => [k, ""])));
   const resetFilters = () => setParams({ niche: "", platform: "", language: "", minFollowers: "", sort: "" });
 
-  const nicheChipLabel =
-    nicheFilters.length === 0
-      ? t("screens.discover.niche")
-      : nicheFilters.length === 1
-        ? nicheLabel(t, nicheFilters[0])
-        : `${nicheLabel(t, nicheFilters[0])} +${nicheFilters.length - 1}`;
   const minCount = Number(minFollowers) || 0;
   const countLabel =
     filtered.length === 1
@@ -189,77 +175,19 @@ export function DiscoverCreators({ creators, requests }: { creators: CreatorEntr
           placeholder={t("screens.discover.searchCreators")}
           aria-label={t("screens.discover.searchCreatorsLabel")}
           wrapperClassName="min-w-0 flex-1"
-          className="min-h-11 border-transparent bg-fog dark:border-transparent"
+          className={searchFieldClass}
         />
-        <button
-          type="button"
+        <FilterButton
+          count={filterCount}
+          label={t("screens.discover.filter")}
+          activeLabel={t("screens.discover.filtersActive", { count: filterCount })}
           onClick={() => setSheetOpen(true)}
-          aria-label={filterCount > 0 ? t("screens.discover.filtersActive", { count: filterCount }) : t("screens.discover.filter")}
-          className="relative flex min-h-11 min-w-11 shrink-0 items-center justify-center gap-2 rounded border border-neutral-300 px-3 text-sm font-medium transition hover:border-neutral-400 dark:border-neutral-700"
-        >
-          <IoOptionsOutline className="h-5 w-5" aria-hidden />
-          <span className="hidden md:inline">{t("screens.discover.filter")}</span>
-          {filterCount > 0 && (
-            <span className="absolute -right-1.5 -top-1.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-ink px-1 text-[11px] font-semibold text-paper">
-              {filterCount}
-            </span>
-          )}
-        </button>
+        />
       </div>
 
-      {/* One swipeable row on phones (running to the screen edge), wrapping from md up. */}
-      <div className="-mx-6 flex gap-2 overflow-x-auto px-6 pb-1 [scrollbar-width:none] md:mx-0 md:flex-wrap md:overflow-visible md:px-0 [&::-webkit-scrollbar]:hidden">
-        <button type="button" onClick={() => setSheetOpen(true)} className={chip(nicheFilters.length > 0)}>
-          {nicheChipLabel}
-          <IoChevronDown className="h-3.5 w-3.5" aria-hidden />
-        </button>
-        {QUICK_PLATFORMS.map((p) => (
-          <button
-            key={p}
-            type="button"
-            aria-pressed={platformFilters.includes(p)}
-            onClick={() => toggleIn("platform", platformFilters, p)}
-            className={chip(platformFilters.includes(p))}
-          >
-            {p}
-          </button>
-        ))}
-        <button type="button" onClick={() => setSheetOpen(true)} className={chip(minCount > 0)}>
-          {minCount > 0 ? t("screens.discover.followersCount", { count: formatFollowers(minCount) }) : t("screens.discover.followers")}
-          <IoChevronDown className="h-3.5 w-3.5" aria-hidden />
-        </button>
-        {languages.length > 0 && (
-          <button type="button" onClick={() => setSheetOpen(true)} className={chip(true)}>
-            {languages.map((l) => contentLanguageLabel(t, l)).join(", ")}
-            <IoChevronDown className="h-3.5 w-3.5" aria-hidden />
-          </button>
-        )}
-        <button
-          type="button"
-          aria-pressed={favorites === "1"}
-          onClick={() => setParam("favorites", favorites === "1" ? "" : "1")}
-          className={chip(favorites === "1")}
-        >
-          {favorites === "1" ? <IoStar className="h-4 w-4" aria-hidden /> : <IoStarOutline className="h-4 w-4" aria-hidden />}
-          {t("screens.discover.favoritesChip")}
-        </button>
-      </div>
+      <p className="text-sm text-neutral-600 dark:text-neutral-400">{countLabel}</p>
 
-      <div className="flex items-center justify-between gap-3">
-        <p className="text-sm text-neutral-600 dark:text-neutral-400">{countLabel}</p>
-        <label className="relative flex min-h-11 items-center gap-1 text-sm font-medium">
-          <span className="sr-only">{t("screens.discover.sortBy")}</span>
-          <span aria-hidden>{t(SORTS[sort])}</span>
-          <IoChevronDown className="h-3.5 w-3.5" aria-hidden />
-          <select value={sort} onChange={(e) => setParam("sort", e.target.value)} className="absolute inset-0 cursor-pointer opacity-0">
-            {Object.entries(SORTS).map(([key, label]) => (
-              <option key={key} value={key}>
-                {t(label)}
-              </option>
-            ))}
-          </select>
-        </label>
-      </div>
+
 
       <div key={`${search}|${niche}|${platform}|${language}|${minFollowers}|${sort}|${favorites}|${requestId}`} className="discover-results-fade">
         {filtered.length === 0 ? (
@@ -315,81 +243,55 @@ export function DiscoverCreators({ creators, requests }: { creators: CreatorEntr
         )}
       </div>
 
-      <Dialog open={sheetOpen} onClose={() => setSheetOpen(false)} title={t("screens.discover.filter")}>
+      <FilterSheet
+        open={sheetOpen}
+        onClose={() => setSheetOpen(false)}
+        title={t("screens.discover.filter")}
+        resetLabel={t("screens.discover.resetFilters")}
+        onReset={resetFilters}
+        showLabel={
+          filtered.length === 1
+            ? t("screens.discover.showResultsOne", { count: filtered.length })
+            : t("screens.discover.showResultsMany", { count: filtered.length })
+        }
+      >
         <FilterGroup label={t("screens.discover.niche")}>
           {NICHES.map((n) => (
-            <button key={n} type="button" aria-pressed={nicheFilters.includes(n)} onClick={() => toggleIn("niche", nicheFilters, n)} className={chip(nicheFilters.includes(n))}>
+            <FilterChip key={n} active={nicheFilters.includes(n)} onClick={() => toggleIn("niche", nicheFilters, n)}>
               {nicheLabel(t, n)}
-            </button>
+            </FilterChip>
           ))}
         </FilterGroup>
         <FilterGroup label={t("screens.discover.platform")}>
           {PLATFORMS.map((p) => (
-            <button key={p} type="button" aria-pressed={platformFilters.includes(p)} onClick={() => toggleIn("platform", platformFilters, p)} className={chip(platformFilters.includes(p))}>
+            <FilterChip key={p} active={platformFilters.includes(p)} onClick={() => toggleIn("platform", platformFilters, p)}>
               {p}
-            </button>
+            </FilterChip>
           ))}
         </FilterGroup>
         <FilterGroup label={t("screens.discover.followers")}>
-          <div role="group" className="flex w-full gap-1 rounded bg-fog p-1">
-            {[...new Set([...FOLLOWER_STEPS, minCount])].sort((a, b) => a - b).map((step) => (
-              <button
-                key={step}
-                type="button"
-                aria-pressed={minCount === step}
-                onClick={() => setParam("minFollowers", step > 0 ? String(step) : "")}
-                className={`min-h-10 flex-1 rounded text-sm font-medium transition ${
-                  minCount === step ? "bg-background text-ink shadow-sm" : "text-neutral-600 dark:text-neutral-400"
-                }`}
-              >
-                {step === 0 ? t("screens.discover.followersAny") : formatFollowers(step)}
-              </button>
-            ))}
-          </div>
+          {[...new Set([...FOLLOWER_STEPS, minCount])].sort((a, b) => a - b).map((step) => (
+            <FilterChip key={step} active={minCount === step} onClick={() => setParam("minFollowers", step > 0 ? String(step) : "")}>
+              {step === 0 ? t("screens.discover.followersAny") : formatFollowers(step)}
+            </FilterChip>
+          ))}
         </FilterGroup>
         <FilterGroup label={t("screens.discover.language")}>
           {LANGUAGES.map((l) => (
-            <button key={l} type="button" aria-pressed={languages.includes(l)} onClick={() => toggleIn("language", languages, l)} className={chip(languages.includes(l))}>
+            <FilterChip key={l} active={languages.includes(l)} onClick={() => toggleIn("language", languages, l)}>
               {contentLanguageLabel(t, l)}
-            </button>
+            </FilterChip>
           ))}
         </FilterGroup>
-        <fieldset className="flex flex-col">
-          <legend className="mb-1 text-footnote font-medium text-neutral-600 dark:text-neutral-400">{t("screens.discover.sortBy")}</legend>
+        <FilterGroup label={t("screens.discover.sortBy")}>
           {Object.entries(SORTS).map(([key, label]) => (
-            <label key={key} className="flex min-h-11 items-center justify-between gap-3 border-b border-ink/10 text-sm last:border-b-0">
+            <FilterChip key={key} active={sort === key} onClick={() => setParam("sort", key === "best" ? "" : key)}>
               {t(label)}
-              <input type="radio" name="discover-sort" checked={sort === key} onChange={() => setParam("sort", key)} className="h-5 w-5 accent-[var(--ink)]" />
-            </label>
+            </FilterChip>
           ))}
-        </fieldset>
-        {/* Sticks to the sheet's bottom edge on phones, over the sheet's own bottom padding (the home indicator's room), so
-            nothing scrolls by underneath it. */}
-        <div className="sticky -mx-5 -mb-[max(var(--safe-bottom),20px)] bottom-[calc(-1*max(var(--safe-bottom),20px))] flex items-center gap-3 border-t border-ink/10 bg-background px-5 pt-3 pb-[calc(0.75rem+max(var(--safe-bottom),20px))] md:static md:m-0 md:border-0 md:p-0">
-          <button type="button" onClick={resetFilters} className="min-h-11 shrink-0 px-1 text-sm font-medium underline">
-            {t("screens.discover.resetFilters")}
-          </button>
-          <button
-            type="button"
-            onClick={() => setSheetOpen(false)}
-            className="min-h-11 flex-1 rounded-full bg-ink px-4 text-sm font-medium text-paper transition hover:bg-graphite"
-          >
-            {filtered.length === 1
-              ? t("screens.discover.showResultsOne", { count: filtered.length })
-              : t("screens.discover.showResultsMany", { count: filtered.length })}
-          </button>
-        </div>
-      </Dialog>
+        </FilterGroup>
+      </FilterSheet>
     </div>
-  );
-}
-
-function FilterGroup({ label, children }: { label: string; children: React.ReactNode }) {
-  return (
-    <fieldset className="flex flex-col gap-2">
-      <legend className="mb-2 text-footnote font-medium text-neutral-600 dark:text-neutral-400">{label}</legend>
-      <div className="flex flex-wrap gap-2">{children}</div>
-    </fieldset>
   );
 }
 

@@ -1,15 +1,14 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useMemo, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { FiMessageSquare } from "react-icons/fi";
-import { IoFilterOutline } from "react-icons/io5";
 import { useUrlState } from "@/lib/use-url-state";
 import { useViewerTimeZone } from "@/lib/use-viewer-time-zone";
-import { useExitAnimation } from "@/lib/use-exit-animation";
 import { formatMessageTimestamp } from "@/lib/format";
 import { SearchInput } from "@/components/search-input";
+import { FilterButton, FilterChip, FilterGroup, FilterSheet, searchFieldClass } from "@/components/filters";
 import { Avatar } from "@/components/avatar";
 import { EmptyState } from "@/components/empty-state";
 import { useI18n } from "@/components/i18n-provider";
@@ -29,20 +28,9 @@ export function MessagesList({ conversations, compact = false }: { conversations
   const { t, locale } = useI18n();
   const pathname = usePathname();
   const [{ q: search, unread }, setParam, setParams] = useUrlState(["q", "unread"]);
-  const [filterOpen, setFilterOpen] = useState(false);
-  const filterPanel = useExitAnimation(filterOpen);
-  const filterRef = useRef<HTMLDivElement>(null);
+  const [sheetOpen, setSheetOpen] = useState(false);
   const activeFilterCount = unread === "1" ? 1 : 0;
   const timeZone = useViewerTimeZone();
-
-  useEffect(() => {
-    if (!filterOpen) return;
-    const onPointerDown = (e: MouseEvent) => {
-      if (filterRef.current && !filterRef.current.contains(e.target as Node)) setFilterOpen(false);
-    };
-    document.addEventListener("mousedown", onPointerDown);
-    return () => document.removeEventListener("mousedown", onPointerDown);
-  }, [filterOpen]);
 
   const filtered = useMemo(() => {
     const query = search.trim().toLowerCase();
@@ -58,57 +46,40 @@ export function MessagesList({ conversations, compact = false }: { conversations
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex flex-wrap items-stretch gap-3">
+      <div className="flex gap-2">
         <SearchInput
           value={search}
           onChange={(e) => setParam("q", e.target.value)}
           placeholder={compact ? t("screens.messages.searchShort") : t("screens.messages.search")}
           aria-label={t("screens.messages.searchLabel")}
-          wrapperClassName="flex-1 min-w-48"
+          wrapperClassName="min-w-0 flex-1"
+          className={searchFieldClass}
         />
-        <div ref={filterRef} className="relative flex shrink-0">
-          <button
-            type="button"
-            onClick={() => setFilterOpen((v) => !v)}
-            aria-haspopup="true"
-            aria-expanded={filterOpen}
-            aria-label={t("screens.messages.filter")}
-            className={`flex h-full items-center gap-1.5 rounded-full border px-3.5 py-2 text-sm font-medium transition ${
-              activeFilterCount > 0
-                ? "border-ink bg-ink text-paper"
-                : "border-neutral-300 text-neutral-700 hover:border-neutral-400 dark:border-neutral-700 dark:text-neutral-300 dark:hover:border-neutral-600"
-            }`}
-          >
-            <IoFilterOutline className="h-4 w-4" />
-            {t("screens.discover.filter")}
-            {activeFilterCount > 0 && (
-              <span className="flex h-4 min-w-4 items-center justify-center rounded-full bg-paper px-1 text-[10px] font-semibold text-ink">
-                {activeFilterCount}
-              </span>
-            )}
-          </button>
-
-          {filterPanel.present && (
-            <div
-              role="menu"
-              onAnimationEnd={filterPanel.onExitEnd}
-              className={`${
-                filterPanel.closing ? "animate-dropdown-out pointer-events-none" : "animate-dropdown-in"
-              } absolute right-0 top-full z-20 mt-1 min-w-40 rounded border border-ink/10 bg-white py-1 dark:bg-neutral-900`}
-            >
-              <label className="flex items-center gap-2 px-3 py-2 text-sm text-neutral-700 whitespace-nowrap hover:bg-neutral-50 cursor-pointer dark:text-neutral-300 dark:hover:bg-neutral-800">
-                <input
-                  type="checkbox"
-                  checked={unread === "1"}
-                  onChange={(e) => setParam("unread", e.target.checked ? "1" : "")}
-                  className="h-4 w-4 shrink-0 appearance-none rounded border border-neutral-300 bg-white checked:border-neutral-900 checked:bg-neutral-900 transition dark:border-neutral-600 dark:bg-neutral-800 dark:checked:border-white dark:checked:bg-white"
-                />
-                {t("screens.messages.unreadOnly")}
-              </label>
-            </div>
-          )}
-        </div>
+        <FilterButton
+          count={activeFilterCount}
+          label={t("screens.discover.filter")}
+          activeLabel={t("screens.discover.filtersActive", { count: activeFilterCount })}
+          onClick={() => setSheetOpen(true)}
+        />
       </div>
+
+      <FilterSheet
+        open={sheetOpen}
+        onClose={() => setSheetOpen(false)}
+        title={t("screens.messages.filter")}
+        resetLabel={t("screens.discover.resetFilters")}
+        onReset={() => setParam("unread", "")}
+        showLabel={filtered.length === 1 ? t("screens.messages.showOne", { count: filtered.length }) : t("screens.messages.showMany", { count: filtered.length })}
+      >
+        <FilterGroup label={t("screens.messages.showGroup")}>
+          <FilterChip active={unread !== "1"} onClick={() => setParam("unread", "")}>
+            {t("screens.messages.all")}
+          </FilterChip>
+          <FilterChip active={unread === "1"} onClick={() => setParam("unread", "1")}>
+            {t("screens.messages.unreadOnly")}
+          </FilterChip>
+        </FilterGroup>
+      </FilterSheet>
 
       {filtered.length === 0 ? (
         <EmptyState

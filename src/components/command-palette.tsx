@@ -190,7 +190,7 @@ export function CommandPalette({ role }: { role: Role }) {
           <kbd className="hidden shrink-0 rounded border border-ink/15 px-1.5 py-0.5 text-[11px] text-neutral-500 sm:inline">Esc</kbd>
         </div>
 
-        <div ref={listRef} id="command-palette-list" role="listbox" className="min-h-0 flex-1 overflow-y-auto p-2">
+        <div ref={listRef} id="command-palette-list" role="listbox" className="min-h-0 flex-1 touch-pan-y overflow-y-auto overflow-x-hidden overscroll-contain p-2">
           {groups.length === 0 ? (
             <p className="px-3 py-8 text-center text-sm text-neutral-500 dark:text-neutral-400">{t("screens.search.noResults", { query })}</p>
           ) : (

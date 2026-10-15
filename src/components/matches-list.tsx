@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { RequestCard } from "@/components/request-card";
-import { Select } from "@/components/select";
+import { FilterChip, FilterChipRow, SortMenu } from "@/components/filters";
 import { useI18n } from "@/components/i18n-provider";
 import type { MessageKey } from "@/lib/i18n/translate";
 
@@ -46,34 +46,22 @@ export function MatchesList({ matches }: { matches: MatchEntry[] }) {
   return (
     <div className="flex flex-col gap-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <div role="tablist" aria-label={t("screens.matches.filter")} className="flex gap-1 rounded bg-fog p-1">
+        <FilterChipRow label={t("screens.matches.filter")}>
           {FILTERS.map((f) => (
-            <button
-              key={f.value}
-              type="button"
-              role="tab"
-              aria-selected={filter === f.value}
-              onClick={() => setFilter(f.value)}
-              className={`flex items-center gap-1.5 rounded px-3 py-1.5 text-sm font-medium transition ${
-                filter === f.value
-                  ? "bg-white text-neutral-900 dark:bg-neutral-900 dark:text-neutral-100"
-                  : "text-neutral-500 hover:text-ink dark:text-neutral-400"
-              }`}
-            >
+            <FilterChip key={f.value} active={filter === f.value} onClick={() => setFilter(f.value)} count={counts[f.value] ?? 0}>
               {t(f.label)}
-              <span className="text-xs tabular-nums opacity-60">{counts[f.value] ?? 0}</span>
-            </button>
+            </FilterChip>
           ))}
-        </div>
-        <Select
+        </FilterChipRow>
+        <SortMenu
           value={sort}
-          onChange={(e) => setSort(e.target.value as "newest" | "amount")}
-          wrapperClassName="w-44"
-          aria-label={t("screens.matches.sort")}
-        >
-          <option value="newest">{t("screens.matches.newest")}</option>
-          <option value="amount">{t("screens.matches.highest")}</option>
-        </Select>
+          onChange={(v) => setSort(v as "newest" | "amount")}
+          label={t("screens.matches.sort")}
+          options={[
+            { value: "newest", label: t("screens.matches.newest") },
+            { value: "amount", label: t("screens.matches.highest") },
+          ]}
+        />
       </div>
 
       {shown.length === 0 ? (

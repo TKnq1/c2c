@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { FilterChip, FilterChipRow } from "@/components/filters";
 import { DEAL_FILTERS, type DealFilter } from "@/lib/deals/list-filter";
 import { DEALS_HREF } from "@/lib/nav-links";
 import type { UiText } from "@/lib/deals/ui-copy";
@@ -14,24 +14,12 @@ export function DealsFilter({ current, counts, u }: { current: DealFilter | null
   const order: ("all" | DealFilter)[] = ["all", "mine", "active", "done"];
   chips.sort((a, b) => order.indexOf(a.id) - order.indexOf(b.id));
   return (
-    <nav aria-label={u("deals.filters")} className="flex flex-wrap gap-2">
-      {chips.map((chip) => {
-        const active = (current ?? "all") === chip.id;
-        return (
-          <Link
-            key={chip.id}
-            href={chip.href}
-            prefetch={false}
-            aria-current={active ? "true" : undefined}
-            className={`inline-flex min-h-9 items-center gap-1.5 rounded-full px-3.5 py-1.5 text-sm font-medium transition ${
-              active ? "bg-ink text-paper" : "border border-neutral-300 text-neutral-700 hover:border-neutral-400 dark:border-neutral-700 dark:text-neutral-300"
-            }`}
-          >
-            {u(`deals.filter.${chip.id}`)}
-            <span className={`tabular-nums ${active ? "text-paper/70" : "text-neutral-500 dark:text-neutral-400"}`}>{counts[chip.id]}</span>
-          </Link>
-        );
-      })}
-    </nav>
+    <FilterChipRow label={u("deals.filters")}>
+      {chips.map((chip) => (
+        <FilterChip key={chip.id} href={chip.href} active={(current ?? "all") === chip.id} count={counts[chip.id]}>
+          {u(`deals.filter.${chip.id}`)}
+        </FilterChip>
+      ))}
+    </FilterChipRow>
   );
 }

@@ -128,7 +128,7 @@ export function NotificationsPanelButton({
                 <IoClose className="h-5 w-5" aria-hidden />
               </button>
             </div>
-            <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
+            <div className="min-h-0 flex-1 touch-pan-y overflow-y-auto overflow-x-hidden overscroll-contain">
               {items === null ? (
                 <div className="flex flex-col gap-2 p-4" aria-hidden>
                   {[0, 1, 2, 3].map((i) => (

@@ -3,9 +3,6 @@
 
 export const FOLLOWER_STEPS = [0, 1000, 10_000, 100_000] as const;
 
-// The platforms that get their own quick chip; the rest are in the filter sheet.
-export const QUICK_PLATFORMS = ["Instagram", "TikTok", "YouTube"] as const;
-
 export type DiscoverFilters = { niche: string; platform: string; language: string; minFollowers: string };
 
 // An open request of the brand, as Discover reads it: what it asks for, and which creators it already has a chat with.
