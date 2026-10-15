@@ -9,6 +9,8 @@
     "render:brand": "remotion render BrandVideo out/brand.mp4 && python3 scripts/master.py out/brand.mp4",
     "render:brand:stems": "remotion render BrandVideo out/brand-voice.wav --codec=wav --props='{\"music\":false,\"sfx\":false,\"voice\":true}' && remotion render BrandVideo out/brand-music.wav --codec=wav --props='{\"music\":true,\"sfx\":false,\"voice\":false}' && remotion render BrandVideo out/brand-sfx.wav --codec=wav --props='{\"music\":false,\"sfx\":true,\"voice\":false}'",
     "styleframes": "node scripts/render-styleframes.mjs",
+    "launch:stills": "node scripts/render-launch-stills.mjs",
+    "launch:raw": "remotion render LaunchVideo out/launch-raw.mp4 --muted",
     "posts": "node scripts/render-posts.mjs",
     "stories": "node scripts/render-stories.mjs",
     "audio": "tsx scripts/grid.ts && python3 scripts/make-audio.py",

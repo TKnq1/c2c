@@ -45,3 +45,14 @@ animations with sound; `npm run posts` renders every slide to `out/pinned/` (MP4
 13 stories, 1080 x 1920 (9:16): two short videos with sound and eleven images. `npm run stories` renders them to
 `out/stories/` (MP4 mastered to -14 LUFS, PNG for the stills). Sources in `src/stories/`, which stories to post when
 and the sticker texts in `STORIES.md`.
+
+## Launch video (16:9)
+
+A launch video for the website, YouTube and LinkedIn, 1920 x 1080, modelled on the cut of a SaaS launch video: typed
+lines, statements set large, the web app's desktop view in 3D, three lights (white, grey mist, black). Sources in
+`src/launch/` (`kit.tsx` building blocks, `screens.tsx` the app's screens, `scenes.tsx` the scenes and their lengths).
+
+```bash
+npm run launch:stills   # one still per scene (its keyframe) to out/launch/ and a contact sheet out/launch-stills.png
+npm run launch:raw      # the picture only, no sound yet: out/launch-raw.mp4
+```

@@ -1,8 +1,9 @@
-import { Composition, Folder, Still } from "remotion";
+import { Composition, Folder } from "remotion";
 import { ADS, HAS_VOICE } from "./ads";
 import { BRAND_DURATION, BrandVideo } from "./brand/BrandVideo";
 import { CREATOR_DURATION, CreatorVideo } from "./creator/CreatorVideo";
 import "./fonts";
+import { LAUNCH_DURATION, LaunchVideo } from "./launch/LaunchVideo";
 import { LAUNCH_HEIGHT, LAUNCH_STILLS, LAUNCH_WIDTH } from "./launch/stills";
 import { PINNED } from "./pinned";
 import { POST_HEIGHT, POST_WIDTH } from "./posts/kit";
@@ -24,9 +25,10 @@ export const RemotionRoot: React.FC = () => (
         <Composition key={id} id={id} component={component} durationInFrames={keyframe + 1} fps={FPS} width={WIDTH} height={HEIGHT} />
       ))}
     </Folder>
+    <Composition id="LaunchVideo" component={LaunchVideo} durationInFrames={LAUNCH_DURATION} fps={FPS} width={LAUNCH_WIDTH} height={LAUNCH_HEIGHT} />
     <Folder name="Launch-Stills">
-      {LAUNCH_STILLS.map(({ id, component }) => (
-        <Still key={id} id={id} component={component} width={LAUNCH_WIDTH} height={LAUNCH_HEIGHT} />
+      {LAUNCH_STILLS.map(({ id, label, component, durationInFrames }) => (
+        <Composition key={id} id={id} component={component} defaultProps={{ label }} durationInFrames={durationInFrames} fps={FPS} width={LAUNCH_WIDTH} height={LAUNCH_HEIGHT} />
       ))}
     </Folder>
     <Folder name="Stories">
