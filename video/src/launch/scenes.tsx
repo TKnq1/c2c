@@ -150,7 +150,7 @@ const Opening: React.FC = () => {
   // The camera fits the line's length over the last few frames, so it glides instead of jumping per letter.
   let chars = 0;
   for (let i = 0; i < 12; i++) chars += openingLine(Math.max(0, frame - i)).text.length / 12;
-  const camera = fitScale(chars, 72, 1400, 2.4) * drift(frame, 300, 1, 0.96);
+  const camera = fitScale(chars, 72, 1400, 2.4) * drift(frame, 276, 1.04, 0.9);
   const idle = frame >= OPEN.a + A.length * 2 && frame < OPEN.b ? OPEN.a + A.length * 2 : frame >= OPEN.c + C.length * 2 ? OPEN.c + C.length * 2 : 9999;
   const ghosts = 1 + (camera - 1) * 0.25;
   return (
@@ -245,7 +245,7 @@ const Reveal: React.FC = () => {
   return (
     <Backdrop light="mist">
       <Center>
-        <div style={{ display: "flex", alignItems: "center", transform: `scale(${drift(frame, 190, 1, 0.9)})` }}>
+        <div style={{ display: "flex", alignItems: "center", transform: `scale(${drift(frame, 165, 1.06, 0.8)})` }}>
           <span style={{ fontSize: size, fontWeight: 900, letterSpacing: -size * 0.04, lineHeight: 1, whiteSpace: "nowrap", ...slamStyle(enter, 1.7, 40) }}>Das ist</span>
           <span style={{ width: mix(Math.min(1, icon), 0, 150 * 0.32), flexShrink: 0 }} />
           <div style={{ width: mix(Math.min(1, icon), 0, 150 * 0.92), display: "flex", justifyContent: "center", flexShrink: 0 }}>
@@ -277,13 +277,13 @@ const ClaimProduct: React.FC = () => {
   const away = glide(frame, 92, 132);
   const rise = ease(frame, 100, { stiffness: 38 });
   const turn = glide(frame, 100, 330);
-  const tilt = { x: mix(turn, 44, 14), y: mix(turn, -26, -6), z: mix(turn, 10, 2) };
+  const tilt = { x: mix(turn, 46, 8), y: mix(turn, -30, 4), z: mix(turn, 11, 0) };
   return (
     <Backdrop light="mist">
       <Center>
         <div
           style={{
-            transform: `translateY(${-away * 320}px) scale(${fitScale(chars, 100, 1500, 2.2, 0.6) * mix(away, 1, 0.45)})`,
+            transform: `translateY(${-away * 320}px) scale(${fitScale(chars, 100, 1500, 2.2, 0.6) * drift(frame, 92, 1, 0.84) * mix(away, 1, 0.45)})`,
             opacity: 1 - away,
             filter: away > 0 ? `blur(${away * 8}px)` : undefined,
           }}
@@ -298,9 +298,9 @@ const ClaimProduct: React.FC = () => {
             side="creator"
             active="Feed"
             title="Feed"
-            scale={mix(turn, 0.98, 1.14)}
+            scale={mix(turn, 0.92, 1.26)}
             tilt={tilt}
-            style={{ position: "absolute", left: mix(turn, 320, 150), top: mix(rise, 1150, 210), opacity: Math.min(1, rise * 2) }}
+            style={{ position: "absolute", left: mix(turn, 380, 40), top: mix(rise, 1150, 210) - turn * 70, opacity: Math.min(1, rise * 2) }}
           >
             <CreatorFeed />
           </DesktopApp>
@@ -330,10 +330,10 @@ const Matching: React.FC = () => {
   const result = pop(frame, CHECKED);
   const scanning = frame < CHECKED;
   const scan = 0.5 - 0.5 * Math.cos(frame / 13);
-  const turnY = mix(glide(frame, 0, 220), 14, -10);
+  const turnY = mix(glide(frame, 0, 200), 16, -14);
   return (
     <Backdrop light="mist">
-      <AbsoluteFill style={{ transform: `scale(${drift(frame, 220, 1, 1.06)})`, transformOrigin: "70% 50%" }}>
+      <AbsoluteFill style={{ transform: `scale(${drift(frame, 200, 1, 1.1)})`, transformOrigin: "70% 50%" }}>
         <div style={{ position: "absolute", left: 260, top: 150, perspective: 1600, transform: `translateX(${(1 - panel) * 180}px)` }}>
           <div style={{ transform: `rotateY(${turnY}deg) rotateX(6deg)`, position: "relative" }}>
             <DealCard deal={RAW_HOODIE} width={520} height={760} />
@@ -498,11 +498,11 @@ const Held: React.FC = () => {
   const frame = useFrame();
   const up = ease(frame, 30, { stiffness: 60 });
   const close = ease(frame, 60, { stiffness: 55 });
-  const squeeze = glide(frame, 160, 186);
+  const squeeze = glide(frame, 150, 172);
   return (
     <Backdrop light="night">
       <Center>
-        <div style={{ transform: `scale(${drift(frame, 200, 1.04, 0.96)})`, display: "flex", flexDirection: "column", alignItems: "center" }}>
+        <div style={{ transform: `scale(${drift(frame, 185, 1.1, 0.86)})`, display: "flex", flexDirection: "column", alignItems: "center" }}>
           <div style={{ transform: `translateY(${mix(up, 120, -40)}px) scale(${mix(up, 1, 0.45)})`, color: up > 0.5 ? colors.stone : colors.paper, opacity: 1 - squeeze }}>
             <SlamWords size={116} start={0} stagger={5} from={2} dark parts={[{ text: "Die Marke zahlt zuerst." }]} />
           </div>
@@ -526,12 +526,12 @@ const Paid: React.FC = () => {
   const whip = slam(frame, 2);
   const pill = ease(frame, 26, { stiffness: 90 });
   const amount = 225 * ramp(frame, 30, 62);
-  const out = glide(frame, 112, 140);
+  const out = glide(frame, 98, 125);
   return (
     <Backdrop light="night">
       <SmearFilter id="paid-smear" amount={mix(whip, 70, 0)} />
       <Center style={{ gap: 60, opacity: 1 - out, filter: out > 0 ? `blur(${out * 20}px)` : undefined }}>
-        <div style={{ transform: `scale(${drift(frame, 140, 1, 0.92)})` }}>
+        <div style={{ transform: `scale(${drift(frame, 125, 1.06, 0.84)})` }}>
           <div
             style={{
               fontSize: 200,
@@ -579,7 +579,7 @@ const ForBrands: React.FC = () => {
   return (
     <Backdrop light="night">
       <Center>
-        <div style={{ transform: `scale(${drift(frame, 140, 1.02, 0.94)})`, display: "flex", flexDirection: "column", alignItems: "center" }}>
+        <div style={{ transform: `scale(${drift(frame, 125, 1.1, 0.86)})`, display: "flex", flexDirection: "column", alignItems: "center" }}>
           <div style={{ fontSize: 240, fontWeight: 900, letterSpacing: -9, lineHeight: 1, transform: `translateY(${mix(up, 60, -30)}px) scale(${mix(up, 1, 0.6)})`, ...slamStyle(slam(frame, 0), 2.2, 40) }}>Und</div>
           {frame >= 46 && (
             <FocusWords
@@ -614,18 +614,18 @@ const Briefing: React.FC = () => {
   const typed = Math.max(0, Math.min(NEW_REQUEST_TITLE.length, (frame - TITLE_AT) / TITLE_EVERY));
   const title = NEW_REQUEST_TITLE.slice(0, Math.floor(typed));
   const pull = glide(frame, PULL[0], PULL[1]);
-  const s = Math.exp(mix(pull, Math.log(CLOSE), Math.log(WIDE)));
+  const s = Math.exp(mix(pull, Math.log(CLOSE * mix(glide(frame, 0, PULL[0]), 0.9, 1.04)), Math.log(WIDE)));
   // While typing, the camera keeps the caret in view: the text grows about 7.3 px per letter in the app.
   const follow = Math.max(0, 200 + typed * 7.3 * CLOSE - 1500);
   const focus = { x: mix(pull, TITLE_POINT.x, PAGE_POINT.x), y: mix(pull, TITLE_POINT.y, PAGE_POINT.y) };
-  const anchor = { x: mix(pull, 200 - follow, 932), y: mix(pull, 500, 539) };
+  const anchor = { x: mix(pull, 200 - follow - frame * 0.8, 932), y: mix(pull, 500 - frame * 0.4, 539) };
   const tilt = { x: 10 * pull, y: 10 * pull, z: -2 * pull };
   const pressed = pressAt(frame, PUBLISH);
   const cursor = { x: path(frame, [192, PUBLISH - 4], [1840, 1500]), y: path(frame, [192, PUBLISH - 4], [1100, 722]) };
   const toast = ease(frame, PUBLISH + 8, { stiffness: 90 });
   return (
     <Backdrop light="mist">
-      <AbsoluteFill style={{ transform: `scale(${drift(frame, 330, 1, 1.04)})`, transformOrigin: "70% 60%" }}>
+      <AbsoluteFill style={{ transform: `scale(${mix(glide(frame, PULL[1], 310), 1, 1.12)})`, transformOrigin: "72% 52%" }}>
         <DesktopApp side="brand" active="Anfragen" title="Neue Anfrage" scale={s} tilt={tilt} style={{ position: "absolute", left: anchor.x - focus.x * s, top: anchor.y - focus.y * s }}>
           <NewRequest title={title} caret={frame < PULL[0] + 10 && caretOn(frame, TITLE_AT + NEW_REQUEST_TITLE.length * TITLE_EVERY)} published={frame >= PUBLISH + 2} press={pressed} />
         </DesktopApp>
@@ -654,7 +654,7 @@ const Briefing: React.FC = () => {
           <Tick size={30} dark />
           Anfrage veröffentlicht
         </div>
-        <LightSweep from={250} to={316} opacity={0.4} />
+        <LightSweep from={246} to={300} opacity={0.4} />
       </AbsoluteFill>
       <SampleTag />
     </Backdrop>
@@ -685,11 +685,11 @@ const Difference: React.FC = () => {
 const EndCard: React.FC = () => {
   const frame = useFrame();
   const icon = pop(frame, 4);
-  const letters = Math.max(0, Math.min(6, (frame - 40) / 4));
+  const letters = Math.max(0, Math.min(6, (frame - 34) / 4));
   return (
     <Backdrop light="mist">
       <Center>
-        <div style={{ display: "flex", alignItems: "center", gap: letters > 0 ? 44 : 0, transform: `scale(${drift(frame, 170, 1.06, 0.8)})` }}>
+        <div style={{ display: "flex", alignItems: "center", gap: letters > 0 ? 44 : 0, transform: `scale(${drift(frame, 145, 1.12, 0.76)})` }}>
           <AppIcon size={184} style={{ transform: `scale(${icon})`, opacity: Math.min(1, icon * 2), filter: icon < 0.95 ? `blur(${(1 - Math.min(icon, 1)) * 12}px)` : undefined }} />
           {letters > 0 && (
             <span style={{ fontSize: 200, fontWeight: 900, letterSpacing: -6, lineHeight: 1, whiteSpace: "pre", transform: "translateY(-12px)" }}>{"comtor".slice(0, Math.ceil(letters))}</span>
@@ -753,18 +753,18 @@ export type LaunchScene = {
 };
 
 export const LAUNCH_SCENES: LaunchScene[] = [
-  { id: "L01", label: "1 · Kaltakquise und Geld", component: Opening, duration: 300, keyframe: 232, exit: "66% 50%" },
+  { id: "L01", label: "1 · Kaltakquise und Geld", component: Opening, duration: 276, keyframe: 232, exit: "66% 50%" },
   { id: "L02", label: "2 · Wendung", component: Turn, duration: 110, keyframe: 50, enter: "zoom" },
-  { id: "L03", label: "3 · Reveal comtor", component: Reveal, duration: 190, keyframe: 120 },
-  { id: "L04", label: "4 · Claim und Produkt", component: ClaimProduct, duration: 330, keyframe: 240, exit: "40% 58%" },
-  { id: "L05", label: "5 · Matching", component: Matching, duration: 220, keyframe: 180, enter: "zoom" },
+  { id: "L03", label: "3 · Reveal comtor", component: Reveal, duration: 165, keyframe: 120 },
+  { id: "L04", label: "4 · Claim und Produkt", component: ClaimProduct, duration: 330, keyframe: 240, exit: "37% 57%" },
+  { id: "L05", label: "5 · Matching", component: Matching, duration: 200, keyframe: 180, enter: "zoom" },
   { id: "L06", label: "6 · Ein Swipe", component: SwipeLine, duration: 110, keyframe: 50, exit: "50% 56%" },
   { id: "L07", label: "7 · Swipe in der App", component: Swipe, duration: 220, keyframe: 98, enter: "zoom" },
-  { id: "L08", label: "8 · Geld zurückgehalten", component: Held, duration: 200, keyframe: 130, exit: "50% 52%" },
-  { id: "L09", label: "9 · Ausgezahlt", component: Paid, duration: 140, keyframe: 80, enter: "zoom" },
-  { id: "L10", label: "10 · Und für Marken", component: ForBrands, duration: 140, keyframe: 110 },
-  { id: "L11", label: "11 · Briefing", component: Briefing, duration: 330, keyframe: 70 },
+  { id: "L08", label: "8 · Geld zurückgehalten", component: Held, duration: 185, keyframe: 130, exit: "50% 52%" },
+  { id: "L09", label: "9 · Ausgezahlt", component: Paid, duration: 125, keyframe: 80, enter: "zoom" },
+  { id: "L10", label: "10 · Und für Marken", component: ForBrands, duration: 125, keyframe: 110 },
+  { id: "L11", label: "11 · Briefing", component: Briefing, duration: 310, keyframe: 70 },
   { id: "L12", label: "12 · Abgrenzung", component: Difference, duration: 190, keyframe: 150 },
-  { id: "L13", label: "13 · Logo", component: EndCard, duration: 170, keyframe: 90 },
+  { id: "L13", label: "13 · Logo", component: EndCard, duration: 145, keyframe: 90 },
   { id: "L14", label: "14 · CTA", component: Cta, duration: 250, keyframe: 230 },
 ];
