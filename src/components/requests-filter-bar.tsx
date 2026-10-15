@@ -1,7 +1,7 @@
 "use client";
 
 import { useUrlState } from "@/lib/use-url-state";
-import { Select } from "@/components/select";
+import { FilterChip, FilterChipRow, SortMenu } from "@/components/filters";
 import { useI18n } from "@/components/i18n-provider";
 import type { MessageKey } from "@/lib/i18n/translate";
 
@@ -19,34 +19,26 @@ export function RequestsFilterBar({ showDrafts }: { showDrafts: boolean }) {
   const tabs = showDrafts || status === DRAFT_TAB.value ? [...STATUS_TABS, DRAFT_TAB] : STATUS_TABS;
 
   return (
-    <div className="flex items-center justify-between gap-3 flex-wrap">
-      <div className="flex gap-1 rounded bg-fog p-1">
+    <div className="flex flex-wrap items-center justify-between gap-3">
+      <FilterChipRow label={t("screens.requests.status")}>
         {tabs.map((tab) => (
-          <button
-            key={tab.value}
-            type="button"
-            onClick={() => setParam("status", tab.value)}
-            className={`rounded px-3 py-1.5 text-sm font-medium transition ${
-              (status || "") === tab.value
-                ? "bg-white text-neutral-900 dark:bg-neutral-900 dark:text-neutral-100"
-                : "text-neutral-500 dark:text-neutral-400"
-            }`}
-          >
+          <FilterChip key={tab.value} active={(status || "") === tab.value} onClick={() => setParam("status", tab.value)}>
             {t(tab.label)}
-          </button>
+          </FilterChip>
         ))}
-      </div>
-      <Select
+      </FilterChipRow>
+      {/* From md the table's column headers sort instead. */}
+      <SortMenu
         value={sort || "newest"}
-        onChange={(e) => setParam("sort", e.target.value === "newest" ? "" : e.target.value)}
-        // From md the table's column headers sort instead.
-        wrapperClassName="w-40 md:hidden"
-        aria-label={t("screens.requests.sortBy")}
-      >
-        <option value="newest">{t("screens.requests.newest")}</option>
-        <option value="oldest">{t("screens.requests.oldest")}</option>
-        <option value="interest">{t("screens.requests.mostInterest")}</option>
-      </Select>
+        onChange={(v) => setParam("sort", v === "newest" ? "" : v)}
+        label={t("screens.requests.sortBy")}
+        className="md:hidden"
+        options={[
+          { value: "newest", label: t("screens.requests.newest") },
+          { value: "oldest", label: t("screens.requests.oldest") },
+          { value: "interest", label: t("screens.requests.mostInterest") },
+        ]}
+      />
     </div>
   );
 }

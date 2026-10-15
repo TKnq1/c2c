@@ -59,14 +59,16 @@ export function Dialog({
       onAnimationEnd={(e) => {
         if (e.target === e.currentTarget && !e.pseudoElement) onExitEnd();
       }}
-      className="animate-sheet-in m-0 mt-auto w-full max-w-none overflow-hidden rounded-t-[20px] bg-background text-foreground backdrop:bg-black/40 md:m-auto md:max-w-sm md:rounded-[20px]"
+      className="animate-sheet-in m-0 mt-auto w-full max-w-none overflow-hidden overscroll-contain rounded-t-[20px] bg-background text-foreground backdrop:bg-black/40 md:m-auto md:max-w-sm md:rounded-[20px]"
     >
       {present && (
         // No display utilities on the <dialog> itself — they'd override the
         // UA's display:none for a closed one. The layout lives in here.
         <div className="flex max-h-[85dvh] flex-col">
           {media}
-          <div className="flex min-h-0 flex-col gap-4 overflow-y-auto p-5 pb-[max(var(--safe-bottom),20px)] md:pb-5">
+          {/* Scrolls up and down only: a sideways swipe neither pans the sheet's content nor reaches the page behind it.
+              The media above (a photo strip) keeps its own sideways swipe. */}
+          <div className="flex min-h-0 touch-pan-y flex-col gap-4 overflow-y-auto overflow-x-hidden overscroll-contain p-5 pb-[max(var(--safe-bottom),20px)] md:pb-5">
             {/* A visible way out: tapping beside a sheet or Escape isn't obvious on a phone. */}
             <div className="-mr-2 -mt-2 flex items-center justify-between gap-3">
               <h2 id={titleId} className="min-w-0 font-semibold">

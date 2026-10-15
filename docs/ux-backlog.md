@@ -152,3 +152,15 @@ Alles hängt am Schalter `BRAND_DEALS_ENABLED`: ohne ihn bleibt die Oberfläche 
   dunkel `#949494` (4,5:1 auf `--fog`, 5,5:1 auf `--paper`).
 - **Touch-Flächen:** Merken und Rückgängig im Feed, Chat-Knopf in den Zahlungs- und Angebotszeilen, Schließen im Seitenpanel,
   Zurück im Chat, die „⋯“-Menüs (Anfrage, Deal-Seite) von 40 auf 44 px.
+
+## Durchgang vom 15.10. (Nachmittag)
+
+- **Sheets:** Alle Sheets und Panels (Dialog, Seitenpanel, ⌘K, Mitteilungen) scrollen nur noch hoch und runter
+  (`touch-pan-y`, `overflow-x-hidden`). Solange eins offen ist, steht die Seite dahinter still (`html:has(dialog[open])` in
+  `globals.css`).
+- **Ein Filter-Look** (`src/components/filters.tsx`): Status-Filter als Pillen (Deals, Anfragen, Matches), auf Seiten mit Suche
+  (Entdecken beider Seiten, Chats) Suche + Filter-Knopf, der das Filter-Sheet öffnet; im Sheet dieselben Pillen, unten
+  „Zurücksetzen“ und „X zeigen“. Sortieren als eine Zeile mit Pfeil (`SortMenu`). Die alten Ausklapp-Menüs und grauen Reiter sind
+  weg.
+- **Entdecken:** keine Schnellfilter-Reihe mehr, nur der Filter-Knopf. Der Gemerkt-Stern sitzt auf dem Handy oben in der Navbar,
+  ab md neben dem Seitentitel (Marke und Creator).

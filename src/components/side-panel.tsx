@@ -41,7 +41,7 @@ export function SidePanel({
         aria-modal="true"
         aria-label={label}
         tabIndex={-1}
-        className="animate-panel-in absolute inset-y-0 right-0 flex w-full max-w-xl flex-col bg-background shadow-2xl outline-none"
+        className="animate-panel-in absolute inset-y-0 right-0 flex w-full max-w-xl flex-col overflow-hidden bg-background shadow-2xl outline-none"
       >
         <div className="flex shrink-0 items-center justify-end gap-1 border-b border-ink/10 px-3 pt-[calc(var(--safe-top)+8px)] pb-2 md:pt-2">
           {fullPageHref && (
@@ -65,7 +65,8 @@ export function SidePanel({
             <IoClose className="h-5 w-5" aria-hidden />
           </button>
         </div>
-        <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-6 py-6">{children}</div>
+        {/* Up and down only: nothing in the panel may be dragged sideways. */}
+        <div className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden overscroll-contain px-6 py-6">{children}</div>
       </div>
     </div>
   );

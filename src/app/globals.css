@@ -438,6 +438,18 @@ main:has(.chat-thread) > .dashboard-banners {
   }
 }
 
+/* While a sheet, dialog or panel is open, the page behind it holds still: no scrolling and no sideways drag of the
+   page (or of <main>, which is the dashboard's scroller) through or around the sheet. */
+html:has(dialog[open]),
+html:has([aria-modal="true"]),
+html:has(dialog[open]) body,
+html:has([aria-modal="true"]) body,
+html:has(dialog[open]) main,
+html:has([aria-modal="true"]) main {
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+
 /* A selection bar coming up from below when the first row is ticked (see SelectionBar). */
 @keyframes bar-up {
   from {

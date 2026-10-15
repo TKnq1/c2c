@@ -8,6 +8,7 @@ import { computeResponseTimeMs, formatResponseTime } from "@/lib/response-time";
 import { DiscoverCreators } from "@/components/discover-creators";
 import { SkeletonTileGrid } from "@/components/skeleton";
 import { PageTitle } from "@/components/page-title";
+import { FavoritesOnlyToggle } from "@/components/favorites-only-toggle";
 import { formatInfo, isPostFormat } from "@/lib/social/platforms";
 import type { DiscoverRequest } from "@/lib/discover-filter";
 import { getT } from "@/lib/i18n/server";
@@ -135,8 +136,16 @@ export default async function DiscoverCreatorsPage() {
 
   return (
     <div className="page-wide flex flex-col gap-5">
-      {/* On phones the header names the page (see pageTitleKey in nav.tsx). */}
-      <PageTitle description={t("extras.misc.creatorsHint")}>{t("screens.discover.creators")}</PageTitle>
+      {/* On phones the header names the page and holds the saved-only star (see Nav); from md up both are here. */}
+      {/* No box on phones (display: contents), so the hidden title leaves no gap above the search. */}
+      <div className="flex items-start justify-between gap-4 max-md:contents">
+        <PageTitle description={t("extras.misc.creatorsHint")}>{t("screens.discover.creators")}</PageTitle>
+        <div className="hidden md:block">
+          <Suspense fallback={null}>
+            <FavoritesOnlyToggle />
+          </Suspense>
+        </div>
+      </div>
       <Suspense fallback={<SkeletonTileGrid />}>
         <DiscoverCreators creators={creatorsWithRatings} requests={requests} />
       </Suspense>
