@@ -1,12 +1,14 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
-import { IoChevronDown, IoOptionsOutline } from "react-icons/io5";
+import { IoChevronDown, IoClose, IoOptionsOutline } from "react-icons/io5";
 import { Dialog } from "@/components/dialog";
 
 // One look for every filter in the app, brand and creator side alike: status filters as a row of pills (Deals,
 // Requests, Matches), and on the pages with a search (Discover, Messages) a Filter button next to the search that opens
-// the filter sheet. The pills inside the sheet are the same pills.
+// the filter sheet: a bottom sheet on phones, a panel hanging under the button on desktop. The pills inside are the same pills,
+// and on desktop the filters that are on also stand under the search as chips that take them off again.
 
 export const searchFieldClass = "min-h-11 border-transparent bg-fog dark:border-transparent";
 
@@ -61,12 +63,34 @@ export function FilterChipRow({ label, children }: { label: string; children: Re
   );
 }
 
+// Where the desktop panel hangs: just under the Filter button, right edges aligned (px from the viewport's top and right).
+export type FilterAnchor = { top: number; right: number };
+
+// Open/closed state of one filter sheet, and the spot of the button that opened it.
+export function useFilterSheet() {
+  const [open, setOpen] = useState(false);
+  const [anchor, setAnchor] = useState<FilterAnchor | null>(null);
+  return {
+    open,
+    anchor,
+    show: (at: FilterAnchor) => {
+      setAnchor(at);
+      setOpen(true);
+    },
+    hide: () => setOpen(false),
+  };
+}
+
 // The button beside a search that opens the filter sheet, with how many filters are on.
-export function FilterButton({ count, label, activeLabel, onClick }: { count: number; label: string; activeLabel: string; onClick: () => void }) {
+export function FilterButton({ count, label, activeLabel, onClick }: { count: number; label: string; activeLabel: string; onClick: (anchor: FilterAnchor) => void }) {
   return (
     <button
       type="button"
-      onClick={onClick}
+      aria-haspopup="dialog"
+      onClick={(e) => {
+        const rect = e.currentTarget.getBoundingClientRect();
+        onClick({ top: rect.bottom + 8, right: window.innerWidth - rect.right });
+      }}
       aria-label={count > 0 ? activeLabel : label}
       className="relative flex min-h-11 min-w-11 shrink-0 items-center justify-center gap-2 rounded border border-neutral-300 px-3 text-sm font-medium transition hover:border-neutral-400 dark:border-neutral-700"
     >
@@ -89,11 +113,16 @@ export function FilterSheet({
   resetLabel,
   onReset,
   showLabel,
+  anchor,
+  wide = false,
   children,
 }: {
   open: boolean;
   onClose: () => void;
   title: string;
+  // The Filter button's spot (see useFilterSheet): from md up the sheet hangs under it. `wide`: groups in two columns.
+  anchor?: FilterAnchor | null;
+  wide?: boolean;
   resetLabel: string;
   onReset: () => void;
   // "Show 5 creators": the filters apply at once, this closes the sheet on the result.
@@ -101,8 +130,8 @@ export function FilterSheet({
   children: React.ReactNode;
 }) {
   return (
-    <Dialog open={open} onClose={onClose} title={title}>
-      {children}
+    <Dialog open={open} onClose={onClose} title={title} anchor={anchor} wide={wide}>
+      <div className={`flex flex-col gap-4 ${wide ? "md:grid md:grid-cols-2 md:gap-x-8 md:gap-y-5" : ""}`}>{children}</div>
       {/* Sticks to the sheet's bottom edge on phones, over the sheet's own bottom padding (the home indicator's room), so
           nothing scrolls by underneath it. */}
       <div className="sticky -mx-5 -mb-[max(var(--safe-bottom),20px)] bottom-[calc(-1*max(var(--safe-bottom),20px))] flex items-center gap-3 border-t border-ink/10 bg-background px-5 pt-3 pb-[calc(0.75rem+max(var(--safe-bottom),20px))] md:static md:m-0 md:border-0 md:p-0">
@@ -117,9 +146,10 @@ export function FilterSheet({
   );
 }
 
-export function FilterGroup({ label, children }: { label: string; children: React.ReactNode }) {
+// `span`: across both columns of a wide sheet (a group with many pills).
+export function FilterGroup({ label, span = false, children }: { label: string; span?: boolean; children: React.ReactNode }) {
   return (
-    <fieldset className="flex flex-col gap-2">
+    <fieldset className={`flex flex-col gap-2 ${span ? "md:col-span-2" : ""}`}>
       <legend className="mb-2 text-footnote font-medium text-neutral-600 dark:text-neutral-400">{label}</legend>
       <div className="flex flex-wrap gap-2">{children}</div>
     </fieldset>
@@ -154,5 +184,28 @@ export function SortMenu({
         ))}
       </select>
     </label>
+  );
+}
+
+// The filters that are on, as chips under the search (desktop; on phones the Filter button's badge says it). Each chip takes
+// its filter off again.
+export function AppliedFilters({ items, removeLabel }: { items: { key: string; label: string; onRemove: () => void }[]; removeLabel: string }) {
+  if (items.length === 0) return null;
+  return (
+    <ul className="hidden flex-wrap gap-2 md:flex">
+      {items.map((item) => (
+        <li key={item.key} className="inline-flex h-9 items-center gap-0.5 rounded-full bg-fog pl-3.5 pr-1 text-sm font-medium">
+          {item.label}
+          <button
+            type="button"
+            onClick={item.onRemove}
+            aria-label={`${removeLabel}: ${item.label}`}
+            className="flex h-8 w-8 items-center justify-center rounded-full text-neutral-600 transition hover:bg-ink/10 hover:text-ink dark:text-neutral-400"
+          >
+            <IoClose className="h-4 w-4" aria-hidden />
+          </button>
+        </li>
+      ))}
+    </ul>
   );
 }

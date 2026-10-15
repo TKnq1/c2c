@@ -5,7 +5,7 @@ import { FiSearch } from "react-icons/fi";
 import { NICHES } from "@/lib/constants";
 import { useUrlState } from "@/lib/use-url-state";
 import { SearchInput } from "@/components/search-input";
-import { FilterButton, FilterChip, FilterGroup, FilterSheet, searchFieldClass } from "@/components/filters";
+import { AppliedFilters, FilterButton, FilterChip, FilterGroup, FilterSheet, searchFieldClass, useFilterSheet } from "@/components/filters";
 import { BrandCard } from "@/components/brand-card";
 import { EmptyState } from "@/components/empty-state";
 import { computeRelevanceScore } from "@/lib/relevance";
@@ -33,7 +33,7 @@ export function DiscoverBrands({ brands }: { brands: BrandEntry[] }) {
   const { t } = useI18n();
   const [{ q: search, niche, favorites }, setParam, setParams] = useUrlState(["q", "niche", "favorites"]);
   const niches = useMemo(() => (niche ? niche.split(",") : []), [niche]);
-  const [sheetOpen, setSheetOpen] = useState(false);
+  const sheet = useFilterSheet();
   // Filter groups that narrow the list (the saved-only star in the header is not one of them).
   const activeFilterCount = niches.length > 0 ? 1 : 0;
 
@@ -88,9 +88,14 @@ export function DiscoverBrands({ brands }: { brands: BrandEntry[] }) {
           count={activeFilterCount}
           label={t("screens.discover.filter")}
           activeLabel={t("screens.discover.filtersActive", { count: activeFilterCount })}
-          onClick={() => setSheetOpen(true)}
+          onClick={sheet.show}
         />
       </div>
+
+      <AppliedFilters
+        removeLabel={t("common.remove")}
+        items={niches.map((n) => ({ key: n, label: nicheLabel(t, n), onRemove: () => toggleNiche(n) }))}
+      />
 
       <p className="text-sm text-neutral-600 dark:text-neutral-400">
         {filtered.length === 1
@@ -124,8 +129,9 @@ export function DiscoverBrands({ brands }: { brands: BrandEntry[] }) {
       )}
 
       <FilterSheet
-        open={sheetOpen}
-        onClose={() => setSheetOpen(false)}
+        open={sheet.open}
+        onClose={sheet.hide}
+        anchor={sheet.anchor}
         title={t("screens.discover.filter")}
         resetLabel={t("screens.discover.resetFilters")}
         onReset={() => setParam("niche", "")}

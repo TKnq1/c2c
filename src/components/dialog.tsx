@@ -1,13 +1,14 @@
 "use client";
 
-import { useEffect, useId, useRef, type ReactNode } from "react";
+import { useEffect, useId, useRef, type CSSProperties, type ReactNode } from "react";
 import { IoClose } from "react-icons/io5";
 import { useExitAnimation } from "@/lib/use-exit-animation";
 import { useI18n } from "@/components/i18n-provider";
 
 // Native <dialog> + showModal() gets focus trapping, the page behind going
 // inert, and top-layer stacking (above the fixed nav and toasts) for free.
-// Bottom sheet on phones, centered card from md up. Closing — Escape,
+// Bottom sheet on phones, centered card from md up (or, given an `anchor`, a panel that hangs under the button it was
+// opened from, see FilterSheet). Closing — Escape,
 // backdrop tap, or the parent flipping `open` — plays the exit animation
 // first and only calls close() once it's done (see useExitAnimation).
 // Children only mount while it's showing, so a form inside starts fresh.
@@ -16,6 +17,8 @@ export function Dialog({
   onClose,
   title,
   media,
+  anchor,
+  wide = false,
   children,
 }: {
   open: boolean;
@@ -23,6 +26,10 @@ export function Dialog({
   title: string;
   // Full-bleed content above the padded body, e.g. a cover image.
   media?: ReactNode;
+  // From md up the dialog sits at this spot (px from the viewport's top and right edge) instead of the middle.
+  anchor?: { top: number; right: number } | null;
+  // A wider card/panel on desktop, for content in two columns.
+  wide?: boolean;
   children: ReactNode;
 }) {
   const { t } = useI18n();
@@ -37,9 +44,17 @@ export function Dialog({
     else if (!present && dialog.open) dialog.close();
   }, [present]);
 
+  const width = wide ? "md:max-w-xl" : "md:max-w-sm";
+  // The panel can't be wider than the room left of the button, and its body scrolls within the room below it.
+  const place = anchor
+    ? "md:fixed md:inset-auto md:top-[var(--anchor-top)] md:right-[var(--anchor-right)] md:m-0 md:w-[min(100%,calc(100vw-var(--anchor-right)-16px))] md:shadow-2xl"
+    : "md:m-auto";
+  const anchorStyle = anchor ? ({ "--anchor-top": `${anchor.top}px`, "--anchor-right": `${anchor.right}px` } as CSSProperties) : undefined;
+
   return (
     <dialog
       ref={ref}
+      style={anchorStyle}
       aria-labelledby={titleId}
       data-state={closing ? "closing" : undefined}
       // Escape would close() natively and skip the exit animation — hand
@@ -59,12 +74,12 @@ export function Dialog({
       onAnimationEnd={(e) => {
         if (e.target === e.currentTarget && !e.pseudoElement) onExitEnd();
       }}
-      className="animate-sheet-in m-0 mt-auto w-full max-w-none overflow-hidden overscroll-contain rounded-t-[20px] bg-background text-foreground backdrop:bg-black/40 md:m-auto md:max-w-sm md:rounded-[20px]"
+      className={`animate-sheet-in m-0 mt-auto w-full max-w-none overflow-hidden overscroll-contain rounded-t-[20px] bg-background text-foreground backdrop:bg-black/40 ${place} ${width} md:rounded-[20px]`}
     >
       {present && (
         // No display utilities on the <dialog> itself — they'd override the
         // UA's display:none for a closed one. The layout lives in here.
-        <div className="flex max-h-[85dvh] flex-col">
+        <div className={`flex max-h-[85dvh] flex-col ${anchor ? "md:max-h-[calc(100dvh-var(--anchor-top)-24px)]" : ""}`}>
           {media}
           {/* Scrolls up and down only: a sideways swipe neither pans the sheet's content nor reaches the page behind it.
               The media above (a photo strip) keeps its own sideways swipe. */}
