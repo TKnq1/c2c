@@ -592,9 +592,9 @@ def make_launch_bed(grid):
 
     # Opening: pad and arpeggio low-passed and quiet, no drums; air rising into the turn.
     for bar in range(0, int(turn), 4):
-        pads(dark, bar, min(4, turn - bar), 1000, 0.16)
-    arp(dark, 4, turn, 0.11, every=2)
-    place(dark, 0, round_bass(BBM9[1] + 12, lt(turn)), gain=0.25)
+        pads(dark, bar, min(4, turn - bar), 1000, 0.12)
+    arp(dark, 4, turn, 0.08, every=2)
+    place(dark, 0, round_bass(BBM9[1] + 12, lt(turn)), gain=0.17)
     place(fx, lt(turn - 2), air_swell(lt(2), 0.5))
 
     def groove(start, stop, lift=False, sparse=False):
@@ -764,7 +764,7 @@ def sfx_lock():
 BED_LOUDNESS = "I=-14:TP=-1.5:LRA=11"
 
 
-def write_mp3(path, x, peak):
+def write_mp3(path, x, peak, limit=False):
     with tempfile.TemporaryDirectory() as tmp:
         wav_path = Path(tmp) / "bed.wav"
         write(wav_path, x, peak)
@@ -777,7 +777,10 @@ def write_mp3(path, x, peak):
             text=True,
         ).stderr
         measured = json.loads(probe[probe.rindex("{") :])
-        second = (
+        # loudnorm drops to dynamic compression when one gain would push the peaks past the ceiling; with `limit` the
+        # gain is applied as is and a fast limiter catches the transients instead, so quiet passages stay quiet.
+        gain = -14 - float(measured["input_i"])
+        second = f"volume={gain:.2f}dB,alimiter=limit=0.84:attack=1:release=40:level=0" if limit else (
             f"loudnorm={BED_LOUDNESS}:linear=true:measured_I={measured['input_i']}:measured_TP={measured['input_tp']}"
             f":measured_LRA={measured['input_lra']}:measured_thresh={measured['input_thresh']}:offset={measured['target_offset']}"
         )
@@ -858,7 +861,8 @@ def seed(name):
 
 def main_launch():
     seed("launch-bed.mp3")
-    write_mp3(ROOT / "music" / "launch-bed.mp3", make_launch_bed(GRID["launch"]), peak=0.8)
+    # One gain and a limiter instead of loudnorm's compression, so the quiet opening stays ~9 dB under the groove.
+    write_mp3(ROOT / "music" / "launch-bed.mp3", make_launch_bed(GRID["launch"]), peak=0.8, limit=True)
     effects = {
         "key-1": lambda: sfx_key(190),
         "key-2": lambda: sfx_key(215),

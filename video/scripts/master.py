@@ -2,9 +2,12 @@
 """Brings a rendered video's sound to the loudness social platforms play at (-14 LUFS, peaks under -1 dBTP).
 
     python3 scripts/master.py out/creator.mp4 out/brand.mp4   ->  out/creator-final.mp4, out/brand-final.mp4
+    python3 scripts/master.py --limit out/launch.mp4          ->  out/launch-final.mp4
 
-One linear gain from a two-pass loudnorm, so the mix (voice, ducked music, sounds) keeps its balance. The picture is
-copied untouched. Needs ffmpeg.
+One linear gain from a two-pass loudnorm, so the mix (voice, ducked music, sounds) keeps its balance. loudnorm falls
+back to dynamic compression when that gain would push the peaks past the ceiling; with --limit the gain is applied as
+is and a fast limiter catches the transients instead, so a quiet opening stays quiet. The picture is copied
+untouched. Needs ffmpeg.
 """
 import json
 import subprocess
@@ -14,7 +17,7 @@ from pathlib import Path
 TARGET = "I=-14:TP=-1:LRA=11"
 
 
-def master(path: Path) -> Path:
+def master(path: Path, limit=False) -> Path:
     probe = subprocess.run(
         ["ffmpeg", "-hide_banner", "-i", str(path), "-af", f"loudnorm={TARGET}:print_format=json", "-f", "null", "-"],
         capture_output=True,
@@ -22,7 +25,8 @@ def master(path: Path) -> Path:
         check=True,
     ).stderr
     m = json.loads(probe[probe.rindex("{") :])
-    second = (
+    gain = -14 - float(m["input_i"])
+    second = f"volume={gain:.2f}dB,alimiter=limit=0.82:attack=1:release=40:level=0" if limit else (
         f"loudnorm={TARGET}:linear=true:measured_I={m['input_i']}:measured_TP={m['input_tp']}"
         f":measured_LRA={m['input_lra']}:measured_thresh={m['input_thresh']}:offset={m['target_offset']}"
     )
@@ -36,5 +40,7 @@ def master(path: Path) -> Path:
 
 
 if __name__ == "__main__":
-    for arg in sys.argv[1:]:
-        master(Path(arg))
+    args = sys.argv[1:]
+    for arg in args:
+        if arg != "--limit":
+            master(Path(arg), limit="--limit" in args)
