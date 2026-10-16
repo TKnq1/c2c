@@ -476,12 +476,12 @@ def make_ad_bed(grid, audience):
 
 # ---------------------------------------------------------------------------------------------------------------
 # The launch video (src/launch): pop lofi at the cut's tempo (90 BPM, a beat is 20 frames), F major, the royal road
-# IV-V-iii-vi (B flat maj9, C9, A minor 7, D minor 9). A Rhodes comping with a tape wobble, a warm bass, swung lofi
-# drums (round kick, dusty snare, a clap in the bigger grooves, swung hats), a vibraphone hook in the later grooves,
-# vinyl crackle underneath and gang shouts ("Hey!", "Ho!") formant-synthesised here. The Rhodes, bass and vibraphone
-# are the FluidR3 GM soundfont (MIT) through fluidsynth (apt: fluidsynth fluid-soundfont-gm; pip: mido); the rest is
-# synthesised. Quiet and filtered under the opening lines, the groove from the turn, breaks under "Ein Swipe" and the
-# switch to brands, drums out for the logo, soft again under the call to action.
+# IV-V-iii-vi (B flat maj9, C9, A minor 7, D minor 9). A Rhodes comping with a light tape wobble, a warm bass, swung
+# lofi drums (round kick, dusty snare, a clap in the bigger grooves, swung hats) and a vibraphone hook in the later
+# grooves. The Rhodes, bass and vibraphone are the FluidR3 GM soundfont (MIT) through fluidsynth (apt: fluidsynth
+# fluid-soundfont-gm; pip: mido); the drums are synthesised. Quiet and filtered under the opening lines, the groove
+# from the turn, breaks under "Ein Swipe" and the switch to brands, drums out for the logo, then two soft bars and a
+# last chord on the bar line, left to ring out to the end.
 
 SF2 = Path("/usr/share/sounds/sf2/FluidR3_GM.sf2")
 # (bass root, Rhodes voicing) per bar.
@@ -575,23 +575,13 @@ def muffle(x, start, stop, cutoff):
     return out
 
 
-def tape_wobble(x, depth_ms=1.2, rate=0.55):
+def tape_wobble(x, depth_ms=0.5, rate=0.55):
     """A slow, slightly uneven pitch wobble like worn tape: a delay line swinging a millisecond or so."""
     n = len(x)
     t = np.arange(n) / SR
-    delay = (3 + depth_ms * np.sin(2 * np.pi * rate * t) + 0.35 * np.sin(2 * np.pi * 2.7 * t + 1.3)) / 1000 * SR
+    delay = (3 + depth_ms * np.sin(2 * np.pi * rate * t) + 0.15 * np.sin(2 * np.pi * 2.7 * t + 1.3)) / 1000 * SR
     idx = np.clip(np.arange(n) - delay, 0, n - 1)
     return np.stack([np.interp(idx, np.arange(n), x[:, ch]) for ch in range(2)], axis=1)
-
-
-def vinyl(length):
-    """Crackle and a little hiss, the lofi floor."""
-    n = int(length * SR)
-    out = np.zeros(n)
-    clicks = rng.random(n) < 22 / SR
-    out[clicks] = rng.choice([-1, 1], clicks.sum()) * rng.uniform(0.2, 1.0, clicks.sum())
-    out = band(out, 1200, 9000) * 2.5 + band(rng.normal(0, 1, n), 300, 6000) * 0.04
-    return np.stack([out, np.roll(out, int(0.0007 * SR))], axis=1)
 
 
 def lofi_kick(gain=1.0):
@@ -623,76 +613,13 @@ def lofi_hat(gain=1.0, open_=False):
     return declick(band(noise(len(t) / SR), 6000, 12000) * np.exp(-t / (0.09 if open_ else 0.018)) * gain)
 
 
-# Gang shouts, formant-synthesised: a glottal pulse with jitter through five resonators gliding through the vowel,
-# an "h" of breath in front, five voices (three low, two high) a few milliseconds apart, a small room around them.
-SHOUTS = {
-    # vowel targets (F1, F2, F3) from -> to, pitch start / peak / end (Hz) for the lowest voice, length (s)
-    "hey": {"from": (680, 1850, 2550), "to": (430, 2150, 2750), "pitch": (215, 270, 195), "dur": 0.34},
-    "ho": {"from": (580, 980, 2450), "to": (430, 820, 2400), "pitch": (205, 250, 185), "dur": 0.36},
-}
-GANG = [(1.0, 1.0, 0.000, -0.35, 1.0), (0.89, 0.97, 0.013, 0.4, 0.9), (1.14, 1.03, 0.006, 0.1, 0.8), (1.6, 1.16, 0.018, -0.55, 0.6), (1.75, 1.2, 0.009, 0.6, 0.55)]
-
-
-def resonate(x, f, bw):
-    """A two-pole resonator whose frequency and bandwidth may change every block (Klatt's formant filter)."""
-    from scipy.signal import lfilter
-
-    out = np.zeros_like(x)
-    zi = np.zeros(2)
-    block = 64
-    for i in range(0, len(x), block):
-        fi = f[min(i, len(f) - 1)]
-        c = -np.exp(-2 * np.pi * bw / SR)
-        b = 2 * np.exp(-np.pi * bw / SR) * np.cos(2 * np.pi * fi / SR)
-        a = 1 - b - c
-        out[i : i + block], zi = lfilter([a], [1, -b, -c], x[i : i + block], zi=zi)
-    return out
-
-
-def shout_voice(word, f0_mult, formant_mult):
-    spec = SHOUTS[word]
-    dur = spec["dur"]
-    t = axis(dur)
-    h = 0.06  # the breath before the voice
-    u = np.clip((t - h) / (dur - h), 0, 1)
-    p0, p1, p2 = spec["pitch"]
-    pitch = np.where(u < 0.3, p0 + (p1 - p0) * (u / 0.3), p1 + (p2 - p1) * ((u - 0.3) / 0.7)) * f0_mult
-    pitch *= 1 + 0.012 * band(rng.normal(0, 1, len(t)), None, 30) / 0.2
-    phase = np.cumsum(pitch / SR) % 1.0
-    # Rosenberg pulse, differentiated (the lips radiate the slope).
-    tp, tn = 0.42, 0.12
-    pulse = np.where(phase < tp, 0.5 * (1 - np.cos(np.pi * phase / tp)), np.where(phase < tp + tn, np.cos(np.pi * (phase - tp) / (2 * tn)), 0))
-    voice = np.diff(pulse, prepend=0) * (1 + 0.08 * rng.normal(0, 1, len(t)))
-    voiced = np.clip((t - h) / 0.02, 0, 1) * np.exp(-np.maximum(t - dur * 0.62, 0) / 0.05)
-    breath = band(noise(dur), 400, 7000) * (np.exp(-(((t - 0.03) / 0.03) ** 2)) * 0.9 + 0.12 * voiced)
-    src = voice * voiced * 6 + breath * 0.5
-    out = np.zeros_like(t)
-    fa, fb = np.array(spec["from"]) * formant_mult, np.array(spec["to"]) * formant_mult
-    for k, bw in enumerate((90, 110, 160)):
-        out += resonate(src, fa[k] + (fb[k] - fa[k]) * u, bw) * (1.0, 0.7, 0.35)[k]
-    for f, bw, g in ((3500 * formant_mult, 250, 0.2), (4400 * formant_mult, 300, 0.12)):
-        out += resonate(src, np.full(len(t), f), bw) * g
-    return declick(band(out, 140, 9000), ms=8)
-
-
-def gang_shout(word):
-    """The shout as a stereo buffer: the gang, saturated a little, in a small room."""
-    dur = SHOUTS[word]["dur"] + 0.05
-    buf = np.zeros((int((dur + 0.6) * SR), 2))
-    for f0_mult, formant_mult, delay, pan, gain in GANG:
-        v = shout_voice(word, f0_mult * rng.uniform(0.98, 1.02), formant_mult * rng.uniform(0.98, 1.02))
-        place(buf, delay, v / max(np.max(np.abs(v)), 1e-9), pan=pan, gain=gain)
-    buf = np.tanh(buf * 1.4)
-    return reverb(buf, seconds=0.6, decay=0.18, wet=0.35, lo=300, hi=8000)
-
-
 def make_launch_bed(grid):
     at = grid["scenes"]
     end = grid["end"]
     length = lt(end + 2)
-    rhodes, bass, vib = [], [], []
+    rhodes, bass, vib, pad = [], [], [], []
     n = int(length * SR)
-    kick_bus, snare_bus, clap_bus, hat_bus, shout_bus = (np.zeros((n, 2)) for _ in range(5))
+    kick_bus, snare_bus, clap_bus, hat_bus = (np.zeros((n, 2)) for _ in range(4))
     kicks = []
 
     def chord(start, beat):
@@ -705,13 +632,21 @@ def make_launch_bed(grid):
         """The Rhodes: the chord on one, stabs on the and of two and on four."""
         for bar_at in np.arange(start, stop, 4.0):
             root, voicing = chord(start, bar_at)
-            hits = [(0, 1.4, vel)] + ([(1.5, 0.45, vel - 14), (3, 0.6, vel - 8)] if stabs else [])
+            # Without stabs the chord holds for the whole bar, so the quiet parts flow instead of stopping and starting.
+            hits = [(0, 1.4, vel), (1.5, 0.45, vel - 14), (3, 0.6, vel - 8)] if stabs else [(0, 3.9, vel)]
             for off, dur, v in hits:
                 beat = bar_at + off
                 if beat >= stop:
                     continue
                 for k, note in enumerate(voicing):
                     rhodes.append((swung(beat) + human() + k * 0.01, min(dur, stop - beat), note, v + rng.integers(-6, 6)))
+
+    def pads(start, stop, last=None):
+        """A warm pad under the quiet parts, so they carry on between the Rhodes' chords."""
+        for bar_at in np.arange(start, stop, 4.0):
+            _, voicing = last if last is not None else chord(start, bar_at)
+            for note in voicing:
+                pad.append((bar_at, min(4.0, stop - bar_at) + 0.3, note - 12, 64))
 
     def bassline(start, stop):
         for bar_at in np.arange(start, stop, 4.0):
@@ -720,11 +655,15 @@ def make_launch_bed(grid):
                 if bar_at + off < stop:
                     bass.append((swung(bar_at + off), dur, root - 12 + iv, 92 if off == 0 else 76))
 
-    def drums(start, stop, clap=False, shaker=False):
+    def drums(start, stop, clap=False, shaker=False, hats_only=False):
         for k in range(int(round((stop - start) * 4))):
             beat = start + k / 4
             pos = (beat - start) % 4
             t0 = lt(swung(beat))
+            if hats_only:
+                if pos % 0.5 == 0:
+                    place(hat_bus, t0, lofi_hat(0.35 if pos % 1 else 0.2), pan=0.3)
+                continue
             if pos in (0, 1.75, 2.5):
                 place(kick_bus, t0, lofi_kick(1.0 if pos == 0 else 0.8))
                 kicks.append(t0)
@@ -744,35 +683,27 @@ def make_launch_bed(grid):
                 if beat + d <= stop:
                     vib.append((swung(beat), d, note, 84))
 
-    def shout(beat, word="hey", gain=1.0):
-        x = gang_shout(word)
-        i = int(lt(beat) * SR)
-        m = min(len(x), n - i)
-        if m > 0:
-            shout_bus[i : i + m] += x[:m] * gain
-
     turn, swipe_line, swipe, paid, brands, brief, logo, cta = (at[k] for k in ("L02", "L06", "L07", "L09", "L10", "L11", "L14", "L15"))
-    # Opening: the Rhodes held and filtered, hats only in the last bar, a "Hey!" on the drop.
+    # Opening: the Rhodes held and filtered, hats only in the last bar.
     comp(0, turn, vel=48, stabs=False)
+    pads(0, turn)
     if turn >= 2:
         drums(turn - 2, turn)
     # Groove from the turn.
     comp(turn, swipe_line)
     bassline(turn, swipe_line)
     drums(turn, swipe_line)
-    shout(turn)
     # "Ein Swipe": the Rhodes and the vibraphone alone.
     comp(swipe_line, swipe, vel=56, stabs=False)
+    pads(swipe_line, swipe)
     vib.extend((swipe_line + b, d, note, 70) for b, d, note in LOFI_HOOK if b + d <= swipe - swipe_line)
-    # The bigger groove with the hook, a "Ho!" as "Ausgezahlt." whips in.
+    # The bigger groove with the hook.
     comp(swipe, brands)
     bassline(swipe, brands)
     drums(swipe, brands, clap=True, shaker=True)
     hook(swipe + 4, brands)
-    shout(paid + 0.1, "ho")
-    # The switch to brands: drums muffled, the Rhodes on, a "Hey!" on the big "Und".
+    # The switch to brands: drums muffled, the Rhodes on.
     comp(brands, brief, vel=60)
-    shout(brands, "hey")
     bassline(brands, brief)
     drums(brands, brief)
     # Briefing, Discover, the difference: the full groove again.
@@ -780,23 +711,29 @@ def make_launch_bed(grid):
     bassline(brief, logo)
     drums(brief, logo, clap=True, shaker=True)
     hook(brief + 4, logo)
-    # Logo: drums out, one big chord, the gang once more.
+    # Logo: drums out, one big chord.
     for k, note in enumerate([46, 58, 62, 65, 69, 72]):
         rhodes.append((logo + k * 0.02, 5.5, note, 76))
     bass.append((logo, 5.5, 34, 90))
+    pads(logo, cta, last=(46, [58, 62, 65, 69]))
     for k, note in enumerate((72, 77, 81)):
         vib.append((logo + 1 + k * 0.5, 2, note, 74))
-    # Call to action: soft again, ending on F.
-    comp(cta, end - 4, vel=52)
-    drums(cta, end - 4)
-    for note in [41, 53, 60, 64, 69, 72]:
-        rhodes.append((end - 4, 4, note, 64))
+    # Call to action: the Rhodes and hats softly, then F major 9 on a bar line, ringing out to the end.
+    final = cta + 4 * max(1, int((end - 2.5 - cta) // 4))
+    comp(cta, final, vel=50, stabs=False)
+    pads(cta, final)
+    pads(final, end, last=(41, [57, 60, 64, 69]))
+    drums(cta, final, hats_only=True)
+    for k, note in enumerate([41, 53, 60, 64, 69, 72]):
+        rhodes.append((final + k * 0.02, end - final + 1, note, 56))
+    bass.append((final, end - final, 29, 70))
 
     keys = gm_render(rhodes, 4, length)
     music = (
         level(stereo_band(keys, 90, None), -17)
         + level(stereo_band(gm_render(bass, 33, length), None, 900), -18)
         + level(gm_render(vib, 11, length), -23)
+        + level(stereo_band(gm_render(pad, 89, length), 120, 5000), -27)
     )
     music = tape_wobble(music)
     duck = np.ones(n)
@@ -809,10 +746,12 @@ def make_launch_bed(grid):
     drum_bus = level(kick_bus, -15) + level(snare_bus, -20) + level(clap_bus, -25) + level(hat_bus, -27)
     drum_bus = muffle(drum_bus, lt(brands), lt(brief), 1400)
     drum_bus = stereo_band(np.tanh(drum_bus * 1.3), None, 9500)
-    mix = reverb(music, seconds=1.6, decay=0.45, wet=0.18) + drum_bus + level(shout_bus, -20) + level(vinyl(length), -42)
+    mix = reverb(music, seconds=1.6, decay=0.45, wet=0.18) + drum_bus
     place(mix, lt(turn - 2), riser(lt(2)), gain=0.6)
-    fade = int(1.6 * SR)
-    mix[-fade:] *= np.linspace(1, 0, fade)[:, None] ** 1.5
+    # The last chord fades into the video's last frame, nothing after it.
+    stop, fade = int(lt(end) * SR), int(1.8 * SR)
+    mix[stop - fade : stop] *= np.linspace(1, 0, fade)[:, None] ** 1.5
+    mix[stop:] = 0
     return mix
 
 

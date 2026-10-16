@@ -311,7 +311,7 @@ const ClaimProduct: React.FC = () => {
   const away = glide(frame, 88, 124);
   const rise = spr(frame, 96, "glide");
   const turn = glide(frame, 96, 236);
-  const tilt = { x: mix(turn, 46, 8) + (1 - Math.min(rise, 1)) * 18, y: mix(turn, -30, 4), z: mix(turn, 11, 0) };
+  const tilt = { x: mix(turn, 16, 5) + (1 - Math.min(rise, 1)) * 8, y: mix(turn, -12, 3), z: mix(turn, 3, 0) };
   return (
     <Backdrop light="mist">
       {CLAIM_WORDS.map((_, i) => (
