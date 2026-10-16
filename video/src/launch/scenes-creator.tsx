@@ -241,7 +241,6 @@ const Turn: React.FC = () => {
   const spread = glide(frame, 64, 100);
   return (
     <Backdrop light="mist">
-      <Sfx name="boom" at={2} volume={0.3} />
       <Sfx name="slam" at={2} volume={0.55} />
       <Sfx name="slam" at={12} volume={0.55} />
       <Sfx name="whoosh" at={62} volume={0.1} />
@@ -275,7 +274,6 @@ const Reveal: React.FC = () => {
   const size = mix(back, 400, 150);
   return (
     <Backdrop light="mist" lines={3}>
-      <Sfx name="boom" at={0} volume={0.35} />
       <Sfx name="slam" at={0} volume={0.6} />
       <Sfx name="whoosh" at={42} volume={0.08} />
       <Keys times={NAME_TIMES} />
@@ -593,7 +591,6 @@ const Paid: React.FC = () => {
   const out = glide(frame, 72, 92);
   return (
     <Backdrop light="night">
-      <Sfx name="boom" at={0} volume={0.25} />
       <Sfx name="whoosh" at={0} volume={0.18} />
       <Sfx name="coin" at={60} volume={0.55} />
       <SmearFilter id="paid-smear" amount={mix(Math.min(whip, 1), 70, 0)} />

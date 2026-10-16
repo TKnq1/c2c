@@ -41,7 +41,6 @@ const ForBrands: React.FC = () => {
   const tighten = glide(frame, 48, 100);
   return (
     <Backdrop light="night" lines={10}>
-      <Sfx name="boom" at={0} volume={0.3} />
       <Sfx name="slam" at={0} volume={0.65} />
       <Sfx name="whoosh" at={44} volume={0.08} />
       <Center>
@@ -294,7 +293,6 @@ const EndCard: React.FC = () => {
   const letters = typedCount(frame, END_TIMES);
   return (
     <Backdrop light="mist">
-      <Sfx name="boom" at={4} volume={0.35} />
       <Keys times={END_TIMES} />
       <Center>
         <div style={{ display: "flex", alignItems: "center", gap: letters > 0 ? 44 : 0, transform: `scale(${drift(frame, 145, 1.12, 0.76)})` }}>
