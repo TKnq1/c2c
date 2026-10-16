@@ -1,22 +1,22 @@
-import { AbsoluteFill, Easing, Html5Audio, interpolate, Sequence, staticFile } from "remotion";
+import { AbsoluteFill, Easing, interpolate, Sequence } from "remotion";
 import { mix } from "../anim";
 import { Sfx, SfxEnabled, SfxGain } from "../audio";
 import { SceneSpeed, useFrame } from "../frame";
 import { LAUNCH_HEIGHT, LAUNCH_WIDTH } from "./kit";
 import { LAUNCH_DURATION, LAUNCH_SCENES, OVERLAP, STEPS_PER_FRAME, type TimedScene } from "./scenes";
 
-// The launch video (LAUNCH.md), 16:9: the scenes end to end on the music's beat grid, handed over so the camera seems
+// The launch video (LAUNCH.md), 16:9: the scenes end to end on a 90 BPM beat grid, handed over so the camera seems
 // to keep moving through one take (scenes.tsx, `exit`). A dive pushes into a point, gathering speed, and the next
 // scene lands out of the blur around its own focus, settling the last bit like a camera coming to rest, with a soft
 // shimmer; a pan slides the camera on and the next scene arrives from the other side, the two meeting edge to edge,
 // motion-blurred along the move.
-// The music (scripts/make-audio.py --launch) follows the same grid.
+// It carries no music, only its effects (scripts/make-audio.py --launch), at the level they would sit at under music,
+// so music can be laid under it in an editor; at 90 BPM the cuts land on its beats.
 // Everything here counts in drawn frames (30 per second); the composition runs at 60 and plays each drawn frame in
 // two steps (SceneSpeed), so every animation gets the in-between positions.
 // The dive starts a little before the next scene does, so the two overlap.
 const EXIT = 24;
-const MUSIC_VOLUME = 0.7;
-// The reference's effects are minimal: quiet under the music, never on top of it.
+// The reference's effects are minimal: quiet, made to sit under music.
 const SFX_GAIN = 0.6;
 // How close the next scene starts after a dive, settling to 1.
 const ARRIVE = 1.12;
@@ -87,7 +87,7 @@ const Shell: React.FC<{ scene: TimedScene; first: boolean; children: React.React
           </filter>
         </svg>
       )}
-      {/* A dive's shimmer swells into the cut; a pan gets a soft, airy sweep. Both stay well under the music. */}
+      {/* A dive's shimmer swells into the cut; a pan gets a soft, airy sweep. Both kept low. */}
       {exit && "dive" in exit && <Sfx name="shimmer" at={scene.duration - OVERLAP - 23} volume={0.22} />}
       {exit && "pan" in exit && <Sfx name="sweep" at={scene.duration - OVERLAP - 8} volume={0.2} />}
       {children}
@@ -95,9 +95,8 @@ const Shell: React.FC<{ scene: TimedScene; first: boolean; children: React.React
   );
 };
 
-export const LaunchVideo: React.FC<{ music?: boolean; sfx?: boolean }> = ({ music = true, sfx = true }) => (
+export const LaunchVideo: React.FC<{ sfx?: boolean }> = ({ sfx = true }) => (
   <AbsoluteFill style={{ backgroundColor: "#070707" }}>
-    {music && <Html5Audio src={staticFile("music/launch-bed.mp3")} volume={MUSIC_VOLUME} />}
     <SceneSpeed.Provider value={1 / STEPS_PER_FRAME}>
       <SfxEnabled.Provider value={sfx}>
         <SfxGain.Provider value={SFX_GAIN}>

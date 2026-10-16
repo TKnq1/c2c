@@ -14,7 +14,7 @@ export function caretOn(frame: number, idleFrom: number) {
 }
 
 const KEYS: SfxName[] = ["key-1", "key-2", "key-3"];
-// Typing sits well under the music: a quiet keyboard in the room, not a sound effect.
+// Typing stays quiet: a keyboard in the room, not a sound effect.
 const KEY_LEVEL = 0.2;
 
 // A key at each of `times` (a line's typingTimes), a little uneven in volume like real typing.

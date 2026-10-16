@@ -26,7 +26,7 @@ export const RemotionRoot: React.FC = () => (
         <Composition key={id} id={id} component={component} durationInFrames={keyframe + 1} fps={FPS} width={WIDTH} height={HEIGHT} />
       ))}
     </Folder>
-    <Composition id="LaunchVideo" component={LaunchVideo} defaultProps={{ music: true, sfx: true }} durationInFrames={LAUNCH_FRAMES} fps={LAUNCH_FPS} width={LAUNCH_WIDTH} height={LAUNCH_HEIGHT} />
+    <Composition id="LaunchVideo" component={LaunchVideo} defaultProps={{ sfx: true }} durationInFrames={LAUNCH_FRAMES} fps={LAUNCH_FPS} width={LAUNCH_WIDTH} height={LAUNCH_HEIGHT} />
     <Folder name="Launch-Stills">
       {LAUNCH_STILLS.map(({ id, label, component, durationInFrames }) => (
         <Composition key={id} id={id} component={component} defaultProps={{ label }} durationInFrames={durationInFrames} fps={FPS} width={LAUNCH_WIDTH} height={LAUNCH_HEIGHT} />

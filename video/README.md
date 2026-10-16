@@ -59,37 +59,26 @@ with its choice sheets, Discover), `phone.tsx` the iPhone and the Feed as the ap
 ```bash
 npm run launch:stills   # one still per scene (its keyframe) to out/launch/ and a contact sheet out/launch-stills.png
 npm run launch:raw      # the picture only: out/launch-raw.mp4
-npm run launch:audio    # regenerate its music and sounds (needs python3, numpy, ffmpeg, fluidsynth, mido)
-npm run launch:render   # with sound, lossless frames, CRF 14, mastered to -14 LUFS: out/launch-final.mp4
+npm run launch:audio    # regenerate its sounds (needs python3, numpy, ffmpeg)
+npm run launch:render   # with its sounds, lossless frames, CRF 14, at 60 fps: out/launch-final.mp4
 ```
 
 The scenes are drawn in frames of 30 per second, but the video runs at 60: `LaunchVideo` plays every drawn frame in
 two steps (`SceneSpeed`, `STEPS_PER_FRAME` in `src/launch/scenes.tsx`), so the camera, the springs and the hand-overs
 get their in-between positions. Timings in the scenes stay in drawn frames.
 
-The music is pop lofi built for the cut by `scripts/make-audio.py --launch`: 90 BPM (a beat is 20 drawn frames),
-F major. A Rhodes with a light tape wobble, a warm bass, swung lofi drums, a vibraphone, a marimba, a second electric
-piano and a pad, all from the FluidR3 GM soundfont (MIT) played through fluidsynth (`apt install fluidsynth
-fluid-soundfont-gm`, `pip install mido`), the drums synthesised. Its parts follow the scenes: filtered and held under
-the opening lines with a few notes of the hook far off; a light groove from the turn (side stick, the bass on the
-roots) that fills out halfway; a break under "Ein Swipe"; the big groove with the vibraphone hook for the swipe,
-arpeggios joining for the deal, a crash on the payout; muffled for the switch to brands; for the brands a second
-progression (vi-IV-I-V instead of the royal road IV-V-iii-vi) with its own marimba melody; half time under the
-difference; one big chord for the logo; and the hook once more on the marimba under the call to action before a last
-chord on the bar line that rings out into the last frame. Snare runs, risers and a soft crash lead into the big
-moments.
-
-The effects stay minimal under the music: a quiet, muffled mechanical keyboard, a soft low boom on the big moments
-(turn, reveal, payout, brands, logo), a soft shimmer into every dive, a low, airy sweep under every pan, a slam
-under words, a select tick; `SfxGain` (`src/audio.tsx`) sets their overall level. They are synthesised
-(`scripts/make-audio.py --launch`: `public/sfx/key-*.wav`, `boom`, `shimmer`, `sweep`, `slam`, `select`).
+The video carries no music, only its effects, kept minimal: a quiet, muffled mechanical keyboard, a soft low boom on
+the big moments (turn, reveal, payout, brands, logo), a soft shimmer into every dive, a low, airy sweep under every
+pan, a slam under words, a select tick, the app's clicks and ticks. They sit at the level they would have under
+music (`SfxGain` in `src/audio.tsx`, then a fixed +3.4 dB and a limiter in `scripts/master.py --gain`), so music can
+be laid under the finished video in an editor. They are synthesised (`scripts/make-audio.py --launch`:
+`public/sfx/key-*.wav`, `boom`, `shimmer`, `sweep`, `slam`, `select`).
 
 The scenes hand over without a hard cut (`exit` in `src/launch/scenes.tsx`): a `dive` pushes into a point and the
 next scene lands out of the blur around its `focus`, a `pan` slides both scenes edge to edge, motion-blurred. The key
 presses (Annehmen, Beitragslink einreichen, Anfrage posten, Einladen) get a macro close-up (`Macro` in `kit.tsx`).
 
-Every scene lasts whole beats (`beats` in `src/launch/scenes.tsx`, halves allowed), so every cut lands on a beat;
-`scripts/grid.ts` hands the starts to the music. Change a scene's beats, then run `npm run launch:audio`.
-`LaunchVideo` takes `music` and `sfx` props to render either layer on its own. The creators on Discover take a
-portrait each (`photo` in `CREATORS`, `src/launch/app-screens.tsx`, a file in `public/`); without one the tile shows
-the initials.
+Every scene lasts whole beats of 90 BPM (`beats` in `src/launch/scenes.tsx`, halves allowed), so with music at 90 BPM
+laid under it every cut lands on a beat. `LaunchVideo` takes an `sfx` prop to render the picture without them. The
+creators on Discover take a portrait each (`photo` in `CREATORS`, `src/launch/app-screens.tsx`, a file in `public/`);
+without one the tile shows the initials.
