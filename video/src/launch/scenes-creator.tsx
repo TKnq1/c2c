@@ -172,11 +172,11 @@ const Opening: React.FC = () => {
     <Backdrop light="paper">
       <Keys times={A_TIMES} />
       <Keys times={B_TIMES.slice(1)} />
-      <Sfx name="select" at={SELECT[0]} volume={0.5} />
-      <Sfx name="key-del" at={CUT} volume={0.6} />
+      <Sfx name="select" at={SELECT[0]} volume={0.25} />
+      <Sfx name="key-del" at={CUT} volume={0.18} />
       <Keys times={Array.from({ length: 12 }, (_, k) => ERASE + 1 + k * 2)} del volume={0.45} />
       <Keys times={C_TIMES} />
-      <Sfx name="select" at={SELECT_C[0]} volume={0.5} />
+      <Sfx name="select" at={SELECT_C[0]} volume={0.25} />
       {/* Far back: UI out of focus, drifting a little more than the modules in front of it. */}
       <AbsoluteFill style={{ transform: `scale(${1 + (camera - 1) * 0.03}) translate(${10 * Math.sin(frame / 120)}px, ${6 * Math.cos(frame / 140)}px)` }}>
         <Ghost x={640} y={-60} blur={10} opacity={0.45}>
