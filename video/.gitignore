@@ -2,3 +2,4 @@ node_modules
 out
 # Third-party music kept locally, never committed.
 public/music/licensed
+__pycache__
