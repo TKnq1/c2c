@@ -110,6 +110,38 @@ export const Typed: React.FC<{ text: string; size: number; select?: [number, num
   );
 };
 
+// Where a typed line breaks: `breaks` are the indices in the full line where a new line starts (a space there is
+// dropped), so a line typed in a tall frame wraps as it is written. Returns each line's [start, end).
+export function splitLines(text: string, breaks: number[]): [number, number][] {
+  const lines: [number, number][] = [];
+  let start = 0;
+  for (const at of breaks) {
+    if (text.length <= at) break;
+    lines.push([start, at]);
+    start = at + (text[at] === " " ? 1 : 0);
+  }
+  lines.push([start, text.length]);
+  return lines;
+}
+
+// The longest line's length, for the camera fitting the line into the frame.
+export function longestLine(text: string, breaks: number[]) {
+  return Math.max(...splitLines(text, breaks).map(([a, b]) => b - a));
+}
+
+// A typed line set over several lines (splitLines), the selection and the caret where they fall.
+export const TypedLines: React.FC<{ text: string; size: number; breaks: number[]; select?: [number, number]; caret: boolean; dark?: boolean }> = ({ text, size, breaks, select, caret, dark }) => {
+  const lines = splitLines(text, breaks);
+  return (
+    <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
+      {lines.map(([a, b], i) => {
+        const part: [number, number] | undefined = select && select[1] > a && select[0] < b ? [Math.max(select[0], a) - a, Math.min(select[1], b) - a] : undefined;
+        return <Typed key={i} text={text.slice(a, b)} size={size} select={part} caret={caret && i === lines.length - 1} dark={dark} />;
+      })}
+    </div>
+  );
+};
+
 // A full-frame layer, for stacking pieces of a scene.
 export const Layer: React.FC<{ style?: CSSProperties; children: ReactNode }> = ({ style, children }) => <AbsoluteFill style={style}>{children}</AbsoluteFill>;
 

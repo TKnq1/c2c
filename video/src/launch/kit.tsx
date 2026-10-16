@@ -1,4 +1,4 @@
-import type { CSSProperties, ReactNode } from "react";
+import { createContext, type CSSProperties, type ReactNode, useContext } from "react";
 import type { IconType } from "react-icons";
 import { FiChevronDown } from "react-icons/fi";
 import {
@@ -25,6 +25,18 @@ import { colors, FONT, FPS } from "../theme";
 
 export const LAUNCH_WIDTH = 1920;
 export const LAUNCH_HEIGHT = 1080;
+// The 9:16 cut of the launch video, for Reels, TikTok and Shorts.
+export const VERTICAL_WIDTH = 1080;
+export const VERTICAL_HEIGHT = 1920;
+
+// The frame the scenes are drawn into: 16:9 by default, 9:16 in the vertical cut, where the scenes lay themselves out
+// for a tall frame (`tall`).
+export const Stage = createContext({ width: LAUNCH_WIDTH, height: LAUNCH_HEIGHT });
+
+export function useStage() {
+  const stage = useContext(Stage);
+  return { ...stage, tall: stage.height > stage.width };
+}
 
 export const SOFT_SHADOW = "0 60px 140px rgba(7,7,7,0.16), 0 14px 34px rgba(7,7,7,0.06)";
 
@@ -159,6 +171,10 @@ function background(light: Light, t: number) {
 // `lines`), and when they are, each one draws itself in.
 export const Arcs: React.FC<{ dark?: boolean; seed?: number }> = ({ dark, seed = 0 }) => {
   const local = useFrame();
+  const { width, height } = useStage();
+  // Drawn for 16:9; in another frame the centres move with it.
+  const sx = width / LAUNCH_WIDTH;
+  const sy = height / LAUNCH_HEIGHT;
   const frame = local + seed * 37;
   const stroke = dark ? "rgba(255,255,255,0.1)" : "rgba(7,7,7,0.11)";
   const s = seed % 3;
@@ -168,9 +184,9 @@ export const Arcs: React.FC<{ dark?: boolean; seed?: number }> = ({ dark, seed =
     { cx: 960 + 260 * Math.sin(frame / 210 + s), cy: -1720, r: 1950, w: 1.1 },
   ];
   return (
-    <svg width={LAUNCH_WIDTH} height={LAUNCH_HEIGHT} style={{ position: "absolute", inset: 0, pointerEvents: "none" }}>
+    <svg width={width} height={height} style={{ position: "absolute", inset: 0, pointerEvents: "none" }}>
       {arcs.map((a, i) => (
-        <circle key={i} cx={a.cx} cy={a.cy} r={a.r} fill="none" stroke={stroke} strokeWidth={a.w} pathLength={1} strokeDasharray={1} strokeDashoffset={1 - glide(local, 4 + i * 10, 64 + i * 10)} />
+        <circle key={i} cx={a.cx * sx} cy={a.cy * sy} r={a.r} fill="none" stroke={stroke} strokeWidth={a.w} pathLength={1} strokeDasharray={1} strokeDashoffset={1 - glide(local, 4 + i * 10, 64 + i * 10)} />
       ))}
     </svg>
   );
@@ -239,9 +255,15 @@ export const SmearFilter: React.FC<{ id: string; amount: number }> = ({ id, amou
   </svg>
 );
 
-export const SampleTag: React.FC<{ dark?: boolean }> = ({ dark }) => (
-  <div style={{ position: "absolute", right: 48, bottom: 36, fontSize: 20, color: dark ? colors.graphite : colors.stone, fontFamily: FONT }}>Beispieldaten</div>
-);
+// In the tall frame at the top, clear of the captions and buttons Reels and TikTok lay over the bottom and the right.
+export const SampleTag: React.FC<{ dark?: boolean }> = ({ dark }) => {
+  const { tall } = useStage();
+  return (
+    <div style={{ position: "absolute", ...(tall ? { left: 56, top: 140, fontSize: 24 } : { right: 48, bottom: 36, fontSize: 20 }), color: dark ? colors.graphite : colors.stone, fontFamily: FONT }}>
+      Beispieldaten
+    </div>
+  );
+};
 
 // ---------------------------------------------------------------------------------------------------------------
 // The brand
@@ -591,10 +613,11 @@ export function macroAt(frame: number, shots: MacroShot[]) {
 
 export const Macro: React.FC<{ shots: MacroShot[]; children: ReactNode }> = ({ shots, children }) => {
   const frame = useFrame();
+  const { width, height } = useStage();
   const { e, shot } = macroAt(frame, shots);
   if (!shot || e <= 0) return <AbsoluteFill>{children}</AbsoluteFill>;
-  const tx = (LAUNCH_WIDTH / 2 - shot.x) * e * 0.55;
-  const ty = (LAUNCH_HEIGHT / 2 - shot.y) * e * 0.55;
+  const tx = (width / 2 - shot.x) * e * 0.55;
+  const ty = (height / 2 - shot.y) * e * 0.55;
   const fx = shot.x + tx;
   const fy = shot.y + ty;
   const mask = `radial-gradient(circle at ${fx.toFixed(0)}px ${fy.toFixed(0)}px, transparent 0px, transparent 170px, black 460px)`;

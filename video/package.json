@@ -13,6 +13,7 @@
     "launch:raw": "remotion render LaunchVideo out/launch-raw.mp4 --muted",
     "launch:audio": "tsx scripts/grid.ts && python3 scripts/make-audio.py --launch",
     "launch:render": "remotion render LaunchVideo out/launch.mp4 --image-format=png --crf=14 --x264-preset=slow && python3 scripts/master.py --limit out/launch.mp4",
+    "launch:vertical": "remotion render LaunchVertical out/launch-vertical.mp4 --image-format=png --crf=14 --x264-preset=slow && python3 scripts/master.py --limit out/launch-vertical.mp4",
     "posts": "node scripts/render-posts.mjs",
     "stories": "node scripts/render-stories.mjs",
     "audio": "tsx scripts/grid.ts && python3 scripts/make-audio.py",

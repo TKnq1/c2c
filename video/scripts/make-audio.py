@@ -5,8 +5,8 @@
     video/public/music/brand-bed.mp3     music for the brand video (120 BPM)
     video/public/music/ads/<ID>.mp3      music for each 15 s ad (src/ads), with --ads only these
     video/public/sfx/*.wav               UI sounds (pop, click, swipe, coin, ...)
-    video/public/music/launch-bed.mp3    music for the 16:9 launch video (108 BPM), with --launch only this and
-                                         the launch video's own sounds (keys, whip, slam, select)
+    video/public/music/launch-bed.mp3    music for the 16:9 launch video (90 BPM), with --launch only this, the
+    video/public/music/vertical-bed.mp3  9:16 cut's and the launch video's own sounds (keys, whip, slam, select, ...)
 
 Everything is synthesised from code (oscillators and filtered noise, no samples, nothing third-party), so it
 carries no licence of its own, like public/sounds/success.mp3 (scripts/make-success-sound.py). Needs numpy and
@@ -614,7 +614,6 @@ def lofi_hat(gain=1.0, open_=False):
 
 
 def make_launch_bed(grid):
-    at = grid["scenes"]
     end = grid["end"]
     length = lt(end + 2)
     rhodes, bass, vib, pad = [], [], [], []
@@ -683,7 +682,10 @@ def make_launch_bed(grid):
                 if beat + d <= stop:
                     vib.append((swung(beat), d, note, 84))
 
-    turn, swipe_line, swipe, paid, brands, brief, logo, cta = (at[k] for k in ("L02", "L06", "L07", "L09", "L10", "L11", "L14", "L15"))
+    sec = grid["sections"]
+    # The vertical cut has no "Ein Swipe" line: its break is then empty.
+    turn, swipe, brands, brief, logo, cta = (sec[k] for k in ("turn", "swipe", "brands", "brief", "logo", "cta"))
+    swipe_line = sec.get("swipeLine", swipe)
     # Opening: the Rhodes held and filtered, hats only in the last bar.
     comp(0, turn, vel=48, stabs=False)
     pads(0, turn)
@@ -983,6 +985,9 @@ def main_launch():
     seed("launch-bed.mp3")
     # One gain and a limiter instead of loudnorm's compression, so the quiet opening stays quiet.
     write_mp3(ROOT / "music" / "launch-bed.mp3", make_launch_bed(GRID["launch"]), peak=0.8, limit=True)
+    # The 9:16 cut: the same music on its own, shorter grid.
+    seed("vertical-bed.mp3")
+    write_mp3(ROOT / "music" / "vertical-bed.mp3", make_launch_bed(GRID["vertical"]), peak=0.8, limit=True)
     effects = {
         "key-1": lambda: sfx_key(190),
         "key-2": lambda: sfx_key(215),
