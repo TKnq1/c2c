@@ -15,6 +15,8 @@ import {
   flyIn,
   glide,
   LightSweep,
+  LAUNCH_HEIGHT,
+  LAUNCH_WIDTH,
   Macro,
   Mark,
   pointer,
@@ -24,24 +26,17 @@ import {
   spr,
   Tick,
   typedCount,
-  type Part,
   typingTimes,
-  useStage,
 } from "./kit";
-import { caretOn, FocusWords, Keys, last, longestLine, SlamWords, TypedLines } from "./parts";
+import { caretOn, FocusWords, Keys, last, SlamWords, Typed } from "./parts";
 
 // The brand's half of the launch video (LAUNCH.md) and the end: the switch to brands, the briefing with its choices,
 // Discover, the difference, the logo and the call to action.
 
 // ---------------------------------------------------------------------------------------------------------------
 // 10 · Switch to brands: "Und" slams in, steps up, and the line after it comes in with its letters drawing together.
-// In the tall frame the line after "Und" is set in three lines, each kept on one line while its letters draw together.
-const BRANDS_LINE: Part[][] = [[{ text: "für Marken:", soft: true, bold: false }, { text: "ein Briefing, alle passenden Creator." }]];
-const BRANDS_LINES: Part[][] = [[{ text: "für Marken:", soft: true, bold: false }], [{ text: "ein Briefing," }], [{ text: "alle passenden Creator." }]];
-
 const ForBrands: React.FC = () => {
   const frame = useFrame();
-  const { tall } = useStage();
   const up = spr(frame, 38, "swing");
   const tighten = glide(frame, 48, 100);
   return (
@@ -52,11 +47,9 @@ const ForBrands: React.FC = () => {
       <Center>
         <div style={{ transform: `scale(${drift(frame, 105, 1.1, 0.86)})`, display: "flex", flexDirection: "column", alignItems: "center" }}>
           <div style={{ fontSize: 240, fontWeight: 900, letterSpacing: -9, lineHeight: 1, transform: `translateY(${mix(up, 60, -30)}px) scale(${mix(up, 1, 0.6)})`, ...slamStyle(slam(frame, 0), 2.2, 40) }}>Und</div>
-          {frame >= 44 &&
-            (tall ? BRANDS_LINES : BRANDS_LINE).map((parts, i, lines) => {
-              const before = lines.slice(0, i).reduce((n, line) => n + line.flatMap((p) => p.text.split(" ")).length, 0);
-              return <FocusWords key={i} size={tall ? 76 : 64} start={48 + before * 4} stagger={4} dark spacing={mix(tighten, 0.8, 0)} parts={parts} style={tall ? { flexWrap: "nowrap" } : undefined} />;
-            })}
+          {frame >= 44 && (
+            <FocusWords size={64} start={48} stagger={4} dark spacing={mix(tighten, 0.8, 0)} parts={[{ text: "für Marken:", soft: true, bold: false }, { text: "ein Briefing, alle passenden Creator." }]} />
+          )}
         </div>
       </Center>
     </Backdrop>
@@ -111,7 +104,6 @@ function camera(frame: number) {
 
 const Briefing: React.FC = () => {
   const frame = useFrame();
-  const { width, height } = useStage();
   const cam = camera(frame);
   const at = (p: { x: number; y: number }) => ({ x: cam.left + p.x * cam.s, y: cam.top + p.y * cam.s });
 
@@ -148,7 +140,7 @@ const Briefing: React.FC = () => {
   const zoom = 1 + 0.05 * Math.min(1, Math.max(0, sheet?.open ?? 0)) + 0.06 * glide(frame, POST_AT, POST_AT + 60);
   // Where the button sits on screen through the zoom, for the close-up on the press.
   const button = at(POST);
-  const postAt = { x: 0.52 * width + (button.x - 0.52 * width) * zoom, y: 0.5 * height + (button.y - 0.5 * height) * zoom };
+  const postAt = { x: 0.52 * LAUNCH_WIDTH + (button.x - 0.52 * LAUNCH_WIDTH) * zoom, y: 0.5 * LAUNCH_HEIGHT + (button.y - 0.5 * LAUNCH_HEIGHT) * zoom };
   return (
     <Backdrop light="mist">
       <Keys times={TITLE_TIMES} />
@@ -211,16 +203,12 @@ const FILTERS = [34, 60, 86];
 const REASONS = 106;
 const INVITE_GO = 112;
 const INVITE_AT = 140;
-// The window in 16:9; in 9:16 it is cropped to the tiles, its sidebar off the left edge.
-const DWIN_LAYOUT = { wide: { left: 256, top: 76, s: 1.1 }, tall: { left: -343, top: 540, s: 1.4 } };
+const DWIN = { left: 256, top: 76, s: 1.1 };
 // The first tile's Invite button on the page.
 const INVITE = { x: 381, y: 557 };
 
 const Discover: React.FC = () => {
   const frame = useFrame();
-  const { width, height, tall } = useStage();
-  const DWIN = DWIN_LAYOUT[tall ? "tall" : "wide"];
-  const origin = { x: tall ? 0.5 : 0.35, y: 0.55 };
   const filters = FILTERS.map((at) => (frame >= at ? spr(frame, at, "snap") : 0)) as [number, number, number];
   // Who is left after each filter, and where each creator sits after each step.
   const steps = [0, ...FILTERS];
@@ -244,10 +232,10 @@ const Discover: React.FC = () => {
   const gone = CREATORS.map((c) => (c.keep < 9 ? ramp(frame, FILTERS[c.keep - 1], FILTERS[c.keep - 1] + 12) : 0));
   const count = 8 - CREATORS.filter((c) => c.keep < 9 && frame >= FILTERS[c.keep - 1] + 6).length;
   const target = { x: DWIN.left + INVITE.x * DWIN.s, y: DWIN.top + INVITE.y * DWIN.s };
-  const cursor = pointer(frame, INVITE_GO, tall ? { x: 1000, y: 2060 } : { x: 1780, y: 1100 }, target, 1.25);
+  const cursor = pointer(frame, INVITE_GO, { x: 1780, y: 1100 }, target, 1.25);
   const win = spr(frame, 0, "glide");
   const spread = drift(frame, 190, 1, 1.08);
-  const inviteAt = { x: origin.x * width + (target.x - origin.x * width) * spread, y: origin.y * height + (target.y - origin.y * height) * spread };
+  const inviteAt = { x: 0.35 * LAUNCH_WIDTH + (target.x - 0.35 * LAUNCH_WIDTH) * spread, y: 0.55 * LAUNCH_HEIGHT + (target.y - 0.55 * LAUNCH_HEIGHT) * spread };
   return (
     <Backdrop light="mist">
       {FILTERS.map((at) => (
@@ -255,7 +243,7 @@ const Discover: React.FC = () => {
       ))}
       <Sfx name="click" at={INVITE_AT} volume={0.6} />
       <Macro shots={[{ at: INVITE_AT, hold: 12, x: inviteAt.x, y: inviteAt.y }]}>
-      <AbsoluteFill style={{ transform: `scale(${spread})`, transformOrigin: `${origin.x * 100}% ${origin.y * 100}%` }}>
+      <AbsoluteFill style={{ transform: `scale(${spread})`, transformOrigin: "35% 55%" }}>
         <div style={{ position: "absolute", left: DWIN.left, top: DWIN.top, ...flyIn(win, { y: 500, r: 3 }) }}>
           <DesktopApp side="brand" active="Entdecken" title="Entdecken" scale={DWIN.s}>
             <DiscoverPage filters={filters} count={count} positions={positions} gone={gone} reasons={ramp(frame, REASONS, REASONS + 14)} invite={{ press: pressAt(frame, INVITE_AT), done: frame >= INVITE_AT + 2 }} />
@@ -264,17 +252,7 @@ const Discover: React.FC = () => {
         <div style={{ opacity: ramp(frame, INVITE_GO, INVITE_GO + 8) }}>
           <Cursor x={cursor.x} y={cursor.y} pressed={pressAt(frame, INVITE_AT)} />
         </div>
-        <div
-          style={{
-            position: "absolute",
-            ...(tall ? { left: 70, top: 380, fontSize: 64, letterSpacing: -1.7 } : { right: 110, top: 96, fontSize: 44, letterSpacing: -1.2 }),
-            fontWeight: 900,
-            color: colors.graphite,
-            ...flyIn(spr(frame, 10, "land"), { x: 120 }),
-          }}
-        >
-          Für Marken
-        </div>
+        <div style={{ position: "absolute", right: 110, top: 96, fontSize: 44, fontWeight: 900, letterSpacing: -1.2, color: colors.graphite, ...flyIn(spr(frame, 10, "land"), { x: 120 }) }}>Für Marken</div>
         <LightSweep from={REASONS} to={REASONS + 60} opacity={0.35} />
       </AbsoluteFill>
       </Macro>
@@ -312,7 +290,6 @@ const END_TIMES = typingTimes("comtor", 32, 3.4);
 
 const EndCard: React.FC = () => {
   const frame = useFrame();
-  const { tall } = useStage();
   const icon = spr(frame, 4, "swing");
   const letters = typedCount(frame, END_TIMES);
   return (
@@ -320,7 +297,7 @@ const EndCard: React.FC = () => {
       <Sfx name="boom" at={4} volume={0.35} />
       <Keys times={END_TIMES} />
       <Center>
-        <div style={{ display: "flex", alignItems: "center", gap: letters > 0 ? 44 : 0, transform: `scale(${drift(frame, 145, 1.12, 0.76) * (tall ? 0.85 : 1)})` }}>
+        <div style={{ display: "flex", alignItems: "center", gap: letters > 0 ? 44 : 0, transform: `scale(${drift(frame, 145, 1.12, 0.76)})` }}>
           <AppIcon
             size={184}
             style={{ transform: `scale(${icon}) rotate(${mix(Math.min(icon, 1), 30, 0)}deg)`, opacity: Math.min(1, icon * 2), filter: icon < 0.95 ? `blur(${(1 - Math.min(icon, 1)) * 12}px)` : undefined }}
@@ -345,17 +322,11 @@ function ctaLine(frame: number) {
   return CTA_LINE.slice(0, typedCount(frame, CTA_TIMES));
 }
 
-// In the tall frame the claim breaks after "für".
-function ctaBreaks(frame: number, tall: boolean) {
-  return tall && frame < CTA_TIMES[0] ? [CLAIM_LINE.indexOf(" Marken")] : [];
-}
-
 const Cta: React.FC = () => {
   const frame = useFrame();
-  const { tall } = useStage();
   const line = ctaLine(frame);
   let chars = 0;
-  for (let i = 0; i < 10; i++) chars += longestLine(ctaLine(Math.max(0, frame - i)), ctaBreaks(Math.max(0, frame - i), tall)) / 10;
+  for (let i = 0; i < 10; i++) chars += ctaLine(Math.max(0, frame - i)).length / 10;
   const idle = frame >= last(CLAIM_TIMES) && frame < ERASE_AT ? last(CLAIM_TIMES) : frame >= last(CTA_TIMES) ? last(CTA_TIMES) : 9999;
   const url = spr(frame, last(CTA_TIMES) + 12, "swing");
   return (
@@ -364,13 +335,13 @@ const Cta: React.FC = () => {
       <Keys times={Array.from({ length: 17 }, (_, k) => ERASE_AT + 1 + k * 2)} del volume={0.4} />
       <Keys times={CTA_TIMES} />
       <Center>
-        <div style={{ transform: `scale(${fitScale(chars, 64, tall ? 880 : 1300, 1.9)})` }}>
-          <TypedLines text={line} size={64} breaks={ctaBreaks(frame, tall)} caret={caretOn(frame, idle)} dark />
+        <div style={{ transform: `scale(${fitScale(chars, 64, 1300, 1.9)})` }}>
+          <Typed text={line} size={64} caret={caretOn(frame, idle)} dark />
         </div>
       </Center>
-      <div style={{ position: "absolute", bottom: tall ? 420 : 80, left: 0, right: 0, display: "flex", justifyContent: "center" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 14, fontSize: tall ? 44 : 34, fontWeight: 700, ...flyIn(url, { y: 60 }), opacity: frame < last(CTA_TIMES) + 12 ? 0 : Math.min(1, url * 2) }}>
-          <Mark width={tall ? 52 : 40} white />
+      <div style={{ position: "absolute", bottom: 80, left: 0, right: 0, display: "flex", justifyContent: "center" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 14, fontSize: 34, fontWeight: 700, ...flyIn(url, { y: 60 }), opacity: frame < last(CTA_TIMES) + 12 ? 0 : Math.min(1, url * 2) }}>
+          <Mark width={40} white />
           comtor.app
         </div>
       </div>

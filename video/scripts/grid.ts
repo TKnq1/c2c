@@ -4,7 +4,7 @@ import { writeFileSync } from "node:fs";
 import { ADS } from "../src/ads";
 import { BRAND_CUT } from "../src/brand/BrandVideo";
 import { CREATOR_CUT } from "../src/creator/CreatorVideo";
-import { FRAMES_PER_BEAT, LAUNCH_BPM, LAUNCH_DURATION, LAUNCH_SCENES, type TimedScene, VERTICAL_DURATION, VERTICAL_SCENES } from "../src/launch/scenes";
+import { FRAMES_PER_BEAT, LAUNCH_BPM, LAUNCH_DURATION, LAUNCH_SCENES } from "../src/launch/scenes";
 import { BEAT, type FittedScene, sceneStarts, seriesDuration } from "../src/series";
 
 function grid(scenes: FittedScene[]) {
@@ -16,23 +16,13 @@ function grid(scenes: FittedScene[]) {
   };
 }
 
-// The launch video runs at its own tempo; its scenes start on whole beats of it. `sections`: the beat each part of the
-// music starts on, for both cuts alike.
-function launchGrid(scenes: TimedScene[], duration: number) {
-  return {
-    bpm: LAUNCH_BPM,
-    scenes: Object.fromEntries(scenes.map((scene) => [scene.id, scene.beat])),
-    sections: Object.fromEntries(scenes.filter((scene) => scene.section).map((scene) => [scene.section, scene.beat])),
-    end: Math.round((duration / FRAMES_PER_BEAT) * 100) / 100,
-  };
-}
-
-const out = {
-  creator: grid(CREATOR_CUT),
-  brand: grid(BRAND_CUT),
-  ads: Object.fromEntries(ADS.map((ad) => [ad.id, grid(ad.scenes)])),
-  launch: launchGrid(LAUNCH_SCENES, LAUNCH_DURATION),
-  vertical: launchGrid(VERTICAL_SCENES, VERTICAL_DURATION),
+// The launch video runs at its own tempo; its scenes start on whole beats of it.
+const launch = {
+  bpm: LAUNCH_BPM,
+  scenes: Object.fromEntries(LAUNCH_SCENES.map((scene) => [scene.id, scene.beat])),
+  end: Math.round((LAUNCH_DURATION / FRAMES_PER_BEAT) * 100) / 100,
 };
+
+const out = { creator: grid(CREATOR_CUT), brand: grid(BRAND_CUT), ads: Object.fromEntries(ADS.map((ad) => [ad.id, grid(ad.scenes)])), launch };
 writeFileSync(new URL("../src/voice/grid.json", import.meta.url), JSON.stringify(out, null, 2) + "\n");
 console.log(JSON.stringify(out));

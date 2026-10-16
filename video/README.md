@@ -46,7 +46,7 @@ animations with sound; `npm run posts` renders every slide to `out/pinned/` (MP4
 `out/stories/` (MP4 mastered to -14 LUFS, PNG for the stills). Sources in `src/stories/`, which stories to post when
 and the sticker texts in `STORIES.md`.
 
-## Launch video (16:9 and 9:16)
+## Launch video (16:9)
 
 A launch video for the website, YouTube and LinkedIn, 1920 x 1080, modelled on the cut of a SaaS launch video: typed
 lines, statements set large, the web app's desktop view in 3D, the swipe on an iPhone, three lights (white, grey
@@ -61,19 +61,7 @@ npm run launch:stills   # one still per scene (its keyframe) to out/launch/ and 
 npm run launch:raw      # the picture only: out/launch-raw.mp4
 npm run launch:audio    # regenerate its music and sounds (needs python3, numpy, ffmpeg, fluidsynth, mido)
 npm run launch:render   # with sound, lossless frames, CRF 14, mastered to -14 LUFS: out/launch-final.mp4
-npm run launch:vertical # the 9:16 cut the same way: out/launch-vertical-final.mp4
 ```
-
-The scenes hand over without a hard cut (`exit` in `src/launch/scenes.tsx`): a `dive` zooms into a point and the
-next scene comes up out of its own `focus`, a `pan` slides both scenes edge to edge, motion-blurred. The key presses
-(Annehmen, Beitragslink einreichen, Anfrage posten, Einladen) get a macro close-up (`Macro` in `kit.tsx`).
-
-`LaunchVertical` is the 9:16 cut for Reels, TikTok and Shorts, 1080 x 1920, 45 s: the same scenes from the cold
-outreach to the payout, then Discover and the call to action, each played a little faster (`speed` in
-`VERTICAL` in `scenes.tsx`). The scenes lay themselves out for the tall frame (`useStage` in `kit.tsx`): lines
-break, the phone fills the frame, the desktop window is cropped to what matters, "Beispieldaten" sits at the top,
-clear of the platforms' captions and buttons. Its music is `public/music/vertical-bed.mp3`, the same pop lofi on its
-own grid.
 
 The music is pop lofi built for the cut by `scripts/make-audio.py --launch`: 90 BPM (a beat is 20 frames), F major,
 the royal road IV-V-iii-vi (B flat maj9, C9, A minor 7, D minor 9). A Rhodes comping with a light tape wobble, a warm
@@ -89,8 +77,7 @@ The effects stay minimal under the music: a quiet, muffled mechanical keyboard, 
 `public/sfx/key-*.wav`, `boom`, `shimmer`, `slam`, `select`).
 
 Every scene lasts whole beats (`beats` in `src/launch/scenes.tsx`, halves allowed), so every cut lands on a beat;
-`scripts/grid.ts` hands the starts to the music (`section` marks where each part of the music begins, the same for
-both cuts). Change a scene's beats, then run `npm run launch:audio`.
+`scripts/grid.ts` hands the starts to the music. Change a scene's beats, then run `npm run launch:audio`.
 `LaunchVideo` takes `music` and `sfx` props to render either layer on its own. The creators on Discover take a
 portrait each (`photo` in `CREATORS`, `src/launch/app-screens.tsx`, a file in `public/`); without one the tile shows
 the initials.

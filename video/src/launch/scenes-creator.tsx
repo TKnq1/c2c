@@ -23,6 +23,8 @@ import {
   Ghost,
   glide,
   Haze,
+  LAUNCH_HEIGHT,
+  LAUNCH_WIDTH,
   LightSweep,
   Macro,
   type Part,
@@ -35,9 +37,8 @@ import {
   spr,
   typedCount,
   typingTimes,
-  useStage,
 } from "./kit";
-import { caretOn, FocusWords, Keys, last, longestLine, SlamWords, TypedLines } from "./parts";
+import { caretOn, FocusWords, Keys, last, SlamWords, Typed } from "./parts";
 import { IPhone, PHONE, PhoneFeed } from "./phone";
 import { CreatorFeed, DmThread, InvoiceSnippet, MailRow, MatchChecklist, SheetSnippet, type SwipeState, VINTAGE_JACKET } from "./screens";
 
@@ -142,86 +143,25 @@ const Module: React.FC<{
   );
 };
 
-// Where the opening's pieces sit: around the line in 16:9, above and below it in 9:16 (the line breaks after the first
-// sentence there). Modules in the order the scene draws them, the pointer's stops, the far UI.
-const OPENING_LAYOUT = {
-  wide: {
-    modules: [
-      [110, 80],
-      [1310, 150],
-      [1290, 640],
-      [150, 700],
-      [170, 120],
-      [1300, 150],
-      [1240, 760],
-      [190, 780],
-    ],
-    route: [
-      [430, 236],
-      [1560, 790],
-      [470, 860],
-      [360, 300],
-      [1520, 330],
-    ],
-    pointerFrom: [820, 1180],
-    ghosts: [
-      [640, -60],
-      [-170, 430],
-      [1530, 980],
-      [560, 930],
-      [1660, 430],
-    ],
-    breaks: [] as number[],
-    lineWidth: 1400,
-  },
-  tall: {
-    modules: [
-      [70, 200],
-      [520, 600],
-      [560, 1230],
-      [60, 1520],
-      [80, 180],
-      [600, 470],
-      [560, 1250],
-      [40, 1560],
-    ],
-    route: [
-      [300, 330],
-      [800, 1330],
-      [330, 1640],
-      [300, 290],
-      [820, 560],
-    ],
-    pointerFrom: [540, 2100],
-    ghosts: [
-      [560, -40],
-      [-200, 760],
-      [600, 1830],
-      [380, 1100],
-      [780, 760],
-    ],
-    breaks: [A.length],
-    lineWidth: 780,
-  },
-};
-
 const Opening: React.FC = () => {
   const frame = useFrame();
-  const { tall } = useStage();
-  const layout = OPENING_LAYOUT[tall ? "tall" : "wide"];
-  const [m0, m1, m2, m3, m4, m5, m6, m7] = layout.modules.map(([x, y]) => ({ x, y }));
-  const [g0, g1, g2, g3, g4] = layout.ghosts.map(([x, y]) => ({ x, y }));
   const line = openingLine(frame);
   let chars = 0;
-  for (let i = 0; i < 12; i++) chars += longestLine(openingLine(Math.max(0, frame - i)).text, layout.breaks) / 12;
-  const camera = fitScale(chars, 72, layout.lineWidth, 2.4) * drift(frame, 283, 1.04, 0.9);
+  for (let i = 0; i < 12; i++) chars += openingLine(Math.max(0, frame - i)).text.length / 12;
+  const camera = fitScale(chars, 72, 1400, 2.4) * drift(frame, 283, 1.04, 0.9);
   const idle = frame >= last(A_TIMES) && frame < B_TIMES[0] ? last(A_TIMES) : frame >= last(C_TIMES) ? last(C_TIMES) : 9999;
   const sent = Math.round(mix(ramp(frame, A_TIMES[0], last(A_TIMES)), 12, 40));
   const replies = frame >= last(B_TIMES) ? 1 : 0;
   const reminders = 1 + (frame > C_TIMES[8] ? 1 : 0) + (frame > C_TIMES[18] ? 1 : 0);
   // Mia's pointer working through the outreach, then through the invoice.
-  const route = ([6, 48, 92, ERASE + 30, ERASE + 80] as const).map((t, i): [number, { x: number; y: number }] => [t, { x: layout.route[i][0], y: layout.route[i][1] }]);
-  let at = { x: layout.pointerFrom[0], y: layout.pointerFrom[1] };
+  const route: [number, { x: number; y: number }][] = [
+    [6, { x: 430, y: 236 }],
+    [48, { x: 1560, y: 790 }],
+    [92, { x: 470, y: 860 }],
+    [ERASE + 30, { x: 360, y: 300 }],
+    [ERASE + 80, { x: 1520, y: 330 }],
+  ];
+  let at = { x: 820, y: 1180 };
   let pos = at;
   for (const [t, target] of route) {
     if (frame < t) break;
@@ -240,45 +180,45 @@ const Opening: React.FC = () => {
       <Sfx name="select" at={SELECT_C[0]} volume={0.25} />
       {/* Far back: UI out of focus, drifting a little more than the modules in front of it. */}
       <AbsoluteFill style={{ transform: `scale(${1 + (camera - 1) * 0.03}) translate(${10 * Math.sin(frame / 120)}px, ${6 * Math.cos(frame / 140)}px)` }}>
-        <Ghost x={g0.x} y={g0.y} blur={10} opacity={0.45}>
+        <Ghost x={640} y={-60} blur={10} opacity={0.45}>
           <SheetSnippet rows={[["Marke", "Status"], ["Kiez Goods", "keine Antwort"], ["Glow Lab", "keine Antwort"]]} />
         </Ghost>
-        <Ghost x={g1.x} y={g1.y} blur={12} opacity={0.4} rotate={-3}>
+        <Ghost x={-170} y={430} blur={12} opacity={0.4} rotate={-3}>
           <MailRow from="Glow Lab" subject="Automatische Antwort: Abwesend" />
         </Ghost>
-        <Ghost x={g2.x} y={g2.y} blur={9} opacity={0.45}>
+        <Ghost x={1530} y={980} blur={9} opacity={0.45}>
           <MailRow from="Kiez Goods" subject="Re: Anfrage" />
         </Ghost>
-        <Ghost x={g3.x} y={g3.y} blur={13} opacity={0.35} rotate={2}>
+        <Ghost x={560} y={930} blur={13} opacity={0.35} rotate={2}>
           <InvoiceSnippet days={31} />
         </Ghost>
-        <Ghost x={g4.x} y={g4.y} blur={11} opacity={0.4}>
+        <Ghost x={1660} y={430} blur={11} opacity={0.4}>
           <DmThread name="Kiez Goods" text="Danke, wir melden uns." bubble={1} />
         </Ghost>
       </AbsoluteFill>
       <AbsoluteFill style={{ transform: `scale(${1 + (camera - 1) * 0.06})` }}>
-        <Module x={m0.x} y={m0.y} at={4} kind="swing" from={{ x: -520, y: -260, r: -14 }} {...away({ x: -900, y: -200, r: -10 })}>
+        <Module x={110} y={80} at={4} kind="swing" from={{ x: -520, y: -260, r: -14 }} {...away({ x: -900, y: -200, r: -10 })}>
           <DmThread name="Glow Lab" text="Hey! Ich liebe eure Produkte. Habt ihr Lust auf eine Kooperation? 🙂" bubble={pop(frame, 16)} seenAt={ramp(frame, 54, 62)} />
         </Module>
-        <Module x={m1.x} y={m1.y} at={18} kind="glide" from={{ x: 760, r: 6 }} {...away({ x: 900, y: -120 })} scale={0.95} depth={0.4}>
+        <Module x={1310} y={150} at={18} kind="glide" from={{ x: 760, r: 6 }} {...away({ x: 900, y: -120 })} scale={0.95} depth={0.4}>
           <MailRow from="Nordwerk" subject="Re: Re: Kooperation?" />
         </Module>
-        <Module x={m2.x} y={m2.y} at={10} kind="snap" from={{ x: 520, y: 420, r: 12 }} {...away({ x: 900, y: 400, r: 8 })}>
+        <Module x={1290} y={640} at={10} kind="snap" from={{ x: 520, y: 420, r: 12 }} {...away({ x: 900, y: 400, r: 8 })}>
           <OutreachSheet sent={sent} replies={replies} shown={1 + (frame - 24) / 10} />
         </Module>
-        <Module x={m3.x} y={m3.y} at={30} kind="swing" from={{ y: 560, r: 9 }} {...away({ x: -500, y: 600, r: 12 })} scale={0.92} depth={0.3}>
+        <Module x={150} y={700} at={30} kind="swing" from={{ y: 560, r: 9 }} {...away({ x: -500, y: 600, r: 12 })} scale={0.92} depth={0.3}>
           <DmThread name="Lumo Audio" text="Hallo, ich wollte nochmal nachfragen …" seen="Gesendet vor 9 Tagen" bubble={pop(frame, 42)} seenAt={ramp(frame, 76, 84)} />
         </Module>
-        <Module x={m4.x} y={m4.y} at={ERASE + 10} kind="swing" from={{ y: -520, r: -9 }}>
+        <Module x={170} y={120} at={ERASE + 10} kind="swing" from={{ y: -520, r: -9 }}>
           <InvoiceSnippet days={Math.round(mix(ramp(frame, ERASE + 20, last(C_TIMES)), 40, 47))} />
         </Module>
-        <Module x={m5.x} y={m5.y} at={ERASE + 18} kind="snap" from={{ x: 700, r: 8 }}>
+        <Module x={1300} y={150} at={ERASE + 18} kind="snap" from={{ x: 700, r: 8 }}>
           <DmThread name="Nordwerk" text="Kannst du mir deine IBAN nochmal schicken?" seen="Gelesen" bubble={pop(frame, ERASE + 28)} seenAt={ramp(frame, ERASE + 60, ERASE + 68)} />
         </Module>
-        <Module x={m6.x} y={m6.y} at={ERASE + 26} kind="glide" from={{ x: 500, y: 300 }} depth={0.35}>
+        <Module x={1240} y={760} at={ERASE + 26} kind="glide" from={{ x: 500, y: 300 }} depth={0.35}>
           <Reminders count={reminders} />
         </Module>
-        <Module x={m7.x} y={m7.y} at={ERASE + 36} kind="swing" from={{ x: -600, r: -6 }} scale={0.95} depth={0.45}>
+        <Module x={190} y={780} at={ERASE + 36} kind="swing" from={{ x: -600, r: -6 }} scale={0.95} depth={0.45}>
           <MailRow from="Nordwerk" subject="Re: Rechnung 017, wir prüfen das intern" />
         </Module>
       </AbsoluteFill>
@@ -288,7 +228,7 @@ const Opening: React.FC = () => {
       </AbsoluteFill>
       <Center>
         <div style={{ transform: `scale(${camera})` }}>
-          <TypedLines text={line.text} size={72} breaks={layout.breaks} select={line.select} caret={caretOn(frame, idle)} />
+          <Typed text={line.text} size={72} select={line.select} caret={caretOn(frame, idle)} />
         </div>
       </Center>
     </Backdrop>
@@ -298,7 +238,6 @@ const Opening: React.FC = () => {
 // 2 · Turn: three words slam in, then spread apart and leave one by one.
 const Turn: React.FC = () => {
   const frame = useFrame();
-  const { tall } = useStage();
   const spread = glide(frame, 64, 100);
   return (
     <Backdrop light="mist">
@@ -309,7 +248,7 @@ const Turn: React.FC = () => {
       <Center>
         <div style={{ transform: `scale(${drift(frame, 110, 1.1, 0.9)}) rotate(${mix(spr(frame, 0, "swing"), -2, 0)}deg)` }}>
           <SlamWords
-            size={tall ? 100 : 112}
+            size={112}
             start={2}
             stagger={10}
             accel={0.5}
@@ -329,13 +268,11 @@ const NAME_TIMES = typingTimes("comtor", 74, 2.6);
 
 const Reveal: React.FC = () => {
   const frame = useFrame();
-  const { tall } = useStage();
   const enter = slam(frame, 0);
   const back = spr(frame, 44, "swing");
   const icon = spr(frame, ICON_AT, "swing");
   const letters = typedCount(frame, NAME_TIMES);
-  // "Das ist" fills the frame's width first.
-  const size = mix(back, tall ? 230 : 400, 150);
+  const size = mix(back, 400, 150);
   return (
     <Backdrop light="mist" lines={3}>
       <Sfx name="boom" at={0} volume={0.35} />
@@ -343,7 +280,7 @@ const Reveal: React.FC = () => {
       <Sfx name="whoosh" at={42} volume={0.2} />
       <Keys times={NAME_TIMES} />
       <Center>
-        <div style={{ display: "flex", alignItems: "center", transform: `scale(${drift(frame, 125, 1.06, 0.8) * (tall ? 0.95 : 1)})` }}>
+        <div style={{ display: "flex", alignItems: "center", transform: `scale(${drift(frame, 125, 1.06, 0.8)})` }}>
           <span style={{ fontSize: size, fontWeight: 900, letterSpacing: -size * 0.04, lineHeight: 1, whiteSpace: "nowrap", ...slamStyle(enter, 1.7, 40) }}>Das ist</span>
           <span style={{ width: mix(Math.min(1, icon), 0, 150 * 0.32), flexShrink: 0 }} />
           <div style={{ width: mix(Math.min(1, icon), 0, 150 * 0.92), display: "flex", justifyContent: "center", flexShrink: 0 }}>
@@ -509,11 +446,9 @@ const GRAB_AT = { x: 236, y: 500 };
 
 const Swipe: React.FC = () => {
   const frame = useFrame();
-  const { width, height, tall } = useStage();
   const enter = spr(frame, 0, "glide");
   const back = spr(frame, 136, "glide");
-  // In the tall frame the phone nearly fills it.
-  const s = mix(back, mix(glide(frame, 0, 136), 1.12, 1.05), 0.9) * (tall ? 1.62 : 1);
+  const s = mix(back, mix(glide(frame, 0, 136), 1.12, 1.05), 0.9);
   const turn = { x: mix(back, 3, 12), y: mix(back, -8, -32) + (1 - Math.min(enter, 1)) * 14, z: mix(back, 0, 3) };
 
   const held = spr(frame, GRAB, "snap");
@@ -545,8 +480,8 @@ const Swipe: React.FC = () => {
         <div
           style={{
             position: "absolute",
-            left: (width - PHONE.w) / 2 + mix(back, 0, 40),
-            top: (height - PHONE.h) / 2 + mix(Math.min(enter, 1), 160, 0) + mix(back, 12, 20),
+            left: (LAUNCH_WIDTH - PHONE.w) / 2 + mix(back, 0, 40),
+            top: (LAUNCH_HEIGHT - PHONE.h) / 2 + mix(Math.min(enter, 1), 160, 0) + mix(back, 12, 20),
             transform: `scale(${s}) rotateX(${turn.x}deg) rotateY(${turn.y}deg) rotateZ(${turn.z}deg)`,
             transformStyle: "preserve-3d",
           }}
@@ -571,22 +506,12 @@ const PAID = 126;
 const LINK_AT = 150;
 const SUBMIT = 172;
 const RELEASED = 214;
-// The chat alone in its window, large: 760 x 620 app pixels, at 1.45 beside the trail in 16:9, at 1.36 under it in
-// 9:16. Where the pointer comes from and goes after the last click.
-const WIN_SIZE = { w: 760, h: 620 };
-const DEAL_LAYOUT = {
-  wide: { win: { left: 760, top: 70, s: 1.45 }, trail: { left: 110, top: 270, s: 1 }, push: 1.22, from: { x: 1760, y: 1120 }, away: { x: 1700, y: 600 } },
-  tall: { win: { left: 23, top: 860, s: 1.36 }, trail: { left: 80, top: 260, s: 1.25 }, push: 1.06, from: { x: 1000, y: 2060 }, away: { x: 980, y: 700 } },
-};
-
-function dealLayout(tall: boolean) {
-  const layout = DEAL_LAYOUT[tall ? "tall" : "wide"];
-  const { win } = layout;
-  // The offer card's left edge and the bottom of the messages in the window (ChatPage), for the pointer.
-  const cardX = win.left + 24 * win.s;
-  const cardBottom = win.top + (44 + WIN_SIZE.h - 65 - 16) * win.s;
-  return { ...layout, cardX, cardBottom, button: { y: cardBottom - 32 * win.s, accept: cardX + 95 * win.s, wide: cardX + 180 * win.s } };
-}
+// The chat alone in its window, large: 760 x 620 app pixels at 1.45.
+const WIN = { left: 760, top: 70, s: 1.45, w: 760, h: 620 };
+// The offer card's left edge and the bottom of the messages in the window (ChatPage), for the pointer.
+const CARD_X = WIN.left + 24 * WIN.s;
+const CARD_BOTTOM = WIN.top + (44 + WIN.h - 65 - 16) * WIN.s;
+const BUTTON = { y: CARD_BOTTOM - 32 * WIN.s, accept: CARD_X + 95 * WIN.s, wide: CARD_X + 180 * WIN.s };
 
 function offerAt(frame: number): OfferState {
   if (frame >= RELEASED) return "released";
@@ -598,8 +523,6 @@ function offerAt(frame: number): OfferState {
 
 const DealFlow: React.FC = () => {
   const frame = useFrame();
-  const { width, height, tall } = useStage();
-  const { win: WIN, trail, push: closer, from: start, away, cardX, cardBottom, button: BUTTON } = dealLayout(tall);
   const win = spr(frame, 0, "glide");
   const state = offerAt(frame);
   const flipAt = { offer: OFFER_AT, accepted: ACCEPT + 2, paid: PAID, submitted: SUBMIT + 2, released: RELEASED }[state];
@@ -612,9 +535,9 @@ const DealFlow: React.FC = () => {
   const route: [number, { x: number; y: number }][] = [
     [ACCEPT - 22, { x: BUTTON.accept, y: BUTTON.y }],
     [SUBMIT - 22, { x: BUTTON.wide, y: BUTTON.y }],
-    [SUBMIT + 18, away],
+    [SUBMIT + 18, { x: 1700, y: 600 }],
   ];
-  let from = start;
+  let from = { x: 1760, y: 1120 };
   let cursor = from;
   for (const [t, target] of route) {
     if (frame < t) break;
@@ -630,15 +553,13 @@ const DealFlow: React.FC = () => {
       <Sfx name="click" at={SUBMIT} volume={0.6} />
       <Sfx name="coin" at={RELEASED} volume={0.55} />
       <Macro shots={[{ at: ACCEPT, hold: 12, x: BUTTON.accept, y: BUTTON.y }, { at: SUBMIT, hold: 12, x: BUTTON.wide, y: BUTTON.y }]}>
-      <AbsoluteFill style={{ transform: `scale(${mix(push, 1, closer)})`, transformOrigin: `${(((cardX + 120) / width) * 100).toFixed(1)}% ${(((cardBottom - 70) / height) * 100).toFixed(1)}%` }}>
-        <div style={{ position: "absolute", left: trail.left, top: trail.top, ...flyIn(spr(frame, 6, "snap"), { x: -300 }) }}>
-          <div style={{ transform: `scale(${trail.s})`, transformOrigin: "0 0" }}>
-            <div style={{ fontSize: 20, color: colors.graphite, marginBottom: 22 }}>Ein Deal, sicher abgewickelt</div>
-            <DealTrail lit={lit} pulse={pulse} />
-          </div>
+      <AbsoluteFill style={{ transform: `scale(${mix(push, 1, 1.22)})`, transformOrigin: `${((CARD_X + 120) / 19.2).toFixed(1)}% ${((CARD_BOTTOM - 70) / 10.8).toFixed(1)}%` }}>
+        <div style={{ position: "absolute", left: 110, top: 270, ...flyIn(spr(frame, 6, "snap"), { x: -300 }) }}>
+          <div style={{ fontSize: 20, color: colors.graphite, marginBottom: 22 }}>Ein Deal, sicher abgewickelt</div>
+          <DealTrail lit={lit} pulse={pulse} />
         </div>
         <div style={{ position: "absolute", left: WIN.left, top: WIN.top, ...flyIn(win, { x: 700, r: 4 }) }}>
-          <AppPanel width={WIN_SIZE.w} height={WIN_SIZE.h} scale={WIN.s}>
+          <AppPanel width={WIN.w} height={WIN.h} scale={WIN.s}>
             <ChatPage
               list={false}
               messages={[
@@ -666,7 +587,6 @@ const DealFlow: React.FC = () => {
 // drifts out of focus.
 const Paid: React.FC = () => {
   const frame = useFrame();
-  const { tall } = useStage();
   const whip = slam(frame, 2);
   const pill = spr(frame, 24, "swing");
   const amount = 225 * interpolate(frame, [28, 60], [0, 1], { extrapolateLeft: "clamp", extrapolateRight: "clamp", easing: Easing.out(Easing.cubic) });
@@ -681,9 +601,9 @@ const Paid: React.FC = () => {
         <div style={{ transform: `scale(${drift(frame, 95, 1.06, 0.84)})` }}>
           <div
             style={{
-              fontSize: tall ? 140 : 200,
+              fontSize: 200,
               fontWeight: 900,
-              letterSpacing: tall ? -4.2 : -6,
+              letterSpacing: -6,
               lineHeight: 1,
               whiteSpace: "nowrap",
               opacity: Math.min(1, whip * 2.5),

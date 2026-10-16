@@ -3,8 +3,8 @@ import { ADS, HAS_VOICE } from "./ads";
 import { BRAND_DURATION, BrandVideo } from "./brand/BrandVideo";
 import { CREATOR_DURATION, CreatorVideo } from "./creator/CreatorVideo";
 import "./fonts";
-import { LAUNCH_DURATION, LaunchVertical, LaunchVideo, VERTICAL_DURATION } from "./launch/LaunchVideo";
-import { LAUNCH_HEIGHT, LAUNCH_STILLS, LAUNCH_WIDTH, VERTICAL_HEIGHT, VERTICAL_WIDTH } from "./launch/stills";
+import { LAUNCH_DURATION, LaunchVideo } from "./launch/LaunchVideo";
+import { LAUNCH_HEIGHT, LAUNCH_STILLS, LAUNCH_WIDTH } from "./launch/stills";
 import { PINNED } from "./pinned";
 import { POST_HEIGHT, POST_WIDTH } from "./posts/kit";
 import { STORIES } from "./stories";
@@ -26,7 +26,6 @@ export const RemotionRoot: React.FC = () => (
       ))}
     </Folder>
     <Composition id="LaunchVideo" component={LaunchVideo} defaultProps={{ music: true, sfx: true }} durationInFrames={LAUNCH_DURATION} fps={FPS} width={LAUNCH_WIDTH} height={LAUNCH_HEIGHT} />
-    <Composition id="LaunchVertical" component={LaunchVertical} defaultProps={{ music: true, sfx: true }} durationInFrames={VERTICAL_DURATION} fps={FPS} width={VERTICAL_WIDTH} height={VERTICAL_HEIGHT} />
     <Folder name="Launch-Stills">
       {LAUNCH_STILLS.map(({ id, label, component, durationInFrames }) => (
         <Composition key={id} id={id} component={component} defaultProps={{ label }} durationInFrames={durationInFrames} fps={FPS} width={LAUNCH_WIDTH} height={LAUNCH_HEIGHT} />
