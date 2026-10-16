@@ -4,17 +4,16 @@ import { CREATOR_SCENES } from "./scenes-creator";
 // The launch video's scenes in order (LAUNCH.md), cut after the reference: nothing ever stands still. The scenes
 // themselves are in scenes-creator.tsx and scenes-brand.tsx; this file only orders and times them.
 
-export type Enter = "fade" | "zoom";
-
-// The music is pop lofi built for the cut (scripts/make-audio.py --launch) at 90 BPM: a beat is 20 frames, a bar 80.
-// Every scene lasts whole or half beats, so every cut lands on the beat; the music's sections start where the
-// scenes do. Scenes overlap by OVERLAP frames (the next one fades in over the end of this one); scripts/grid.ts hands
-// the starts to the music.
 export const LAUNCH_BPM = 90;
 export const FRAMES_PER_BEAT = (30 * 60) / LAUNCH_BPM;
 export const OVERLAP = 10;
 // The last scene holds this long after its last beat.
 const END_HOLD = 24;
+
+// How a scene hands over to the next, so the camera seems to keep moving through one take: `dive` zooms into a point
+// (CSS transform-origin) and the next scene comes up out of its own `focus`; `pan` slides the camera on, the next scene
+// arriving from the opposite side, both with motion blur.
+export type Exit = { dive: string; scale?: number } | { pan: "left" | "up" };
 
 export type LaunchScene = {
   id: string;
@@ -23,30 +22,29 @@ export type LaunchScene = {
   // Length in beats (halves allowed), up to the next scene's start.
   beats: number;
   keyframe: number;
-  enter?: Enter;
-  // Leaves by zooming into this point of the frame (CSS transform-origin), `exitScale` times (default 7).
-  exit?: string;
-  exitScale?: number;
+  exit?: Exit;
+  // Where this scene comes up from after the previous one dived (default the middle).
+  focus?: string;
 };
 
 const C = CREATOR_SCENES;
 const B = BRAND_SCENES;
 
 const SCENES: LaunchScene[] = [
-  { id: "L01", label: "1 · Kaltakquise und Geld", component: C.Opening, beats: 14, keyframe: 120, exit: "66% 50%" },
-  { id: "L02", label: "2 · Wendung", component: C.Turn, beats: 5, keyframe: 50, enter: "zoom" },
-  { id: "L03", label: "3 · Reveal comtor", component: C.Reveal, beats: 6, keyframe: 105 },
-  { id: "L04", label: "4 · Claim und Produkt", component: C.ClaimProduct, beats: 10, keyframe: 190, exit: "37% 57%", exitScale: 5 },
-  { id: "L05", label: "5 · Matching", component: C.Matching, beats: 8, keyframe: 150, enter: "zoom" },
-  { id: "L06", label: "6 · Ein Swipe", component: C.SwipeLine, beats: 5, keyframe: 50, exit: "50% 56%", exitScale: 9 },
-  { id: "L07", label: "7 · Swipe in der App", component: C.Swipe, beats: 9.5, keyframe: 92, enter: "zoom" },
-  { id: "L08", label: "8 · Deal-Ablauf", component: C.DealFlow, beats: 15, keyframe: 220, exit: "62% 72%", exitScale: 6 },
-  { id: "L09", label: "9 · Ausgezahlt", component: C.Paid, beats: 4.5, keyframe: 70, enter: "zoom" },
-  { id: "L10", label: "10 · Und für Marken", component: B.ForBrands, beats: 5, keyframe: 85 },
-  { id: "L11", label: "11 · Briefing", component: B.Briefing, beats: 20.5, keyframe: 240 },
-  { id: "L12", label: "12 · Creator entdecken", component: B.Discover, beats: 9.5, keyframe: 170 },
-  { id: "L13", label: "13 · Abgrenzung", component: B.Difference, beats: 9, keyframe: 150 },
-  { id: "L14", label: "14 · Logo", component: B.EndCard, beats: 6, keyframe: 90 },
+  { id: "L01", label: "1 · Kaltakquise und Geld", component: C.Opening, beats: 14, keyframe: 120, exit: { dive: "66% 50%" } },
+  { id: "L02", label: "2 · Wendung", component: C.Turn, beats: 5, keyframe: 50, exit: { pan: "up" } },
+  { id: "L03", label: "3 · Reveal comtor", component: C.Reveal, beats: 6, keyframe: 105, exit: { dive: "52% 50%", scale: 6 } },
+  { id: "L04", label: "4 · Claim und Produkt", component: C.ClaimProduct, beats: 10, keyframe: 190, exit: { dive: "37% 57%", scale: 5 } },
+  { id: "L05", label: "5 · Matching", component: C.Matching, beats: 8, keyframe: 150, focus: "25% 49%", exit: { pan: "left" } },
+  { id: "L06", label: "6 · Ein Swipe", component: C.SwipeLine, beats: 5, keyframe: 50, exit: { dive: "50% 56%", scale: 9 } },
+  { id: "L07", label: "7 · Swipe in der App", component: C.Swipe, beats: 9.5, keyframe: 92, focus: "54% 62%", exit: { pan: "left" } },
+  { id: "L08", label: "8 · Deal-Ablauf", component: C.DealFlow, beats: 15, keyframe: 220, exit: { dive: "62% 72%", scale: 6 } },
+  { id: "L09", label: "9 · Ausgezahlt", component: C.Paid, beats: 4.5, keyframe: 70, focus: "50% 62%", exit: { pan: "up" } },
+  { id: "L10", label: "10 · Und für Marken", component: B.ForBrands, beats: 5, keyframe: 85, exit: { dive: "50% 56%", scale: 6 } },
+  { id: "L11", label: "11 · Briefing", component: B.Briefing, beats: 20.5, keyframe: 240, exit: { pan: "left" } },
+  { id: "L12", label: "12 · Creator entdecken", component: B.Discover, beats: 9.5, keyframe: 170, exit: { pan: "up" } },
+  { id: "L13", label: "13 · Abgrenzung", component: B.Difference, beats: 9, keyframe: 150, exit: { dive: "33% 56%", scale: 7 } },
+  { id: "L14", label: "14 · Logo", component: B.EndCard, beats: 6, keyframe: 90, exit: { pan: "up" } },
   { id: "L15", label: "15 · CTA", component: B.Cta, beats: 10, keyframe: 205 },
 ];
 
@@ -56,7 +54,9 @@ export const LAUNCH_SCENES = SCENES.map((scene, i) => {
   const start = Math.round(beat * FRAMES_PER_BEAT);
   const next = Math.round((beat + scene.beats) * FRAMES_PER_BEAT);
   const last = i === SCENES.length - 1;
-  return { ...scene, beat, start, duration: next - start + (last ? END_HOLD : OVERLAP) };
+  // How the previous scene handed over, which decides how this one comes in.
+  const came = i > 0 ? SCENES[i - 1].exit : undefined;
+  return { ...scene, beat, start, came, duration: next - start + (last ? END_HOLD : OVERLAP) };
 });
 
 export type TimedScene = (typeof LAUNCH_SCENES)[number];

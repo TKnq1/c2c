@@ -571,6 +571,41 @@ export const Haze: React.FC<{ strength?: number }> = ({ strength = 1 }) => {
   );
 };
 
+// A macro close-up on a detail (a button being pressed): from 10 frames before `at` the camera closes in on x, y
+// (frame pixels) by `zoom`, drawing it towards the middle, holds for `hold` frames and pulls back over 12; around the
+// detail the frame goes soft (a backdrop blur, masked open at the focus).
+export type MacroShot = { at: number; hold: number; x: number; y: number; zoom?: number };
+
+export function macroAt(frame: number, shots: MacroShot[]) {
+  let best = { e: 0, shot: shots[0] };
+  for (const shot of shots) {
+    const e = interpolate(frame, [shot.at - 10, shot.at, shot.at + shot.hold, shot.at + shot.hold + 12], [0, 1, 1, 0], {
+      extrapolateLeft: "clamp",
+      extrapolateRight: "clamp",
+      easing: Easing.inOut(Easing.cubic),
+    });
+    if (e > best.e) best = { e, shot };
+  }
+  return best;
+}
+
+export const Macro: React.FC<{ shots: MacroShot[]; children: ReactNode }> = ({ shots, children }) => {
+  const frame = useFrame();
+  const { e, shot } = macroAt(frame, shots);
+  if (!shot || e <= 0) return <AbsoluteFill>{children}</AbsoluteFill>;
+  const tx = (LAUNCH_WIDTH / 2 - shot.x) * e * 0.55;
+  const ty = (LAUNCH_HEIGHT / 2 - shot.y) * e * 0.55;
+  const fx = shot.x + tx;
+  const fy = shot.y + ty;
+  const mask = `radial-gradient(circle at ${fx.toFixed(0)}px ${fy.toFixed(0)}px, transparent 0px, transparent 170px, black 460px)`;
+  return (
+    <AbsoluteFill>
+      <AbsoluteFill style={{ transform: `translate(${tx}px, ${ty}px) scale(${1 + ((shot.zoom ?? 1.7) - 1) * e})`, transformOrigin: `${shot.x}px ${shot.y}px` }}>{children}</AbsoluteFill>
+      <AbsoluteFill style={{ backdropFilter: `blur(${(9 * e).toFixed(1)}px)`, WebkitBackdropFilter: `blur(${(9 * e).toFixed(1)}px)`, maskImage: mask, WebkitMaskImage: mask, pointerEvents: "none" }} />
+    </AbsoluteFill>
+  );
+};
+
 // UI floating out of focus behind the opening lines.
 export const Ghost: React.FC<{ x: number; y: number; blur?: number; opacity?: number; rotate?: number; children: ReactNode }> = ({ x, y, blur = 6, opacity = 0.55, rotate = 0, children }) => (
   <div style={{ position: "absolute", left: x, top: y, filter: `blur(${blur}px)`, opacity, transform: `rotate(${rotate}deg)` }}>{children}</div>

@@ -26,6 +26,7 @@ import {
   LAUNCH_HEIGHT,
   LAUNCH_WIDTH,
   LightSweep,
+  Macro,
   type Part,
   pointer,
   SampleTag,
@@ -551,6 +552,7 @@ const DealFlow: React.FC = () => {
       <Sfx name="lock" at={PAID} volume={0.55} />
       <Sfx name="click" at={SUBMIT} volume={0.6} />
       <Sfx name="coin" at={RELEASED} volume={0.55} />
+      <Macro shots={[{ at: ACCEPT, hold: 12, x: BUTTON.accept, y: BUTTON.y }, { at: SUBMIT, hold: 12, x: BUTTON.wide, y: BUTTON.y }]}>
       <AbsoluteFill style={{ transform: `scale(${mix(push, 1, 1.22)})`, transformOrigin: `${((CARD_X + 120) / 19.2).toFixed(1)}% ${((CARD_BOTTOM - 70) / 10.8).toFixed(1)}%` }}>
         <div style={{ position: "absolute", left: 110, top: 270, ...flyIn(spr(frame, 6, "snap"), { x: -300 }) }}>
           <div style={{ fontSize: 20, color: colors.graphite, marginBottom: 22 }}>Ein Deal, sicher abgewickelt</div>
@@ -575,6 +577,7 @@ const DealFlow: React.FC = () => {
         </div>
         <LightSweep from={RELEASED} to={RELEASED + 50} opacity={0.4} />
       </AbsoluteFill>
+      </Macro>
       <SampleTag />
     </Backdrop>
   );

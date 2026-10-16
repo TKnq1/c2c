@@ -15,6 +15,9 @@ import {
   flyIn,
   glide,
   LightSweep,
+  LAUNCH_HEIGHT,
+  LAUNCH_WIDTH,
+  Macro,
   Mark,
   pointer,
   SampleTag,
@@ -135,6 +138,9 @@ const Briefing: React.FC = () => {
   const pressed = Math.max(...clicks.map((c) => pressAt(frame, c)), pressAt(frame, POST_AT));
   const toast = spr(frame, POST_AT + 6, "swing");
   const zoom = 1 + 0.05 * Math.min(1, Math.max(0, sheet?.open ?? 0)) + 0.06 * glide(frame, POST_AT, POST_AT + 60);
+  // Where the button sits on screen through the zoom, for the close-up on the press.
+  const button = at(POST);
+  const postAt = { x: 0.52 * LAUNCH_WIDTH + (button.x - 0.52 * LAUNCH_WIDTH) * zoom, y: 0.5 * LAUNCH_HEIGHT + (button.y - 0.5 * LAUNCH_HEIGHT) * zoom };
   return (
     <Backdrop light="mist">
       <Keys times={TITLE_TIMES} />
@@ -144,6 +150,7 @@ const Briefing: React.FC = () => {
       ))}
       <Sfx name="click" at={POST_AT} volume={0.65} />
       <Sfx name="success" at={POST_AT + 6} volume={0.5} />
+      <Macro shots={[{ at: POST_AT, hold: 8, x: postAt.x, y: postAt.y, zoom: 1.6 }]}>
       <AbsoluteFill style={{ transform: `scale(${zoom})`, transformOrigin: "52% 50%" }}>
         <DesktopApp side="brand" active="Anfragen" title="Neue Anfrage" scale={cam.s} style={{ position: "absolute", left: cam.left, top: cam.top }}>
           <RequestForm form={form} />
@@ -183,6 +190,7 @@ const Briefing: React.FC = () => {
         </div>
         <LightSweep from={POST_AT + 10} to={POST_AT + 60} opacity={0.4} />
       </AbsoluteFill>
+      </Macro>
       <SampleTag />
     </Backdrop>
   );
@@ -226,13 +234,16 @@ const Discover: React.FC = () => {
   const target = { x: DWIN.left + INVITE.x * DWIN.s, y: DWIN.top + INVITE.y * DWIN.s };
   const cursor = pointer(frame, INVITE_GO, { x: 1780, y: 1100 }, target, 1.25);
   const win = spr(frame, 0, "glide");
+  const spread = drift(frame, 190, 1, 1.08);
+  const inviteAt = { x: 0.35 * LAUNCH_WIDTH + (target.x - 0.35 * LAUNCH_WIDTH) * spread, y: 0.55 * LAUNCH_HEIGHT + (target.y - 0.55 * LAUNCH_HEIGHT) * spread };
   return (
     <Backdrop light="mist">
       {FILTERS.map((at) => (
         <Sfx key={`w${at}`} name="swipe" at={at + 4} volume={0.2} />
       ))}
       <Sfx name="click" at={INVITE_AT} volume={0.6} />
-      <AbsoluteFill style={{ transform: `scale(${drift(frame, 190, 1, 1.08)})`, transformOrigin: "35% 55%" }}>
+      <Macro shots={[{ at: INVITE_AT, hold: 12, x: inviteAt.x, y: inviteAt.y }]}>
+      <AbsoluteFill style={{ transform: `scale(${spread})`, transformOrigin: "35% 55%" }}>
         <div style={{ position: "absolute", left: DWIN.left, top: DWIN.top, ...flyIn(win, { y: 500, r: 3 }) }}>
           <DesktopApp side="brand" active="Entdecken" title="Entdecken" scale={DWIN.s}>
             <DiscoverPage filters={filters} count={count} positions={positions} gone={gone} reasons={ramp(frame, REASONS, REASONS + 14)} invite={{ press: pressAt(frame, INVITE_AT), done: frame >= INVITE_AT + 2 }} />
@@ -244,6 +255,7 @@ const Discover: React.FC = () => {
         <div style={{ position: "absolute", right: 110, top: 96, fontSize: 44, fontWeight: 900, letterSpacing: -1.2, color: colors.graphite, ...flyIn(spr(frame, 10, "land"), { x: 120 }) }}>Für Marken</div>
         <LightSweep from={REASONS} to={REASONS + 60} opacity={0.35} />
       </AbsoluteFill>
+      </Macro>
       <SampleTag />
     </Backdrop>
   );
