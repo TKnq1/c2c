@@ -5,6 +5,8 @@
     video/public/music/brand-bed.mp3     music for the brand video (120 BPM)
     video/public/music/ads/<ID>.mp3      music for each 15 s ad (src/ads), with --ads only these
     video/public/sfx/*.wav               UI sounds (pop, click, swipe, coin, ...)
+    video/public/sfx/key-*.wav, ...      with --launch only the launch video's own sounds (keys, whip, slam, select,
+                                         boom, shimmer, sweep); the launch video has no music
 
 Everything is synthesised from code (oscillators and filtered noise, no samples, nothing third-party), so it
 carries no licence of its own, like public/sounds/success.mp3 (scripts/make-success-sound.py). Needs numpy and
@@ -604,13 +606,132 @@ def sfx_hit():
     return declick(np.tanh((sub + crack + body) * 1.5))
 
 
+def sfx_key(pitch, heavy=False):
+    """A quiet mechanical key, the deep, muffled kind (lubed linear switch, foam in the case): the bottom-out rings a
+    few case modes (`pitch` sets the lowest) for a few milliseconds, a soft keycap tap on top, and the faint top-out
+    of the release ~80 ms later. `heavy` (space, delete) sits lower with a little stabiliser rattle."""
+    dur = 0.18
+    t = axis(dur)
+    out = np.zeros_like(t)
+    base = pitch * (0.78 if heavy else 1.0) * rng.uniform(0.97, 1.03)
+
+    def ring(at, f0, ratios, amps, decays, gain):
+        th = np.maximum(t - at, 0)
+        on = t >= at
+        for r, a, d in zip(ratios, amps, decays):
+            out[:] += on * gain * a * np.sin(2 * np.pi * f0 * r * th + rng.uniform(0, 2 * np.pi)) * np.exp(-th / d)
+
+    ring(0, base, (1, 2.2, 4.1, 7.1, 11.6), (0.55, 1.0, 0.7, 0.4, 0.2), (0.026, 0.017, 0.011, 0.007, 0.004), 1.0)
+    out += band(noise(dur), 1800, 6500) * np.exp(-t / 0.0016) * 0.35
+    if heavy:
+        ring(0.004, base * 1.9, (1, 2.7), (0.4, 0.25), (0.01, 0.006), 0.6)
+    release = 0.07 + rng.uniform(0, 0.03)
+    ring(release, base * 2.6, (1, 2.3, 4.4), (0.6, 0.4, 0.2), (0.008, 0.005, 0.003), 0.22)
+    return declick(out * np.minimum(1, t / 0.0004))
+
+
+def sfx_boom():
+    """A deep boom for the big moments (the turn, the reveal, the logo): a sine falling from ~150 Hz onto A flat 1 with
+    a long tail, saturated so it carries on small speakers, a soft thump of air on top."""
+    dur = 1.6
+    t = axis(dur)
+    freq = 51.9 + 100 * np.exp(-t / 0.05)
+    body = np.tanh(np.sin(2 * np.pi * np.cumsum(freq) / SR) * np.exp(-t / 0.55) * 1.8) / np.tanh(1.8)
+    thump = band(noise(dur), 80, 900) * np.exp(-t / 0.03) * 0.25
+    return declick((body + thump) * np.minimum(1, t / 0.003), ms=40)
+
+
+def sfx_shimmer(dur=0.9):
+    """The transition into a cut: air swelling up through the band with glints of high sparkle in it, peaking at ~0.77 s
+    (where the cut goes) and gone right after, the reference's whoosh as the camera dives into a word."""
+    t = axis(dur)
+    raw = noise(dur)
+    out = np.zeros_like(t)
+    for k in range(10):
+        centre = 900 * 10 ** (k / 9)
+        out += band(raw, centre * 0.6, centre * 1.5) * np.exp(-(((t / dur) - (0.15 + 0.75 * k / 9)) ** 2) / 0.02)
+    out *= (t / dur) ** 2.2 * np.exp(-np.maximum(t - 0.85 * dur, 0) / 0.03)
+    for _ in range(26):
+        at = dur * (0.3 + 0.55 * rng.random() ** 0.6)
+        gt = axis(0.05)
+        grain = np.sin(2 * np.pi * rng.uniform(3500, 9000) * gt) * np.exp(-gt / 0.012) * (at / dur) ** 2 * 0.25
+        i = int(at * SR)
+        out[i : i + len(grain)] += grain[: len(out) - i]
+    return declick(out, ms=6)
+
+
+def sfx_sweep(dur=0.62):
+    """The camera panning on to the next scene: a soft, low breath of air passing from left to right, rising and
+    falling with the move, no hiss on top (stereo)."""
+    t = axis(dur)
+    raw = noise(dur)
+    out = np.zeros_like(t)
+    for k in range(10):
+        centre = 250 * (2400 / 250) ** (k / 9)
+        out += band(raw, centre * 0.7, centre * 1.4) * np.exp(-(((t / dur) - (0.1 + 0.8 * k / 9)) ** 2) / 0.03)
+    out = band(out, None, 5000) * np.sin(np.pi * t / dur) ** 2
+    angle = (np.linspace(-0.6, 0.6, len(t)) + 1) * np.pi / 4
+    return np.stack([declick(out * np.cos(angle)), declick(out * np.sin(angle))], axis=1)
+
+
+def sfx_whip(dur=0.5):
+    """The whip into a word: a soft rush of air rising to the cut, quieter and smoother than a whoosh."""
+    t = axis(dur)
+    raw = noise(dur)
+    out = np.zeros_like(t)
+    for k in range(10):
+        centre = 400 * (10000 / 400) ** (k / 9)
+        weight = np.exp(-(((t / dur) - k / 9) ** 2) / 0.02)
+        out += band(raw, centre * 0.7, centre * 1.4) * weight
+    return declick(out * (t / dur) ** 2 * np.clip((dur - t) / 0.05, 0, 1))
+
+
+def sfx_slam():
+    """A word landing: a short breath of air and a soft, low touch, felt more than heard."""
+    rush_len = 0.08
+    t = axis(rush_len)
+    rush = band(noise(rush_len), 1500, 9000) * (t / rush_len) ** 2 * 0.35
+    t2 = axis(0.3)
+    freq = 70 + 60 * np.exp(-t2 / 0.03)
+    touch = np.sin(2 * np.pi * np.cumsum(freq) / SR) * np.exp(-t2 / 0.08) * 0.8
+    return declick(np.concatenate([rush, touch]))
+
+
+def sfx_select():
+    """Text being selected: a soft tick with a short high blip."""
+    t = axis(0.12)
+    return declick(band(noise(0.12), 2000, 8000) * np.exp(-t / 0.003) * 0.6 + np.sin(2 * np.pi * 1320 * t) * np.exp(-t / 0.03) * 0.4)
+
+
 def seed(name):
     """Fresh noise per sound, so regenerating one never changes another."""
     global rng
     rng = np.random.default_rng(zlib.crc32(name.encode()))
 
 
+def main_launch():
+    """The launch video's own sounds; it carries no music."""
+    effects = {
+        "key-1": lambda: sfx_key(190),
+        "key-2": lambda: sfx_key(215),
+        "key-3": lambda: sfx_key(172),
+        "key-del": lambda: sfx_key(140, heavy=True),
+        "whip": sfx_whip,
+        "slam": sfx_slam,
+        "select": sfx_select,
+        "boom": sfx_boom,
+        "shimmer": sfx_shimmer,
+        "sweep": sfx_sweep,
+    }
+    for name, make in effects.items():
+        seed(name)
+        write(ROOT / "sfx" / f"{name}.wav", make(), peak=0.6)
+
+
 def main():
+    if "--launch" in sys.argv:
+        main_launch()
+        return
     for ad_id, grid in GRID.get("ads", {}).items():
         seed(f"ad-{ad_id}")
         write_mp3(ROOT / "music" / "ads" / f"{ad_id}.mp3", make_ad_bed(grid, "creator" if ad_id.startswith("AC") else "brand"), peak=0.8)

@@ -34,6 +34,10 @@ export const PHOTOS = {
   vsCatalog1: "photos/brands/vs-catalog-1.jpg",
   vsCatalog2: "photos/brands/vs-catalog-2.jpg",
   nokarHoodie: "photos/brands/nokar-hoodie.jpg",
+  // Cut from what the brands sent (public/real).
+  vintageJacket: "real/vintage-jacket.jpg",
+  nokarPrint: "real/nakar-print.jpg",
+  nokarBack: "real/nakar-back.jpg",
 } as const;
 
 export type PhotoKey = keyof typeof PHOTOS;
