@@ -66,8 +66,8 @@ npm run launch:render   # with sound, lossless frames, CRF 14, mastered to -14 L
 The music is pop lofi built for the cut by `scripts/make-audio.py --launch`: 90 BPM (a beat is 20 frames), F major,
 the royal road IV-V-iii-vi (B flat maj9, C9, A minor 7, D minor 9). A Rhodes comping with a tape wobble, a warm bass,
 swung lofi drums (round kick, dusty snare, a clap in the bigger grooves, swung hats), a vibraphone hook in the later
-grooves, vinyl crackle underneath, and gang shouts ("Hey!" on the drop and the logo, "Ho!" into the swipe, a "Hey!"
-every eight bars) formant-synthesised from a glottal pulse through five gliding resonators, five voices wide. The
+grooves, vinyl crackle underneath, and gang shouts ("Hey!" on the drop, "Ho!" as "Ausgezahlt." whips in, "Hey!" on the
+big "Und" for brands) formant-synthesised from a glottal pulse through five gliding resonators, five voices wide. The
 Rhodes, bass and vibraphone are the FluidR3 GM soundfont (MIT) played through fluidsynth
 (`apt install fluidsynth fluid-soundfont-gm`, `pip install mido`). Quiet and filtered under the opening lines, the
 groove from the turn, breaks under "Ein Swipe" and the switch to brands, drums out for the logo, soft again under the

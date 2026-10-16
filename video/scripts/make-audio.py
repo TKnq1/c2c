@@ -751,7 +751,7 @@ def make_launch_bed(grid):
         if m > 0:
             shout_bus[i : i + m] += x[:m] * gain
 
-    turn, swipe_line, swipe, brands, brief, logo, cta = (at[k] for k in ("L02", "L06", "L07", "L10", "L11", "L14", "L15"))
+    turn, swipe_line, swipe, paid, brands, brief, logo, cta = (at[k] for k in ("L02", "L06", "L07", "L09", "L10", "L11", "L14", "L15"))
     # Opening: the Rhodes held and filtered, hats only in the last bar, a "Hey!" on the drop.
     comp(0, turn, vel=48, stabs=False)
     if turn >= 2:
@@ -764,16 +764,15 @@ def make_launch_bed(grid):
     # "Ein Swipe": the Rhodes and the vibraphone alone.
     comp(swipe_line, swipe, vel=56, stabs=False)
     vib.extend((swipe_line + b, d, note, 70) for b, d, note in LOFI_HOOK if b + d <= swipe - swipe_line)
-    # The bigger groove with the hook, a "Ho!" coming in and a "Hey!" every eight bars.
+    # The bigger groove with the hook, a "Ho!" as "Ausgezahlt." whips in.
     comp(swipe, brands)
     bassline(swipe, brands)
     drums(swipe, brands, clap=True, shaker=True)
     hook(swipe + 4, brands)
-    shout(swipe, "ho")
-    for b in np.arange(swipe + 32, brands, 32.0):
-        shout(b - 1, "hey", 0.8)
-    # The switch to brands: drums muffled, the Rhodes on.
+    shout(paid + 0.1, "ho")
+    # The switch to brands: drums muffled, the Rhodes on, a "Hey!" on the big "Und".
     comp(brands, brief, vel=60)
+    shout(brands, "hey")
     bassline(brands, brief)
     drums(brands, brief)
     # Briefing, Discover, the difference: the full groove again.
@@ -781,16 +780,12 @@ def make_launch_bed(grid):
     bassline(brief, logo)
     drums(brief, logo, clap=True, shaker=True)
     hook(brief + 4, logo)
-    shout(brief)
-    for b in np.arange(brief + 32, logo, 32.0):
-        shout(b - 1, "hey", 0.8)
     # Logo: drums out, one big chord, the gang once more.
     for k, note in enumerate([46, 58, 62, 65, 69, 72]):
         rhodes.append((logo + k * 0.02, 5.5, note, 76))
     bass.append((logo, 5.5, 34, 90))
     for k, note in enumerate((72, 77, 81)):
         vib.append((logo + 1 + k * 0.5, 2, note, 74))
-    shout(logo, "hey", 1.1)
     # Call to action: soft again, ending on F.
     comp(cta, end - 4, vel=52)
     drums(cta, end - 4)

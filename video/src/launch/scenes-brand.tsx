@@ -42,7 +42,7 @@ const ForBrands: React.FC = () => {
       <Sfx name="slam" at={0} volume={0.65} />
       <Sfx name="whoosh" at={44} volume={0.2} />
       <Center>
-        <div style={{ transform: `scale(${drift(frame, 125, 1.1, 0.86)})`, display: "flex", flexDirection: "column", alignItems: "center" }}>
+        <div style={{ transform: `scale(${drift(frame, 105, 1.1, 0.86)})`, display: "flex", flexDirection: "column", alignItems: "center" }}>
           <div style={{ fontSize: 240, fontWeight: 900, letterSpacing: -9, lineHeight: 1, transform: `translateY(${mix(up, 60, -30)}px) scale(${mix(up, 1, 0.6)})`, ...slamStyle(slam(frame, 0), 2.2, 40) }}>Und</div>
           {frame >= 44 && (
             <FocusWords size={64} start={48} stagger={4} dark spacing={mix(tighten, 0.8, 0)} parts={[{ text: "für Marken:", soft: true, bold: false }, { text: "ein Briefing, alle passenden Creator." }]} />
@@ -60,7 +60,7 @@ const ForBrands: React.FC = () => {
 
 const TITLE = "Nokar Hoodie, Drop-Teaser";
 const TITLE_TIMES = typingTimes(TITLE, 12, 2.4);
-const PULL = [last(TITLE_TIMES) + 8, last(TITLE_TIMES) + 60] as const;
+const PULL = [last(TITLE_TIMES) + 8, last(TITLE_TIMES) + 50] as const;
 const CLOSE = 5.2;
 const WIDE = 1.12;
 const TITLE_POINT = { x: 309, y: 260 };
@@ -81,12 +81,12 @@ const PICKS: Record<SheetKind, { value: string; x: number; y: number }> = {
 // Each choice: when the pointer sets off for the row, clicks it, sets off for the pill, picks it, the sheet closes.
 const STEPS: { kind: SheetKind; go: number }[] = [
   { kind: "niche", go: PULL[1] + 10 },
-  { kind: "followers", go: PULL[1] + 72 },
-  { kind: "platform", go: PULL[1] + 134 },
-  { kind: "content", go: PULL[1] + 192 },
+  { kind: "followers", go: PULL[1] + 64 },
+  { kind: "platform", go: PULL[1] + 118 },
+  { kind: "content", go: PULL[1] + 172 },
 ];
 const plan = (go: number) => ({ go, click: go + 16, open: go + 18, toPill: go + 24, pick: go + 40, close: go + 50 });
-const POST_GO = PULL[1] + 250;
+const POST_GO = PULL[1] + 226;
 const POST_AT = POST_GO + 16;
 
 function camera(frame: number) {
@@ -191,10 +191,10 @@ const Briefing: React.FC = () => {
 // ---------------------------------------------------------------------------------------------------------------
 // 12 · Discover for brands: the creators for the new request; the filters go on one by one (niche, platform, reach),
 // the tiles that no longer fit leave and the rest close up, each with what it matches; one gets invited.
-const FILTERS = [40, 76, 112];
-const REASONS = 140;
-const INVITE_GO = 150;
-const INVITE_AT = 182;
+const FILTERS = [34, 60, 86];
+const REASONS = 106;
+const INVITE_GO = 112;
+const INVITE_AT = 140;
 const DWIN = { left: 256, top: 76, s: 1.1 };
 // The first tile's Invite button on the page.
 const INVITE = { x: 381, y: 557 };
@@ -224,7 +224,7 @@ const Discover: React.FC = () => {
   const gone = CREATORS.map((c) => (c.keep < 9 ? ramp(frame, FILTERS[c.keep - 1], FILTERS[c.keep - 1] + 12) : 0));
   const count = 8 - CREATORS.filter((c) => c.keep < 9 && frame >= FILTERS[c.keep - 1] + 6).length;
   const target = { x: DWIN.left + INVITE.x * DWIN.s, y: DWIN.top + INVITE.y * DWIN.s };
-  const cursor = pointer(frame, INVITE_GO, { x: 1780, y: 1100 }, target, 1.1);
+  const cursor = pointer(frame, INVITE_GO, { x: 1780, y: 1100 }, target, 1.25);
   const win = spr(frame, 0, "glide");
   return (
     <Backdrop light="mist">
@@ -232,7 +232,7 @@ const Discover: React.FC = () => {
         <Sfx key={`w${at}`} name="swipe" at={at + 4} volume={0.2} />
       ))}
       <Sfx name="click" at={INVITE_AT} volume={0.6} />
-      <AbsoluteFill style={{ transform: `scale(${drift(frame, 250, 1, 1.08)})`, transformOrigin: "35% 55%" }}>
+      <AbsoluteFill style={{ transform: `scale(${drift(frame, 190, 1, 1.08)})`, transformOrigin: "35% 55%" }}>
         <div style={{ position: "absolute", left: DWIN.left, top: DWIN.top, ...flyIn(win, { y: 500, r: 3 }) }}>
           <DesktopApp side="brand" active="Entdecken" title="Entdecken" scale={DWIN.s}>
             <DiscoverPage filters={filters} count={count} positions={positions} gone={gone} reasons={ramp(frame, REASONS, REASONS + 14)} invite={{ press: pressAt(frame, INVITE_AT), done: frame >= INVITE_AT + 2 }} />
@@ -301,7 +301,7 @@ const EndCard: React.FC = () => {
 const CLAIM_LINE = "Der Marktplatz für Marken und Creator.";
 const CTA_LINE = "Jetzt kostenlos starten.";
 const CLAIM_TIMES = typingTimes(CLAIM_LINE, 8, 1.5);
-const ERASE_AT = last(CLAIM_TIMES) + 26;
+const ERASE_AT = last(CLAIM_TIMES) + 18;
 const CTA_TIMES = typingTimes(CTA_LINE, ERASE_AT + Math.ceil(CLAIM_LINE.length / 1.4) + 8, 2);
 
 function ctaLine(frame: number) {

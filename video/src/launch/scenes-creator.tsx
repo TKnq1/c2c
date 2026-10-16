@@ -279,7 +279,7 @@ const Reveal: React.FC = () => {
       <Sfx name="whoosh" at={42} volume={0.2} />
       <Keys times={NAME_TIMES} />
       <Center>
-        <div style={{ display: "flex", alignItems: "center", transform: `scale(${drift(frame, 160, 1.06, 0.8)})` }}>
+        <div style={{ display: "flex", alignItems: "center", transform: `scale(${drift(frame, 125, 1.06, 0.8)})` }}>
           <span style={{ fontSize: size, fontWeight: 900, letterSpacing: -size * 0.04, lineHeight: 1, whiteSpace: "nowrap", ...slamStyle(enter, 1.7, 40) }}>Das ist</span>
           <span style={{ width: mix(Math.min(1, icon), 0, 150 * 0.32), flexShrink: 0 }} />
           <div style={{ width: mix(Math.min(1, icon), 0, 150 * 0.92), display: "flex", justifyContent: "center", flexShrink: 0 }}>
@@ -485,7 +485,7 @@ const Swipe: React.FC = () => {
             transformStyle: "preserve-3d",
           }}
         >
-          <IPhone glare={interpolate(frame, [140, 205], [0, 1], { extrapolateLeft: "clamp", extrapolateRight: "clamp" })}>
+          <IPhone glare={interpolate(frame, [138, 185], [0, 1], { extrapolateLeft: "clamp", extrapolateRight: "clamp" })}>
             <PhoneFeed top={RAW_HOODIE} under={VINTAGE_JACKET} swipe={swipe} next={next} heart={heart} touch={touch} />
           </IPhone>
         </div>
@@ -498,13 +498,13 @@ const Swipe: React.FC = () => {
 // 8 · The deal, in the live payment flow of the chat (chat-offer.tsx, its own words): the offer comes in, Mia accepts,
 // Raw Supplies pays and the money is held, she posts and submits the link, it is released. The trail on the left
 // lights up step by step.
-const MSG_AT = [14, 32, 50];
-const OFFER_AT = 70;
-const ACCEPT = 112;
-const PAID = 160;
-const LINK_AT = 190;
-const SUBMIT = 214;
-const RELEASED = 278;
+const MSG_AT = [12, 26, 40];
+const OFFER_AT = 56;
+const ACCEPT = 90;
+const PAID = 126;
+const LINK_AT = 150;
+const SUBMIT = 172;
+const RELEASED = 214;
 // The chat alone in its window, large: 760 x 620 app pixels at 1.45.
 const WIN = { left: 760, top: 70, s: 1.45, w: 760, h: 620 };
 // The offer card's left edge and the bottom of the messages in the window (ChatPage), for the pointer.
@@ -530,17 +530,17 @@ const DealFlow: React.FC = () => {
   // -1 before the offer, then one more step lit at each change.
   const lit = steps.reduce((n, at) => n + ramp(frame, at - 8, at), -1);
   const pulse = steps.map((at) => ramp(frame, at, at + 14));
-  const push = glide(frame, RELEASED, 367);
+  const push = glide(frame, RELEASED, 297);
   const route: [number, { x: number; y: number }][] = [
-    [88, { x: BUTTON.accept, y: BUTTON.y }],
-    [178, { x: BUTTON.wide, y: BUTTON.y }],
-    [236, { x: 1700, y: 600 }],
+    [ACCEPT - 22, { x: BUTTON.accept, y: BUTTON.y }],
+    [SUBMIT - 22, { x: BUTTON.wide, y: BUTTON.y }],
+    [SUBMIT + 18, { x: 1700, y: 600 }],
   ];
   let from = { x: 1760, y: 1120 };
   let cursor = from;
   for (const [t, target] of route) {
     if (frame < t) break;
-    cursor = pointer(frame, t, from, target, 1.1);
+    cursor = pointer(frame, t, from, target, 1.3);
     from = target;
   }
   const press = pressAt(frame, ACCEPT) + pressAt(frame, SUBMIT);
@@ -570,7 +570,7 @@ const DealFlow: React.FC = () => {
             />
           </AppPanel>
         </div>
-        <div style={{ opacity: ramp(frame, 86, 94) * (1 - ramp(frame, 250, 262)) }}>
+        <div style={{ opacity: ramp(frame, ACCEPT - 24, ACCEPT - 16) * (1 - ramp(frame, SUBMIT + 26, SUBMIT + 38)) }}>
           <Cursor x={cursor.x} y={cursor.y} pressed={press} />
         </div>
         <LightSweep from={RELEASED} to={RELEASED + 50} opacity={0.4} />
@@ -587,7 +587,7 @@ const Paid: React.FC = () => {
   const whip = slam(frame, 2);
   const pill = spr(frame, 24, "swing");
   const amount = 225 * interpolate(frame, [28, 60], [0, 1], { extrapolateLeft: "clamp", extrapolateRight: "clamp", easing: Easing.out(Easing.cubic) });
-  const out = glide(frame, 98, 125);
+  const out = glide(frame, 72, 92);
   return (
     <Backdrop light="night">
       <Sfx name="boom" at={0} volume={0.25} />
@@ -595,7 +595,7 @@ const Paid: React.FC = () => {
       <Sfx name="coin" at={60} volume={0.55} />
       <SmearFilter id="paid-smear" amount={mix(Math.min(whip, 1), 70, 0)} />
       <Center style={{ gap: 60, opacity: 1 - out, filter: out > 0 ? `blur(${out * 20}px)` : undefined }}>
-        <div style={{ transform: `scale(${drift(frame, 125, 1.06, 0.84)})` }}>
+        <div style={{ transform: `scale(${drift(frame, 95, 1.06, 0.84)})` }}>
           <div
             style={{
               fontSize: 200,
