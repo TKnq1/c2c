@@ -10,6 +10,9 @@ export const landingNl: DeepString<typeof landing> = {
       "Veeg door merkdeals met het budget vooraf. Het geld staat klaar voordat je post, en je houdt 90% over. Nu live op het web, binnenkort voor iOS en Android.",
     siteName: "comtor – Marktplaats voor merken en creators",
     siteDescription: "Merken vinden passende creators voor samenwerkingen.",
+    brandTitle: "Vind creators voor samenwerkingen | comtor",
+    brandDescription:
+      "Plaats een deal met je budget en creators die passen melden zich bij jou. Je geld wordt vastgehouden tot je de post hebt goedgekeurd.",
   },
   nav: {
     main: "Hoofdnavigatie",
@@ -21,6 +24,8 @@ export const landingNl: DeepString<typeof landing> = {
     getApp: "Download de app",
   },
   hero: {
+    creatorKicker: "Betaalde samenwerkingen voor creators",
+    brandKicker: "Creators en UGC voor je merk",
     creatorTitleA: "Veeg naar rechts op",
     creatorTitleB1: "betaalde merkdeals.",
     creatorTitleB2: "",

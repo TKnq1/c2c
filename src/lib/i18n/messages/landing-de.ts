@@ -6,11 +6,15 @@ type DeepString<T> = T extends string ? string : { [K in keyof T]: DeepString<T[
 // geklärt ist (docs/legal-readiness.md), steht das Wort auf öffentlichen Seiten nicht.
 export const landingDe: DeepString<typeof landing> = {
   meta: {
-    title: "comtor · Bezahlte Marken-Deals für Creator",
+    title: "Bezahlte Kooperationen für Creator & Influencer | comtor",
     description:
-      "Wisch durch Marken-Deals mit Budget vorab. Die Marke zahlt, bevor du postest, und du behältst 90 %. Jetzt im Web, bald für iOS und Android.",
+      "Wisch durch bezahlte Marken-Kooperationen mit Budget vorab. Die Marke zahlt, bevor du postest, und du behältst 90 %. Für Creator, Influencer und UGC-Creator.",
     siteName: "comtor – Marktplatz für Marken und Creator",
-    siteDescription: "Marken finden passende Creator für Kooperationen.",
+    siteDescription:
+      "Marktplatz für bezahlte Kooperationen: Marken posten Deals mit Budget, Creator und Influencer melden sich per Swipe.",
+    brandTitle: "Creator & Influencer für Kooperationen finden | comtor",
+    brandDescription:
+      "Poste einen Deal mit Budget, passende Creator und Influencer melden sich bei dir. Dein Geld wird zurückgehalten, bis du den Post freigegeben hast.",
   },
   nav: {
     main: "Hauptnavigation",
@@ -22,6 +26,8 @@ export const landingDe: DeepString<typeof landing> = {
     getApp: "App holen",
   },
   hero: {
+    creatorKicker: "Bezahlte Kooperationen für Creator",
+    brandKicker: "Creator & UGC für deine Marke",
     creatorTitleA: "Wisch bezahlte",
     creatorTitleB1: "Marken-Deals",
     creatorTitleB2: "nach rechts.",

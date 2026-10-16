@@ -24,7 +24,7 @@ export const fr: Catalog = {
   notFound: {
     title: "Page introuvable",
     body: "La page demandée n'existe pas ou a été déplacée.",
-    back: "Retour au tableau de bord",
+    back: "Retour à l'accueil",
   },
   nav: {
     requests: "Demandes",

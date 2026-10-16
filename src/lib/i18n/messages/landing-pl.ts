@@ -10,6 +10,9 @@ export const landingPl: DeepString<typeof landing> = {
       "Przesuwaj zlecenia od marek z budżetem z góry. Marka płaci, zanim opublikujesz, a ty zatrzymujesz 90%. Już w sieci, wkrótce na iOS i Androida.",
     siteName: "comtor – Platforma dla marek i twórców",
     siteDescription: "Marki znajdują pasujących twórców do współpracy.",
+    brandTitle: "Znajdź twórców do współpracy | comtor",
+    brandDescription:
+      "Opublikuj ofertę z budżetem, a pasujący twórcy zgłoszą się do ciebie. Pieniądze są wstrzymane, dopóki nie zatwierdzisz posta.",
   },
   nav: {
     main: "Główne",
@@ -21,6 +24,8 @@ export const landingPl: DeepString<typeof landing> = {
     getApp: "Pobierz aplikację",
   },
   hero: {
+    creatorKicker: "Płatne współprace dla twórców",
+    brandKicker: "Twórcy i UGC dla twojej marki",
     creatorTitleA: "Przesuwaj w prawo",
     creatorTitleB1: "płatne zlecenia",
     creatorTitleB2: "od marek.",

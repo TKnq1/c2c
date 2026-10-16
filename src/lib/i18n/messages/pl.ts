@@ -24,7 +24,7 @@ export const pl: Catalog = {
   notFound: {
     title: "Nie znaleziono strony",
     body: "Strona, której szukasz, nie istnieje lub została przeniesiona.",
-    back: "Wróć do panelu",
+    back: "Wróć na stronę główną",
   },
   nav: {
     requests: "Zlecenia",

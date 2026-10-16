@@ -10,6 +10,9 @@ export const landingIt: DeepString<typeof landing> = {
       "Swipa deal di brand con il budget già indicato. Il brand paga prima che tu pubblichi, e tu tieni il 90%. Già sul web, presto su iOS e Android.",
     siteName: "comtor – Marketplace per brand e creator",
     siteDescription: "I brand trovano i creator giusti per le collaborazioni.",
+    brandTitle: "Trova creator per collaborazioni con il tuo brand | comtor",
+    brandDescription:
+      "Pubblica un'offerta con il tuo budget e i creator adatti si fanno avanti. I soldi restano trattenuti finché non approvi il post.",
   },
   nav: {
     main: "Principale",
@@ -21,6 +24,8 @@ export const landingIt: DeepString<typeof landing> = {
     getApp: "Scarica l’app",
   },
   hero: {
+    creatorKicker: "Collaborazioni retribuite per creator",
+    brandKicker: "Creator e UGC per il tuo brand",
     creatorTitleA: "Swipa a destra",
     creatorTitleB1: "i deal pagati dei brand.",
     creatorTitleB2: "",

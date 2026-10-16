@@ -6,6 +6,9 @@ export const landing = {
       "Creators swipe through brand deals with the budget upfront. The money's in before you post, and you keep 90%. Live on the web now, coming soon to iOS and Android.",
     siteName: "comtor – Brand-Creator Marketplace",
     siteDescription: "Brands find matching content creators for collaborations.",
+    brandTitle: "Find creators for paid brand deals | comtor",
+    brandDescription:
+      "Post a deal with your budget and creators who fit come to you. Your money is held until you've approved the post.",
   },
   nav: {
     main: "Main",
@@ -17,6 +20,8 @@ export const landing = {
     getApp: "Get the app",
   },
   hero: {
+    creatorKicker: "Paid collaborations for creators",
+    brandKicker: "Creators & UGC for your brand",
     creatorTitleA: "Swipe right on",
     creatorTitleB1: "paid brand deals.",
     creatorTitleB2: "",

@@ -10,6 +10,9 @@ export const landingPt: DeepString<typeof landing> = {
       "Desliza por parcerias com marcas, com o orçamento à vista. O dinheiro está lá antes de publicares e ficas com 90%. Já na web, em breve em iOS e Android.",
     siteName: "comtor – Marketplace de marcas e criadores",
     siteDescription: "As marcas encontram criadores de conteúdo à medida para colaborações.",
+    brandTitle: "Encontre criadores para parcerias | comtor",
+    brandDescription:
+      "Publique uma proposta com o seu orçamento e os criadores certos vêm até si. O dinheiro fica retido até aprovar a publicação.",
   },
   nav: {
     main: "Principal",
@@ -21,6 +24,8 @@ export const landingPt: DeepString<typeof landing> = {
     getApp: "Obter a app",
   },
   hero: {
+    creatorKicker: "Parcerias pagas para criadores",
+    brandKicker: "Criadores e UGC para a sua marca",
     creatorTitleA: "Desliza para a direita",
     creatorTitleB1: "em parcerias pagas com marcas.",
     creatorTitleB2: "",

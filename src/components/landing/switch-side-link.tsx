@@ -1,6 +1,6 @@
 "use client";
 
-import { chooseLandingRole } from "@/components/landing/landing-role";
+import { chooseLandingRole, landingPath, type LandingRole } from "@/components/landing/landing-role";
 import { useI18n } from "@/components/i18n-provider";
 
 // For whoever reaches the end on the other side's page, the nav's switch
@@ -8,18 +8,19 @@ import { useI18n } from "@/components/i18n-provider";
 // other side starts.
 export function SwitchSideLink() {
   const { t } = useI18n();
-  function switchTo(role: "creator" | "brand") {
+  function switchTo(event: React.MouseEvent, role: LandingRole) {
+    event.preventDefault();
     chooseLandingRole(role);
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
   return (
     <p>
-      <button type="button" data-for="creator" onClick={() => switchTo("brand")} className="underline underline-offset-2 hover:text-ink">
+      <a href={landingPath("brand")} data-for="creator" onClick={(e) => switchTo(e, "brand")} className="underline underline-offset-2 hover:text-ink">
         {t("landing.footer.switchToBrands")}
-      </button>
-      <button type="button" data-for="brand" onClick={() => switchTo("creator")} className="underline underline-offset-2 hover:text-ink">
+      </a>
+      <a href={landingPath("creator")} data-for="brand" onClick={(e) => switchTo(e, "creator")} className="underline underline-offset-2 hover:text-ink">
         {t("landing.footer.switchToCreators")}
-      </button>
+      </a>
     </p>
   );
 }

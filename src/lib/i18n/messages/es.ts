@@ -24,7 +24,7 @@ export const es: Catalog = {
   notFound: {
     title: "Página no encontrada",
     body: "La página que buscas no existe o se ha movido.",
-    back: "Volver al panel",
+    back: "Volver al inicio",
   },
   nav: {
     requests: "Solicitudes",

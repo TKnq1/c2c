@@ -9,6 +9,7 @@ import { PhotoBackdrop } from "@/components/landing/photo-backdrop";
 import { SignupLink } from "@/components/landing/signup-link";
 import { useI18n } from "@/components/i18n-provider";
 import { FIRST_PHOTO, type PhotoKey } from "@/components/landing/landing-data";
+import type { LandingRole } from "@/components/landing/landing-role";
 
 const delay = (ms: number) => ({ "--lp-delay": `${ms}ms` }) as React.CSSProperties;
 
@@ -62,8 +63,12 @@ function CountUp({ to }: { to: number }) {
 // The headline over the thing itself: creators get the Feed to swipe,
 // brands the card they'd post, live. Either way the photo in play colours
 // the whole section.
-export function Hero({ brands, creators }: { brands: number; creators: number }) {
+// One h1 per address: the side the page stands for ("/" creators, /marken brands) gets it, the other side's
+// headline is the same text as a plain paragraph.
+export function Hero({ brands, creators, primary }: { brands: number; creators: number; primary: LandingRole }) {
   const { t } = useI18n();
+  const CreatorHeading = primary === "creator" ? "h1" : "p";
+  const BrandHeading = primary === "brand" ? "h1" : "p";
   const [creatorPhoto, setCreatorPhoto] = useState<PhotoKey>(FIRST_PHOTO);
   const [brandPhoto, setBrandPhoto] = useState<PhotoKey>("flask");
 
@@ -78,7 +83,13 @@ export function Hero({ brands, creators }: { brands: number; creators: number })
       <div aria-hidden="true" className="lp-grain lp-fade-out" />
 
       <div className="mx-auto flex max-w-7xl flex-col items-center px-4 pt-[calc(var(--safe-top)+112px)] pb-20 text-center md:pt-40 md:pb-28">
-        <h1
+        <p data-for="creator" className="lp-rise lp-glow mb-4 text-sm font-semibold tracking-wide text-ink uppercase md:mb-5">
+          {t("landing.hero.creatorKicker")}
+        </p>
+        <p data-for="brand" className="lp-rise lp-glow mb-4 text-sm font-semibold tracking-wide text-ink uppercase md:mb-5">
+          {t("landing.hero.brandKicker")}
+        </p>
+        <CreatorHeading
           data-for="creator"
           className="font-display text-[clamp(34px,11.4vw,44px)] leading-[0.98] font-black tracking-[-0.035em] sm:text-[64px] lg:text-[88px]"
         >
@@ -98,8 +109,8 @@ export function Hero({ brands, creators }: { brands: number; creators: number })
               )}
             </span>
           </span>
-        </h1>
-        <h1
+        </CreatorHeading>
+        <BrandHeading
           data-for="brand"
           className="font-display text-[clamp(34px,11.4vw,44px)] leading-[0.98] font-black tracking-[-0.035em] sm:text-[64px] lg:text-[88px]"
         >
@@ -113,7 +124,7 @@ export function Hero({ brands, creators }: { brands: number; creators: number })
               {t("landing.hero.brandTitleB2")}
             </span>
           </span>
-        </h1>
+        </BrandHeading>
 
         <p
           data-for="creator"
