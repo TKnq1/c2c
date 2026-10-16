@@ -28,7 +28,11 @@ const SCREEN_R = 58;
 const OUTER = { w: SCREEN.w + 2 * (BEZEL + BAND), h: SCREEN.h + 2 * (BEZEL + BAND), r: SCREEN_R + BEZEL + BAND };
 // The whole phone, and where the screen sits in it.
 export const PHONE = { w: OUTER.w, h: OUTER.h, inset: BEZEL + BAND };
-const DEPTH = 9;
+// The thickness: layers 1.25 px apart, about 40 px in all (a real 16 Pro would be ~50 px at this width), close enough
+// that the edge reads as one solid band when the phone turns.
+const LAYERS = 32;
+const LAYER_GAP = 1.25;
+const DEPTH = LAYERS * LAYER_GAP;
 
 const TITANIUM = "linear-gradient(160deg, #6d6d72 0%, #2c2c2f 14%, #4a4a4f 30%, #1f1f22 52%, #3d3d41 74%, #2a2a2d 88%, #6a6a6f 100%)";
 
@@ -43,6 +47,8 @@ const SideButton: React.FC<{ side: "left" | "right"; top: number; height: number
       borderRadius: 3,
       background: "linear-gradient(90deg, #232326, #5c5c61 45%, #2a2a2d)",
       boxShadow: "inset 0 1px 0 rgba(255,255,255,0.2)",
+      // On the middle of the frame's edge, halfway back.
+      transform: `translateZ(${-DEPTH / 2}px)`,
     }}
   />
 );
@@ -69,17 +75,18 @@ const StatusBar: React.FC<{ dark?: boolean }> = ({ dark }) => {
 export const IPhone: React.FC<{ children: ReactNode; glare?: number; style?: CSSProperties }> = ({ children, glare, style }) => (
   <div style={{ position: "relative", width: OUTER.w, height: OUTER.h, transformStyle: "preserve-3d", ...style }}>
     {/* The phone's thickness: the outline repeated behind it, darker towards the back. */}
-    {Array.from({ length: DEPTH }, (_, k) => (
+    {Array.from({ length: LAYERS }, (_, k) => (
       <div
         key={k}
         style={{
           position: "absolute",
           inset: 0,
           borderRadius: OUTER.r,
-          background: k === DEPTH - 1 ? "#141416" : TITANIUM,
-          filter: `brightness(${0.85 - k * 0.05})`,
-          transform: `translateZ(${-(k + 1) * 1.1}px)`,
-          boxShadow: k === DEPTH - 1 ? "0 60px 120px rgba(7,7,7,0.35), 0 20px 40px rgba(7,7,7,0.25)" : undefined,
+          background: k === LAYERS - 1 ? "#141416" : TITANIUM,
+          // Brightest at the front edge, a soft highlight along the middle of the band, darker towards the back.
+          filter: `brightness(${(0.88 - 0.38 * (k / (LAYERS - 1)) + 0.08 * Math.sin((Math.PI * k) / (LAYERS - 1))).toFixed(3)})`,
+          transform: `translateZ(${-(k + 1) * LAYER_GAP}px)`,
+          boxShadow: k === LAYERS - 1 ? "0 60px 120px rgba(7,7,7,0.35), 0 20px 40px rgba(7,7,7,0.25)" : undefined,
         }}
       />
     ))}
