@@ -26,17 +26,15 @@ export const landingDe: DeepString<typeof landing> = {
     start: "Kostenlos starten",
   },
   hero: {
-    creatorKicker: "Bezahlte Kooperationen für Creator",
-    brandKicker: "Creator & UGC für deine Marke",
     creatorTitleA: "Wisch bezahlte",
     creatorTitleB1: "Marken-Deals",
     creatorTitleB2: "nach rechts.",
     brandTitleA: "Poste einen Deal.",
     brandTitleB1: "Creator melden",
     brandTitleB2: "sich bei dir.",
-    creatorBody: "Jede Anfrage zeigt das Budget vorab. Die Marke zahlt, bevor du postest, und du behältst 90 %.",
+    creatorBody: "Bezahlte Kooperationen mit Budget vorab. Die Marke zahlt, bevor du postest, und du behältst 90 %.",
     brandBody:
-      "Lege Budget und Inhalt fest. Passende Creator wischen nach rechts, und dein Geld wird zurückgehalten, bis du den Post freigegeben hast.",
+      "Lege Budget und Inhalt fest. Passende Creator und Influencer wischen nach rechts, und dein Geld wird zurückgehalten, bis du den Post freigegeben hast.",
     crowdBrandOne: "Marke ist schon dabei",
     crowdBrandMany: "Marken sind schon dabei",
     crowdCreatorOne: "Creator ist schon dabei",
@@ -147,6 +145,7 @@ export const landingDe: DeepString<typeof landing> = {
     title: "Häufige Fragen",
     lead: "So funktioniert die Plattform, einfach erklärt.",
     ctaTitle: "Bereit loszulegen?",
+    more: "Alle Fragen ansehen",
   },
   comingSoon: {
     title: "Bald für iOS & Android",

@@ -24,8 +24,6 @@ export const landingNl: DeepString<typeof landing> = {
     start: "Gratis starten",
   },
   hero: {
-    creatorKicker: "Betaalde samenwerkingen voor creators",
-    brandKicker: "Creators en UGC voor je merk",
     creatorTitleA: "Veeg naar rechts op",
     creatorTitleB1: "betaalde merkdeals.",
     creatorTitleB2: "",
@@ -142,6 +140,7 @@ export const landingNl: DeepString<typeof landing> = {
     title: "Veelgestelde vragen",
     lead: "Hoe het platform werkt, in gewone taal.",
     ctaTitle: "Zin om het te proberen?",
+    more: "Alle vragen bekijken",
   },
   comingSoon: {
     title: "Binnenkort voor iOS en Android",

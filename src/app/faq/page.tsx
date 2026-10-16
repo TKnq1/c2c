@@ -1,10 +1,7 @@
 import type { Metadata } from "next";
-import { FOUNDING_BRAND_LIMIT, FOUNDING_CREATOR_LIMIT, PLATFORM_FEE_RATE, PRO_PLATFORM_FEE_RATE, RELEASE_REVIEW_DAYS, PRO_PRICE_CENTS } from "@/lib/constants";
-import { proBreakEvenCents } from "@/lib/pro-price";
-import { formatCents } from "@/lib/format";
 import { canSellProSubscription } from "@/lib/native-app-server";
 import { getLocale, getT } from "@/lib/i18n/server";
-import type { MessageKey, TFunction } from "@/lib/i18n/translate";
+import { faqsFor } from "@/lib/faq";
 import { canonical } from "@/lib/seo";
 import { UgcBreadcrumbs, UgcCtas, UgcFooter, UgcHeader, UgcWatermark } from "@/components/ugc/ugc-parts";
 
@@ -15,31 +12,6 @@ export async function generateMetadata(): Promise<Metadata> {
     description: t("faq.meta.description"),
     alternates: canonical("/faq"),
   };
-}
-
-// In order of appearance. The Pro question and the Pro sentence in the payments answer are left out inside
-// the store apps, which can't sell Pro (see canSellProSubscription).
-const FAQ_ITEMS = ["matching", "reachOut", "payments", "pro", "noPost", "realMoney", "followers", "reviews", "contact"] as const;
-
-function faqsFor(t: TFunction, inStoreApp: boolean): { question: string; answer: string }[] {
-  const vars = {
-    days: RELEASE_REVIEW_DAYS,
-    fee: PLATFORM_FEE_RATE * 100,
-    proFee: PRO_PLATFORM_FEE_RATE * 100,
-    // Brands and creators pay different prices for Pro: both are named.
-    price: t("faq.perSide", { brand: formatCents(PRO_PRICE_CENTS.brand), creator: formatCents(PRO_PRICE_CENTS.creator) }),
-    breakEven: t("faq.perSide", {
-      brand: formatCents(proBreakEvenCents(PRO_PRICE_CENTS.brand)),
-      creator: formatCents(proBreakEvenCents(PRO_PRICE_CENTS.creator)),
-    }),
-    foundingBrands: FOUNDING_BRAND_LIMIT,
-    foundingCreators: FOUNDING_CREATOR_LIMIT,
-  };
-  const proOffer = inStoreApp ? "" : t("faq.proOffer", vars);
-  return FAQ_ITEMS.filter((item) => !(inStoreApp && item === "pro")).map((item) => ({
-    question: t(`faq.items.${item}.question` as MessageKey, vars),
-    answer: t(`faq.items.${item}.answer` as MessageKey, { ...vars, proOffer }),
-  }));
 }
 
 // Lets Google render these as an expandable rich result directly in search,

@@ -20,8 +20,6 @@ export const landing = {
     start: "Start free",
   },
   hero: {
-    creatorKicker: "Paid collaborations for creators",
-    brandKicker: "Creators & UGC for your brand",
     creatorTitleA: "Swipe right on",
     creatorTitleB1: "paid brand deals.",
     creatorTitleB2: "",
@@ -138,6 +136,7 @@ export const landing = {
     title: "Frequently asked questions",
     lead: "How the platform works, in plain terms.",
     ctaTitle: "Ready to try it?",
+    more: "See all questions",
   },
   comingSoon: {
     title: "Coming soon to iOS & Android",

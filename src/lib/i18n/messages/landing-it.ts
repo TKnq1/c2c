@@ -24,8 +24,6 @@ export const landingIt: DeepString<typeof landing> = {
     start: "Inizia gratis",
   },
   hero: {
-    creatorKicker: "Collaborazioni retribuite per creator",
-    brandKicker: "Creator e UGC per il tuo brand",
     creatorTitleA: "Swipa a destra",
     creatorTitleB1: "i deal pagati dei brand.",
     creatorTitleB2: "",
@@ -144,6 +142,7 @@ export const landingIt: DeepString<typeof landing> = {
     title: "Domande frequenti",
     lead: "Come funziona la piattaforma, in parole semplici.",
     ctaTitle: "Pronto a provare?",
+    more: "Vedi tutte le domande",
   },
   comingSoon: {
     title: "Presto su iOS e Android",

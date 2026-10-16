@@ -84,12 +84,6 @@ export function Hero({ brands, creators, primary }: { brands: number; creators: 
       <div aria-hidden="true" className="lp-grain lp-fade-out" />
 
       <div className="mx-auto flex max-w-7xl flex-col items-center px-4 pt-[calc(var(--safe-top)+112px)] pb-20 text-center md:pt-40 md:pb-28">
-        <p data-for="creator" className="lp-rise lp-glow mb-4 text-sm font-semibold tracking-wide text-ink uppercase md:mb-5">
-          {t("landing.hero.creatorKicker")}
-        </p>
-        <p data-for="brand" className="lp-rise lp-glow mb-4 text-sm font-semibold tracking-wide text-ink uppercase md:mb-5">
-          {t("landing.hero.brandKicker")}
-        </p>
         <CreatorHeading
           data-for="creator"
           className="font-display text-[clamp(34px,11.4vw,44px)] leading-[0.98] font-black tracking-[-0.035em] sm:text-[64px] lg:text-[88px]"
@@ -129,14 +123,14 @@ export function Hero({ brands, creators, primary }: { brands: number; creators: 
 
         <p
           data-for="creator"
-          className="lp-rise lp-glow mt-6 max-w-[36ch] text-[19px] leading-snug font-medium text-ink md:text-[22px]"
+          className="lp-rise lp-glow mt-6 max-w-[38ch] text-[19px] text-balance leading-snug font-medium text-ink md:text-[22px]"
           style={delay(250)}
         >
           {t("landing.hero.creatorBody")}
         </p>
         <p
           data-for="brand"
-          className="lp-rise lp-glow mt-6 max-w-[38ch] text-[19px] leading-snug font-medium text-ink md:text-[22px]"
+          className="lp-rise lp-glow mt-6 max-w-[38ch] text-[19px] text-balance leading-snug font-medium text-ink md:text-[22px]"
           style={delay(250)}
         >
           {t("landing.hero.brandBody")}

@@ -2,6 +2,7 @@ import "@/components/landing/landing.css";
 import { ComingSoon } from "@/components/landing/coming-soon";
 import { FeatureGrid } from "@/components/landing/feature-grid";
 import { Hero } from "@/components/landing/hero";
+import { LandingFaq } from "@/components/landing/landing-faq";
 import { LandingFooter } from "@/components/landing/landing-footer";
 import { LandingNav } from "@/components/landing/landing-nav";
 import { LandingPageRole, LandingRoleSync, type LandingRole } from "@/components/landing/landing-role";
@@ -21,6 +22,7 @@ export async function LandingPage({ pageRole }: { pageRole: LandingRole | null }
         <main>
           <Hero brands={crowd.brands} creators={crowd.creators} primary={pageRole ?? "creator"} />
           <FeatureGrid />
+          <LandingFaq />
           <ComingSoon />
         </main>
         <LandingFooter />

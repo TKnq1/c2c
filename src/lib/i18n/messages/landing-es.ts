@@ -24,8 +24,6 @@ export const landingEs: DeepString<typeof landing> = {
     start: "Empieza gratis",
   },
   hero: {
-    creatorKicker: "Colaboraciones pagadas para creadores",
-    brandKicker: "Creadores y UGC para tu marca",
     creatorTitleA: "Desliza a la derecha",
     creatorTitleB1: "los deals de pago.",
     creatorTitleB2: "",
@@ -144,6 +142,7 @@ export const landingEs: DeepString<typeof landing> = {
     title: "Preguntas frecuentes",
     lead: "Cómo funciona la plataforma, en palabras claras.",
     ctaTitle: "¿Listo para probarlo?",
+    more: "Ver todas las preguntas",
   },
   comingSoon: {
     title: "Pronto en iOS y Android",
