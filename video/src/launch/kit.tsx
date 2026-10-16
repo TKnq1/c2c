@@ -32,12 +32,12 @@ export const SOFT_SHADOW = "0 60px 140px rgba(7,7,7,0.16), 0 14px 34px rgba(7,7,
 // Motion
 
 // Springs with different characters, so not everything moves alike: some snap, some swing past and settle, some
-// glide in slowly. Values over 1 are the overshoot.
+// glide in slowly. Values over 1 are the overshoot, kept small so everything settles smoothly.
 export const SPRINGS = {
-  snap: { damping: 14, stiffness: 260, mass: 0.7 },
-  swing: { damping: 10, stiffness: 120, mass: 1 },
+  snap: { damping: 17, stiffness: 230, mass: 0.75 },
+  swing: { damping: 13, stiffness: 110, mass: 1 },
   glide: { damping: 22, stiffness: 50, mass: 1.1 },
-  land: { damping: 16, stiffness: 160, mass: 0.85 },
+  land: { damping: 18, stiffness: 150, mass: 0.85 },
 } as const;
 
 export function spr(frame: number, at: number, kind: keyof typeof SPRINGS) {
@@ -571,18 +571,18 @@ export const Haze: React.FC<{ strength?: number }> = ({ strength = 1 }) => {
   );
 };
 
-// A macro close-up on a detail (a button being pressed): from 10 frames before `at` the camera closes in on x, y
-// (frame pixels) by `zoom`, drawing it towards the middle, holds for `hold` frames and pulls back over 12; around the
+// A macro close-up on a detail (a button being pressed): from 14 frames before `at` the camera closes in on x, y
+// (frame pixels) by `zoom`, drawing it towards the middle, holds for `hold` frames and pulls back over 18; around the
 // detail the frame goes soft (a backdrop blur, masked open at the focus).
 export type MacroShot = { at: number; hold: number; x: number; y: number; zoom?: number };
 
 export function macroAt(frame: number, shots: MacroShot[]) {
   let best = { e: 0, shot: shots[0] };
   for (const shot of shots) {
-    const e = interpolate(frame, [shot.at - 10, shot.at, shot.at + shot.hold, shot.at + shot.hold + 12], [0, 1, 1, 0], {
+    const e = interpolate(frame, [shot.at - 14, shot.at, shot.at + shot.hold, shot.at + shot.hold + 18], [0, 1, 1, 0], {
       extrapolateLeft: "clamp",
       extrapolateRight: "clamp",
-      easing: Easing.inOut(Easing.cubic),
+      easing: Easing.inOut(Easing.sin),
     });
     if (e > best.e) best = { e, shot };
   }

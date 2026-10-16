@@ -493,6 +493,15 @@ LOFI_HOOK = [
     (8, 0.5, 76), (8.5, 0.5, 74), (9, 1, 72), (10, 1.5, 69),
     (12, 0.5, 67), (12.5, 0.5, 69), (13, 1.5, 72), (14.5, 1.5, 69),
 ]
+# The brands' progression, vi-IV-I-V: D minor 9, B flat major 9, F major 9, C 11.
+LOFI_PROG_B = [(50, [65, 69, 72, 76]), (46, [62, 65, 69, 72]), (41, [64, 67, 69, 72]), (48, [62, 65, 67, 70])]
+# Its marimba melody over four bars.
+LOFI_HOOK_B = [
+    (0, 0.5, 77), (0.5, 0.5, 76), (1, 1, 74), (2.5, 0.5, 72), (3, 1, 74),
+    (4, 0.5, 74), (4.5, 0.5, 77), (5, 1.5, 81), (6.5, 0.5, 79), (7, 1, 77),
+    (8, 0.5, 76), (8.5, 0.5, 77), (9, 1, 79), (10, 1, 76), (11, 0.5, 72), (11.5, 0.5, 74),
+    (12, 1.5, 74), (13.5, 0.5, 72), (14, 2, 70),
+]
 SWING = 0.07  # beats an offbeat eighth is late
 
 
@@ -608,122 +617,225 @@ def lofi_clap(gain=1.0):
     return declick(band(noise(0.35) * out, 800, 5500) * gain)
 
 
+def lofi_rim(gain=1.0):
+    """A side stick: a short wooden click, for the light groove."""
+    t = axis(0.08)
+    click = band(noise(0.08), 1500, 6000) * np.exp(-t / 0.004)
+    body = np.sin(2 * np.pi * 520 * t) * np.exp(-t / 0.015) * 0.6
+    return declick(band(np.tanh((click + body) * 1.5), None, 6000) * gain)
+
+
+def lofi_crash(gain=1.0):
+    """A soft, dark crash, for the starts of the big parts."""
+    t = axis(1.8)
+    return declick(band(noise(1.8), 3500, 10000) * np.exp(-t / 0.55) * np.minimum(1, t / 0.004) * gain)
+
+
 def lofi_hat(gain=1.0, open_=False):
     t = axis(0.25 if open_ else 0.06)
     return declick(band(noise(len(t) / SR), 6000, 12000) * np.exp(-t / (0.09 if open_ else 0.018)) * gain)
 
 
 def make_launch_bed(grid):
+    """The launch video's music, its parts following the scenes so it keeps changing: a filtered intro under the
+    typing, a light groove from the turn that fills out, a break under "Ein Swipe", the big groove with the hook for
+    the swipe and the deal (electric piano arpeggios joining in), muffled for the switch to brands, a second
+    progression with its own marimba melody for the brands, half time for the difference, a big chord for the logo,
+    and the hook coming back softly under the call to action before the last chord. Fills, risers and a soft crash
+    lead into the big moments."""
     at = grid["scenes"]
     end = grid["end"]
     length = lt(end + 2)
-    rhodes, bass, vib, pad = [], [], [], []
+    rhodes, bass, vib, pad, marimba, arp = [], [], [], [], [], []
     n = int(length * SR)
-    kick_bus, snare_bus, clap_bus, hat_bus = (np.zeros((n, 2)) for _ in range(4))
+    kick_bus, snare_bus, rim_bus, clap_bus, hat_bus, crash_bus = (np.zeros((n, 2)) for _ in range(6))
     kicks = []
 
-    def chord(start, beat):
-        return LOFI_PROG[int((beat - start) // 4) % 4]
+    def chord(ref, beat, prog=LOFI_PROG):
+        """The chord of the bar at `beat`, the progression counted from `ref` (a part's first bar)."""
+        return prog[int((beat - ref) // 4) % 4]
 
     def human():
         return rng.uniform(-0.015, 0.015)
 
-    def comp(start, stop, vel=68, stabs=True):
-        """The Rhodes: the chord on one, stabs on the and of two and on four."""
+    def comp(start, stop, vel=68, style="stabs", prog=LOFI_PROG, ref=None):
+        """The Rhodes. stabs: the chord on one, stabs on the and of two and on four; push: on one, on three and
+        pushed onto the and of four; held: the chord through the bar, so the quiet parts flow."""
+        hits = {
+            "stabs": [(0, 1.4, 0), (1.5, 0.45, -14), (3, 0.6, -8)],
+            "push": [(0, 1.0, 0), (2, 0.9, -10), (3.5, 0.45, -6)],
+            "held": [(0, 3.9, 0)],
+        }[style]
         for bar_at in np.arange(start, stop, 4.0):
-            root, voicing = chord(start, bar_at)
-            # Without stabs the chord holds for the whole bar, so the quiet parts flow instead of stopping and starting.
-            hits = [(0, 1.4, vel), (1.5, 0.45, vel - 14), (3, 0.6, vel - 8)] if stabs else [(0, 3.9, vel)]
-            for off, dur, v in hits:
+            _, voicing = chord(start if ref is None else ref, bar_at, prog)
+            for off, dur, dv in hits:
                 beat = bar_at + off
                 if beat >= stop:
                     continue
                 for k, note in enumerate(voicing):
-                    rhodes.append((swung(beat) + human() + k * 0.01, min(dur, stop - beat), note, v + rng.integers(-6, 6)))
+                    rhodes.append((swung(beat) + human() + k * 0.01, min(dur, stop - beat), note, vel + dv + rng.integers(-6, 6)))
 
-    def pads(start, stop, last=None):
+    def pads(start, stop, last=None, prog=LOFI_PROG):
         """A warm pad under the quiet parts, so they carry on between the Rhodes' chords."""
         for bar_at in np.arange(start, stop, 4.0):
-            _, voicing = last if last is not None else chord(start, bar_at)
+            _, voicing = last if last is not None else chord(start, bar_at, prog)
             for note in voicing:
                 pad.append((bar_at, min(4.0, stop - bar_at) + 0.3, note - 12, 64))
 
-    def bassline(start, stop):
+    def bassline(start, stop, style="main", prog=LOFI_PROG, ref=None):
+        """light: the root on one and pushed on the and of three; main: with the fifth and the octave; walk: busier,
+        for the parts that move."""
+        pattern = {
+            "light": [(0, 1.8, 0, 90), (2.5, 1.2, 0, 78)],
+            "main": [(0, 1.2, 0, 92), (1.5, 0.35, 7, 76), (2.5, 0.9, 0, 76), (3.5, 0.4, 12, 76)],
+            "walk": [(0, 0.7, 0, 92), (0.75, 0.25, 0, 70), (1.5, 0.4, 7, 76), (2, 0.45, 12, 74), (2.5, 0.9, 0, 80), (3.5, 0.45, 7, 74)],
+        }[style]
         for bar_at in np.arange(start, stop, 4.0):
-            root, _ = chord(start, bar_at)
-            for off, dur, iv in ((0, 1.2, 0), (1.5, 0.35, 7), (2.5, 0.9, 0), (3.5, 0.4, 12)):
+            root, _ = chord(start if ref is None else ref, bar_at, prog)
+            for off, dur, iv, vel in pattern:
                 if bar_at + off < stop:
-                    bass.append((swung(bar_at + off), dur, root - 12 + iv, 92 if off == 0 else 76))
+                    bass.append((swung(bar_at + off), dur, root - 12 + iv, vel))
 
-    def drums(start, stop, clap=False, shaker=False, hats_only=False):
+    def arps(start, stop, prog=LOFI_PROG, vel=52, ref=None):
+        """Broken chords in eighths on a second electric piano, up the voicing and back."""
+        for bar_at in np.arange(start, stop, 4.0):
+            _, v = chord(start if ref is None else ref, bar_at, prog)
+            for k, note in enumerate(v + [v[1] + 12, v[3], v[2], v[1]]):
+                beat = bar_at + k * 0.5
+                if beat < stop:
+                    arp.append((swung(beat), 0.45, note, vel + (8 if k == 0 else 0) + rng.integers(-5, 5)))
+
+    def melody(dest, start, stop, notes, vel, shift=0):
+        """A melody from `start`, repeated every four bars up to `stop`, cut off where it would run past."""
+        for rep in range(int(np.ceil((stop - start) / 16))):
+            for b, d, note in notes:
+                beat = start + rep * 16 + b
+                if beat + d <= stop:
+                    dest.append((swung(beat), d, note + shift, vel))
+
+    def drums(start, stop, style="main"):
+        """Swung lofi drums. light: kick, rim and hats; main: kick, snare and hats; full: with a clap, a shaker,
+        an open hat every other bar and a pushed kick in every fourth; half: half time; hats: hats only."""
         for k in range(int(round((stop - start) * 4))):
             beat = start + k / 4
             pos = (beat - start) % 4
+            bar = int((beat - start) // 4)
             t0 = lt(swung(beat))
-            if hats_only:
+            if style == "hats":
                 if pos % 0.5 == 0:
                     place(hat_bus, t0, lofi_hat(0.35 if pos % 1 else 0.2), pan=0.3)
                 continue
-            if pos in (0, 1.75, 2.5):
+            if style == "half":
+                if pos == 0 or (pos == 2.75 and bar % 2):
+                    place(kick_bus, t0, lofi_kick(1.0 if pos == 0 else 0.7))
+                    kicks.append(t0)
+                if pos == 2:
+                    place(snare_bus, t0, lofi_snare(), pan=0.05)
+                if pos % 0.5 == 0:
+                    place(hat_bus, t0, lofi_hat(0.42 if pos % 1 else 0.26), pan=0.3)
+                continue
+            kick_at = (0, 2.5) if style == "light" else (0, 1.75, 2.5, 3.25) if style == "full" and bar % 4 == 3 else (0, 1.75, 2.5)
+            if pos in kick_at:
                 place(kick_bus, t0, lofi_kick(1.0 if pos == 0 else 0.8))
                 kicks.append(t0)
             if pos in (1, 3):
-                place(snare_bus, t0, lofi_snare(), pan=0.05)
-                if clap:
+                if style == "light":
+                    place(rim_bus, t0, lofi_rim(), pan=-0.05)
+                else:
+                    place(snare_bus, t0, lofi_snare(), pan=0.05)
+                if style == "full":
                     place(clap_bus, t0 + 0.004, lofi_clap(), pan=-0.1)
-            if pos % 0.5 == 0:
+            if style == "full" and pos == 3.5 and bar % 2 == 1:
+                place(hat_bus, t0, lofi_hat(0.45, open_=True), pan=0.25)
+            elif pos % 0.5 == 0:
                 place(hat_bus, t0, lofi_hat(0.5 if pos % 1 else 0.3), pan=0.3)
-            elif shaker or pos == 3.75:
+            elif style == "full" or pos == 3.75:
                 place(hat_bus, t0, lofi_hat(0.18), pan=-0.3)
 
-    def hook(start, stop):
-        for rep in range(int((stop - start) // 16)):
-            for b, d, note in LOFI_HOOK:
-                beat = start + rep * 16 + b
-                if beat + d <= stop:
-                    vib.append((swung(beat), d, note, 84))
+    def fill(into):
+        """A snare run into a beat: four sixteenths over the beat before, getting louder."""
+        for k, g in enumerate((0.3, 0.45, 0.65, 0.9)):
+            place(snare_bus, lt(into - 1 + k / 4), lofi_snare(g), pan=0.05)
 
-    turn, swipe_line, swipe, paid, brands, brief, logo, cta = (at[k] for k in ("L02", "L06", "L07", "L09", "L10", "L11", "L14", "L15"))
-    # Opening: the Rhodes held and filtered, hats only in the last bar.
-    comp(0, turn, vel=48, stabs=False)
+    def crash(beat, gain=1.0):
+        place(crash_bus, lt(beat), lofi_crash(gain), pan=-0.2)
+
+    # Risers into the big moments, (the beat they lead into, gain), laid over the finished mix.
+    risers = []
+
+    turn, swipe_line, swipe, deal, paid, brands, brief, diff, logo, cta = (
+        at[k] for k in ("L02", "L06", "L07", "L08", "L09", "L10", "L11", "L13", "L14", "L15")
+    )
+    # Opening: the Rhodes held and filtered, a few notes of the hook far off, the drums coming in for the last bar.
+    comp(0, turn, vel=48, style="held")
     pads(0, turn)
+    vib.extend((b, d, note, 50) for b, d, note in ((6, 1, 72), (7, 1, 74), (8, 2, 77), (10, 1, 74), (11, 1, 72), (12, 2, 69)) if b + d <= turn)
     if turn >= 2:
-        drums(turn - 2, turn)
-    # Groove from the turn.
+        drums(turn - 2, turn, "light")
+    # The groove from the turn, light at first (rim, the bass on the roots), filling out halfway.
+    grow = turn + 4 * max(1, int((swipe_line - turn) // 8))
     comp(turn, swipe_line)
-    bassline(turn, swipe_line)
-    drums(turn, swipe_line)
-    # "Ein Swipe": the Rhodes and the vibraphone alone.
-    comp(swipe_line, swipe, vel=56, stabs=False)
+    bassline(turn, grow, "light")
+    bassline(grow, swipe_line, "main", ref=turn)
+    drums(turn, grow, "light")
+    drums(grow, swipe_line, "main")
+    # "Ein Swipe": the Rhodes and the vibraphone alone, rising into the swipe.
+    comp(swipe_line, swipe, vel=56, style="held")
     pads(swipe_line, swipe)
     vib.extend((swipe_line + b, d, note, 70) for b, d, note in LOFI_HOOK if b + d <= swipe - swipe_line)
-    # The bigger groove with the hook.
+    risers.append((swipe, 0.45))
+    # The swipe and the deal: the big groove with the hook, electric piano arpeggios joining as the deal goes through,
+    # a crash on the payout.
+    # The first bar line after the deal starts, so the bass and the arpeggios change with the Rhodes' bars.
+    deal_bar = swipe + 4 * int(np.ceil((deal - swipe) / 4))
     comp(swipe, brands)
-    bassline(swipe, brands)
-    drums(swipe, brands, clap=True, shaker=True)
-    hook(swipe + 4, brands)
-    # The switch to brands: drums muffled, the Rhodes on.
+    bassline(swipe, deal_bar, "main")
+    bassline(deal_bar, brands, "walk", ref=swipe)
+    drums(swipe, brands, "full")
+    crash(swipe)
+    melody(vib, swipe + 4, swipe + 20, LOFI_HOOK, 84)
+    arps(deal_bar, brands, ref=swipe)
+    crash(paid, 0.8)
+    # The switch to brands: drums muffled, the Rhodes on; a snare run into the briefing.
     comp(brands, brief, vel=60)
     bassline(brands, brief)
-    drums(brands, brief)
-    # Briefing, Discover, the difference: the full groove again.
-    comp(brief, logo)
-    bassline(brief, logo)
-    drums(brief, logo, clap=True, shaker=True)
-    hook(brief + 4, logo)
+    drums(brands, brief - 1)
+    fill(brief)
+    risers.append((brief, 0.4))
+    # The brands: a second progression (vi-IV-I-V: D minor 9, B flat major 9, F major 9, C 11) with its own marimba
+    # melody, pushed Rhodes and a walking bass; the second time round the vibraphone doubles it and the arpeggios
+    # come back.
+    again = brief + 16
+    comp(brief, diff, style="push", prog=LOFI_PROG_B)
+    bassline(brief, diff, "walk", prog=LOFI_PROG_B)
+    drums(brief, diff, "full")
+    crash(brief)
+    melody(marimba, brief, diff, LOFI_HOOK_B, 82)
+    melody(vib, again, diff, LOFI_HOOK_B, 62, shift=-12)
+    arps(again, diff, prog=LOFI_PROG_B, vel=46, ref=brief)
+    # The difference: home again in half time, held and quiet, rising into the logo.
+    comp(diff, logo, vel=58, style="held")
+    pads(diff, logo)
+    bassline(diff, logo, "light")
+    drums(diff, logo - 1, "half")
+    fill(logo)
+    risers.append((logo, 0.5))
     # Logo: drums out, one big chord.
     for k, note in enumerate([46, 58, 62, 65, 69, 72]):
         rhodes.append((logo + k * 0.02, 5.5, note, 76))
     bass.append((logo, 5.5, 34, 90))
+    crash(logo, 0.9)
     pads(logo, cta, last=(46, [58, 62, 65, 69]))
     for k, note in enumerate((72, 77, 81)):
         vib.append((logo + 1 + k * 0.5, 2, note, 74))
-    # Call to action: the Rhodes and hats softly, then F major 9 on a bar line, ringing out to the end.
+    # Call to action: the Rhodes and hats softly, the hook once more on the marimba, then F major 9 on a bar line,
+    # ringing out to the end.
     final = cta + 4 * max(1, int((end - 2.5 - cta) // 4))
-    comp(cta, final, vel=50, stabs=False)
+    comp(cta, final, vel=50, style="held")
     pads(cta, final)
     pads(final, end, last=(41, [57, 60, 64, 69]))
-    drums(cta, final, hats_only=True)
+    drums(cta, final, "hats")
+    melody(marimba, cta, final, LOFI_HOOK[:9], 64)
     for k, note in enumerate([41, 53, 60, 64, 69, 72]):
         rhodes.append((final + k * 0.02, end - final + 1, note, 56))
     bass.append((final, end - final, 29, 70))
@@ -733,6 +845,8 @@ def make_launch_bed(grid):
         level(stereo_band(keys, 90, None), -17)
         + level(stereo_band(gm_render(bass, 33, length), None, 900), -18)
         + level(gm_render(vib, 11, length), -23)
+        + level(stereo_band(gm_render(marimba, 12, length), 150, None), -23)
+        + level(stereo_band(gm_render(arp, 5, length), 200, 7000), -27)
         + level(stereo_band(gm_render(pad, 89, length), 120, 5000), -27)
     )
     music = tape_wobble(music)
@@ -743,11 +857,12 @@ def make_launch_bed(grid):
         duck[i : i + len(seg)] = np.minimum(duck[i : i + len(seg)], 1 - 0.2 * np.exp(-seg / 0.1))
     music *= duck[:, None]
     music = open_filter(music, 0, lt(turn), 700, 9000)
-    drum_bus = level(kick_bus, -15) + level(snare_bus, -20) + level(clap_bus, -25) + level(hat_bus, -27)
-    drum_bus = muffle(drum_bus, lt(brands), lt(brief), 1400)
+    drum_bus = level(kick_bus, -15) + level(snare_bus, -20) + level(rim_bus, -24) + level(clap_bus, -25) + level(hat_bus, -27) + level(crash_bus, -30)
+    drum_bus = muffle(drum_bus, lt(brands), lt(brief - 1), 1400)
     drum_bus = stereo_band(np.tanh(drum_bus * 1.3), None, 9500)
     mix = reverb(music, seconds=1.6, decay=0.45, wet=0.18) + drum_bus
-    place(mix, lt(turn - 2), riser(lt(2)), gain=0.6)
+    for into, gain in [(turn, 0.6), *risers]:
+        place(mix, lt(into - 2), riser(lt(2)), gain=gain)
     # The last chord fades into the video's last frame, nothing after it.
     stop, fade = int(lt(end) * SR), int(1.8 * SR)
     mix[stop - fade : stop] *= np.linspace(1, 0, fade)[:, None] ** 1.5
@@ -944,6 +1059,20 @@ def sfx_shimmer(dur=0.9):
     return declick(out, ms=6)
 
 
+def sfx_sweep(dur=0.62):
+    """The camera panning on to the next scene: a soft, low breath of air passing from left to right, rising and
+    falling with the move, no hiss on top (stereo)."""
+    t = axis(dur)
+    raw = noise(dur)
+    out = np.zeros_like(t)
+    for k in range(10):
+        centre = 250 * (2400 / 250) ** (k / 9)
+        out += band(raw, centre * 0.7, centre * 1.4) * np.exp(-(((t / dur) - (0.1 + 0.8 * k / 9)) ** 2) / 0.03)
+    out = band(out, None, 5000) * np.sin(np.pi * t / dur) ** 2
+    angle = (np.linspace(-0.6, 0.6, len(t)) + 1) * np.pi / 4
+    return np.stack([declick(out * np.cos(angle)), declick(out * np.sin(angle))], axis=1)
+
+
 def sfx_whip(dur=0.5):
     """The whip into a word: a soft rush of air rising to the cut, quieter and smoother than a whoosh."""
     t = axis(dur)
@@ -993,6 +1122,7 @@ def main_launch():
         "select": sfx_select,
         "boom": sfx_boom,
         "shimmer": sfx_shimmer,
+        "sweep": sfx_sweep,
     }
     for name, make in effects.items():
         seed(name)

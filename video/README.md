@@ -63,18 +63,30 @@ npm run launch:audio    # regenerate its music and sounds (needs python3, numpy,
 npm run launch:render   # with sound, lossless frames, CRF 14, mastered to -14 LUFS: out/launch-final.mp4
 ```
 
-The music is pop lofi built for the cut by `scripts/make-audio.py --launch`: 90 BPM (a beat is 20 frames), F major,
-the royal road IV-V-iii-vi (B flat maj9, C9, A minor 7, D minor 9). A Rhodes comping with a light tape wobble, a warm
-bass, swung lofi drums (round kick, dusty snare, a clap in the bigger grooves, swung hats) and a vibraphone hook in
-the later grooves. The Rhodes, bass and vibraphone are the FluidR3 GM soundfont (MIT) played through fluidsynth
-(`apt install fluidsynth fluid-soundfont-gm`, `pip install mido`). Quiet and filtered under the opening lines, the
-groove from the turn, breaks under "Ein Swipe" and the switch to brands, drums out for the logo, then two soft bars
-and a last chord on the bar line that rings out into the last frame.
+The scenes are drawn in frames of 30 per second, but the video runs at 60: `LaunchVideo` plays every drawn frame in
+two steps (`SceneSpeed`, `STEPS_PER_FRAME` in `src/launch/scenes.tsx`), so the camera, the springs and the hand-overs
+get their in-between positions. Timings in the scenes stay in drawn frames.
+
+The music is pop lofi built for the cut by `scripts/make-audio.py --launch`: 90 BPM (a beat is 20 drawn frames),
+F major. A Rhodes with a light tape wobble, a warm bass, swung lofi drums, a vibraphone, a marimba, a second electric
+piano and a pad, all from the FluidR3 GM soundfont (MIT) played through fluidsynth (`apt install fluidsynth
+fluid-soundfont-gm`, `pip install mido`), the drums synthesised. Its parts follow the scenes: filtered and held under
+the opening lines with a few notes of the hook far off; a light groove from the turn (side stick, the bass on the
+roots) that fills out halfway; a break under "Ein Swipe"; the big groove with the vibraphone hook for the swipe,
+arpeggios joining for the deal, a crash on the payout; muffled for the switch to brands; for the brands a second
+progression (vi-IV-I-V instead of the royal road IV-V-iii-vi) with its own marimba melody; half time under the
+difference; one big chord for the logo; and the hook once more on the marimba under the call to action before a last
+chord on the bar line that rings out into the last frame. Snare runs, risers and a soft crash lead into the big
+moments.
 
 The effects stay minimal under the music: a quiet, muffled mechanical keyboard, a soft low boom on the big moments
-(turn, reveal, payout, brands, logo), a shimmering whoosh into every zoom cut, a slam under words, a select tick;
-`SfxGain` (`src/audio.tsx`) sets their overall level. They are synthesised (`scripts/make-audio.py --launch`:
-`public/sfx/key-*.wav`, `boom`, `shimmer`, `slam`, `select`).
+(turn, reveal, payout, brands, logo), a soft shimmer into every dive, a low, airy sweep under every pan, a slam
+under words, a select tick; `SfxGain` (`src/audio.tsx`) sets their overall level. They are synthesised
+(`scripts/make-audio.py --launch`: `public/sfx/key-*.wav`, `boom`, `shimmer`, `sweep`, `slam`, `select`).
+
+The scenes hand over without a hard cut (`exit` in `src/launch/scenes.tsx`): a `dive` pushes into a point and the
+next scene lands out of the blur around its `focus`, a `pan` slides both scenes edge to edge, motion-blurred. The key
+presses (Annehmen, Beitragslink einreichen, Anfrage posten, Einladen) get a macro close-up (`Macro` in `kit.tsx`).
 
 Every scene lasts whole beats (`beats` in `src/launch/scenes.tsx`, halves allowed), so every cut lands on a beat;
 `scripts/grid.ts` hands the starts to the music. Change a scene's beats, then run `npm run launch:audio`.

@@ -5,8 +5,13 @@ import { CREATOR_SCENES } from "./scenes-creator";
 // themselves are in scenes-creator.tsx and scenes-brand.tsx; this file only orders and times them.
 
 export const LAUNCH_BPM = 90;
+// The scenes are drawn in frames of 30 per second; the video plays them at 60 (LaunchVideo.tsx), every drawn frame
+// in two steps, so the camera and everything else moves without judder.
+export const LAUNCH_FPS = 60;
+export const STEPS_PER_FRAME = LAUNCH_FPS / 30;
 export const FRAMES_PER_BEAT = (30 * 60) / LAUNCH_BPM;
-export const OVERLAP = 10;
+// How long two scenes overlap at a hand-over.
+export const OVERLAP = 18;
 // The last scene holds this long after its last beat.
 const END_HOLD = 24;
 

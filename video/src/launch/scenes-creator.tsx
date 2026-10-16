@@ -244,7 +244,7 @@ const Turn: React.FC = () => {
       <Sfx name="boom" at={2} volume={0.3} />
       <Sfx name="slam" at={2} volume={0.55} />
       <Sfx name="slam" at={12} volume={0.55} />
-      <Sfx name="whoosh" at={62} volume={0.25} />
+      <Sfx name="whoosh" at={62} volume={0.1} />
       <Center>
         <div style={{ transform: `scale(${drift(frame, 110, 1.1, 0.9)}) rotate(${mix(spr(frame, 0, "swing"), -2, 0)}deg)` }}>
           <SlamWords
@@ -277,7 +277,7 @@ const Reveal: React.FC = () => {
     <Backdrop light="mist" lines={3}>
       <Sfx name="boom" at={0} volume={0.35} />
       <Sfx name="slam" at={0} volume={0.6} />
-      <Sfx name="whoosh" at={42} volume={0.2} />
+      <Sfx name="whoosh" at={42} volume={0.08} />
       <Keys times={NAME_TIMES} />
       <Center>
         <div style={{ display: "flex", alignItems: "center", transform: `scale(${drift(frame, 125, 1.06, 0.8)})` }}>
@@ -318,7 +318,7 @@ const ClaimProduct: React.FC = () => {
       {CLAIM_WORDS.map((_, i) => (
         <Sfx key={i} name="tick" at={4 + i * 7} volume={0.25} />
       ))}
-      <Sfx name="whoosh" at={90} volume={0.45} />
+      <Sfx name="whoosh" at={90} volume={0.16} />
       <Center>
         <div
           style={{
@@ -378,7 +378,7 @@ const Matching: React.FC = () => {
   });
   return (
     <Backdrop light="mist" lines={5}>
-      <Sfx name="swipe" at={6} volume={0.3} />
+      <Sfx name="swipe" at={6} volume={0.12} />
       {CHECK_STEPS.map((step, i) => (
         <Sfx key={i} name="tick" at={CHECK_START + step + 16} volume={0.55} />
       ))}
@@ -474,8 +474,8 @@ const Swipe: React.FC = () => {
   return (
     <Backdrop light="mist">
       <Sfx name="tick" at={GRAB} volume={0.5} />
-      <Sfx name="swipe" at={LET_GO - 2} volume={0.65} />
-      <Sfx name="whoosh" at={136} volume={0.2} />
+      <Sfx name="swipe" at={LET_GO - 2} volume={0.3} />
+      <Sfx name="whoosh" at={136} volume={0.08} />
       <AbsoluteFill style={{ perspective: 2600 }}>
         <div
           style={{
@@ -594,7 +594,7 @@ const Paid: React.FC = () => {
   return (
     <Backdrop light="night">
       <Sfx name="boom" at={0} volume={0.25} />
-      <Sfx name="whoosh" at={0} volume={0.5} />
+      <Sfx name="whoosh" at={0} volume={0.18} />
       <Sfx name="coin" at={60} volume={0.55} />
       <SmearFilter id="paid-smear" amount={mix(Math.min(whip, 1), 70, 0)} />
       <Center style={{ gap: 60, opacity: 1 - out, filter: out > 0 ? `blur(${out * 20}px)` : undefined }}>

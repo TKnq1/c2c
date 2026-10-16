@@ -43,7 +43,7 @@ const ForBrands: React.FC = () => {
     <Backdrop light="night" lines={10}>
       <Sfx name="boom" at={0} volume={0.3} />
       <Sfx name="slam" at={0} volume={0.65} />
-      <Sfx name="whoosh" at={44} volume={0.2} />
+      <Sfx name="whoosh" at={44} volume={0.08} />
       <Center>
         <div style={{ transform: `scale(${drift(frame, 105, 1.1, 0.86)})`, display: "flex", flexDirection: "column", alignItems: "center" }}>
           <div style={{ fontSize: 240, fontWeight: 900, letterSpacing: -9, lineHeight: 1, transform: `translateY(${mix(up, 60, -30)}px) scale(${mix(up, 1, 0.6)})`, ...slamStyle(slam(frame, 0), 2.2, 40) }}>Und</div>
@@ -144,7 +144,7 @@ const Briefing: React.FC = () => {
   return (
     <Backdrop light="mist">
       <Keys times={TITLE_TIMES} />
-      <Sfx name="whoosh" at={PULL[0]} volume={0.35} />
+      <Sfx name="whoosh" at={PULL[0]} volume={0.14} />
       {clicks.map((c) => (
         <Sfx key={c} name="click" at={c} volume={0.5} />
       ))}
@@ -239,7 +239,7 @@ const Discover: React.FC = () => {
   return (
     <Backdrop light="mist">
       {FILTERS.map((at) => (
-        <Sfx key={`w${at}`} name="swipe" at={at + 4} volume={0.2} />
+        <Sfx key={`w${at}`} name="swipe" at={at + 4} volume={0.08} />
       ))}
       <Sfx name="click" at={INVITE_AT} volume={0.6} />
       <Macro shots={[{ at: INVITE_AT, hold: 12, x: inviteAt.x, y: inviteAt.y }]}>
@@ -269,7 +269,7 @@ const Difference: React.FC = () => {
   return (
     <Backdrop light="mist" lines={13}>
       <Sfx name="slam" at={2} volume={0.5} />
-      <Sfx name="whoosh" at={60} volume={0.2} />
+      <Sfx name="whoosh" at={60} volume={0.08} />
       <Sfx name="slam" at={78} volume={0.6} />
       <Center>
         <div style={{ position: "absolute", transform: `translateY(${-back * 150}px) scale(${drift(frame, 90, 1.06, 0.9) * mix(back, 1, 0.62)})`, opacity: mix(back, 1, 0.35), filter: back > 0 ? `blur(${back * 3}px)` : undefined }}>

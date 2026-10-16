@@ -27,6 +27,7 @@ const FILES = {
   select: "sfx/select.wav",
   boom: "sfx/boom.wav",
   shimmer: "sfx/shimmer.wav",
+  sweep: "sfx/sweep.wav",
   success: "sounds/success.mp3",
 } as const;
 

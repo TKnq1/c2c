@@ -1,26 +1,35 @@
 import { AbsoluteFill, Easing, Html5Audio, interpolate, Sequence, staticFile } from "remotion";
 import { mix } from "../anim";
 import { Sfx, SfxEnabled, SfxGain } from "../audio";
-import { useFrame } from "../frame";
+import { SceneSpeed, useFrame } from "../frame";
 import { LAUNCH_HEIGHT, LAUNCH_WIDTH } from "./kit";
-import { LAUNCH_DURATION, LAUNCH_SCENES, OVERLAP, type TimedScene } from "./scenes";
+import { LAUNCH_DURATION, LAUNCH_SCENES, OVERLAP, STEPS_PER_FRAME, type TimedScene } from "./scenes";
 
 // The launch video (LAUNCH.md), 16:9: the scenes end to end on the music's beat grid, handed over so the camera seems
-// to keep moving through one take (scenes.tsx, `exit`). A dive zooms hard into a point and the next scene comes up out
-// of its own focus, from deep in and out of focus, with a shimmering whoosh; a pan slides the camera on and the next
-// scene arrives from the other side, the two meeting edge to edge, motion-blurred along the move.
+// to keep moving through one take (scenes.tsx, `exit`). A dive pushes into a point, gathering speed, and the next
+// scene lands out of the blur around its own focus, settling the last bit like a camera coming to rest, with a soft
+// shimmer; a pan slides the camera on and the next scene arrives from the other side, the two meeting edge to edge,
+// motion-blurred along the move.
 // The music (scripts/make-audio.py --launch) follows the same grid.
+// Everything here counts in drawn frames (30 per second); the composition runs at 60 and plays each drawn frame in
+// two steps (SceneSpeed), so every animation gets the in-between positions.
 // The dive starts a little before the next scene does, so the two overlap.
-const EXIT = 14;
+const EXIT = 24;
 const MUSIC_VOLUME = 0.7;
 // The reference's effects are minimal: quiet under the music, never on top of it.
 const SFX_GAIN = 0.6;
-const EMERGE = 2.6;
-const PAN_BLUR = 42;
+// How close the next scene starts after a dive, settling to 1.
+const ARRIVE = 1.12;
+const PAN_BLUR = 30;
 
-export { LAUNCH_DURATION };
+export const LAUNCH_FRAMES = LAUNCH_DURATION * STEPS_PER_FRAME;
 
 const clampEase = { extrapolateLeft: "clamp", extrapolateRight: "clamp", easing: Easing.inOut(Easing.cubic) } as const;
+
+// A zoom that feels even: interpolated on the logarithm of the scale, so each step looks like the same push.
+function zoom(p: number, from: number, to: number) {
+  return Math.exp(mix(p, Math.log(from), Math.log(to)));
+}
 
 const Shell: React.FC<{ scene: TimedScene; first: boolean; children: React.ReactNode }> = ({ scene, first, children }) => {
   const frame = useFrame();
@@ -38,10 +47,12 @@ const Shell: React.FC<{ scene: TimedScene; first: boolean; children: React.React
       else transforms.push(`translateY(${(1 - p) * LAUNCH_HEIGHT}px)`);
       motion[came.pan === "left" ? "x" : "y"] = Math.sin(Math.PI * p) * PAN_BLUR;
     } else if (came) {
-      transforms.push(`scale(${mix(p, EMERGE, 1)})`);
+      // Out of the dive: quickest as it takes over, settling softly into place.
+      const e = interpolate(frame, [0, OVERLAP + 6], [0, 1], { extrapolateLeft: "clamp", extrapolateRight: "clamp", easing: Easing.out(Easing.cubic) });
       origin = scene.focus ?? "50% 50%";
-      blur = (1 - p) * 24;
-      opacity = Math.min(1, p * 2.2);
+      transforms.push(`scale(${zoom(e, ARRIVE, 1)})`);
+      blur = (1 - e) * 18;
+      opacity = interpolate(frame, [0, 10], [0, 1], { extrapolateLeft: "clamp", extrapolateRight: "clamp", easing: Easing.inOut(Easing.sin) });
     } else {
       opacity = p;
       blur = (1 - p) * 16;
@@ -56,11 +67,12 @@ const Shell: React.FC<{ scene: TimedScene; first: boolean; children: React.React
       motion[exit.pan === "left" ? "x" : "y"] = Math.max(motion[exit.pan === "left" ? "x" : "y"], Math.sin(Math.PI * q) * PAN_BLUR);
     }
   } else if (exit) {
-    const out = interpolate(frame, [scene.duration - EXIT, scene.duration], [0, 1], { extrapolateLeft: "clamp", extrapolateRight: "clamp", easing: Easing.in(Easing.cubic) });
+    // Into the dive: a gentle start that keeps accelerating, handed to the next scene at speed.
+    const out = interpolate(frame, [scene.duration - EXIT, scene.duration], [0, 1], { extrapolateLeft: "clamp", extrapolateRight: "clamp", easing: Easing.in(Easing.quad) });
     if (out > 0) {
-      transforms.push(`scale(${mix(out, 1, exit.scale ?? 7)})`);
+      transforms.push(`scale(${zoom(out, 1, exit.scale ?? 7)})`);
       origin = exit.dive;
-      blur = Math.max(blur, out * 30);
+      blur = Math.max(blur, out * out * 26);
     }
   }
   const filterId = `move-${scene.id}`;
@@ -75,9 +87,9 @@ const Shell: React.FC<{ scene: TimedScene; first: boolean; children: React.React
           </filter>
         </svg>
       )}
-      {/* A dive's shimmer swells into the cut, peaking 23 frames after it starts; a pan gets a quick whoosh. */}
-      {exit && "dive" in exit && <Sfx name="shimmer" at={scene.duration - OVERLAP - 23} volume={0.45} />}
-      {exit && "pan" in exit && <Sfx name="swipe" at={scene.duration - OVERLAP - 5} volume={0.35} />}
+      {/* A dive's shimmer swells into the cut; a pan gets a soft, airy sweep. Both stay well under the music. */}
+      {exit && "dive" in exit && <Sfx name="shimmer" at={scene.duration - OVERLAP - 23} volume={0.22} />}
+      {exit && "pan" in exit && <Sfx name="sweep" at={scene.duration - OVERLAP - 8} volume={0.2} />}
       {children}
     </AbsoluteFill>
   );
@@ -86,16 +98,18 @@ const Shell: React.FC<{ scene: TimedScene; first: boolean; children: React.React
 export const LaunchVideo: React.FC<{ music?: boolean; sfx?: boolean }> = ({ music = true, sfx = true }) => (
   <AbsoluteFill style={{ backgroundColor: "#070707" }}>
     {music && <Html5Audio src={staticFile("music/launch-bed.mp3")} volume={MUSIC_VOLUME} />}
-    <SfxEnabled.Provider value={sfx}>
-      <SfxGain.Provider value={SFX_GAIN}>
-      {LAUNCH_SCENES.map((scene, i) => (
-        <Sequence key={scene.id} from={scene.start} durationInFrames={scene.duration} name={scene.id}>
-          <Shell scene={scene} first={i === 0}>
-            <scene.component />
-          </Shell>
-        </Sequence>
-      ))}
-      </SfxGain.Provider>
-    </SfxEnabled.Provider>
+    <SceneSpeed.Provider value={1 / STEPS_PER_FRAME}>
+      <SfxEnabled.Provider value={sfx}>
+        <SfxGain.Provider value={SFX_GAIN}>
+          {LAUNCH_SCENES.map((scene, i) => (
+            <Sequence key={scene.id} from={scene.start * STEPS_PER_FRAME} durationInFrames={scene.duration * STEPS_PER_FRAME} name={scene.id}>
+              <Shell scene={scene} first={i === 0}>
+                <scene.component />
+              </Shell>
+            </Sequence>
+          ))}
+        </SfxGain.Provider>
+      </SfxEnabled.Provider>
+    </SceneSpeed.Provider>
   </AbsoluteFill>
 );
