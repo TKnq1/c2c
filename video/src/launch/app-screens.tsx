@@ -1,6 +1,7 @@
 import type { CSSProperties, ReactNode } from "react";
 import { FiChevronRight, FiFilter, FiHeart, FiLink, FiSend, FiX } from "react-icons/fi";
 import { IoCheckmark, IoChevronDown, IoLockClosed, IoLogoInstagram, IoLogoTiktok, IoLogoTwitch, IoLogoYoutube, IoSearch, IoStar } from "react-icons/io5";
+import { Img, staticFile } from "remotion";
 import { NOKAR_HOODIE, RAW_AVATAR, VS_AVATAR } from "../ads/brands";
 import { mix } from "../anim";
 import { Avatar, DealCard, Photo } from "../components/ui";
@@ -396,7 +397,8 @@ export const ChoiceSheet: React.FC<{ kind: SheetKind; picked?: string; pop?: num
 // Discover for brands (discover-creators.tsx): the request it is for, search and Filter, the applied filters, the
 // count, the photo grid with what each creator matches and Invite
 
-export type Creator = { name: string; niche: string; followers: string; platform: string; rating: string; shade: string; keep: number };
+// `photo` (a file in public/) replaces the initials on the tile.
+export type Creator = { name: string; niche: string; followers: string; platform: string; rating: string; shade: string; keep: number; photo?: string };
 
 // `keep` is the filter step that drops a creator (1 niche, 2 platform, 3 reach), 9 if they stay.
 export const CREATORS: Creator[] = [
@@ -437,12 +439,16 @@ const Tile: React.FC<{ c: Creator; pos: { x: number; y: number }; gone: number; 
       }}
     >
       <div style={{ position: "relative", height: 230, borderRadius: 4, backgroundColor: c.shade, display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden" }}>
-        <span style={{ fontSize: 64, fontWeight: 900, color: "rgba(7,7,7,0.22)", letterSpacing: -2 }}>
-          {c.name
-            .split(" ")
-            .map((w) => w[0])
-            .join("")}
-        </span>
+        {c.photo ? (
+          <Img src={staticFile(c.photo)} style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }} />
+        ) : (
+          <span style={{ fontSize: 64, fontWeight: 900, color: "rgba(7,7,7,0.22)", letterSpacing: -2 }}>
+            {c.name
+              .split(" ")
+              .map((w) => w[0])
+              .join("")}
+          </span>
+        )}
         <span style={{ position: "absolute", right: 8, top: 8, width: 28, height: 28, borderRadius: 999, backgroundColor: "rgba(255,255,255,0.9)", display: "flex", alignItems: "center", justifyContent: "center" }}>
           <IoStar size={14} color="#a3a3a3" />
         </span>

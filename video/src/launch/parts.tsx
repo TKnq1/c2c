@@ -14,12 +14,14 @@ export function caretOn(frame: number, idleFrom: number) {
 }
 
 const KEYS: SfxName[] = ["key-1", "key-2", "key-3"];
+// Typing sits well under the music: a quiet keyboard in the room, not a sound effect.
+const KEY_LEVEL = 0.4;
 
-// A key click at each of `times` (a line's typingTimes), a little uneven in volume like real typing.
+// A key at each of `times` (a line's typingTimes), a little uneven in volume like real typing.
 export const Keys: React.FC<{ times: number[]; del?: boolean; volume?: number }> = ({ times, del, volume = 0.55 }) => (
   <>
     {times.map((at, k) => (
-      <Sfx key={k} name={del ? "key-del" : KEYS[(k * 7 + 3) % 3]} at={at} volume={volume * (0.65 + 0.35 * Math.abs(Math.sin(k * 2.7 + 0.4)))} />
+      <Sfx key={k} name={del ? "key-del" : KEYS[(k * 7 + 3) % 3]} at={at} volume={KEY_LEVEL * volume * (0.65 + 0.35 * Math.abs(Math.sin(k * 2.7 + 0.4)))} />
     ))}
   </>
 );

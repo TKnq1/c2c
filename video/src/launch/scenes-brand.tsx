@@ -135,7 +135,7 @@ const Briefing: React.FC = () => {
   const toast = spr(frame, POST_AT + 6, "swing");
   const zoom = 1 + 0.05 * Math.min(1, Math.max(0, sheet?.open ?? 0)) + 0.06 * glide(frame, POST_AT, POST_AT + 60);
   return (
-    <Backdrop light="mist" lines={11}>
+    <Backdrop light="mist">
       <Keys times={TITLE_TIMES} />
       <Sfx name="whoosh" at={PULL[0]} volume={0.35} />
       {clicks.map((c) => (
@@ -229,7 +229,7 @@ const Discover: React.FC = () => {
   const cursor = pointer(frame, INVITE_GO, { x: 1780, y: 1100 }, target, 1.1);
   const win = spr(frame, 0, "glide");
   return (
-    <Backdrop light="mist" lines={12}>
+    <Backdrop light="mist">
       {FILTERS.map((at) => (
         <Sfx key={at} name="tick" at={at} volume={0.5} />
       ))}
@@ -286,7 +286,7 @@ const EndCard: React.FC = () => {
   const icon = spr(frame, 4, "swing");
   const letters = typedCount(frame, END_TIMES);
   return (
-    <Backdrop light="mist" lines={14}>
+    <Backdrop light="mist">
       <Sfx name="pop-low" at={4} volume={0.7} />
       <Keys times={END_TIMES} />
       <Center>
@@ -323,7 +323,7 @@ const Cta: React.FC = () => {
   const idle = frame >= last(CLAIM_TIMES) && frame < ERASE_AT ? last(CLAIM_TIMES) : frame >= last(CTA_TIMES) ? last(CTA_TIMES) : 9999;
   const url = spr(frame, last(CTA_TIMES) + 12, "swing");
   return (
-    <Backdrop light="night" lines={15}>
+    <Backdrop light="night">
       <Keys times={CLAIM_TIMES} volume={0.42} />
       <Keys times={Array.from({ length: 17 }, (_, k) => ERASE_AT + 1 + k * 2)} del volume={0.4} />
       <Keys times={CTA_TIMES} />

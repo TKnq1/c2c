@@ -155,9 +155,11 @@ function background(light: Light, t: number) {
 }
 
 // The reference's thin lines: a few very large circles, of which only a sweep of each crosses the frame, drifting and
-// turning slowly. `seed` sets them differently per scene.
+// turning slowly. `seed` sets them differently per scene. They are there only now and then (a few scenes pass
+// `lines`), and when they are, each one draws itself in.
 export const Arcs: React.FC<{ dark?: boolean; seed?: number }> = ({ dark, seed = 0 }) => {
-  const frame = useFrame() + seed * 37;
+  const local = useFrame();
+  const frame = local + seed * 37;
   const stroke = dark ? "rgba(255,255,255,0.1)" : "rgba(7,7,7,0.11)";
   const s = seed % 3;
   const arcs = [
@@ -168,17 +170,17 @@ export const Arcs: React.FC<{ dark?: boolean; seed?: number }> = ({ dark, seed =
   return (
     <svg width={LAUNCH_WIDTH} height={LAUNCH_HEIGHT} style={{ position: "absolute", inset: 0, pointerEvents: "none" }}>
       {arcs.map((a, i) => (
-        <circle key={i} cx={a.cx} cy={a.cy} r={a.r} fill="none" stroke={stroke} strokeWidth={a.w} />
+        <circle key={i} cx={a.cx} cy={a.cy} r={a.r} fill="none" stroke={stroke} strokeWidth={a.w} pathLength={1} strokeDasharray={1} strokeDashoffset={1 - glide(local, 4 + i * 10, 64 + i * 10)} />
       ))}
     </svg>
   );
 };
 
-export const Backdrop: React.FC<{ light: Light; lines?: number | false; children?: ReactNode }> = ({ light, lines = 0, children }) => {
+export const Backdrop: React.FC<{ light: Light; lines?: number; children?: ReactNode }> = ({ light, lines, children }) => {
   const frame = useFrame();
   return (
     <AbsoluteFill style={{ background: background(light, frame), color: light === "night" ? colors.paper : colors.ink, fontFamily: FONT, overflow: "hidden" }}>
-      {lines !== false && <Arcs dark={light === "night"} seed={lines} />}
+      {lines !== undefined && <Arcs dark={light === "night"} seed={lines} />}
       {children}
       {light === "night" && (
         <AbsoluteFill style={{ backgroundImage: `url(${staticFile("grain/dark.png")})`, backgroundSize: "cover", mixBlendMode: "screen", opacity: 0.8 }} />

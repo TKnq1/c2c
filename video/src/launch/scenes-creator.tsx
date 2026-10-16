@@ -21,6 +21,8 @@ import {
   flyIn,
   flyOut,
   glide,
+  LAUNCH_HEIGHT,
+  LAUNCH_WIDTH,
   LightSweep,
   type Part,
   pointer,
@@ -34,7 +36,8 @@ import {
   typingTimes,
 } from "./kit";
 import { caretOn, FocusWords, Keys, last, SlamWords, Typed } from "./parts";
-import { CreatorFeed, DmThread, InvoiceSnippet, MailRow, MatchChecklist, type SwipeState } from "./screens";
+import { IPhone, PHONE, PhoneFeed } from "./phone";
+import { CreatorFeed, DmThread, InvoiceSnippet, MailRow, MatchChecklist, type SwipeState, VINTAGE_JACKET } from "./screens";
 
 // The creator's half of the launch video (LAUNCH.md): the problem, the reveal, the Feed, the match, the swipe, the
 // deal and the payout. Each scene runs on its own clock from 0.
@@ -159,7 +162,7 @@ const Opening: React.FC = () => {
   }
   const away = (to: { x?: number; y?: number; r?: number }) => ({ out: ERASE - 4, to });
   return (
-    <Backdrop light="paper" lines={1}>
+    <Backdrop light="paper">
       <Keys times={A_TIMES} />
       <Keys times={B_TIMES.slice(1)} />
       <Sfx name="select" at={SELECT[0]} volume={0.5} />
@@ -208,7 +211,7 @@ const Turn: React.FC = () => {
   const frame = useFrame();
   const spread = glide(frame, 64, 100);
   return (
-    <Backdrop light="mist" lines={2}>
+    <Backdrop light="mist">
       <Sfx name="slam" at={2} volume={0.55} />
       <Sfx name="slam" at={12} volume={0.55} />
       <Sfx name="whoosh" at={62} volume={0.25} />
@@ -278,10 +281,10 @@ const ClaimProduct: React.FC = () => {
   }
   const away = glide(frame, 88, 124);
   const rise = spr(frame, 96, "glide");
-  const turn = glide(frame, 96, 316);
+  const turn = glide(frame, 96, 236);
   const tilt = { x: mix(turn, 46, 8) + (1 - Math.min(rise, 1)) * 18, y: mix(turn, -30, 4), z: mix(turn, 11, 0) };
   return (
-    <Backdrop light="mist" lines={4}>
+    <Backdrop light="mist">
       {CLAIM_WORDS.map((_, i) => (
         <Sfx key={i} name="tick" at={4 + i * 7} volume={0.25} />
       ))}
@@ -299,7 +302,7 @@ const ClaimProduct: React.FC = () => {
       </Center>
       {frame >= 92 && (
         <>
-          <div style={{ position: "absolute", right: 110, top: 96, fontSize: 44, fontWeight: 900, letterSpacing: -1.2, color: colors.graphite, ...focusIn(spr(frame, 150, "land"), 44) }}>Für Creator</div>
+          <div style={{ position: "absolute", right: 110, top: 96, fontSize: 44, fontWeight: 900, letterSpacing: -1.2, color: colors.graphite, ...focusIn(spr(frame, 136, "land"), 44) }}>Für Creator</div>
           <DesktopApp
             side="creator"
             active="Feed"
@@ -310,7 +313,7 @@ const ClaimProduct: React.FC = () => {
           >
             <CreatorFeed />
           </DesktopApp>
-          <LightSweep from={186} to={250} />
+          <LightSweep from={150} to={206} />
           <SampleTag />
         </>
       )}
@@ -383,7 +386,7 @@ const SwipeLine: React.FC = () => {
   const close = spr(frame, 30, "swing");
   const grow = glide(frame, 60, 100);
   return (
-    <Backdrop light="paper" lines={6}>
+    <Backdrop light="paper">
       {[2, 9, 14, 18].map((at) => (
         <Sfx key={at} name="slam" at={at} volume={0.35} />
       ))}
@@ -402,55 +405,63 @@ const SwipeLine: React.FC = () => {
   );
 };
 
-// 7 · The swipe in the app: the pointer takes the card, drags it right with a hand's pull (slow start, quick, easing
-// near the edge), the card lifted and turning by x / 18 with the green wash past the threshold (swipe-card.tsx), let
-// go it is flung off, the next card and its details move up. Then the camera pulls back over the Feed.
+// 7 · The swipe on the phone: an iPhone with the Feed as the app draws it there, a finger takes the card and drags it
+// right with a hand's pull (slow start, quick, easing near the edge), the card lifted and turning by x / 18 with the
+// green wash past the threshold (swipe-card.tsx); let go it is flung off and the next card comes up. Then the camera
+// pulls back and the phone turns, a reflection passing over the glass.
 const GRAB = 56;
 const LET_GO = 104;
-const CARD_CENTER = { x: 540, y: 344 };
+// Where the finger takes the card, in screen points.
+const GRAB_AT = { x: 236, y: 500 };
 
 const Swipe: React.FC = () => {
   const frame = useFrame();
-  const back = glide(frame, 136, 220);
-  const s = mix(back, mix(glide(frame, 0, 136), 1.62, 1.5), 1.2);
-  const anchor = { x: mix(back, 760, 640), y: mix(back, 520, 470) };
-  const left = anchor.x - CARD_CENTER.x * s;
-  const top = anchor.y - CARD_CENTER.y * s;
+  const enter = spr(frame, 0, "glide");
+  const back = spr(frame, 136, "glide");
+  const s = mix(back, mix(glide(frame, 0, 136), 1.12, 1.05), 0.9);
+  const turn = { x: mix(back, 3, 12), y: mix(back, -8, -32) + (1 - Math.min(enter, 1)) * 14, z: mix(back, 0, 3) };
 
   const held = spr(frame, GRAB, "snap");
   const pull = interpolate(frame, [GRAB + 4, LET_GO], [0, 1], { extrapolateLeft: "clamp", extrapolateRight: "clamp", easing: Easing.bezier(0.5, 0, 0.3, 1) });
   const fling = interpolate(frame, [LET_GO, LET_GO + 16], [0, 1], { extrapolateLeft: "clamp", extrapolateRight: "clamp", easing: Easing.in(Easing.quad) });
-  const x = 290 * pull;
+  const x = 240 * pull;
   const swipe: SwipeState = {
     x,
-    y: -26 * pull + 10 * Math.sin(Math.PI * pull),
+    y: -22 * pull + 8 * Math.sin(Math.PI * pull),
     held: frame < LET_GO ? held : 1,
     like: Math.max(0, Math.min(1, (x - 100) / 40)),
     out: fling,
   };
   const next = spr(frame, LET_GO + 6, "swing");
   const heart = 1 + 0.25 * (frame >= LET_GO && frame < LET_GO + 12 ? Math.sin((Math.PI * (frame - LET_GO)) / 12) : 0);
-
-  const grabAt = { x: left + (CARD_CENTER.x + 30) * s, y: top + (CARD_CENTER.y + 60) * s };
-  const cursor =
-    frame < GRAB
-      ? pointer(frame, 14, { x: 1840, y: 1120 }, grabAt, 0.8)
-      : frame < LET_GO
-        ? { x: grabAt.x + x * s, y: grabAt.y + swipe.y * s }
-        : { x: grabAt.x + 290 * s + 120 * spr(frame, LET_GO, "glide"), y: grabAt.y - 16 * s - 40 * spr(frame, LET_GO, "glide") };
+  const after = spr(frame, LET_GO, "glide");
+  const touch = {
+    x: GRAB_AT.x + (frame < LET_GO ? x : 240 + 70 * after),
+    y: GRAB_AT.y + (frame < LET_GO ? swipe.y : -22 - 30 * after),
+    pressed: frame < GRAB ? 0 : frame < LET_GO ? held : 1 - after,
+    opacity: ramp(frame, 38, 48) * (1 - ramp(frame, LET_GO + 6, LET_GO + 16)),
+  };
   return (
-    <Backdrop light="mist" lines={7}>
-      <Sfx name="click" at={GRAB} volume={0.6} />
+    <Backdrop light="mist">
+      <Sfx name="tick" at={GRAB} volume={0.5} />
       <Sfx name="swipe" at={LET_GO - 2} volume={0.65} />
       <Sfx name="like" at={LET_GO + 2} volume={0.5} />
       <Sfx name="whoosh" at={136} volume={0.2} />
-      <DesktopApp side="creator" active="Feed" title="Feed" scale={s} tilt={{ x: back * 10, y: -back * 8, z: back * 1.5 }} style={{ position: "absolute", left, top }}>
-        <CreatorFeed swipe={swipe} next={next} heart={heart} />
-      </DesktopApp>
-      <div style={{ opacity: ramp(frame, 14, 22) * (1 - ramp(frame, LET_GO + 16, LET_GO + 28)) }}>
-        <Cursor x={cursor.x} y={cursor.y} pressed={frame >= GRAB && frame < LET_GO ? 0.5 : pressAt(frame, GRAB)} />
-      </div>
-      <LightSweep from={146} to={210} opacity={0.4} />
+      <AbsoluteFill style={{ perspective: 2600 }}>
+        <div
+          style={{
+            position: "absolute",
+            left: (LAUNCH_WIDTH - PHONE.w) / 2 + mix(back, 0, 40),
+            top: (LAUNCH_HEIGHT - PHONE.h) / 2 + mix(Math.min(enter, 1), 160, 0) + mix(back, 12, 20),
+            transform: `scale(${s}) rotateX(${turn.x}deg) rotateY(${turn.y}deg) rotateZ(${turn.z}deg)`,
+            transformStyle: "preserve-3d",
+          }}
+        >
+          <IPhone glare={interpolate(frame, [140, 205], [0, 1], { extrapolateLeft: "clamp", extrapolateRight: "clamp" })}>
+            <PhoneFeed top={RAW_HOODIE} under={VINTAGE_JACKET} swipe={swipe} next={next} heart={heart} touch={touch} />
+          </IPhone>
+        </div>
+      </AbsoluteFill>
       <SampleTag />
     </Backdrop>
   );
@@ -506,7 +517,7 @@ const DealFlow: React.FC = () => {
   }
   const press = pressAt(frame, ACCEPT) + pressAt(frame, SUBMIT);
   return (
-    <Backdrop light="mist" lines={8}>
+    <Backdrop light="mist">
       {MSG_AT.map((at) => (
         <Sfx key={at} name="pop-low" at={at} volume={0.35} />
       ))}
@@ -554,7 +565,7 @@ const Paid: React.FC = () => {
   const amount = 225 * interpolate(frame, [28, 60], [0, 1], { extrapolateLeft: "clamp", extrapolateRight: "clamp", easing: Easing.out(Easing.cubic) });
   const out = glide(frame, 98, 125);
   return (
-    <Backdrop light="night" lines={9}>
+    <Backdrop light="night">
       <Sfx name="whoosh" at={0} volume={0.5} />
             <Sfx name="coin" at={60} volume={0.55} />
       <SmearFilter id="paid-smear" amount={mix(Math.min(whip, 1), 70, 0)} />

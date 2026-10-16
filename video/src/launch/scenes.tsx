@@ -35,7 +35,7 @@ const SCENES: LaunchScene[] = [
   { id: "L01", label: "1 · Kaltakquise und Geld", component: C.Opening, beats: 17, keyframe: 120, exit: "66% 50%" },
   { id: "L02", label: "2 · Wendung", component: C.Turn, beats: 6, keyframe: 50, enter: "zoom" },
   { id: "L03", label: "3 · Reveal comtor", component: C.Reveal, beats: 9, keyframe: 120 },
-  { id: "L04", label: "4 · Claim und Produkt", component: C.ClaimProduct, beats: 18, keyframe: 240, exit: "37% 57%", exitScale: 5 },
+  { id: "L04", label: "4 · Claim und Produkt", component: C.ClaimProduct, beats: 13, keyframe: 200, exit: "37% 57%", exitScale: 5 },
   { id: "L05", label: "5 · Matching", component: C.Matching, beats: 11, keyframe: 150, enter: "zoom" },
   { id: "L06", label: "6 · Ein Swipe", component: C.SwipeLine, beats: 6, keyframe: 50, exit: "50% 56%", exitScale: 9 },
   { id: "L07", label: "7 · Swipe in der App", component: C.Swipe, beats: 13, keyframe: 92, enter: "zoom" },
