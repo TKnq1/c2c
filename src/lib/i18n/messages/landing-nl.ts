@@ -21,7 +21,7 @@ export const landingNl: DeepString<typeof landing> = {
     creators: "Creators",
     brands: "Merken",
     logIn: "Inloggen",
-    getApp: "Download de app",
+    start: "Gratis starten",
   },
   hero: {
     creatorKicker: "Betaalde samenwerkingen voor creators",
@@ -39,10 +39,6 @@ export const landingNl: DeepString<typeof landing> = {
     crowdBrandMany: "merken zijn er al",
     crowdCreatorOne: "creator is er al",
     crowdCreatorMany: "creators zijn er al",
-    liveOnWeb: "Nu al live op het web:",
-    logIn: "inloggen",
-    or: "of",
-    signUp: "aanmelden",
     examples: "Voorbeelden: de merken, creators, beoordelingen en cijfers hier zijn verzonnen.",
     drag: "Sleep de kaart: rechts is geïnteresseerd, links is overslaan.",
   },
@@ -151,7 +147,6 @@ export const landingNl: DeepString<typeof landing> = {
     title: "Binnenkort voor iOS en Android",
     body: "De apps komen eraan. De webapp is nu al klaar, gewoon in je browser.",
     cta: "Start in je browser",
-    note: "Binnenkort in de App Store en op Google Play. Laat hieronder je e-mailadres achter, dan laten we je de dag weten dat ze uit zijn.",
   },
   waitlist: {
     alreadyOn: "Je staat al op de lijst.",

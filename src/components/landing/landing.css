@@ -162,6 +162,9 @@ html[data-lp-js] .lp-reveal:not(.is-in) .lp-pop {
   inset: -20%;
   width: 140%;
   height: 140%;
+  /* Tailwind's img { max-width: 100% } would cut the 140% back to the
+     section's width, and the colour would stop short of the right edge. */
+  max-width: none;
   object-fit: cover;
   filter: blur(60px) saturate(1.6);
   animation: lp-fade 1200ms ease both;

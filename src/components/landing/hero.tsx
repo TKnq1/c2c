@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import { FiArrowRight } from "react-icons/fi";
 import { BrandBuilder } from "@/components/landing/brand-builder";
 import { CreatorDeck } from "@/components/landing/creator-deck";
 import { CreatorDesktop } from "@/components/landing/creator-desktop";
@@ -144,23 +145,17 @@ export function Hero({ brands, creators, primary }: { brands: number; creators: 
         <CrowdLine side="creator" count={brands} one={t("landing.hero.crowdBrandOne")} many={t("landing.hero.crowdBrandMany")} />
         <CrowdLine side="brand" count={creators} one={t("landing.hero.crowdCreatorOne")} many={t("landing.hero.crowdCreatorMany")} />
 
-        {/* Phones: the nav has Log in where Get the app is on bigger
-            screens, so the button sits here, with a word on the web app. */}
-        <div className="lp-rise mt-7 flex flex-col items-center gap-2.5 sm:hidden" style={delay(330)}>
-          <a
-            href="#get-the-app"
-            className="rounded-full bg-ink px-5 py-2.5 text-sm font-semibold text-paper transition hover:bg-graphite"
-          >
-            {t("landing.nav.getApp")}
-          </a>
+        {/* The one thing to do here, on every screen size: sign up (the web app is live, the store apps aren't). */}
+        <div className="lp-rise mt-7 flex flex-col items-center gap-3" style={delay(330)}>
+          <SignupLink className="inline-flex items-center gap-2 rounded-full bg-ink px-6 py-3.5 font-semibold text-paper transition hover:bg-graphite">
+            {t("landing.nav.start")}
+            <FiArrowRight className="h-4 w-4" />
+          </SignupLink>
           <p className="lp-glow text-footnote font-medium text-ink">
-            {t("landing.hero.liveOnWeb")}{" "}
+            {t("landing.waitlist.haveAccount")}{" "}
             <Link href="/login" className="font-semibold underline underline-offset-2">
-              {t("landing.hero.logIn")}
-            </Link>{" "}
-            {t("landing.hero.or")}{" "}
-            <SignupLink className="font-semibold underline underline-offset-2">{t("landing.hero.signUp")}</SignupLink>
-            .
+              {t("landing.waitlist.logIn")}
+            </Link>
           </p>
         </div>
 
@@ -189,7 +184,11 @@ export function Hero({ brands, creators, primary }: { brands: number; creators: 
   );
 }
 
+// Below this the count says "hardly anyone here yet" more than it says "join them", so the line stays out.
+const CROWD_MIN = 100;
+
 function CrowdLine({ side, count, one, many }: { side: "creator" | "brand"; count: number; one: string; many: string }) {
+  if (count < CROWD_MIN) return null;
   const word = count === 1 ? one : many;
   return (
     <p

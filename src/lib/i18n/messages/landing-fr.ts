@@ -21,7 +21,7 @@ export const landingFr: DeepString<typeof landing> = {
     creators: "Créateurs",
     brands: "Marques",
     logIn: "Se connecter",
-    getApp: "Télécharger l’app",
+    start: "Commencer gratuitement",
   },
   hero: {
     creatorKicker: "Collaborations rémunérées pour créateurs",
@@ -39,10 +39,6 @@ export const landingFr: DeepString<typeof landing> = {
     crowdBrandMany: "marques déjà inscrites",
     crowdCreatorOne: "créateur déjà inscrit",
     crowdCreatorMany: "créateurs déjà inscrits",
-    liveOnWeb: "Déjà en ligne sur le web :",
-    logIn: "connecte-toi",
-    or: "ou",
-    signUp: "inscris-toi",
     examples: "Exemples : les marques, créateurs, notes et chiffres affichés ici sont inventés.",
     drag: "Fais glisser la carte : à droite, ça t’intéresse ; à gauche, tu passes.",
   },
@@ -151,7 +147,6 @@ export const landingFr: DeepString<typeof landing> = {
     title: "Bientôt sur iOS et Android",
     body: "Les apps arrivent. L’app web est prête maintenant, directement dans ton navigateur.",
     cta: "Commencer dans ton navigateur",
-    note: "Bientôt sur l’App Store et Google Play. Laisse ton e-mail ci-dessous, on te prévient le jour de la sortie.",
   },
   waitlist: {
     alreadyOn: "Tu es déjà sur la liste.",

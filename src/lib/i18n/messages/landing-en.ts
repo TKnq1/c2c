@@ -17,7 +17,7 @@ export const landing = {
     creators: "Creators",
     brands: "Brands",
     logIn: "Log in",
-    getApp: "Get the app",
+    start: "Start free",
   },
   hero: {
     creatorKicker: "Paid collaborations for creators",
@@ -35,10 +35,6 @@ export const landing = {
     crowdBrandMany: "brands already here",
     crowdCreatorOne: "creator already here",
     crowdCreatorMany: "creators already here",
-    liveOnWeb: "Already live on the web:",
-    logIn: "log in",
-    or: "or",
-    signUp: "sign up",
     examples: "Examples: the brands, creators, ratings and numbers shown here are made up.",
     drag: "Drag the card: right is interested, left is pass.",
   },
@@ -147,7 +143,6 @@ export const landing = {
     title: "Coming soon to iOS & Android",
     body: "The apps are on their way. The web app is ready now, right in your browser.",
     cta: "Start in your browser",
-    note: "Soon on the App Store and Google Play. Leave your email below and we'll tell you the day they're out.",
   },
   waitlist: {
     alreadyOn: "You're already on the list.",
