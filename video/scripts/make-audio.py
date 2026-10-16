@@ -586,12 +586,29 @@ def riser(dur):
     return declick(out * (t / dur) ** 2)
 
 
+def sub_808(freq, dur=0.9):
+    """An 808 sub on a bar's one, the reference's boom under every bar of the groove: a sine dropping onto the chord's
+    root an octave or two down, saturated a little so it carries on small speakers too."""
+    t = axis(dur)
+    glide = freq + freq * 1.6 * np.exp(-t / 0.035)
+    body = np.sin(2 * np.pi * np.cumsum(glide) / SR) * np.exp(-t / 0.42)
+    return declick(np.tanh(body * 1.7) / np.tanh(1.7) * np.minimum(1, t / 0.004), ms=30)
+
+
+def sub_root(note):
+    """The chord's root in the sub's register, 32-62 Hz."""
+    f = midi(note)
+    while f >= 62:
+        f /= 2
+    return f
+
+
 def make_launch_bed(grid):
     at = grid["scenes"]
     end = grid["end"]
     length = lt(end + 2)
     piano, kal, bass, glock, kit = [], [], [], [], []
-    kicks, snaps = [], []
+    kicks, snaps, subs = [], [], []
 
     def chord(start, beat):
         return KEYNOTE_PROG[int((beat - start) // 4) % 4]
@@ -639,6 +656,8 @@ def make_launch_bed(grid):
             if hook and step % 4 == 2:
                 kit.append((beat, 0.2, 46, 52))
         kit.append((start, 2, 49, 84))
+        for bar_at in np.arange(start, stop, 4.0):
+            subs.append((lt(bar_at), sub_root(chord(start, bar_at)[0])))
         if hook:
             for rep in range(1, int((stop - start) // 8)):
                 for b, d, note in KEYNOTE_HOOK:
@@ -690,6 +709,10 @@ def make_launch_bed(grid):
     for t0 in kicks:
         place(drums, t0, pop_kick(), gain=1.0)
     drums = level(drums, -15)
+    sub = np.zeros_like(drums)
+    for t0, freq in subs:
+        place(sub, t0, sub_808(freq))
+    sub = level(sub, -15.5)
     claps = np.zeros_like(drums)
     for t0 in snaps:
         place(claps, t0, snap(), pan=0.1)
@@ -709,7 +732,7 @@ def make_launch_bed(grid):
     music *= duck[:, None]
     # The opening sits low and dark, opening up into the turn.
     music = open_filter(music, 0, lt(turn), 900, 9000)
-    mix = reverb(music + parts["kit"] * 0.5 + claps, seconds=2.0, decay=0.5, wet=0.22) + parts["kit"] * 0.5 + drums + air
+    mix = reverb(music + parts["kit"] * 0.5 + claps, seconds=2.0, decay=0.5, wet=0.22) + parts["kit"] * 0.5 + drums + sub + air
     fade = int(1.6 * SR)
     mix[-fade:] *= np.linspace(1, 0, fade)[:, None] ** 1.5
     return mix
@@ -874,6 +897,43 @@ def sfx_key(pitch, heavy=False):
     return declick(out * np.minimum(1, t / 0.0004))
 
 
+def sfx_boom():
+    """A deep boom for the big moments (the turn, the reveal, the logo): a sine falling from ~150 Hz onto A flat 1 with
+    a long tail, saturated so it carries on small speakers, a soft thump of air on top."""
+    dur = 1.6
+    t = axis(dur)
+    freq = 51.9 + 100 * np.exp(-t / 0.05)
+    body = np.tanh(np.sin(2 * np.pi * np.cumsum(freq) / SR) * np.exp(-t / 0.55) * 1.8) / np.tanh(1.8)
+    thump = band(noise(dur), 80, 900) * np.exp(-t / 0.03) * 0.25
+    return declick((body + thump) * np.minimum(1, t / 0.003), ms=40)
+
+
+def sfx_shimmer(dur=0.9):
+    """The transition into a cut: air swelling up through the band with glints of high sparkle in it, peaking at ~0.77 s
+    (where the cut goes) and gone right after, the reference's whoosh as the camera dives into a word."""
+    t = axis(dur)
+    raw = noise(dur)
+    out = np.zeros_like(t)
+    for k in range(10):
+        centre = 900 * 10 ** (k / 9)
+        out += band(raw, centre * 0.6, centre * 1.5) * np.exp(-(((t / dur) - (0.15 + 0.75 * k / 9)) ** 2) / 0.02)
+    out *= (t / dur) ** 2.2 * np.exp(-np.maximum(t - 0.85 * dur, 0) / 0.03)
+    for _ in range(26):
+        at = dur * (0.3 + 0.55 * rng.random() ** 0.6)
+        gt = axis(0.05)
+        grain = np.sin(2 * np.pi * rng.uniform(3500, 9000) * gt) * np.exp(-gt / 0.012) * (at / dur) ** 2 * 0.25
+        i = int(at * SR)
+        out[i : i + len(grain)] += grain[: len(out) - i]
+    return declick(out, ms=6)
+
+
+def sfx_whoop(f0=520, f1=1050, dur=0.32):
+    """A soft rising blip as UI comes in: a sine gliding up an octave in ~90 ms with a touch of its octave, fading."""
+    t = axis(dur)
+    phase = 2 * np.pi * np.cumsum(f0 + (f1 - f0) * (1 - np.exp(-t / 0.035))) / SR
+    return declick((np.sin(phase) + 0.18 * np.sin(2 * phase)) * np.minimum(1, t / 0.012) * np.exp(-t / 0.09), ms=6)
+
+
 def sfx_whip(dur=0.5):
     """The whip into a word: a soft rush of air rising to the cut, quieter and smoother than a whoosh."""
     t = axis(dur)
@@ -921,6 +981,10 @@ def main_launch():
         "whip": sfx_whip,
         "slam": sfx_slam,
         "select": sfx_select,
+        "boom": sfx_boom,
+        "shimmer": sfx_shimmer,
+        "whoop": sfx_whoop,
+        "whoop-low": lambda: sfx_whoop(380, 760),
     }
     for name, make in effects.items():
         seed(name)

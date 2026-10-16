@@ -25,6 +25,10 @@ const FILES = {
   whip: "sfx/whip.wav",
   slam: "sfx/slam.wav",
   select: "sfx/select.wav",
+  boom: "sfx/boom.wav",
+  shimmer: "sfx/shimmer.wav",
+  whoop: "sfx/whoop.wav",
+  "whoop-low": "sfx/whoop-low.wav",
   success: "sounds/success.mp3",
 } as const;
 

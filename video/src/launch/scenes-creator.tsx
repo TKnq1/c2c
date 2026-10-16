@@ -170,6 +170,10 @@ const Opening: React.FC = () => {
       <Keys times={Array.from({ length: 12 }, (_, k) => ERASE + 1 + k * 2)} del volume={0.45} />
       <Keys times={C_TIMES} />
       <Sfx name="select" at={SELECT_C[0]} volume={0.5} />
+      {/* A soft rising blip as each module flies in, alternating high and low. */}
+      {[4, 10, 18, 30, ERASE + 10, ERASE + 18, ERASE + 26, ERASE + 36].map((at, i) => (
+        <Sfx key={`m${at}`} name={i % 2 ? "whoop-low" : "whoop"} at={at + 6} volume={0.28} />
+      ))}
       <AbsoluteFill style={{ transform: `scale(${1 + (camera - 1) * 0.06})` }}>
         <Module x={110} y={80} at={4} kind="swing" from={{ x: -520, y: -260, r: -14 }} {...away({ x: -900, y: -200, r: -10 })}>
           <DmThread name="Glow Lab" text="Hey! Ich liebe eure Produkte. Habt ihr Lust auf eine Kooperation? 🙂" bubble={pop(frame, 16)} seenAt={ramp(frame, 54, 62)} />
@@ -212,6 +216,7 @@ const Turn: React.FC = () => {
   const spread = glide(frame, 64, 100);
   return (
     <Backdrop light="mist">
+      <Sfx name="boom" at={2} volume={0.6} />
       <Sfx name="slam" at={2} volume={0.55} />
       <Sfx name="slam" at={12} volume={0.55} />
       <Sfx name="whoosh" at={62} volume={0.25} />
@@ -245,6 +250,7 @@ const Reveal: React.FC = () => {
   const size = mix(back, 400, 150);
   return (
     <Backdrop light="mist" lines={3}>
+      <Sfx name="boom" at={0} volume={0.7} />
       <Sfx name="slam" at={0} volume={0.6} />
       <Sfx name="whoosh" at={42} volume={0.2} />
       <Sfx name="pop" at={ICON_AT} volume={0.7} />
@@ -566,8 +572,9 @@ const Paid: React.FC = () => {
   const out = glide(frame, 98, 125);
   return (
     <Backdrop light="night">
+      <Sfx name="boom" at={0} volume={0.5} />
       <Sfx name="whoosh" at={0} volume={0.5} />
-            <Sfx name="coin" at={60} volume={0.55} />
+      <Sfx name="coin" at={60} volume={0.55} />
       <SmearFilter id="paid-smear" amount={mix(Math.min(whip, 1), 70, 0)} />
       <Center style={{ gap: 60, opacity: 1 - out, filter: out > 0 ? `blur(${out * 20}px)` : undefined }}>
         <div style={{ transform: `scale(${drift(frame, 125, 1.06, 0.84)})` }}>

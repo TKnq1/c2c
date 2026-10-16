@@ -6,7 +6,7 @@ import { LAUNCH_DURATION, LAUNCH_SCENES, OVERLAP, type TimedScene } from "./scen
 
 // The launch video (LAUNCH.md), 16:9: the scenes end to end on the music's beat grid. Each one comes in over the last
 // OVERLAP frames of the one before, out of a blur ("fade") or out of the previous scene's zoom ("zoom"); a scene with
-// an `exit` leaves by zooming hard into that point, the reference's whip into a word, with a whoosh under it.
+// an `exit` leaves by zooming hard into that point, the reference's whip into a word, with a shimmering whoosh under it.
 // The music (scripts/make-audio.py --launch) follows the same grid.
 // The exit zoom starts a little before the next scene does, so the two overlap.
 const EXIT = 14;
@@ -32,8 +32,8 @@ const Shell: React.FC<{ scene: TimedScene; first: boolean; children: React.React
   }
   return (
     <AbsoluteFill style={{ opacity: p, transform, transformOrigin: scene.exit ?? "50% 50%", filter: blur > 0.05 ? `blur(${blur}px)` : undefined }}>
-      {/* The whip peaks on the cut (the next scene's start), 18 frames after it starts. */}
-      {scene.exit && <Sfx name="whip" at={scene.duration - OVERLAP - 15} volume={0.5} />}
+      {/* The shimmer swells into the cut (the next scene's start), peaking 23 frames after it starts. */}
+      {scene.exit && <Sfx name="shimmer" at={scene.duration - OVERLAP - 23} volume={0.45} />}
       {children}
     </AbsoluteFill>
   );

@@ -38,6 +38,7 @@ const ForBrands: React.FC = () => {
   const tighten = glide(frame, 48, 100);
   return (
     <Backdrop light="night" lines={10}>
+      <Sfx name="boom" at={0} volume={0.6} />
       <Sfx name="slam" at={0} volume={0.65} />
       <Sfx name="whoosh" at={44} volume={0.2} />
       <Center>
@@ -142,7 +143,7 @@ const Briefing: React.FC = () => {
         <Sfx key={c} name="click" at={c} volume={0.5} />
       ))}
       {STEPS.map(({ go }) => (
-        <Sfx key={go} name="pop" at={plan(go).open} volume={0.3} />
+        <Sfx key={go} name="whoop-low" at={plan(go).open} volume={0.3} />
       ))}
       <Sfx name="click" at={POST_AT} volume={0.65} />
       <Sfx name="success" at={POST_AT + 6} volume={0.5} />
@@ -231,7 +232,7 @@ const Discover: React.FC = () => {
   return (
     <Backdrop light="mist">
       {FILTERS.map((at) => (
-        <Sfx key={at} name="tick" at={at} volume={0.5} />
+        <Sfx key={at} name="whoop" at={at} volume={0.3} />
       ))}
       {FILTERS.map((at) => (
         <Sfx key={`w${at}`} name="swipe" at={at + 4} volume={0.2} />
@@ -287,6 +288,7 @@ const EndCard: React.FC = () => {
   const letters = typedCount(frame, END_TIMES);
   return (
     <Backdrop light="mist">
+      <Sfx name="boom" at={4} volume={0.7} />
       <Sfx name="pop-low" at={4} volume={0.7} />
       <Keys times={END_TIMES} />
       <Center>
