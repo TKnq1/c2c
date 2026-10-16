@@ -45,7 +45,7 @@ export function WaitlistForm() {
   }
 
   return (
-    <form action={action} className="mx-auto mt-8 w-full max-w-md text-left">
+    <form action={action} className="mx-auto mt-12 w-full max-w-md border-t border-ink/10 pt-8 text-left">
       <p className="lp-glow mb-3 text-center text-sm font-medium text-ink">
         {t("landing.waitlist.want")}
       </p>
@@ -95,12 +95,6 @@ export function WaitlistForm() {
           {t("screens.settings.privacy")}
         </Link>
         .
-      </p>
-      <p className="lp-glow mt-6 text-center text-sm font-medium text-ink">
-        {t("landing.waitlist.haveAccount")}{" "}
-        <Link href="/login" className="font-semibold underline underline-offset-2">
-          {t("landing.waitlist.logIn")}
-        </Link>
       </p>
     </form>
   );

@@ -10,6 +10,9 @@ export const landingPt: DeepString<typeof landing> = {
       "Desliza por parcerias com marcas, com o orçamento à vista. O dinheiro está lá antes de publicares e ficas com 90%. Já na web, em breve em iOS e Android.",
     siteName: "comtor – Marketplace de marcas e criadores",
     siteDescription: "As marcas encontram criadores de conteúdo à medida para colaborações.",
+    brandTitle: "Encontre criadores para parcerias | comtor",
+    brandDescription:
+      "Publique uma proposta com o seu orçamento e os criadores certos vêm até si. O dinheiro fica retido até aprovar a publicação.",
   },
   nav: {
     main: "Principal",
@@ -18,7 +21,7 @@ export const landingPt: DeepString<typeof landing> = {
     creators: "Criadores",
     brands: "Marcas",
     logIn: "Entrar",
-    getApp: "Obter a app",
+    start: "Começar grátis",
   },
   hero: {
     creatorTitleA: "Desliza para a direita",
@@ -34,10 +37,6 @@ export const landingPt: DeepString<typeof landing> = {
     crowdBrandMany: "marcas já cá estão",
     crowdCreatorOne: "criador já cá está",
     crowdCreatorMany: "criadores já cá estão",
-    liveOnWeb: "Já disponível na web:",
-    logIn: "entrar",
-    or: "ou",
-    signUp: "criar conta",
     examples: "Exemplos: as marcas, os criadores, as avaliações e os números aqui mostrados são inventados.",
     drag: "Arrasta o cartão: para a direita é interesse, para a esquerda é passar.",
   },
@@ -141,12 +140,12 @@ export const landingPt: DeepString<typeof landing> = {
     title: "Perguntas frequentes",
     lead: "Como a plataforma funciona, em palavras simples.",
     ctaTitle: "Pronto para experimentar?",
+    more: "Ver todas as perguntas",
   },
   comingSoon: {
     title: "Em breve para iOS e Android",
     body: "As apps estão a caminho. A app web já está pronta, direto no teu browser.",
     cta: "Começar no browser",
-    note: "Em breve na App Store e no Google Play. Deixa abaixo o teu e-mail e avisamos-te no dia em que saírem.",
   },
   waitlist: {
     alreadyOn: "Já estás na lista.",

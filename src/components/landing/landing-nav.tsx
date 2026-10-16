@@ -1,11 +1,12 @@
 import Image from "next/image";
 import Link from "next/link";
 import { RoleToggle } from "@/components/landing/role-toggle";
+import { SignupLink } from "@/components/landing/signup-link";
 import { getT } from "@/lib/i18n/server";
 
 // A frosted pill floating over the page: logo, the Creators | Brands switch,
-// log in for people using the web app already, and from sm up the way to
-// the store badges (on phones that's a button in the hero, for room).
+// log in for people using the web app already, and from sm up sign-up (on
+// phones that's only the button in the hero, for room).
 export async function LandingNav() {
   const t = await getT();
   return (
@@ -26,12 +27,9 @@ export async function LandingNav() {
           >
             {t("landing.nav.logIn")}
           </Link>
-          <a
-            href="#get-the-app"
-            className="hidden rounded-full bg-ink px-4 py-2 text-sm font-semibold whitespace-nowrap text-paper transition hover:bg-graphite sm:inline-flex"
-          >
-            {t("landing.nav.getApp")}
-          </a>
+          <SignupLink className="hidden rounded-full bg-ink px-4 py-2 text-sm font-semibold whitespace-nowrap text-paper transition hover:bg-graphite sm:inline-flex">
+            {t("landing.nav.start")}
+          </SignupLink>
         </div>
       </nav>
     </header>

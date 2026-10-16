@@ -2,11 +2,14 @@
    their own. The side switch keyed on <html>, the entrance and scroll
    animations, the blurred-photo backdrop. */
 
-/* One side at a time, creator until a choice says otherwise. The server's
-   HTML holds both; the inline script in app/page.tsx sets the attribute
-   before anything paints. */
+/* One side at a time. The server's HTML holds both; the inline script in
+   app/page.tsx sets the attribute before anything paints. Until it does (or
+   without scripts) the page's own side shows: data-landing-default on the
+   page wrapper, creator on "/", brand on /marken. */
 html[data-landing-role="brand"] [data-for="creator"],
-html:not([data-landing-role="brand"]) [data-for="brand"] {
+html[data-landing-role="creator"] [data-for="brand"],
+html:not([data-landing-role]) [data-landing-default="brand"] [data-for="creator"],
+html:not([data-landing-role]) [data-landing-default="creator"] [data-for="brand"] {
   display: none !important;
 }
 
@@ -159,6 +162,9 @@ html[data-lp-js] .lp-reveal:not(.is-in) .lp-pop {
   inset: -20%;
   width: 140%;
   height: 140%;
+  /* Tailwind's img { max-width: 100% } would cut the 140% back to the
+     section's width, and the colour would stop short of the right edge. */
+  max-width: none;
   object-fit: cover;
   filter: blur(60px) saturate(1.6);
   animation: lp-fade 1200ms ease both;
@@ -333,16 +339,19 @@ html[data-lp-js] .lp-reveal:not(.is-in) .lp-pop {
   transition: transform 500ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-html[data-landing-role="brand"] .lp-toggle-thumb {
+html[data-landing-role="brand"] .lp-toggle-thumb,
+html:not([data-landing-role]) [data-landing-default="brand"] .lp-toggle-thumb {
   transform: translateX(100%);
 }
 
-.lp-toggle button {
+.lp-toggle a {
   transition: color 300ms ease;
 }
 
-html:not([data-landing-role="brand"]) .lp-toggle [data-value="creator"],
-html[data-landing-role="brand"] .lp-toggle [data-value="brand"] {
+html[data-landing-role="creator"] .lp-toggle [data-value="creator"],
+html[data-landing-role="brand"] .lp-toggle [data-value="brand"],
+html:not([data-landing-role]) [data-landing-default="creator"] .lp-toggle [data-value="creator"],
+html:not([data-landing-role]) [data-landing-default="brand"] .lp-toggle [data-value="brand"] {
   color: var(--paper);
 }
 

@@ -23,7 +23,7 @@ export function CreatorDesktop({ className = "" }: { className?: string }) {
       <DesktopSidebar side="creator" active="feed" />
       <div aria-hidden="true" inert className="min-w-0 flex-1 px-7 pt-7 pr-[100px]">
         <div className="flex flex-col gap-6">
-          <PageTitle>{t("nav.feed")}</PageTitle>
+          <PageTitle as="p">{t("nav.feed")}</PageTitle>
           <div className="flex justify-center">
             <FeedScopeTabs scope="forYou" />
           </div>

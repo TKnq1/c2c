@@ -16,8 +16,8 @@ export const SPLASH_HOLD_SELECTOR = "[data-splash-hold]";
 // app / native WebView does, so a reload or the next page load in the same
 // session goes straight to the page.
 //
-// The public marketing pages (landing, FAQ, legal) skip it in a normal
+// The public marketing pages (landing, FAQ, legal, the /ugc search pages) skip it in a normal
 // browser tab: people arriving from search should see the content, not a
 // logo. The installed app and the store apps always show it, wherever they
 // start.
-export const APP_SPLASH_SCRIPT = `try{var d=document.documentElement,p=location.pathname,app=/ComtorApp\\//.test(navigator.userAgent)||matchMedia('(display-mode: standalone)').matches||navigator.standalone===true,pub=p==='/'||p==='/faq'||p.indexOf('/legal')===0;if(!sessionStorage.getItem('${SPLASH_SEEN_KEY}')&&(app||!pub)){sessionStorage.setItem('${SPLASH_SEEN_KEY}','1');d.dataset.splash='on';}}catch(e){}`;
+export const APP_SPLASH_SCRIPT = `try{var d=document.documentElement,p=location.pathname,app=/ComtorApp\\//.test(navigator.userAgent)||matchMedia('(display-mode: standalone)').matches||navigator.standalone===true,pub=p==='/'||p==='/marken'||p==='/faq'||p.indexOf('/legal')===0||p.indexOf('/ugc')===0;if(!sessionStorage.getItem('${SPLASH_SEEN_KEY}')&&(app||!pub)){sessionStorage.setItem('${SPLASH_SEEN_KEY}','1');d.dataset.splash='on';}}catch(e){}`;

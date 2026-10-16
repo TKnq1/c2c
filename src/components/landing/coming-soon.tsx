@@ -31,9 +31,6 @@ export async function ComingSoon() {
           {t("landing.comingSoon.cta")}
           <FiArrowRight className="h-4 w-4" />
         </SignupLink>
-        <p className="lp-glow mx-auto mt-9 text-sm font-medium text-ink">
-          {t("landing.comingSoon.note")}
-        </p>
         <WaitlistForm />
       </Reveal>
     </section>

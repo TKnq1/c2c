@@ -10,6 +10,9 @@ export const landingEs: DeepString<typeof landing> = {
       "Desliza por deals con marcas y ve el presupuesto desde el principio. El dinero entra antes de que publiques y te quedas el 90 %. Ya en la web, pronto en iOS y Android.",
     siteName: "comtor – Marketplace de marcas y creadores",
     siteDescription: "Las marcas encuentran creadores de contenido que encajan para colaborar.",
+    brandTitle: "Encuentra creadores para colaboraciones | comtor",
+    brandDescription:
+      "Publica una oferta con tu presupuesto y los creadores que encajan acuden a ti. Tu dinero queda retenido hasta que apruebes la publicación.",
   },
   nav: {
     main: "Principal",
@@ -18,7 +21,7 @@ export const landingEs: DeepString<typeof landing> = {
     creators: "Creadores",
     brands: "Marcas",
     logIn: "Iniciar sesión",
-    getApp: "Descargar la app",
+    start: "Empieza gratis",
   },
   hero: {
     creatorTitleA: "Desliza a la derecha",
@@ -35,10 +38,6 @@ export const landingEs: DeepString<typeof landing> = {
     crowdBrandMany: "marcas ya están aquí",
     crowdCreatorOne: "creador ya está aquí",
     crowdCreatorMany: "creadores ya están aquí",
-    liveOnWeb: "Ya disponible en la web:",
-    logIn: "inicia sesión",
-    or: "o",
-    signUp: "regístrate",
     examples: "Ejemplos: las marcas, los creadores, las valoraciones y las cifras que ves aquí son inventados.",
     drag: "Arrastra la tarjeta: a la derecha me interesa, a la izquierda paso.",
   },
@@ -143,12 +142,12 @@ export const landingEs: DeepString<typeof landing> = {
     title: "Preguntas frecuentes",
     lead: "Cómo funciona la plataforma, en palabras claras.",
     ctaTitle: "¿Listo para probarlo?",
+    more: "Ver todas las preguntas",
   },
   comingSoon: {
     title: "Pronto en iOS y Android",
     body: "Las apps están en camino. La app web ya está lista, directamente en tu navegador.",
     cta: "Empezar en el navegador",
-    note: "Pronto en App Store y Google Play. Deja tu email abajo y te avisamos el día que salgan.",
   },
   waitlist: {
     alreadyOn: "Ya estás en la lista.",

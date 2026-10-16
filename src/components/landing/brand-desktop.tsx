@@ -68,7 +68,7 @@ export function BrandDesktop(props: Props) {
 
   return (
     <div className="min-w-0 flex-1 px-7 pt-7 pr-[100px]">
-      <PageTitle>{t("nav.newRequest")}</PageTitle>
+      <PageTitle as="p">{t("nav.newRequest")}</PageTitle>
       <div className="mt-6 grid grid-cols-[minmax(0,1fr)_300px] items-start gap-8">
         <div className="flex flex-col gap-8">
           <Section title={t("screens.requests.photos")} hint={t("screens.requests.photosHint")}>

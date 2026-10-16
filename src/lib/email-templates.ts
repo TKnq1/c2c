@@ -1,3 +1,4 @@
+import { BRAND_LANDING_PATH } from "@/components/landing/landing-role-script";
 import { SITE_URL } from "@/lib/site";
 import {
   FOUNDING_BRAND_LIMIT,
@@ -135,10 +136,10 @@ export function foundingNoticeEmail(
 // is whatever the admin typed. The body says what the product is, because
 // the inbox is the first time many of them hear of it. Separate from
 // welcomeEmail, which is the sign-up mail and carries the verify link.
-// The button opens the landing page on the matching side (?for= is what the
-// page itself uses to show creators or brands).
+// The button opens the landing page on the matching side: "/" (?for=creators,
+// so a brand choice remembered on that device doesn't win) or /marken.
 export function marketingEntryUrl(role: "CREATOR" | "STARTUP"): string {
-  return `${SITE_URL}/?for=${role === "CREATOR" ? "creators" : "brands"}`;
+  return role === "CREATOR" ? `${SITE_URL}/?for=creators` : `${SITE_URL}${BRAND_LANDING_PATH}`;
 }
 
 function crowdLine(count: number, one: string, many: string) {

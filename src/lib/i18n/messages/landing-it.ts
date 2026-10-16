@@ -10,6 +10,9 @@ export const landingIt: DeepString<typeof landing> = {
       "Swipa deal di brand con il budget già indicato. Il brand paga prima che tu pubblichi, e tu tieni il 90%. Già sul web, presto su iOS e Android.",
     siteName: "comtor – Marketplace per brand e creator",
     siteDescription: "I brand trovano i creator giusti per le collaborazioni.",
+    brandTitle: "Trova creator per collaborazioni con il tuo brand | comtor",
+    brandDescription:
+      "Pubblica un'offerta con il tuo budget e i creator adatti si fanno avanti. I soldi restano trattenuti finché non approvi il post.",
   },
   nav: {
     main: "Principale",
@@ -18,7 +21,7 @@ export const landingIt: DeepString<typeof landing> = {
     creators: "Creator",
     brands: "Brand",
     logIn: "Accedi",
-    getApp: "Scarica l’app",
+    start: "Inizia gratis",
   },
   hero: {
     creatorTitleA: "Swipa a destra",
@@ -34,10 +37,6 @@ export const landingIt: DeepString<typeof landing> = {
     crowdBrandMany: "brand sono già qui",
     crowdCreatorOne: "creator è già qui",
     crowdCreatorMany: "creator sono già qui",
-    liveOnWeb: "Già attivo sul web:",
-    logIn: "accedi",
-    or: "o",
-    signUp: "registrati",
     examples: "Esempi: i brand, i creator, le valutazioni e i numeri mostrati qui sono inventati.",
     drag: "Trascina la carta: a destra mi interessa, a sinistra passo.",
   },
@@ -143,12 +142,12 @@ export const landingIt: DeepString<typeof landing> = {
     title: "Domande frequenti",
     lead: "Come funziona la piattaforma, in parole semplici.",
     ctaTitle: "Pronto a provare?",
+    more: "Vedi tutte le domande",
   },
   comingSoon: {
     title: "Presto su iOS e Android",
     body: "Le app stanno arrivando. La web app è già pronta, direttamente nel browser.",
     cta: "Inizia dal browser",
-    note: "Presto su App Store e Google Play. Lascia qui sotto la tua email e ti diciamo il giorno in cui escono.",
   },
   waitlist: {
     alreadyOn: "Sei già in lista.",

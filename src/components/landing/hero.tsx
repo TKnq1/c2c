@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import { FiArrowRight } from "react-icons/fi";
 import { BrandBuilder } from "@/components/landing/brand-builder";
 import { CreatorDeck } from "@/components/landing/creator-deck";
 import { CreatorDesktop } from "@/components/landing/creator-desktop";
@@ -9,6 +10,7 @@ import { PhotoBackdrop } from "@/components/landing/photo-backdrop";
 import { SignupLink } from "@/components/landing/signup-link";
 import { useI18n } from "@/components/i18n-provider";
 import { FIRST_PHOTO, type PhotoKey } from "@/components/landing/landing-data";
+import type { LandingRole } from "@/components/landing/landing-role";
 
 const delay = (ms: number) => ({ "--lp-delay": `${ms}ms` }) as React.CSSProperties;
 
@@ -62,8 +64,12 @@ function CountUp({ to }: { to: number }) {
 // The headline over the thing itself: creators get the Feed to swipe,
 // brands the card they'd post, live. Either way the photo in play colours
 // the whole section.
-export function Hero({ brands, creators }: { brands: number; creators: number }) {
+// One h1 per address: the side the page stands for ("/" creators, /marken brands) gets it, the other side's
+// headline is the same text as a plain paragraph.
+export function Hero({ brands, creators, primary }: { brands: number; creators: number; primary: LandingRole }) {
   const { t } = useI18n();
+  const CreatorHeading = primary === "creator" ? "h1" : "p";
+  const BrandHeading = primary === "brand" ? "h1" : "p";
   const [creatorPhoto, setCreatorPhoto] = useState<PhotoKey>(FIRST_PHOTO);
   const [brandPhoto, setBrandPhoto] = useState<PhotoKey>("flask");
 
@@ -78,7 +84,7 @@ export function Hero({ brands, creators }: { brands: number; creators: number })
       <div aria-hidden="true" className="lp-grain lp-fade-out" />
 
       <div className="mx-auto flex max-w-7xl flex-col items-center px-4 pt-[calc(var(--safe-top)+112px)] pb-20 text-center md:pt-40 md:pb-28">
-        <h1
+        <CreatorHeading
           data-for="creator"
           className="font-display text-[clamp(34px,11.4vw,44px)] leading-[0.98] font-black tracking-[-0.035em] sm:text-[64px] lg:text-[88px]"
         >
@@ -98,8 +104,8 @@ export function Hero({ brands, creators }: { brands: number; creators: number })
               )}
             </span>
           </span>
-        </h1>
-        <h1
+        </CreatorHeading>
+        <BrandHeading
           data-for="brand"
           className="font-display text-[clamp(34px,11.4vw,44px)] leading-[0.98] font-black tracking-[-0.035em] sm:text-[64px] lg:text-[88px]"
         >
@@ -113,18 +119,18 @@ export function Hero({ brands, creators }: { brands: number; creators: number })
               {t("landing.hero.brandTitleB2")}
             </span>
           </span>
-        </h1>
+        </BrandHeading>
 
         <p
           data-for="creator"
-          className="lp-rise lp-glow mt-6 max-w-[36ch] text-[19px] leading-snug font-medium text-ink md:text-[22px]"
+          className="lp-rise lp-glow mt-6 max-w-[38ch] text-[19px] text-balance leading-snug font-medium text-ink md:text-[22px]"
           style={delay(250)}
         >
           {t("landing.hero.creatorBody")}
         </p>
         <p
           data-for="brand"
-          className="lp-rise lp-glow mt-6 max-w-[38ch] text-[19px] leading-snug font-medium text-ink md:text-[22px]"
+          className="lp-rise lp-glow mt-6 max-w-[38ch] text-[19px] text-balance leading-snug font-medium text-ink md:text-[22px]"
           style={delay(250)}
         >
           {t("landing.hero.brandBody")}
@@ -133,23 +139,17 @@ export function Hero({ brands, creators }: { brands: number; creators: number })
         <CrowdLine side="creator" count={brands} one={t("landing.hero.crowdBrandOne")} many={t("landing.hero.crowdBrandMany")} />
         <CrowdLine side="brand" count={creators} one={t("landing.hero.crowdCreatorOne")} many={t("landing.hero.crowdCreatorMany")} />
 
-        {/* Phones: the nav has Log in where Get the app is on bigger
-            screens, so the button sits here, with a word on the web app. */}
-        <div className="lp-rise mt-7 flex flex-col items-center gap-2.5 sm:hidden" style={delay(330)}>
-          <a
-            href="#get-the-app"
-            className="rounded-full bg-ink px-5 py-2.5 text-sm font-semibold text-paper transition hover:bg-graphite"
-          >
-            {t("landing.nav.getApp")}
-          </a>
+        {/* The one thing to do here, on every screen size: sign up (the web app is live, the store apps aren't). */}
+        <div className="lp-rise mt-7 flex flex-col items-center gap-3" style={delay(330)}>
+          <SignupLink className="inline-flex items-center gap-2 rounded-full bg-ink px-6 py-3.5 font-semibold text-paper transition hover:bg-graphite">
+            {t("landing.nav.start")}
+            <FiArrowRight className="h-4 w-4" />
+          </SignupLink>
           <p className="lp-glow text-footnote font-medium text-ink">
-            {t("landing.hero.liveOnWeb")}{" "}
+            {t("landing.waitlist.haveAccount")}{" "}
             <Link href="/login" className="font-semibold underline underline-offset-2">
-              {t("landing.hero.logIn")}
-            </Link>{" "}
-            {t("landing.hero.or")}{" "}
-            <SignupLink className="font-semibold underline underline-offset-2">{t("landing.hero.signUp")}</SignupLink>
-            .
+              {t("landing.waitlist.logIn")}
+            </Link>
           </p>
         </div>
 
@@ -178,7 +178,11 @@ export function Hero({ brands, creators }: { brands: number; creators: number })
   );
 }
 
+// Below this the count says "hardly anyone here yet" more than it says "join them", so the line stays out.
+const CROWD_MIN = 100;
+
 function CrowdLine({ side, count, one, many }: { side: "creator" | "brand"; count: number; one: string; many: string }) {
+  if (count < CROWD_MIN) return null;
   const word = count === 1 ? one : many;
   return (
     <p

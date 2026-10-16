@@ -195,7 +195,7 @@ describe("marketingWelcomeEmail", () => {
 
   it("opens the landing page on the matching side", () => {
     expect(marketingEntryUrl("CREATOR")).toContain("/?for=creators");
-    expect(marketingEntryUrl("STARTUP")).toContain("/?for=brands");
+    expect(marketingEntryUrl("STARTUP")).toMatch(/\/marken$/);
   });
 });
 

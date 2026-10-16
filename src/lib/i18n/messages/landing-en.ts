@@ -6,6 +6,9 @@ export const landing = {
       "Creators swipe through brand deals with the budget upfront. The money's in before you post, and you keep 90%. Live on the web now, coming soon to iOS and Android.",
     siteName: "comtor – Brand-Creator Marketplace",
     siteDescription: "Brands find matching content creators for collaborations.",
+    brandTitle: "Find creators for paid brand deals | comtor",
+    brandDescription:
+      "Post a deal with your budget and creators who fit come to you. Your money is held until you've approved the post.",
   },
   nav: {
     main: "Main",
@@ -14,7 +17,7 @@ export const landing = {
     creators: "Creators",
     brands: "Brands",
     logIn: "Log in",
-    getApp: "Get the app",
+    start: "Start free",
   },
   hero: {
     creatorTitleA: "Swipe right on",
@@ -30,10 +33,6 @@ export const landing = {
     crowdBrandMany: "brands already here",
     crowdCreatorOne: "creator already here",
     crowdCreatorMany: "creators already here",
-    liveOnWeb: "Already live on the web:",
-    logIn: "log in",
-    or: "or",
-    signUp: "sign up",
     examples: "Examples: the brands, creators, ratings and numbers shown here are made up.",
     drag: "Drag the card: right is interested, left is pass.",
   },
@@ -137,12 +136,12 @@ export const landing = {
     title: "Frequently asked questions",
     lead: "How the platform works, in plain terms.",
     ctaTitle: "Ready to try it?",
+    more: "See all questions",
   },
   comingSoon: {
     title: "Coming soon to iOS & Android",
     body: "The apps are on their way. The web app is ready now, right in your browser.",
     cta: "Start in your browser",
-    note: "Soon on the App Store and Google Play. Leave your email below and we'll tell you the day they're out.",
   },
   waitlist: {
     alreadyOn: "You're already on the list.",

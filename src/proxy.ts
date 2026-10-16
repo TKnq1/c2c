@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { hasAdminAccess } from "@/lib/admin-access";
 import { HOME_COOKIE, loginUrlFor, safeReturnPath, signedInStartTarget } from "@/lib/home-redirect";
+import { BRAND_LANDING_PATH } from "@/components/landing/landing-role-script";
 import { getUgcNichePage, UGC_RESERVED_SLUGS } from "@/lib/seo-pages";
 import { parseSignupRole } from "@/lib/signup-role";
 
@@ -87,7 +88,7 @@ export default auth((req) => {
   // anyone logged in goes straight on to their dashboard. That includes the
   // installed app, which starts at /login and used to show the login form
   // to people who were still logged in. The landing page stays static.
-  if (req.auth && (pathname === "/" || pathname === "/login" || pathname === "/signup")) {
+  if (req.auth && (pathname === "/" || pathname === BRAND_LANDING_PATH || pathname === "/login" || pathname === "/signup")) {
     // For an admin the installed app opens where they were last, and a sign-in goes on to the page it was for.
     const target = signedInStartTarget({
       pathname,
@@ -96,6 +97,16 @@ export default auth((req) => {
       next: safeReturnPath(req.nextUrl.searchParams.get("next")),
     });
     return NextResponse.redirect(new URL(target, req.url));
+  }
+
+  // The brand side of the landing page has its own address now; old links (emails, ads) with ?for=brands land on it
+  // in one permanent hop, the rest of the query (utm_*) kept.
+  const side = req.nextUrl.searchParams.get("for");
+  if (pathname === "/" && (side === "brands" || side === "brand")) {
+    const url = req.nextUrl.clone();
+    url.pathname = BRAND_LANDING_PATH;
+    url.searchParams.delete("for");
+    return NextResponse.redirect(url, 308);
   }
 
   // The account is created inside onboarding. A real redirect here, so the

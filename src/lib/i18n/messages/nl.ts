@@ -24,7 +24,7 @@ export const nl: Catalog = {
   notFound: {
     title: "Pagina niet gevonden",
     body: "De pagina die je zoekt bestaat niet of is verplaatst.",
-    back: "Terug naar het dashboard",
+    back: "Terug naar de startpagina",
   },
   nav: {
     requests: "Verzoeken",

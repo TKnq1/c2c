@@ -10,6 +10,9 @@ export const landingPl: DeepString<typeof landing> = {
       "Przesuwaj zlecenia od marek z budżetem z góry. Marka płaci, zanim opublikujesz, a ty zatrzymujesz 90%. Już w sieci, wkrótce na iOS i Androida.",
     siteName: "comtor – Platforma dla marek i twórców",
     siteDescription: "Marki znajdują pasujących twórców do współpracy.",
+    brandTitle: "Znajdź twórców do współpracy | comtor",
+    brandDescription:
+      "Opublikuj ofertę z budżetem, a pasujący twórcy zgłoszą się do ciebie. Pieniądze są wstrzymane, dopóki nie zatwierdzisz posta.",
   },
   nav: {
     main: "Główne",
@@ -18,7 +21,7 @@ export const landingPl: DeepString<typeof landing> = {
     creators: "Twórców",
     brands: "Marek",
     logIn: "Zaloguj się",
-    getApp: "Pobierz aplikację",
+    start: "Zacznij za darmo",
   },
   hero: {
     creatorTitleA: "Przesuwaj w prawo",
@@ -34,10 +37,6 @@ export const landingPl: DeepString<typeof landing> = {
     crowdBrandMany: "marek już z nami",
     crowdCreatorOne: "twórca już z nami",
     crowdCreatorMany: "twórców już z nami",
-    liveOnWeb: "Już działa w przeglądarce:",
-    logIn: "zaloguj się",
-    or: "lub",
-    signUp: "załóż konto",
     examples: "Przykłady: pokazane tu marki, twórcy, oceny i liczby są zmyślone.",
     drag: "Przeciągnij kartę: w prawo to zainteresowanie, w lewo to pominięcie.",
   },
@@ -141,12 +140,12 @@ export const landingPl: DeepString<typeof landing> = {
     title: "Najczęstsze pytania",
     lead: "Jak działa platforma, prostymi słowami.",
     ctaTitle: "Chcesz spróbować?",
+    more: "Zobacz wszystkie pytania",
   },
   comingSoon: {
     title: "Wkrótce na iOS i Androida",
     body: "Aplikacje są w drodze. Wersja webowa jest gotowa już teraz, prosto w przeglądarce.",
     cta: "Zacznij w przeglądarce",
-    note: "Wkrótce w App Store i Google Play. Zostaw poniżej e-mail, a damy ci znać, kiedy się pojawią.",
   },
   waitlist: {
     alreadyOn: "Jesteś już na liście.",

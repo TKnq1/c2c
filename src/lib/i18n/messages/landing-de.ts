@@ -6,11 +6,15 @@ type DeepString<T> = T extends string ? string : { [K in keyof T]: DeepString<T[
 // geklärt ist (docs/legal-readiness.md), steht das Wort auf öffentlichen Seiten nicht.
 export const landingDe: DeepString<typeof landing> = {
   meta: {
-    title: "comtor · Bezahlte Marken-Deals für Creator",
+    title: "Bezahlte Kooperationen für Creator & Influencer | comtor",
     description:
-      "Wisch durch Marken-Deals mit Budget vorab. Die Marke zahlt, bevor du postest, und du behältst 90 %. Jetzt im Web, bald für iOS und Android.",
+      "Wisch durch bezahlte Marken-Kooperationen mit Budget vorab. Die Marke zahlt, bevor du postest, und du behältst 90 %. Für Creator, Influencer und UGC-Creator.",
     siteName: "comtor – Marktplatz für Marken und Creator",
-    siteDescription: "Marken finden passende Creator für Kooperationen.",
+    siteDescription:
+      "Marktplatz für bezahlte Kooperationen: Marken posten Deals mit Budget, Creator und Influencer melden sich per Swipe.",
+    brandTitle: "Creator & Influencer für Kooperationen finden | comtor",
+    brandDescription:
+      "Poste einen Deal mit Budget, passende Creator und Influencer melden sich bei dir. Dein Geld wird zurückgehalten, bis du den Post freigegeben hast.",
   },
   nav: {
     main: "Hauptnavigation",
@@ -19,7 +23,7 @@ export const landingDe: DeepString<typeof landing> = {
     creators: "Creator",
     brands: "Marken",
     logIn: "Anmelden",
-    getApp: "App holen",
+    start: "Kostenlos starten",
   },
   hero: {
     creatorTitleA: "Wisch bezahlte",
@@ -28,17 +32,13 @@ export const landingDe: DeepString<typeof landing> = {
     brandTitleA: "Poste einen Deal.",
     brandTitleB1: "Creator melden",
     brandTitleB2: "sich bei dir.",
-    creatorBody: "Jede Anfrage zeigt das Budget vorab. Die Marke zahlt, bevor du postest, und du behältst 90 %.",
+    creatorBody: "Bezahlte Kooperationen mit Budget vorab. Die Marke zahlt, bevor du postest, und du behältst 90 %.",
     brandBody:
-      "Lege Budget und Inhalt fest. Passende Creator wischen nach rechts, und dein Geld wird zurückgehalten, bis du den Post freigegeben hast.",
+      "Lege Budget und Inhalt fest. Passende Creator und Influencer wischen nach rechts, und dein Geld wird zurückgehalten, bis du den Post freigegeben hast.",
     crowdBrandOne: "Marke ist schon dabei",
     crowdBrandMany: "Marken sind schon dabei",
     crowdCreatorOne: "Creator ist schon dabei",
     crowdCreatorMany: "Creator sind schon dabei",
-    liveOnWeb: "Schon im Web verfügbar:",
-    logIn: "anmelden",
-    or: "oder",
-    signUp: "registrieren",
     examples: "Beispiele: Die hier gezeigten Marken, Creator, Bewertungen und Zahlen sind erfunden.",
     drag: "Zieh die Karte: Rechts heißt interessiert, links heißt überspringen.",
   },
@@ -145,12 +145,12 @@ export const landingDe: DeepString<typeof landing> = {
     title: "Häufige Fragen",
     lead: "So funktioniert die Plattform, einfach erklärt.",
     ctaTitle: "Bereit loszulegen?",
+    more: "Alle Fragen ansehen",
   },
   comingSoon: {
     title: "Bald für iOS & Android",
     body: "Die Apps sind unterwegs. Die Web-App läuft schon jetzt direkt im Browser.",
     cta: "Im Browser starten",
-    note: "Bald im App Store und bei Google Play. Hinterlasse unten deine E-Mail-Adresse, und wir sagen dir Bescheid, sobald sie da sind.",
   },
   waitlist: {
     alreadyOn: "Du stehst schon auf der Liste.",

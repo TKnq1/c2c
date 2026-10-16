@@ -10,6 +10,9 @@ export const landingFr: DeepString<typeof landing> = {
       "Swipe des deals de marques avec le budget affiché. L’argent est versé avant que tu publies, et tu gardes 90 %. En ligne sur le web, bientôt sur iOS et Android.",
     siteName: "comtor – Marketplace marques et créateurs",
     siteDescription: "Les marques trouvent les créateurs de contenu qui leur correspondent pour des collaborations.",
+    brandTitle: "Trouver des créateurs pour vos collaborations | comtor",
+    brandDescription:
+      "Publiez une offre avec votre budget, les créateurs qui correspondent viennent à vous. Votre argent est retenu jusqu'à ce que vous validiez la publication.",
   },
   nav: {
     main: "Navigation principale",
@@ -18,7 +21,7 @@ export const landingFr: DeepString<typeof landing> = {
     creators: "Créateurs",
     brands: "Marques",
     logIn: "Se connecter",
-    getApp: "Télécharger l’app",
+    start: "Commencer gratuitement",
   },
   hero: {
     creatorTitleA: "Swipe à droite sur",
@@ -34,10 +37,6 @@ export const landingFr: DeepString<typeof landing> = {
     crowdBrandMany: "marques déjà inscrites",
     crowdCreatorOne: "créateur déjà inscrit",
     crowdCreatorMany: "créateurs déjà inscrits",
-    liveOnWeb: "Déjà en ligne sur le web :",
-    logIn: "connecte-toi",
-    or: "ou",
-    signUp: "inscris-toi",
     examples: "Exemples : les marques, créateurs, notes et chiffres affichés ici sont inventés.",
     drag: "Fais glisser la carte : à droite, ça t’intéresse ; à gauche, tu passes.",
   },
@@ -141,12 +140,12 @@ export const landingFr: DeepString<typeof landing> = {
     title: "Questions fréquentes",
     lead: "Comment la plateforme fonctionne, en clair.",
     ctaTitle: "Prêt à essayer ?",
+    more: "Voir toutes les questions",
   },
   comingSoon: {
     title: "Bientôt sur iOS et Android",
     body: "Les apps arrivent. L’app web est prête maintenant, directement dans ton navigateur.",
     cta: "Commencer dans ton navigateur",
-    note: "Bientôt sur l’App Store et Google Play. Laisse ton e-mail ci-dessous, on te prévient le jour de la sortie.",
   },
   waitlist: {
     alreadyOn: "Tu es déjà sur la liste.",

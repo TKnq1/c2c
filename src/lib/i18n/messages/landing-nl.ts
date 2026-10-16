@@ -10,6 +10,9 @@ export const landingNl: DeepString<typeof landing> = {
       "Veeg door merkdeals met het budget vooraf. Het geld staat klaar voordat je post, en je houdt 90% over. Nu live op het web, binnenkort voor iOS en Android.",
     siteName: "comtor – Marktplaats voor merken en creators",
     siteDescription: "Merken vinden passende creators voor samenwerkingen.",
+    brandTitle: "Vind creators voor samenwerkingen | comtor",
+    brandDescription:
+      "Plaats een deal met je budget en creators die passen melden zich bij jou. Je geld wordt vastgehouden tot je de post hebt goedgekeurd.",
   },
   nav: {
     main: "Hoofdnavigatie",
@@ -18,7 +21,7 @@ export const landingNl: DeepString<typeof landing> = {
     creators: "Creators",
     brands: "Merken",
     logIn: "Inloggen",
-    getApp: "Download de app",
+    start: "Gratis starten",
   },
   hero: {
     creatorTitleA: "Veeg naar rechts op",
@@ -34,10 +37,6 @@ export const landingNl: DeepString<typeof landing> = {
     crowdBrandMany: "merken zijn er al",
     crowdCreatorOne: "creator is er al",
     crowdCreatorMany: "creators zijn er al",
-    liveOnWeb: "Nu al live op het web:",
-    logIn: "inloggen",
-    or: "of",
-    signUp: "aanmelden",
     examples: "Voorbeelden: de merken, creators, beoordelingen en cijfers hier zijn verzonnen.",
     drag: "Sleep de kaart: rechts is geïnteresseerd, links is overslaan.",
   },
@@ -141,12 +140,12 @@ export const landingNl: DeepString<typeof landing> = {
     title: "Veelgestelde vragen",
     lead: "Hoe het platform werkt, in gewone taal.",
     ctaTitle: "Zin om het te proberen?",
+    more: "Alle vragen bekijken",
   },
   comingSoon: {
     title: "Binnenkort voor iOS en Android",
     body: "De apps komen eraan. De webapp is nu al klaar, gewoon in je browser.",
     cta: "Start in je browser",
-    note: "Binnenkort in de App Store en op Google Play. Laat hieronder je e-mailadres achter, dan laten we je de dag weten dat ze uit zijn.",
   },
   waitlist: {
     alreadyOn: "Je staat al op de lijst.",
