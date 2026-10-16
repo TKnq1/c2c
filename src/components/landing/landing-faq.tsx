@@ -22,15 +22,23 @@ export async function LandingFaq() {
           </h2>
         </Reveal>
         <div className="divide-y divide-ink/10 border-y border-ink/10">
-          {/* The first one open, so the list reads as answers, not just a wall of questions. */}
+          {/* The first one open, so the list reads as answers, not just a wall of questions. The rows come up
+              one after another as the list scrolls in; opening and closing glide (see .lp-faq in landing.css). */}
           {faqs.map((f, i) => (
-            <details key={f.question} open={i === 0} className="group">
-              <summary className="flex cursor-pointer list-none items-center justify-between gap-6 py-5 text-left text-lg font-semibold md:py-6 md:text-xl [&::-webkit-details-marker]:hidden">
-                {f.question}
-                <FiPlus aria-hidden="true" className="h-5 w-5 shrink-0 transition-transform duration-300 group-open:rotate-45" />
-              </summary>
-              <p className="max-w-[62ch] pb-6 text-neutral-700 dark:text-neutral-300">{f.answer}</p>
-            </details>
+            <Reveal key={f.question} delay={i * 90}>
+              <details open={i === 0} className="lp-faq group">
+                <summary className="flex cursor-pointer list-none items-center justify-between gap-6 py-5 text-left text-lg font-semibold transition-colors hover:text-graphite md:py-6 md:text-xl [&::-webkit-details-marker]:hidden">
+                  {f.question}
+                  <span
+                    aria-hidden="true"
+                    className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-ink/15 transition-[background-color,color,border-color,transform] duration-300 group-open:border-ink group-open:bg-ink group-open:text-paper group-hover:scale-105"
+                  >
+                    <FiPlus className="h-4 w-4 transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] group-open:rotate-[135deg]" />
+                  </span>
+                </summary>
+                <p className="lp-faq-answer max-w-[62ch] pr-12 pb-6 text-neutral-700 dark:text-neutral-300">{f.answer}</p>
+              </details>
+            </Reveal>
           ))}
         </div>
         <p className="mt-8 text-center">

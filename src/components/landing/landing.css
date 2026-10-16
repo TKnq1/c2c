@@ -124,6 +124,39 @@ html[data-lp-js] .lp-reveal:not(.is-in) .lp-pop {
   transform: translateY(18px) scale(0.82);
 }
 
+/* FAQ rows: the answer's height glides open and shut where the browser can
+   animate to "auto" (::details-content); elsewhere it simply appears. The
+   text itself settles in a beat after the row has opened. */
+.lp-faq {
+  interpolate-size: allow-keywords;
+}
+
+.lp-faq::details-content {
+  block-size: 0;
+  overflow: hidden;
+  transition:
+    block-size 550ms cubic-bezier(0.16, 1, 0.3, 1),
+    content-visibility 550ms allow-discrete;
+}
+
+.lp-faq[open]::details-content {
+  block-size: auto;
+}
+
+.lp-faq-answer {
+  opacity: 0;
+  transform: translateY(-8px);
+  transition:
+    opacity 400ms ease,
+    transform 550ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.lp-faq[open] .lp-faq-answer {
+  opacity: 1;
+  transform: none;
+  transition-delay: 80ms;
+}
+
 /* The 3D icons: grey like the rest of the page (colour is left to the
    photos), bobbing gently; a card under the pointer tips its icon. */
 .lp-icon-tilt {
@@ -322,7 +355,12 @@ html[data-lp-js] .lp-reveal:not(.is-in) .lp-pop {
 
   .lp-reveal,
   .lp-rise-in,
-  .lp-pop {
+  .lp-pop,
+  .lp-faq-answer {
+    transition: none !important;
+  }
+
+  .lp-faq::details-content {
     transition: none !important;
   }
 

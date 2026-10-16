@@ -15,9 +15,8 @@ export async function LandingNav() {
         aria-label={t("landing.nav.main")}
         className="lp-rise pointer-events-auto flex w-full max-w-[680px] items-center gap-2 rounded-full border border-ink/10 bg-paper/75 py-1.5 pr-1.5 pl-3 shadow-[0_10px_30px_-14px_rgb(0_0_0/0.3)] backdrop-blur-xl backdrop-saturate-150"
       >
-        <a href="#top" className="flex shrink-0 items-center gap-2 pr-1">
+        <a href="#top" aria-label={t("landing.nav.home")} className="flex shrink-0 items-center pr-1">
           <Image src="/logo.png" alt="" width={30} height={30} preload className="dark:invert" />
-          <span className="hidden font-display text-xl font-black tracking-tight sm:inline">comtor</span>
         </a>
         <RoleToggle className="mx-auto" />
         <div className="flex shrink-0 items-center gap-1">
