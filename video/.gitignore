@@ -1,4 +1,4 @@
 node_modules
 out
-# Licensed third-party music: not ours to redistribute, kept out of git (README, launch video).
+# Third-party music kept locally, never committed.
 public/music/licensed
