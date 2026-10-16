@@ -13,6 +13,7 @@ file current when an asset is added or replaced. Open items are marked **to conf
 | Logo, splash, email bands and marks | `public/logo.png`, `public/logo-splash.png`, `public/email/band-*.jpg`, `mark-white.png`, `icon.png` | own design (assumed) | **to confirm**: keep the design files and proof of rights |
 | UI icons | `react-icons`: Feather (`fi`), Ionicons (`io5`), Simple Icons (`si`) | MIT, MIT, CC0. Brand marks are the owners' trademarks, used to name the platform | ok |
 | Open-source packages | `node_modules`, `public/third-party-notices.txt` | see `npm run licenses:generate` | regenerate after dependency changes |
+| Launch video music: Lukrembo, "Jay" | `video/public/music/licensed/` (not in git) | freetouse.com. Its free terms allow monetised videos with attribution; content that promotes a business, brand or product needs a paid single-track licence or subscription. No redistribution | **to confirm**: buy the single-track licence before publishing the launch video and keep the licence; otherwise credit as freetouse.com asks |
 | App Store / Google Play badges | none | Removed until the apps are published. Use the current official badges, linked, at launch | n/a |
 
 ## Photo sources (fill in)

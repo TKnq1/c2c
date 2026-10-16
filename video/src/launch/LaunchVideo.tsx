@@ -41,7 +41,7 @@ const Shell: React.FC<{ scene: TimedScene; first: boolean; children: React.React
 
 export const LaunchVideo: React.FC<{ music?: boolean; sfx?: boolean }> = ({ music = true, sfx = true }) => (
   <AbsoluteFill style={{ backgroundColor: "#070707" }}>
-    {music && <Html5Audio src={staticFile("music/launch-bed.mp3")} volume={MUSIC_VOLUME} />}
+    {music && <Html5Audio src={staticFile("music/licensed/launch-track.mp3")} volume={MUSIC_VOLUME} />}
     <SfxEnabled.Provider value={sfx}>
       <SfxGain.Provider value={SFX_GAIN}>
       {LAUNCH_SCENES.map((scene, i) => (

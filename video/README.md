@@ -59,25 +59,22 @@ with its choice sheets, Discover), `phone.tsx` the iPhone and the Feed as the ap
 ```bash
 npm run launch:stills   # one still per scene (its keyframe) to out/launch/ and a contact sheet out/launch-stills.png
 npm run launch:raw      # the picture only: out/launch-raw.mp4
-npm run launch:audio    # regenerate its music and sounds (needs python3, numpy, ffmpeg, fluidsynth, mido)
+npm run launch:audio    # regenerate its sounds and fit the music (needs python3, numpy, ffmpeg)
 npm run launch:render   # with sound, mastered to -14 LUFS: out/launch-final.mp4
 ```
 
-The music is keynote pop, picked from four samples: 108 BPM, D flat major (I-V-vi-IV), a piano pulsing eighths, a
-kalimba figure in 3-3-2, a bass in eighths, four on the floor with claps and a shaker, a glockenspiel hook in the
-later grooves, an 808 sub on the one of every bar like the reference's. The instruments are the FluidR3 GM soundfont
-(MIT) played through fluidsynth (`apt install fluidsynth fluid-soundfont-gm`, `pip install mido`); kick, snaps, sub
-and risers are synthesised. Quiet and filtered under the opening lines, a break under "Ein Swipe" and under the switch
-to brands, drums out for the logo, soft again under the call to action.
+The music is Lukrembo's "Jay" (freetouse.com), licensed: it is not ours to redistribute, so it lives in
+`public/music/licensed/` (ignored by git; put `lukrembo-jay.mp3` there before rendering) and `docs/assets.md` notes
+the licence. `scripts/launch-music.py` fits it to the cut: 80 BPM, the video's turn on its drop, "Und für Marken" on
+its breakdown, the difference on the groove coming back, the logo on its one-bar break, then its outro to the end.
 
-The effects stay minimal and follow the reference's: a quiet, muffled mechanical keyboard, a deep boom on the big
-moments (turn, reveal, payout, brands, logo), a shimmering whoosh into every zoom cut, a soft rising blip as UI comes
-in (the opening's modules, the briefing's sheets, Discover's filters), a slam under words, a select tick; `SfxGain`
-(`src/audio.tsx`) sets their overall level. They are synthesised like the rest (`public/sfx/key-*.wav`, `boom`,
-`shimmer`, `whoop`, `whoop-low`, `slam`, `select`).
+The effects stay minimal under the music: a quiet, muffled mechanical keyboard, a soft low boom on the big moments
+(turn, reveal, payout, brands, logo), a shimmering whoosh into every zoom cut, a slam under words, a select tick;
+`SfxGain` (`src/audio.tsx`) sets their overall level. They are synthesised (`scripts/make-audio.py --launch`:
+`public/sfx/key-*.wav`, `boom`, `shimmer`, `slam`, `select`).
 
-Every scene lasts whole beats (`beats` in `src/launch/scenes.tsx`), so every cut lands on a beat; `scripts/grid.ts`
-hands the starts to `scripts/make-audio.py --launch`. Change a scene's beats, then run `npm run launch:audio`.
-`LaunchVideo` takes `music` and `sfx` props to render either layer on its own. The creators on Discover take a
-portrait each (`photo` in `CREATORS`, `src/launch/app-screens.tsx`, a file in `public/`); without one the tile shows
-the initials.
+Every scene lasts whole beats (`beats` in `src/launch/scenes.tsx`, halves allowed), so every cut lands on a beat of
+the track; `scripts/grid.ts` hands the starts to `scripts/launch-music.py`. Change a scene's beats, then run `npm run
+launch:audio`. `LaunchVideo` takes `music` and `sfx` props to render either layer on its own. The creators on Discover
+take a portrait each (`photo` in `CREATORS`, `src/launch/app-screens.tsx`, a file in `public/`); without one the tile
+shows the initials.

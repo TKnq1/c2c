@@ -475,270 +475,6 @@ def make_ad_bed(grid, audience):
 
 
 # ---------------------------------------------------------------------------------------------------------------
-# The launch video (src/launch): keynote pop, the direction picked from four samples. 108 BPM (every cut lands on a
-# beat), D flat major, I-V-vi-IV; a piano pulsing eighths, a kalimba figure in 3-3-2, a bass in eighths, four on the
-# floor with claps on two and four and a shaker, a glockenspiel hook in the later grooves. Real instruments: the
-# FluidR3 GM soundfont (MIT) played through fluidsynth (apt: fluidsynth fluid-soundfont-gm; pip: mido); kick, snaps,
-# risers synthesised here. Quiet and filtered under the opening lines, breaks under "Ein Swipe" and the switch to
-# brands, drums out for the logo, soft again under the call to action.
-
-LAUNCH_BPM = 108
-LBEAT = 60 / LAUNCH_BPM
-SF2 = Path("/usr/share/sounds/sf2/FluidR3_GM.sf2")
-# (bass note, piano triad) per bar: D flat, A flat over C, B flat minor, G flat.
-KEYNOTE_PROG = [(49, [61, 65, 68]), (48, [60, 63, 68]), (46, [61, 65, 70]), (42, [61, 66, 70])]
-# The glockenspiel hook over two bars (beat, length, note).
-KEYNOTE_HOOK = [(0, 1, 80), (1, 0.5, 77), (1.5, 1, 75), (2.5, 1.5, 73), (4, 0.5, 75), (4.5, 0.5, 77), (5, 2.5, 80), (7.5, 0.5, 82)]
-
-
-def lt(beat):
-    return beat * LBEAT
-
-
-def gm_render(notes, program, length, drum=False):
-    """Plays (beat, beats, note, velocity) on one GM program (or the drum kit) through fluidsynth, stereo, `length` s."""
-    import mido
-
-    mid = mido.MidiFile(ticks_per_beat=480)
-    track = mido.MidiTrack()
-    mid.tracks.append(track)
-    ch = 9 if drum else 0
-    track.append(mido.MetaMessage("set_tempo", tempo=mido.bpm2tempo(LAUNCH_BPM), time=0))
-    if not drum:
-        track.append(mido.Message("program_change", program=program, channel=ch, time=0))
-    events = sorted(
-        [(int(b * 480), 1, n, int(np.clip(v, 1, 127))) for b, d, n, v in notes] + [(int((b + d) * 480), 0, n, 0) for b, d, n, v in notes],
-        key=lambda e: (e[0], e[1]),
-    )
-    now = 0
-    for at, on, note, vel in events:
-        track.append(mido.Message("note_on" if on else "note_off", note=note, velocity=vel, channel=ch, time=at - now))
-        now = at
-    with tempfile.TemporaryDirectory() as tmp:
-        mid_path, wav_path = Path(tmp) / "part.mid", Path(tmp) / "part.wav"
-        mid.save(mid_path)
-        subprocess.run(
-            ["fluidsynth", "-ni", "-q", "-R", "0", "-C", "0", "-g", "0.6", "-r", str(SR), "-T", "wav", "-F", str(wav_path), str(SF2), str(mid_path)],
-            check=True,
-            capture_output=True,
-        )
-        with wave.open(str(wav_path)) as w:
-            data = np.frombuffer(w.readframes(w.getnframes()), dtype="<i2").astype(np.float64).reshape(-1, w.getnchannels()) / 32768
-    out = np.zeros((int(length * SR), 2))
-    n = min(len(out), len(data))
-    out[:n] = data[:n, :2]
-    return out
-
-
-def level(x, target_db):
-    """Scales a stem so its sounding part sits at `target_db` RMS: the mix is set by these targets."""
-    sounding = x[np.abs(x).max(axis=1) > 1e-4]
-    rms = np.sqrt(np.mean(sounding**2)) if len(sounding) else 1.0
-    return x * 10 ** (target_db / 20) / max(rms, 1e-9)
-
-
-def stereo_band(x, lo=None, hi=None):
-    return np.stack([band(x[:, ch], lo, hi) for ch in range(2)], axis=1)
-
-
-def widen(x, amount):
-    mid, side = (x[:, 0] + x[:, 1]) / 2, (x[:, 0] - x[:, 1]) / 2 * amount
-    return np.stack([mid + side, mid - side], axis=1)
-
-
-def open_filter(x, start, stop, f0, f1, steps=24):
-    """Low-pass opening from f0 to f1 between `start` and `stop` seconds, in short blocks."""
-    out = x.copy()
-    edges = np.linspace(int(start * SR), int(stop * SR), steps + 1).astype(int)
-    pad = int(0.05 * SR)
-    for k in range(steps):
-        lo, hi = edges[k], edges[k + 1]
-        s0 = max(0, lo - pad)
-        out[lo:hi] = stereo_band(x[s0:hi], None, f0 * (f1 / f0) ** (k / (steps - 1)))[lo - s0 :]
-    return out
-
-
-def pop_kick(f_end=69.3, punch=1.0, decay=0.22):
-    """A round kick tuned to D flat with a little click on top."""
-    t = axis(0.5)
-    freq = f_end + 90 * punch * np.exp(-t / 0.025)
-    body = np.sin(2 * np.pi * np.cumsum(freq) / SR) * np.exp(-t / decay)
-    click = band(noise(0.5), 1500, 6000) * np.exp(-t / 0.002) * 0.15 * punch
-    return declick(np.tanh((body + click) * 1.4) * np.minimum(1, t / 0.0015))
-
-
-def snap(gain=1.0):
-    """A finger snap: a very short burst between 2 and 7 kHz with a little tone in it."""
-    t = axis(0.12)
-    burst = band(noise(0.12), 2000, 7000) * np.exp(-t / 0.02)
-    tone = np.sin(2 * np.pi * 1850 * t) * np.exp(-t / 0.02) * 0.25
-    return declick((burst + tone) * gain)
-
-
-def riser(dur):
-    """Air rising into a downbeat."""
-    t = axis(dur)
-    raw = noise(dur)
-    out = np.zeros_like(t)
-    for k in range(8):
-        f = 800 * (12000 / 800) ** (k / 7)
-        out += band(raw, f * 0.7, min(f * 1.4, 20000)) * np.exp(-(((t / dur) - k / 7) ** 2) / 0.03)
-    return declick(out * (t / dur) ** 2)
-
-
-def sub_808(freq, dur=0.9):
-    """An 808 sub on a bar's one, the reference's boom under every bar of the groove: a sine dropping onto the chord's
-    root an octave or two down, saturated a little so it carries on small speakers too."""
-    t = axis(dur)
-    glide = freq + freq * 1.6 * np.exp(-t / 0.035)
-    body = np.sin(2 * np.pi * np.cumsum(glide) / SR) * np.exp(-t / 0.42)
-    return declick(np.tanh(body * 1.7) / np.tanh(1.7) * np.minimum(1, t / 0.004), ms=30)
-
-
-def sub_root(note):
-    """The chord's root in the sub's register, 32-62 Hz."""
-    f = midi(note)
-    while f >= 62:
-        f /= 2
-    return f
-
-
-def make_launch_bed(grid):
-    at = grid["scenes"]
-    end = grid["end"]
-    length = lt(end + 2)
-    piano, kal, bass, glock, kit = [], [], [], [], []
-    kicks, snaps, subs = [], [], []
-
-    def chord(start, beat):
-        return KEYNOTE_PROG[int((beat - start) // 4) % 4]
-
-    def pulse(start, stop, loud, soft):
-        """The piano: chords in eighths, the root on one and on the and of three."""
-        for k in range(int((stop - start) * 2)):
-            beat = start + k / 2
-            root, triad = chord(start, beat)
-            for note in triad:
-                piano.append((beat, 0.42, note, loud if k % 2 == 0 else soft))
-            if k % 8 == 0:
-                piano.append((beat, min(1.6, stop - beat), root, loud))
-            if k % 8 == 5:
-                piano.append((beat, min(1.2, stop - beat), root + 12, soft))
-
-    def figure(start, stop, vel):
-        """The kalimba in 3-3-2 on the chord's top notes."""
-        order = [2, 0, 1, 2, 0, 1]
-        for bar in range(int(np.ceil((stop - start) / 4))):
-            for k, step in enumerate((0, 3, 6, 8, 11, 14)):
-                beat = start + bar * 4 + step / 4
-                if beat >= stop:
-                    break
-                _, triad = chord(start, beat)
-                note = triad[order[k]] + 12 + (12 if order[k] == 0 else 0)
-                kal.append((beat, 0.5, note, vel + (14 if step in (0, 8) else 0)))
-
-    def groove(start, stop, hook=False):
-        pulse(start, stop, 74, 58)
-        figure(start, stop, 70)
-        for k in range(int((stop - start) * 2)):
-            beat = start + k / 2
-            root, _ = chord(start, beat)
-            bass.append((beat, 0.4, root - 12 if root > 45 else root, 96 if k % 2 == 0 else 78))
-        for k in range(int((stop - start) * 4)):
-            beat = start + k / 4
-            step = k % 16
-            if step % 4 == 0:
-                kicks.append(lt(beat))
-            if step in (4, 12):
-                snaps.append(lt(beat))
-                kit.append((beat, 0.2, 39, 100))
-            kit.append((beat, 0.1, 70, 70 if step % 4 == 2 else 42))
-            if hook and step % 4 == 2:
-                kit.append((beat, 0.2, 46, 52))
-        kit.append((start, 2, 49, 84))
-        for bar_at in np.arange(start, stop, 4.0):
-            subs.append((lt(bar_at), sub_root(chord(start, bar_at)[0])))
-        if hook:
-            for rep in range(1, int((stop - start) // 8)):
-                for b, d, note in KEYNOTE_HOOK:
-                    if start + rep * 8 + b + d <= stop:
-                        glock.append((start + rep * 8 + b, d, note, 76))
-
-    turn, swipe_line, swipe, brands, brief, logo, cta = (at[k] for k in ("L02", "L06", "L07", "L10", "L11", "L14", "L15"))
-    # Opening: the piano soft and filtered, the kalimba joining halfway, no drums.
-    pulse(0, turn, 50, 38)
-    figure(8, turn, 52)
-    groove(turn, swipe_line)
-    # "Ein Swipe": the kalimba and the piano's held chord alone, then back in.
-    figure(swipe_line, swipe, 74)
-    for note in KEYNOTE_PROG[0][1]:
-        piano.append((swipe_line, swipe - swipe_line, note, 50))
-    groove(swipe, brands, hook=True)
-    # The switch to brands: a pulse on the one, the piano and the shaker.
-    pulse(brands, brief, 60, 46)
-    for beat in np.arange(brands, brief, 1.0):
-        if (beat - brands) % 4 == 0:
-            kicks.append(lt(beat))
-        for q in range(4):
-            kit.append((beat + q / 4, 0.1, 70, 52 if q == 2 else 34))
-    groove(brief, logo, hook=True)
-    # Logo: drums out, G flat to D flat held, the kalimba running up, a crash.
-    kit.append((logo, 3, 49, 90))
-    for beat, (root, triad) in ((logo, (42, [54, 61, 66, 70])), (logo + 4, (49, [61, 65, 68, 73]))):
-        for note in triad:
-            piano.append((beat, 4, note, 72))
-        piano.append((beat, 4, root - 12, 70))
-        bass.append((beat, 3.5, root - 12 if root > 45 else root, 90))
-        for k, note in enumerate(sorted(triad)):
-            kal.append((beat + k * 0.5, 1, note + 12, 74))
-    # Call to action: soft again, the figure ticking on, the last chord held to the end.
-    pulse(cta, end - 4, 46, 34)
-    figure(cta, end - 4, 50)
-    for note in [37, 49, 61, 65, 68, 73]:
-        piano.append((end - 4, 4, note, 64))
-    kal.append((end - 4, 2, 80, 64))
-
-    parts = {
-        "piano": level(stereo_band(gm_render(piano, 0, length), 90, None), -17),
-        "kalimba": level(widen(stereo_band(gm_render(kal, 108, length), 300, None), 1.3), -21),
-        "bass": level(stereo_band(gm_render(bass, 33, length), None, 3000), -18),
-        "glock": level(gm_render(glock, 9, length), -24),
-        "kit": level(stereo_band(gm_render(kit, 0, length, drum=True), 200, None), -23),
-    }
-    drums = np.zeros((int(length * SR), 2))
-    for t0 in kicks:
-        place(drums, t0, pop_kick(), gain=1.0)
-    drums = level(drums, -15)
-    sub = np.zeros_like(drums)
-    for t0, freq in subs:
-        place(sub, t0, sub_808(freq))
-    sub = level(sub, -15.5)
-    claps = np.zeros_like(drums)
-    for t0 in snaps:
-        place(claps, t0, snap(), pan=0.1)
-    claps = level(claps, -27)
-    air = np.zeros_like(drums)
-    for beat in (turn, logo):
-        place(air, lt(beat - 2), riser(lt(2)))
-    air = level(air, -28)
-
-    music = parts["piano"] + parts["kalimba"] + parts["bass"] + parts["glock"]
-    # A gentle sidechain from the kick, so the groove breathes without pumping.
-    duck = np.ones(len(music))
-    for t0 in kicks:
-        i = int(t0 * SR)
-        seg = np.arange(min(int(0.4 * SR), len(duck) - i)) / SR
-        duck[i : i + len(seg)] = np.minimum(duck[i : i + len(seg)], 1 - 0.22 * np.exp(-seg / 0.12))
-    music *= duck[:, None]
-    # The opening sits low and dark, opening up into the turn.
-    music = open_filter(music, 0, lt(turn), 900, 9000)
-    mix = reverb(music + parts["kit"] * 0.5 + claps, seconds=2.0, decay=0.5, wet=0.22) + parts["kit"] * 0.5 + drums + sub + air
-    fade = int(1.6 * SR)
-    mix[-fade:] *= np.linspace(1, 0, fade)[:, None] ** 1.5
-    return mix
-
-
-# ---------------------------------------------------------------------------------------------------------------
 # Sound effects (mono)
 
 
@@ -825,7 +561,7 @@ def sfx_lock():
 BED_LOUDNESS = "I=-14:TP=-1.5:LRA=11"
 
 
-def write_mp3(path, x, peak, limit=False):
+def write_mp3(path, x, peak):
     with tempfile.TemporaryDirectory() as tmp:
         wav_path = Path(tmp) / "bed.wav"
         write(wav_path, x, peak)
@@ -838,10 +574,7 @@ def write_mp3(path, x, peak, limit=False):
             text=True,
         ).stderr
         measured = json.loads(probe[probe.rindex("{") :])
-        # loudnorm drops to dynamic compression when one gain would push the peaks past the ceiling; with `limit` the
-        # gain is applied as is and a fast limiter catches the transients instead, so quiet passages stay quiet.
-        gain = -14 - float(measured["input_i"])
-        second = f"volume={gain:.2f}dB,alimiter=limit=0.84:attack=1:release=40:level=0" if limit else (
+        second = (
             f"loudnorm={BED_LOUDNESS}:linear=true:measured_I={measured['input_i']}:measured_TP={measured['input_tp']}"
             f":measured_LRA={measured['input_lra']}:measured_thresh={measured['input_thresh']}:offset={measured['target_offset']}"
         )
@@ -963,9 +696,7 @@ def seed(name):
 
 
 def main_launch():
-    seed("launch-bed.mp3")
-    # One gain and a limiter instead of loudnorm's compression, so the quiet opening stays ~9 dB under the groove.
-    write_mp3(ROOT / "music" / "launch-bed.mp3", make_launch_bed(GRID["launch"]), peak=0.8, limit=True)
+    """The launch video's own sounds; its music is a licensed track (scripts/launch-music.py)."""
     effects = {
         "key-1": lambda: sfx_key(190),
         "key-2": lambda: sfx_key(215),
