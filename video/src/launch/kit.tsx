@@ -537,6 +537,40 @@ export const Tick: React.FC<{ size?: number; dark?: boolean; done?: boolean }> =
   </span>
 );
 
+// The reference's soft white haze: the frame's edges fade into white and a few large, very soft clouds drift over the
+// UI, so the modules sit in depth instead of on a flat page. Drawn above the UI and below the words.
+const CLOUDS = [
+  { x: 10, y: 96, w: 980, h: 420 },
+  { x: 88, y: 94, w: 1100, h: 460 },
+  { x: 46, y: -8, w: 1200, h: 380 },
+  { x: -6, y: 44, w: 560, h: 980 },
+  { x: 106, y: 52, w: 560, h: 980 },
+];
+
+export const Haze: React.FC<{ strength?: number }> = ({ strength = 1 }) => {
+  const frame = useFrame();
+  return (
+    <AbsoluteFill style={{ pointerEvents: "none" }}>
+      <AbsoluteFill style={{ background: "radial-gradient(ellipse 72% 68% at 50% 50%, rgba(255,255,255,0) 52%, rgba(255,255,255,0.88) 100%)", opacity: strength }} />
+      {CLOUDS.map((c, i) => (
+        <div
+          key={i}
+          style={{
+            position: "absolute",
+            left: `calc(${c.x + 3 * Math.sin(frame / 90 + i)}% - ${c.w / 2}px)`,
+            top: `calc(${c.y + 2 * Math.cos(frame / 110 + i * 1.7)}% - ${c.h / 2}px)`,
+            width: c.w,
+            height: c.h,
+            borderRadius: "50%",
+            background: "radial-gradient(closest-side, rgba(255,255,255,0.92), rgba(255,255,255,0))",
+            opacity: 0.8 * strength,
+          }}
+        />
+      ))}
+    </AbsoluteFill>
+  );
+};
+
 // UI floating out of focus behind the opening lines.
 export const Ghost: React.FC<{ x: number; y: number; blur?: number; opacity?: number; rotate?: number; children: ReactNode }> = ({ x, y, blur = 6, opacity = 0.55, rotate = 0, children }) => (
   <div style={{ position: "absolute", left: x, top: y, filter: `blur(${blur}px)`, opacity, transform: `rotate(${rotate}deg)` }}>{children}</div>

@@ -927,13 +927,6 @@ def sfx_shimmer(dur=0.9):
     return declick(out, ms=6)
 
 
-def sfx_whoop(f0=520, f1=1050, dur=0.32):
-    """A soft rising blip as UI comes in: a sine gliding up an octave in ~90 ms with a touch of its octave, fading."""
-    t = axis(dur)
-    phase = 2 * np.pi * np.cumsum(f0 + (f1 - f0) * (1 - np.exp(-t / 0.035))) / SR
-    return declick((np.sin(phase) + 0.18 * np.sin(2 * phase)) * np.minimum(1, t / 0.012) * np.exp(-t / 0.09), ms=6)
-
-
 def sfx_whip(dur=0.5):
     """The whip into a word: a soft rush of air rising to the cut, quieter and smoother than a whoosh."""
     t = axis(dur)
@@ -983,8 +976,6 @@ def main_launch():
         "select": sfx_select,
         "boom": sfx_boom,
         "shimmer": sfx_shimmer,
-        "whoop": sfx_whoop,
-        "whoop-low": lambda: sfx_whoop(380, 760),
     }
     for name, make in effects.items():
         seed(name)

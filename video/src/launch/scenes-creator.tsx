@@ -20,7 +20,9 @@ import {
   fitScale,
   flyIn,
   flyOut,
+  Ghost,
   glide,
+  Haze,
   LAUNCH_HEIGHT,
   LAUNCH_WIDTH,
   LightSweep,
@@ -37,7 +39,7 @@ import {
 } from "./kit";
 import { caretOn, FocusWords, Keys, last, SlamWords, Typed } from "./parts";
 import { IPhone, PHONE, PhoneFeed } from "./phone";
-import { CreatorFeed, DmThread, InvoiceSnippet, MailRow, MatchChecklist, type SwipeState, VINTAGE_JACKET } from "./screens";
+import { CreatorFeed, DmThread, InvoiceSnippet, MailRow, MatchChecklist, SheetSnippet, type SwipeState, VINTAGE_JACKET } from "./screens";
 
 // The creator's half of the launch video (LAUNCH.md): the problem, the reveal, the Feed, the match, the swipe, the
 // deal and the payout. Each scene runs on its own clock from 0.
@@ -111,23 +113,28 @@ const Reminders: React.FC<{ count: number }> = ({ count }) => (
   </div>
 );
 
-// A module flying in from an edge after `at` with its own spring, flying off again from `out`.
-const Module: React.FC<{ x: number; y: number; at: number; kind: "snap" | "swing" | "glide"; from: { x?: number; y?: number; r?: number }; out?: number; to?: { x?: number; y?: number; r?: number }; scale?: number; children: ReactNode }> = ({
-  x,
-  y,
-  at,
-  kind,
-  from,
-  out,
-  to,
-  scale = 1,
-  children,
-}) => {
+// A module flying in from an edge after `at` with its own spring, flying off again from `out`. Like a camera's focus
+// it arrives soft and sharpens as it lands, and blurs again leaving; `depth` (0..1) keeps one further back soft and
+// a little faded for good.
+const Module: React.FC<{
+  x: number;
+  y: number;
+  at: number;
+  kind: "snap" | "swing" | "glide";
+  from: { x?: number; y?: number; r?: number };
+  out?: number;
+  to?: { x?: number; y?: number; r?: number };
+  scale?: number;
+  depth?: number;
+  children: ReactNode;
+}> = ({ x, y, at, kind, from, out, to, scale = 1, depth = 0, children }) => {
   const frame = useFrame();
   const p = spr(frame, at, kind);
   if (frame < at) return null;
+  const leaving = out !== undefined ? ramp(frame, out, out + 22) : 0;
+  const blur = Math.max(depth * 7, (1 - Math.min(1, Math.max(0, p))) * 16) + leaving * 14;
   return (
-    <div style={{ position: "absolute", left: x, top: y, transform: `scale(${scale})`, transformOrigin: "0 0" }}>
+    <div style={{ position: "absolute", left: x, top: y, transform: `scale(${scale})`, transformOrigin: "0 0", filter: blur > 0.3 ? `blur(${blur.toFixed(1)}px)` : undefined, opacity: 1 - depth * 0.35 }}>
       <div style={out !== undefined ? flyOut(frame, out, 22, to ?? {}) : undefined}>
         <div style={flyIn(p, from)}>{children}</div>
       </div>
@@ -170,21 +177,35 @@ const Opening: React.FC = () => {
       <Keys times={Array.from({ length: 12 }, (_, k) => ERASE + 1 + k * 2)} del volume={0.45} />
       <Keys times={C_TIMES} />
       <Sfx name="select" at={SELECT_C[0]} volume={0.5} />
-      {/* A soft rising blip as each module flies in, alternating high and low. */}
-      {[4, 10, 18, 30, ERASE + 10, ERASE + 18, ERASE + 26, ERASE + 36].map((at, i) => (
-        <Sfx key={`m${at}`} name={i % 2 ? "whoop-low" : "whoop"} at={at + 6} volume={0.28} />
-      ))}
+      {/* Far back: UI out of focus, drifting a little more than the modules in front of it. */}
+      <AbsoluteFill style={{ transform: `scale(${1 + (camera - 1) * 0.03}) translate(${10 * Math.sin(frame / 120)}px, ${6 * Math.cos(frame / 140)}px)` }}>
+        <Ghost x={640} y={-60} blur={10} opacity={0.45}>
+          <SheetSnippet rows={[["Marke", "Status"], ["Kiez Goods", "keine Antwort"], ["Glow Lab", "keine Antwort"]]} />
+        </Ghost>
+        <Ghost x={-170} y={430} blur={12} opacity={0.4} rotate={-3}>
+          <MailRow from="Glow Lab" subject="Automatische Antwort: Abwesend" />
+        </Ghost>
+        <Ghost x={1530} y={980} blur={9} opacity={0.45}>
+          <MailRow from="Kiez Goods" subject="Re: Anfrage" />
+        </Ghost>
+        <Ghost x={560} y={930} blur={13} opacity={0.35} rotate={2}>
+          <InvoiceSnippet days={31} />
+        </Ghost>
+        <Ghost x={1660} y={430} blur={11} opacity={0.4}>
+          <DmThread name="Kiez Goods" text="Danke, wir melden uns." bubble={1} />
+        </Ghost>
+      </AbsoluteFill>
       <AbsoluteFill style={{ transform: `scale(${1 + (camera - 1) * 0.06})` }}>
         <Module x={110} y={80} at={4} kind="swing" from={{ x: -520, y: -260, r: -14 }} {...away({ x: -900, y: -200, r: -10 })}>
           <DmThread name="Glow Lab" text="Hey! Ich liebe eure Produkte. Habt ihr Lust auf eine Kooperation? 🙂" bubble={pop(frame, 16)} seenAt={ramp(frame, 54, 62)} />
         </Module>
-        <Module x={1310} y={150} at={18} kind="glide" from={{ x: 760, r: 6 }} {...away({ x: 900, y: -120 })} scale={0.95}>
+        <Module x={1310} y={150} at={18} kind="glide" from={{ x: 760, r: 6 }} {...away({ x: 900, y: -120 })} scale={0.95} depth={0.4}>
           <MailRow from="Nordwerk" subject="Re: Re: Kooperation?" />
         </Module>
         <Module x={1290} y={640} at={10} kind="snap" from={{ x: 520, y: 420, r: 12 }} {...away({ x: 900, y: 400, r: 8 })}>
           <OutreachSheet sent={sent} replies={replies} shown={1 + (frame - 24) / 10} />
         </Module>
-        <Module x={150} y={700} at={30} kind="swing" from={{ y: 560, r: 9 }} {...away({ x: -500, y: 600, r: 12 })} scale={0.92}>
+        <Module x={150} y={700} at={30} kind="swing" from={{ y: 560, r: 9 }} {...away({ x: -500, y: 600, r: 12 })} scale={0.92} depth={0.3}>
           <DmThread name="Lumo Audio" text="Hallo, ich wollte nochmal nachfragen …" seen="Gesendet vor 9 Tagen" bubble={pop(frame, 42)} seenAt={ramp(frame, 76, 84)} />
         </Module>
         <Module x={170} y={120} at={ERASE + 10} kind="swing" from={{ y: -520, r: -9 }}>
@@ -193,12 +214,15 @@ const Opening: React.FC = () => {
         <Module x={1300} y={150} at={ERASE + 18} kind="snap" from={{ x: 700, r: 8 }}>
           <DmThread name="Nordwerk" text="Kannst du mir deine IBAN nochmal schicken?" seen="Gelesen" bubble={pop(frame, ERASE + 28)} seenAt={ramp(frame, ERASE + 60, ERASE + 68)} />
         </Module>
-        <Module x={1240} y={760} at={ERASE + 26} kind="glide" from={{ x: 500, y: 300 }}>
+        <Module x={1240} y={760} at={ERASE + 26} kind="glide" from={{ x: 500, y: 300 }} depth={0.35}>
           <Reminders count={reminders} />
         </Module>
-        <Module x={190} y={780} at={ERASE + 36} kind="swing" from={{ x: -600, r: -6 }} scale={0.95}>
+        <Module x={190} y={780} at={ERASE + 36} kind="swing" from={{ x: -600, r: -6 }} scale={0.95} depth={0.45}>
           <MailRow from="Nordwerk" subject="Re: Rechnung 017, wir prüfen das intern" />
         </Module>
+      </AbsoluteFill>
+      <Haze />
+      <AbsoluteFill style={{ transform: `scale(${1 + (camera - 1) * 0.06})` }}>
         {frame >= 6 && <NameCursor x={pos.x} y={pos.y} name="Mia" press={pressAt(frame, 40) + pressAt(frame, 84)} />}
       </AbsoluteFill>
       <Center>
@@ -253,7 +277,6 @@ const Reveal: React.FC = () => {
       <Sfx name="boom" at={0} volume={0.7} />
       <Sfx name="slam" at={0} volume={0.6} />
       <Sfx name="whoosh" at={42} volume={0.2} />
-      <Sfx name="pop" at={ICON_AT} volume={0.7} />
       <Keys times={NAME_TIMES} />
       <Center>
         <div style={{ display: "flex", alignItems: "center", transform: `scale(${drift(frame, 160, 1.06, 0.8)})` }}>
@@ -451,7 +474,6 @@ const Swipe: React.FC = () => {
     <Backdrop light="mist">
       <Sfx name="tick" at={GRAB} volume={0.5} />
       <Sfx name="swipe" at={LET_GO - 2} volume={0.65} />
-      <Sfx name="like" at={LET_GO + 2} volume={0.5} />
       <Sfx name="whoosh" at={136} volume={0.2} />
       <AbsoluteFill style={{ perspective: 2600 }}>
         <div
@@ -524,13 +546,9 @@ const DealFlow: React.FC = () => {
   const press = pressAt(frame, ACCEPT) + pressAt(frame, SUBMIT);
   return (
     <Backdrop light="mist">
-      {MSG_AT.map((at) => (
-        <Sfx key={at} name="pop-low" at={at} volume={0.35} />
-      ))}
       <Sfx name="ding" at={OFFER_AT} volume={0.25} />
       <Sfx name="click" at={ACCEPT} volume={0.6} />
       <Sfx name="lock" at={PAID} volume={0.55} />
-      <Sfx name="pop" at={LINK_AT} volume={0.4} />
       <Sfx name="click" at={SUBMIT} volume={0.6} />
       <Sfx name="coin" at={RELEASED} volume={0.55} />
       <AbsoluteFill style={{ transform: `scale(${mix(push, 1, 1.22)})`, transformOrigin: `${((CARD_X + 120) / 19.2).toFixed(1)}% ${((CARD_BOTTOM - 70) / 10.8).toFixed(1)}%` }}>

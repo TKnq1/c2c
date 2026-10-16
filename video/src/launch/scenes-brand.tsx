@@ -142,9 +142,6 @@ const Briefing: React.FC = () => {
       {clicks.map((c) => (
         <Sfx key={c} name="click" at={c} volume={0.5} />
       ))}
-      {STEPS.map(({ go }) => (
-        <Sfx key={go} name="whoop-low" at={plan(go).open} volume={0.3} />
-      ))}
       <Sfx name="click" at={POST_AT} volume={0.65} />
       <Sfx name="success" at={POST_AT + 6} volume={0.5} />
       <AbsoluteFill style={{ transform: `scale(${zoom})`, transformOrigin: "52% 50%" }}>
@@ -232,9 +229,6 @@ const Discover: React.FC = () => {
   return (
     <Backdrop light="mist">
       {FILTERS.map((at) => (
-        <Sfx key={at} name="whoop" at={at} volume={0.3} />
-      ))}
-      {FILTERS.map((at) => (
         <Sfx key={`w${at}`} name="swipe" at={at + 4} volume={0.2} />
       ))}
       <Sfx name="click" at={INVITE_AT} volume={0.6} />
@@ -289,7 +283,6 @@ const EndCard: React.FC = () => {
   return (
     <Backdrop light="mist">
       <Sfx name="boom" at={4} volume={0.7} />
-      <Sfx name="pop-low" at={4} volume={0.7} />
       <Keys times={END_TIMES} />
       <Center>
         <div style={{ display: "flex", alignItems: "center", gap: letters > 0 ? 44 : 0, transform: `scale(${drift(frame, 145, 1.12, 0.76)})` }}>
